@@ -1,0 +1,9 @@
+services:
+  tenxpros-web:
+    image: nginx:alpine
+    container_name: tenxpros-web
+    restart: unless-stopped
+    ports:
+      - "3003:80"
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
