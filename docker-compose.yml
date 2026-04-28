@@ -1,9 +1,55 @@
+# TenXPros production-style stack.
+#
+# Services:
+#   - tenxpros-db   Postgres 16 on host port 5433 (preserved volume)
+#   - tenxpros-app  Real Next.js app, container :3000 → host :3003
+#
+# All secrets and per-environment values for the app live in
+# `.env.production` at the repo root (chmod 600, gitignored). This
+# file contains no secrets and is safe to commit.
+#
+# The Caddy proxy (`tenxops-caddy-1`) routes `tenxpros.com` →
+# `172.17.0.1:3003`, so binding the app to host 3003 is the
+# integration contract.
+#
+# The previous `tenxpros-web` nginx placeholder was retired in M0.2.
+# The legacy compose snapshot is preserved at
+# `_legacy_placeholder/docker-compose.yml.bak` for rollback.
+
 services:
-  tenxpros-web:
-    image: nginx:alpine
-    container_name: tenxpros-web
+  db:
+    image: postgres:16-alpine
+    container_name: tenxpros-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tenxpros
+      POSTGRES_PASSWORD: tenxpros_dev
+      POSTGRES_DB: tenxpros
+    ports:
+      - "5433:5432"
+    volumes:
+      - tenxpros-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenxpros -d tenxpros"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  tenxpros-app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: tenxpros-app
     restart: unless-stopped
     ports:
-      - "3003:80"
-    volumes:
-      - ./html:/usr/share/nginx/html:ro
+      - "3003:3000"
+    # All real values come from .env.production — see
+    # docs/SECURITY_AND_COMPLIANCE.md for the full list and rotation policy.
+    env_file:
+      - ./.env.production
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  tenxpros-db-data:

@@ -1,0 +1,876 @@
+// =============================================================================
+// TenXPros Prisma schema
+// =============================================================================
+// Domain: AI adoption, education, assessment, certification & talent connection
+// for individual professionals (and the organisations who want to hire them).
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+enum UserRole {
+  PROFESSIONAL
+  EMPLOYER
+  ADMIN
+  REVIEWER
+  INSTRUCTOR
+}
+
+enum VisibilityStatus {
+  PRIVATE
+  REVIEWERS_ONLY
+  EMPLOYER_VISIBLE
+  PUBLIC
+}
+
+enum CertificateLevel {
+  L1_AI_READY
+  L2_AI_ADOPTED
+  L3_AI_AUGMENTED
+  L4_AI_IMPLEMENTER
+  L5_AI_LEADER
+}
+
+enum CertificateStatus {
+  DRAFT
+  PENDING_REVIEW
+  ISSUED
+  EXPIRED
+  REVOKED
+}
+
+enum WorkMode {
+  HUMAN_LED
+  AI_ASSISTED
+  RULES_BASED
+  AUTOMATED
+  AI_TOOL_CHAIN
+  ESCALATE
+  NOT_SUITABLE
+}
+
+enum EvidenceType {
+  BEFORE_AFTER_ARTIFACT
+  PROMPT_CHAIN
+  AI_WORKFLOW
+  REPORT
+  PRESENTATION
+  DOC_IMPROVEMENT
+  JOB_APPLICATION_IMPROVEMENT
+  AUTOMATION_DESIGN
+  SCENARIO_RESPONSE
+  DECISION_LOG
+  PORTFOLIO_LINK
+  FILE_UPLOAD
+}
+
+enum EvidenceStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  NEEDS_REVISION
+  REJECTED
+}
+
+enum ReviewDecision {
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  NEEDS_REVISION
+  REJECTED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
+}
+
+enum EmployerRequestStatus {
+  NEW
+  DISCOVERY
+  ROLE_DEFINED
+  SHORTLIST_PREPARING
+  SHORTLIST_SENT
+  INTERVIEWS_ACTIVE
+  CLOSED_HIRED
+  CLOSED_NO_FIT
+  PAUSED
+  // legacy values kept for back-compat with any existing rows / forms
+  IN_REVIEW
+  CONTACTED
+  FULFILLED
+  REJECTED
+}
+
+enum TalentPoolStatus {
+  NOT_VISIBLE
+  ELIGIBLE
+  VISIBLE
+  SHORTLISTED
+  INTRODUCED
+  INTERVIEWING
+  OFFER_DISCUSSION
+  HIRED
+  PAUSED
+}
+
+enum RoleNeedStatus {
+  OPEN
+  ON_HOLD
+  CLOSED
+}
+
+enum MatchStatus {
+  OFFERED
+  INTRODUCED
+  INTERVIEWING
+  DECLINED_BY_PRO
+  DECLINED_BY_EMPLOYER
+  CLOSED
+}
+
+enum AIRunPurpose {
+  DIAGNOSTIC_REPORT
+  TASK_CLASSIFICATION
+  LEARNING_RECOMMENDATION
+  SCENARIO_GENERATION
+  INTERVIEW_QUESTIONS
+  EVIDENCE_SUMMARY
+  CERTIFICATE_SUMMARY
+  CANDIDATE_SUMMARY
+  GENERIC
+}
+
+enum AIRunStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum TaskFrequency {
+  AD_HOC
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ConfidentialityLevel {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+}
+
+// =============================================================================
+// Identity
+// =============================================================================
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String?
+  role            UserRole  @default(PROFESSIONAL)
+  name            String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastLoginAt     DateTime?
+
+  professional            ProfessionalProfile?
+  organization            OrganizationProfile?
+  sessions                Session[]
+  auditLogs               AuditLog[]
+  aiRuns                  AIRunLog[]           @relation("AIRunInitiator")
+  certReviews             CertificateReview[]  @relation("ReviewerCert")
+  assessmentReviews       AssessmentReview[]   @relation("ReviewerAssessment")
+  evidenceReviews         EvidenceReview[]     @relation("ReviewerEvidence")
+  certsIssued             Certificate[]        @relation("CertIssuer")
+  employerRequestsHandled EmployerRequest[]    @relation("RequestHandler")
+
+  @@index([role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  userAgent String?
+  ip        String?
+
+  @@index([userId])
+}
+
+// =============================================================================
+// Professional
+// =============================================================================
+
+model ProfessionalProfile {
+  id               String           @id @default(cuid())
+  userId           String           @unique
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug             String           @unique
+  headline         String?
+  currentRole      String?
+  targetRole       String?
+  industry         String?
+  location         String?
+  remotePreference String?
+  languages        String[]         @default([])
+  workExperience   Json?
+  education        Json?
+  skills           String[]         @default([])
+  tools            String[]         @default([])
+  aiToolsUsed      String[]         @default([])
+  careerGoals      String?
+  portfolioLinks   String[]         @default([])
+  resumeUrl        String?
+  linkedinUrl      String?
+  githubUrl        String?
+  websiteUrl       String?
+  visibility       VisibilityStatus @default(PRIVATE)
+  publicReady      Boolean          @default(false)
+  readinessScore   Int?
+  talentPoolStatus TalentPoolStatus @default(NOT_VISIBLE)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  diagnostics         AIReadinessDiagnostic[]
+  reports             AIReadinessReport[]
+  tasks               ProfessionalTask[]
+  lessonProgress      LessonCompletion[]
+  scenarioSubmissions ScenarioSubmission[]
+  evidence            EvidenceArtifact[]
+  certificates        Certificate[]
+  publicProfile       PublicProfile?
+  matches             EmployerMatch[]
+  requestsForMe       EmployerRequest[]       @relation("RequestedProfessional")
+  tenxroleConnection  TenXRoleConnection?
+  promptPacks         PromptPack[]
+}
+
+// =============================================================================
+// Organization
+// =============================================================================
+
+model OrganizationProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String   @unique
+  industry     String?
+  size         String?
+  location     String?
+  website      String?
+  description  String?
+  contactName  String?
+  contactEmail String?
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  roleNeeds EmployerRoleNeed[]
+  requests  EmployerRequest[]
+  matches   EmployerMatch[]
+}
+
+// =============================================================================
+// AI Readiness
+// =============================================================================
+
+model AIReadinessDiagnostic {
+  id                  String              @id @default(cuid())
+  professionalId      String
+  professional        ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  aiLiteracy          Int
+  toolFamiliarity     Int
+  prompting           Int
+  automationAwareness Int
+  riskAwareness       Int
+  outputEvaluation    Int
+  roleSpecificUse     Int
+  englishComm         Int
+  jobSearchStatus     String
+  dailyTasks          String
+  painPoints          String
+  targetOutcomes      String
+  computedScore       Int
+  createdAt           DateTime            @default(now())
+
+  reports AIReadinessReport[]
+
+  @@index([professionalId])
+}
+
+model AIReadinessReport {
+  id                     String                @id @default(cuid())
+  diagnosticId           String                @unique
+  diagnostic             AIReadinessDiagnostic @relation(fields: [diagnosticId], references: [id], onDelete: Cascade)
+  professionalId         String
+  professional           ProfessionalProfile   @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  summary                String
+  strengths              String[]
+  gaps                   String[]
+  recommendedTracks      String[]
+  recommendedCertificate CertificateLevel
+  recommendedWorkflows   String[]
+  recommendedArtifacts   String[]
+  generatedByAI          Boolean               @default(false)
+  aiRunId                String?
+  createdAt              DateTime              @default(now())
+
+  @@index([professionalId])
+}
+
+// =============================================================================
+// Personal Task Radar
+// =============================================================================
+
+model ProfessionalTask {
+  id                  String               @id @default(cuid())
+  professionalId      String
+  professional        ProfessionalProfile  @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  title               String
+  description         String
+  roleContext         String?
+  frequency           TaskFrequency        @default(WEEKLY)
+  businessValue       Int                  @default(3)
+  complexity          Int                  @default(3)
+  riskLevel           RiskLevel            @default(LOW)
+  confidentiality     ConfidentialityLevel @default(INTERNAL)
+  humanJudgment       Int                  @default(3)
+  aiSuitability       Int                  @default(3)
+  automationPotential Int                  @default(3)
+  recommendedMode     WorkMode             @default(AI_ASSISTED)
+  notes               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+
+  classifications TaskAIClassification[]
+
+  @@index([professionalId])
+}
+
+model TaskAIClassification {
+  id            String           @id @default(cuid())
+  taskId        String
+  task          ProfessionalTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  mode          WorkMode
+  rationale     String
+  generatedByAI Boolean          @default(false)
+  aiRunId       String?
+  createdAt     DateTime         @default(now())
+
+  @@index([taskId])
+}
+
+// =============================================================================
+// Learning System
+// =============================================================================
+
+model LearningTrack {
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  title          String
+  description    String
+  audience       String?
+  estimatedHours Int              @default(4)
+  level          CertificateLevel @default(L1_AI_READY)
+  order          Int              @default(0)
+  published      Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  modules LearningModule[]
+}
+
+model LearningModule {
+  id               String        @id @default(cuid())
+  trackId          String
+  track            LearningTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  slug             String
+  title            String
+  description      String
+  order            Int           @default(0)
+  estimatedMinutes Int           @default(60)
+  published        Boolean       @default(true)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  lessons Lesson[]
+
+  @@unique([trackId, slug])
+  @@index([trackId])
+}
+
+model Lesson {
+  id               String           @id @default(cuid())
+  moduleId         String
+  module           LearningModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  slug             String
+  title            String
+  description      String
+  body             String
+  objectives       String[]
+  estimatedMinutes Int              @default(15)
+  required         Boolean          @default(true)
+  certificateLevel CertificateLevel @default(L1_AI_READY)
+  order            Int              @default(0)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  practiceTasks PracticeTask[]
+  scenarios     Scenario[]
+  completions   LessonCompletion[]
+
+  @@unique([moduleId, slug])
+  @@index([moduleId])
+}
+
+model PracticeTask {
+  id                  String   @id @default(cuid())
+  lessonId            String
+  lesson              Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  title               String
+  description         String
+  expectedDeliverable String
+  createdAt           DateTime @default(now())
+
+  @@index([lessonId])
+}
+
+model LessonCompletion {
+  id             String              @id @default(cuid())
+  lessonId       String
+  lesson         Lesson              @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  completedAt    DateTime            @default(now())
+  notes          String?
+
+  @@unique([lessonId, professionalId])
+  @@index([professionalId])
+}
+
+// =============================================================================
+// Scenarios + Rubrics
+// =============================================================================
+
+model Scenario {
+  id               String           @id @default(cuid())
+  slug             String           @unique
+  title            String
+  prompt           String
+  context          String?
+  roleFocus        String?
+  certificateLevel CertificateLevel @default(L1_AI_READY)
+  rubricId         String?
+  rubric           Rubric?          @relation(fields: [rubricId], references: [id])
+  lessonId         String?
+  lesson           Lesson?          @relation(fields: [lessonId], references: [id])
+  published        Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  submissions ScenarioSubmission[]
+
+  @@index([rubricId])
+}
+
+model ScenarioSubmission {
+  id             String              @id @default(cuid())
+  scenarioId     String
+  scenario       Scenario            @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  humanSteps     String
+  aiSteps        String
+  toolsUsed      String[]
+  promptOutline  String
+  riskControls   String
+  reviewProcess  String
+  finalOutput    String
+  workModeChoice WorkMode
+  workModeReason String
+  status         SubmissionStatus    @default(SUBMITTED)
+  score          Int?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  reviews AssessmentReview[]
+
+  @@index([scenarioId])
+  @@index([professionalId])
+}
+
+model Rubric {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  criteria  RubricCriterion[]
+  scenarios Scenario[]
+}
+
+model RubricCriterion {
+  id          String @id @default(cuid())
+  rubricId    String
+  rubric      Rubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  weight      Int    @default(1)
+
+  @@index([rubricId])
+}
+
+model AssessmentReview {
+  id           String             @id @default(cuid())
+  submissionId String
+  submission   ScenarioSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     User               @relation("ReviewerAssessment", fields: [reviewerId], references: [id])
+  status       ReviewStatus       @default(PENDING)
+  score        Int?
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([submissionId])
+  @@index([reviewerId])
+}
+
+// =============================================================================
+// Evidence
+// =============================================================================
+
+model EvidenceArtifact {
+  id                   String              @id @default(cuid())
+  professionalId       String
+  professional         ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  title                String
+  type                 EvidenceType
+  description          String
+  roleContext          String?
+  associatedTaskId     String?
+  associatedScenarioId String?
+  aiToolsUsed          String[]
+  humanContribution    String
+  aiContribution       String
+  risksConsidered      String
+  reviewNotes          String?
+  fileUrl              String?
+  externalUrl          String?
+  visibility           VisibilityStatus    @default(PRIVATE)
+  status               EvidenceStatus      @default(SUBMITTED)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  reviews EvidenceReview[]
+
+  @@index([professionalId])
+}
+
+model EvidenceReview {
+  id         String           @id @default(cuid())
+  evidenceId String
+  evidence   EvidenceArtifact @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer   User             @relation("ReviewerEvidence", fields: [reviewerId], references: [id])
+  decision   ReviewDecision   @default(APPROVED)
+  notes      String?
+  createdAt  DateTime         @default(now())
+
+  @@index([evidenceId])
+  @@index([reviewerId])
+}
+
+// =============================================================================
+// Certification
+// =============================================================================
+
+model Certificate {
+  id                 String              @id @default(cuid())
+  publicId           String              @unique
+  professionalId     String
+  professional       ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  level              CertificateLevel
+  status             CertificateStatus   @default(DRAFT)
+  issuedAt           DateTime?
+  expiresAt          DateTime?
+  evidenceSummary    String?
+  assessmentScore    Int?
+  roleFocus          String?
+  reviewerNotes      String?
+  revocationReason   String?
+  verifyUrl          String?
+  issuedByReviewerId String?
+  issuedByReviewer   User?               @relation("CertIssuer", fields: [issuedByReviewerId], references: [id])
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  requirements    CertificateRequirement[]
+  reviews         CertificateReview[]
+  publicProfile   PublicProfile?           @relation(fields: [publicProfileId], references: [id])
+  publicProfileId String?
+
+  @@index([professionalId])
+  @@index([status])
+}
+
+model CertificateRequirement {
+  id            String      @id @default(cuid())
+  certificateId String
+  certificate   Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  key           String
+  label         String
+  satisfied     Boolean     @default(false)
+  evidenceRef   String?
+  notes         String?
+
+  @@index([certificateId])
+}
+
+model CertificateReview {
+  id            String       @id @default(cuid())
+  certificateId String
+  certificate   Certificate  @relation(fields: [certificateId], references: [id], onDelete: Cascade)
+  reviewerId    String
+  reviewer      User         @relation("ReviewerCert", fields: [reviewerId], references: [id])
+  status        ReviewStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([certificateId])
+}
+
+// =============================================================================
+// Public profile
+// =============================================================================
+
+model PublicProfile {
+  id                  String              @id @default(cuid())
+  professionalId      String              @unique
+  professional        ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  slug                String              @unique
+  headline            String?
+  bio                 String?
+  showContact         Boolean             @default(false)
+  showCertificates    Boolean             @default(true)
+  showEvidence        Boolean             @default(true)
+  showSkills          Boolean             @default(true)
+  workModesMastered   WorkMode[]          @default([])
+  featuredEvidenceIds String[]            @default([])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  certificates Certificate[]
+}
+
+// =============================================================================
+// Employer / matching
+// =============================================================================
+
+model EmployerRoleNeed {
+  id                     String              @id @default(cuid())
+  organizationId         String
+  organization           OrganizationProfile @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  title                  String
+  description            String              @default("")
+  department             String?
+  industry               String?
+  location               String?
+  engagementType         String?
+  budgetRange            String?
+  skillsRequired         String[]            @default([])
+  aiWorkModes            WorkMode[]          @default([])
+  taskExamples           String?
+  aiAdoptionExpectations String?
+  minCertificateLevel    CertificateLevel    @default(L1_AI_READY)
+  status                 RoleNeedStatus      @default(OPEN)
+  notes                  String?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+
+  requests EmployerRequest[]
+  matches  EmployerMatch[]
+
+  @@index([organizationId])
+}
+
+model EmployerRequest {
+  id             String                @id @default(cuid())
+  organizationId String
+  organization   OrganizationProfile   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roleNeedId     String?
+  roleNeed       EmployerRoleNeed?     @relation(fields: [roleNeedId], references: [id])
+  professionalId String?
+  professional   ProfessionalProfile?  @relation("RequestedProfessional", fields: [professionalId], references: [id])
+  handledById    String?
+  handledBy      User?                 @relation("RequestHandler", fields: [handledById], references: [id])
+  kind           String // intro / shortlist / advice / team-assessment / interview-support
+  message        String
+  status         EmployerRequestStatus @default(NEW)
+  internalNotes  String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  @@index([organizationId])
+}
+
+model EmployerMatch {
+  id                String              @id @default(cuid())
+  organizationId    String
+  organization      OrganizationProfile @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  roleNeedId        String
+  roleNeed          EmployerRoleNeed    @relation(fields: [roleNeedId], references: [id], onDelete: Cascade)
+  professionalId    String
+  professional      ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  status            MatchStatus         @default(OFFERED)
+  score             Float?
+  rationale         String?
+  visibleToEmployer Boolean             @default(false)
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([organizationId])
+  @@index([professionalId])
+}
+
+// =============================================================================
+// AI run log + audit
+// =============================================================================
+
+model AIRunLog {
+  id            String       @id @default(cuid())
+  initiatorId   String?
+  initiator     User?        @relation("AIRunInitiator", fields: [initiatorId], references: [id])
+  purpose       AIRunPurpose
+  provider      String?
+  model         String?
+  promptVersion String?
+  promptInput   Json?
+  outputJson    Json?
+  outputText    String?
+  status        AIRunStatus  @default(QUEUED)
+  errorMessage  String?
+  durationMs    Int?
+  costUsd       Decimal?     @db.Decimal(10, 4)
+  reviewed      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([purpose])
+  @@index([status])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String
+  entityType String?
+  entityId   String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  @@index([action])
+}
+
+// =============================================================================
+// TenXRole integration
+// =============================================================================
+
+/// Per-professional record of the link to a TenXRole account.
+///
+/// Until the TenXRole API is live this stores what the professional has
+/// chosen to share + a manual handoff timestamp. When the API ships we
+/// can flip `connected` and start storing access tokens elsewhere.
+model TenXRoleConnection {
+  id              String              @id @default(cuid())
+  professionalId  String              @unique
+  professional    ProfessionalProfile @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  tenxroleUserId  String?
+  connected       Boolean             @default(false)
+  shareReadiness  Boolean             @default(true)
+  shareCertificate Boolean            @default(true)
+  shareWorkModes  Boolean             @default(true)
+  sharePromptPacks Boolean            @default(false)
+  shareCoaching   Boolean             @default(false)
+  lastSyncedAt    DateTime?
+  notes           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+}
+
+// =============================================================================
+// Customisation — Prompt packs
+// =============================================================================
+
+/// Role / workflow / job-search specific prompt packs that TenXPros
+/// curates for a professional. Keep this small: store metadata + JSON
+/// content; the rendering is on the client.
+model PromptPack {
+  id             String              @id @default(cuid())
+  professionalId String?
+  professional   ProfessionalProfile? @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  slug           String              @unique
+  title          String
+  description    String
+  audience       String? // e.g. "PM", "Consultant", "Founder", "All"
+  category       String? // e.g. "role", "career", "job-search", "interview", "portfolio"
+  tags           String[]            @default([])
+  prompts        Json                @default("[]")
+  global         Boolean             @default(false) // platform-curated vs user-private
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([professionalId])
+  @@index([category])
+}
+
+// =============================================================================
+// Settings
+// =============================================================================
+
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 220 24% 98%;
+  --foreground: 222 47% 9%;
+  --muted: 220 14% 95%;
+  --muted-foreground: 220 9% 38%;
+  --border: 220 14% 88%;
+  --ring: 222 84% 30%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 9%;
+  --primary: 222 84% 30%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 174 73% 32%;
+  --accent-foreground: 0 0% 100%;
+  --success: 152 68% 32%;
+  --warning: 36 92% 42%;
+  --danger: 0 72% 45%;
+}
+
+.dark {
+  --background: 222 47% 7%;
+  --foreground: 220 14% 96%;
+  --muted: 222 30% 14%;
+  --muted-foreground: 220 9% 65%;
+  --border: 222 30% 20%;
+  --ring: 174 73% 50%;
+  --card: 222 35% 11%;
+  --card-foreground: 220 14% 96%;
+  --primary: 220 14% 96%;
+  --primary-foreground: 222 47% 9%;
+  --accent: 174 73% 45%;
+  --accent-foreground: 222 47% 9%;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html,
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.bg-grid {
+  background-image: radial-gradient(circle at 1px 1px, hsl(var(--border)) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-shadow {
+  box-shadow:
+    0 1px 0 0 hsl(var(--border)),
+    0 1px 3px -1px hsl(var(--border));
+}
