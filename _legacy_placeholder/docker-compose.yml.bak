@@ -6,4 +6,4 @@ services:
     ports:
       - "3003:80"
     volumes:
-      - ./html:/usr/share/nginx/html:ro
+      - ./_legacy_placeholder/html:/usr/share/nginx/html:ro

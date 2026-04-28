@@ -2,6 +2,15 @@
 
 All notable changes to the TenXPros repository are recorded here.
 
+## 2026-04-28 — chore: remove duplicate root `html/` placeholder
+
+The root `html/index.html` was a duplicate of
+`_legacy_placeholder/html/index.html`, and nothing has mounted it
+since M0.2. Deleted from the repo. Updated
+`_legacy_placeholder/docker-compose.yml.bak` to mount
+`./_legacy_placeholder/html` so the documented one-step rollback
+still works without re-creating the root `html/` directory.
+
 ## 2026-04-28 — M0.3 production hardening
 
 Closes the configuration risks left over from M0.2.
