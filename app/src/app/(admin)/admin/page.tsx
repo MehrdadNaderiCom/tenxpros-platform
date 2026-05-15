@@ -1,81 +1,48 @@
-import Link from "next/link";
-import { Activity, BadgeCheck, Building2, FileCheck, Sparkles, UsersRound } from "lucide-react";
-import { prisma } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared/page-shell";
 
-export const metadata = { title: "Admin overview" };
-
-export default async function AdminOverviewPage() {
-  const [
-    proCount,
-    orgCount,
-    pendingCerts,
-    pendingEvidence,
-    pendingRequests,
-    recentRuns,
-  ] = await Promise.all([
-    prisma.professionalProfile.count(),
-    prisma.organizationProfile.count(),
-    prisma.certificate.count({ where: { status: "PENDING_REVIEW" } }),
-    prisma.evidenceArtifact.count({ where: { status: { in: ["SUBMITTED", "UNDER_REVIEW"] } } }),
-    prisma.employerRequest.count({ where: { status: { in: ["NEW", "IN_REVIEW"] } } }),
-    prisma.aIRunLog.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
-  ]);
+export default async function AdminDashboardPage() {
+  const [applications, participants, openTickets, submittedModules, submittedDossierSections, certifications, events] =
+    await Promise.all([
+      prisma.application.count(),
+      prisma.participantProfile.count(),
+      prisma.ticket.count({ where: { status: { in: ["OPEN", "WAITING_RESPONSE"] } } }),
+      prisma.participantModule.count({ where: { status: "SUBMITTED" } }),
+      prisma.dossierSection.count({ where: { status: "SUBMITTED" } }),
+      prisma.certificationReview.count(),
+      prisma.siteEvent.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+    ]);
 
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Admin overview</h1>
-        <p className="text-muted-foreground">Run TenXPros: review queues, content, employer requests and AI runs.</p>
-      </header>
-
-      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Stat icon={UsersRound} label="Professionals" value={proCount} href="/admin/users" />
-        <Stat icon={Building2} label="Organisations" value={orgCount} href="/admin/organizations" />
-        <Stat icon={BadgeCheck} label="Certificates pending review" value={pendingCerts} href="/admin/certifications" tone={pendingCerts > 0 ? "primary" : "muted"} />
-        <Stat icon={FileCheck} label="Evidence to review" value={pendingEvidence} href="/admin/evidence" tone={pendingEvidence > 0 ? "primary" : "muted"} />
-        <Stat icon={Activity} label="Open employer requests" value={pendingRequests} href="/admin/employer-requests" tone={pendingRequests > 0 ? "primary" : "muted"} />
-        <Stat icon={Sparkles} label="AI runs (recent)" value={recentRuns.length} href="/admin/ai-runs" />
-      </section>
-
+    <div className="space-y-8">
+      <PageHeader title="Admin Dashboard" description="Operational view of applications, participants, reviews, support, and events." />
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+        {[
+          ["Applications", applications],
+          ["Participants", participants],
+          ["Open tickets", openTickets],
+          ["Module submissions", submittedModules],
+          ["Dossier reviews", submittedDossierSections],
+          ["Certifications", certifications],
+        ].map(([label, value]) => (
+          <Card key={label}>
+            <p className="text-sm text-slate-500">{label}</p>
+            <p className="mt-3 text-3xl font-semibold text-navy-900">{value}</p>
+          </Card>
+        ))}
+      </div>
       <Card>
-        <CardContent className="p-6">
-          <p className="font-semibold mb-3">Latest AI runs</p>
-          {recentRuns.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No AI runs yet.</p>
-          ) : (
-            <ul className="text-sm divide-y divide-border">
-              {recentRuns.map((r) => (
-                <li key={r.id} className="py-2 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{r.purpose}</p>
-                    <p className="text-xs text-muted-foreground">{r.provider} · {r.model} · {r.status}</p>
-                  </div>
-                  <span className="text-xs text-muted-foreground">{r.createdAt.toLocaleString()}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
+        <h2 className="text-xl font-semibold text-navy-900">Recent events</h2>
+        <div className="mt-4 space-y-2 text-sm text-slate-600">
+          {events.map((event) => (
+            <p key={event.id}>
+              {event.eventType} · {event.createdAt.toLocaleString()}
+            </p>
+          ))}
+          {events.length === 0 ? <p>No events yet.</p> : null}
+        </div>
       </Card>
     </div>
-  );
-}
-
-function Stat({ icon: Icon, label, value, href, tone = "muted" }: {
-  icon: typeof Activity; label: string; value: number; href: string; tone?: "primary" | "muted";
-}) {
-  return (
-    <Link href={href}>
-      <Card className="hover:border-primary/30 transition-colors">
-        <CardContent className="p-5 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
-            <p className={`text-2xl font-semibold mt-1 ${tone === "primary" ? "text-primary" : ""}`}>{value}</p>
-          </div>
-          <Icon className="h-5 w-5 text-muted-foreground" />
-        </CardContent>
-      </Card>
-    </Link>
   );
 }

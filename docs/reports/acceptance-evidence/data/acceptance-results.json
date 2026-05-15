@@ -1,0 +1,154 @@
+{
+  "startedAt": "2026-05-15T16:18:57.363Z",
+  "baseUrl": "http://localhost:3003",
+  "browser": "/home/ubuntu/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome",
+  "adminEmail": "admin@tenxpros.test",
+  "adminPassword": "[redacted]",
+  "routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "finalPath": "/",
+      "title": "Certified AI Adoption for Professionals | TenXPros"
+    },
+    {
+      "route": "/program",
+      "status": 200,
+      "finalPath": "/program",
+      "title": "Program | TenXPros"
+    },
+    {
+      "route": "/how-it-works",
+      "status": 200,
+      "finalPath": "/how-it-works",
+      "title": "How It Works | TenXPros"
+    },
+    {
+      "route": "/dossier",
+      "status": 200,
+      "finalPath": "/dossier",
+      "title": "Living AI Solution Dossier | TenXPros"
+    },
+    {
+      "route": "/certification",
+      "status": 200,
+      "finalPath": "/certification",
+      "title": "Certification | TenXPros"
+    },
+    {
+      "route": "/pricing",
+      "status": 200,
+      "finalPath": "/pricing",
+      "title": "Pricing | TenXPros"
+    },
+    {
+      "route": "/directory",
+      "status": 200,
+      "finalPath": "/directory",
+      "title": "Directory | TenXPros"
+    },
+    {
+      "route": "/radar",
+      "status": 200,
+      "finalPath": "/radar",
+      "title": "Radar | TenXPros"
+    },
+    {
+      "route": "/about",
+      "status": 200,
+      "finalPath": "/about",
+      "title": "About | TenXPros"
+    },
+    {
+      "route": "/apply",
+      "status": 200,
+      "finalPath": "/apply",
+      "title": "Apply | TenXPros"
+    },
+    {
+      "route": "/login",
+      "status": 200,
+      "finalPath": "/login",
+      "title": "Login | TenXPros"
+    },
+    {
+      "route": "/api/health",
+      "status": 200,
+      "body": "{\"ok\":true}"
+    },
+    {
+      "route": "/admin",
+      "status": 200,
+      "finalPath": "/admin",
+      "auth": "ADMIN"
+    },
+    {
+      "route": "/portal",
+      "status": 200,
+      "finalPath": "/portal",
+      "auth": "PARTICIPANT"
+    },
+    {
+      "route": "/verify/cmp74iopy001nj2hu4v2y1n5e",
+      "status": 200,
+      "finalPath": "/verify/cmp74iopy001nj2hu4v2y1n5e"
+    },
+    {
+      "route": "/api/verify/cmp74iopy001nj2hu4v2y1n5e",
+      "status": 200,
+      "body": "{\"ok\":true,\"badge\":{\"name\":\"Certified TenXPro Capstone Seal\",\"description\":\"Issued when a participant is certified after capstone review.\",\"category\":\"CAPSTONE\"},\"recipient\":{\"name\":\"Acceptance Applicant 1778861937363\",\"publicTitle\":\"Certified TenXPro\",\"directorySlug\":null},\"earnedAt\":\"2026-05-15T16:20:22.054Z\",\"status\":\"ACTIVE\"}"
+    }
+  ],
+  "screenshots": [
+    "docs/reports/acceptance-evidence/screenshots/01-home-page.png",
+    "docs/reports/acceptance-evidence/screenshots/02-pricing-page.png",
+    "docs/reports/acceptance-evidence/screenshots/03-apply-page.png",
+    "docs/reports/acceptance-evidence/screenshots/04-login-page.png",
+    "docs/reports/acceptance-evidence/screenshots/03a-apply-ui-submit-failure.png",
+    "docs/reports/acceptance-evidence/screenshots/05-admin-dashboard.png",
+    "docs/reports/acceptance-evidence/screenshots/06-admin-applications.png",
+    "docs/reports/acceptance-evidence/screenshots/07-participant-dashboard.png",
+    "docs/reports/acceptance-evidence/screenshots/08-diagnostic-intake.png",
+    "docs/reports/acceptance-evidence/screenshots/09-modules-page.png",
+    "docs/reports/acceptance-evidence/screenshots/10-dossier-builder.png",
+    "docs/reports/acceptance-evidence/screenshots/11-ticketing-page.png",
+    "docs/reports/acceptance-evidence/screenshots/12-certification-status.png",
+    "docs/reports/acceptance-evidence/screenshots/13-public-badge-verification.png"
+  ],
+  "lifecycle": [
+    "Application submitted through direct server action fallback after UI submit failure",
+    "Admin application queue shows submitted application",
+    "Admin accepted application and created payment placeholder",
+    "Admin marked payment received and enrolled participant",
+    "Participant password setup link worked",
+    "Participant logged in and reached portal",
+    "Starter Pack completion persisted",
+    "Participant submitted diagnostic intake",
+    "Admin approved participant path",
+    "Participant submitted module artifact",
+    "Admin passed module artifact and triggered module badge issuance",
+    "Participant saved and submitted dossier section",
+    "Admin approved dossier section with section-level feedback",
+    "Participant created support ticket",
+    "Admin responded to ticket and set it resolved",
+    "Admin submitted certification decision and issued capstone badge",
+    "Public badge verification page and API resolved"
+  ],
+  "records": {
+    "applicationSubmitFallbackResult": {
+      "ok": true,
+      "id": "cmp74hif40003m23u5pmuvjj4"
+    },
+    "applicationSubmittedVia": "server-action-fallback",
+    "applicationId": "cmp74hif40003m23u5pmuvjj4",
+    "applicantEmail": "acceptance.1778861937363@tenxpros.test",
+    "participantId": "cmp74i0wf0004j2hu1bj1t1rg",
+    "dossierId": "cmp74i0wo0008j2hu4dsvyhku",
+    "ticketId": "cmp74il6s001dj2hu4evnzvt6",
+    "verificationCode": "cmp74iopy001nj2hu4v2y1n5e"
+  },
+  "failures": [
+    "UI application submission failed; direct server-action fallback used for downstream lifecycle evidence: page.waitForURL: Timeout 15000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n============================================================"
+  ],
+  "finishedAt": "2026-05-15T16:20:24.665Z"
+}

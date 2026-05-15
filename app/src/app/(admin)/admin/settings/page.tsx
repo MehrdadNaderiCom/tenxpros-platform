@@ -1,54 +1,30 @@
-import { prisma } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/utils";
+import { updateAdminSetting } from "@/lib/actions/admin";
+import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/form-fields";
+import { PageHeader } from "@/components/shared/page-shell";
 
-export const metadata = { title: "Platform settings" };
-
-export default async function AdminSettingsPage() {
-  const [userCount, certIssued, aiRuns, lastAudit] = await Promise.all([
-    prisma.user.count(),
-    prisma.certificate.count({ where: { status: "ISSUED" } }),
-    prisma.aIRunLog.count(),
-    prisma.auditLog.findFirst({ orderBy: { createdAt: "desc" } }),
-  ]);
+export default async function SettingsPage() {
+  const settings = await prisma.adminSetting.findMany({ orderBy: [{ category: "asc" }, { key: "asc" }] });
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">Platform settings</h1>
-
-      <Card><CardContent className="p-6 space-y-2 text-sm">
-        <p className="font-semibold">Environment</p>
-        <Row label="App URL" value={process.env.APP_URL ?? "http://localhost:3000"} />
-        <Row label="AI enabled" value={process.env.AI_ENABLED === "true" ? "yes" : "no"} />
-        <Row label="AI provider" value={process.env.AI_PROVIDER ?? "none"} />
-        <Row label="Default region" value={process.env.DEFAULT_REGION ?? "eu-west"} />
-      </CardContent></Card>
-
-      <Card><CardContent className="p-6 space-y-2 text-sm">
-        <p className="font-semibold">Platform stats</p>
-        <Row label="Users" value={String(userCount)} />
-        <Row label="Certificates issued" value={String(certIssued)} />
-        <Row label="AI runs logged" value={String(aiRuns)} />
-        <Row label="Last audit event" value={lastAudit ? `${lastAudit.action} · ${formatDate(lastAudit.createdAt)}` : "—"} />
-      </CardContent></Card>
-
-      <Card><CardContent className="p-6 space-y-2 text-sm">
-        <p className="font-semibold">Trust & governance</p>
-        <p className="text-muted-foreground">
-          TenXPros issues and revokes certificates with human review. All scoring, recommendations and
-          AI output are logged and reconcilable. Reviewers are listed in the docs section.
-        </p>
-        <Badge tone="success">Human-in-the-loop for every issuance</Badge>
-      </CardContent></Card>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between border-b border-border last:border-0 py-2">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium truncate ml-4">{value}</span>
+    <div className="space-y-8">
+      <PageHeader title="Settings" description="Site-wide settings and feature flags." />
+      <div className="grid gap-4">
+        {settings.map((setting) => (
+          <Card key={setting.id}>
+            <form action={updateAdminSetting} className="grid gap-3 md:grid-cols-[1fr_2fr_auto] md:items-end">
+              <div>
+                <p className="font-medium text-navy-900">{setting.label ?? setting.key}</p>
+                <p className="text-xs text-slate-500">{setting.category} · {setting.key}</p>
+              </div>
+              <input type="hidden" name="key" value={setting.key} />
+              <Input name="value" defaultValue={setting.value} />
+              <Button type="submit">Save</Button>
+            </form>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

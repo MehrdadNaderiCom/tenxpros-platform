@@ -1,59 +1,30 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
+import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { certificateLevelLabels, formatDate } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared/page-shell";
 
-export const metadata = { title: "Certifications" };
-
-const STATUS_TONE: Record<string, "muted" | "warning" | "success" | "danger"> = {
-  DRAFT: "muted",
-  PENDING_REVIEW: "warning",
-  ISSUED: "success",
-  REVOKED: "danger",
-  EXPIRED: "muted",
-};
-
-export default async function AdminCertsPage() {
-  const certs = await prisma.certificate.findMany({
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-    include: { professional: { include: { user: true } } },
+export default async function CertificationsPage() {
+  const participants = await prisma.participantProfile.findMany({
+    include: { user: true, certification: true, participantModules: true },
+    orderBy: { updatedAt: "desc" },
   });
   return (
-    <div className="space-y-6">
-      <header>
-        <h1 className="text-3xl font-semibold tracking-tight">Certifications</h1>
-        <p className="text-muted-foreground text-sm">Review pending requests, issue, or revoke certificates.</p>
-      </header>
-      <Card><CardContent className="p-0 overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase tracking-wider text-muted-foreground">
-            <tr>
-              <th className="p-3">Public ID</th>
-              <th className="p-3">Professional</th>
-              <th className="p-3">Level</th>
-              <th className="p-3">Status</th>
-              <th className="p-3">Created</th>
-              <th className="p-3">Issued</th>
-              <th className="p-3"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {certs.map((c) => (
-              <tr key={c.id}>
-                <td className="p-3 font-mono text-xs">{c.publicId}</td>
-                <td className="p-3">{c.professional.user.name ?? c.professional.user.email}</td>
-                <td className="p-3">{certificateLevelLabels[c.level].split(" · ")[0]}</td>
-                <td className="p-3"><Badge tone={STATUS_TONE[c.status]}>{c.status.toLowerCase().replace("_", " ")}</Badge></td>
-                <td className="p-3 text-muted-foreground">{formatDate(c.createdAt)}</td>
-                <td className="p-3 text-muted-foreground">{formatDate(c.issuedAt)}</td>
-                <td className="p-3"><Link href={`/admin/certifications/${c.id}`} className="text-primary text-xs">Review</Link></td>
-              </tr>
-            ))}
-            {certs.length === 0 ? <tr><td className="p-3 text-muted-foreground" colSpan={7}>No certificates yet.</td></tr> : null}
-          </tbody>
-        </table>
-      </CardContent></Card>
+    <div className="space-y-8">
+      <PageHeader title="Certifications" description="Capstone and final credential decisions." />
+      <div className="grid gap-4">
+        {participants.map((participant) => (
+          <Card key={participant.id} className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <Link href={`/admin/certifications/${participant.id}`} className="text-xl font-semibold text-navy-900">
+                {participant.user.name ?? participant.user.email}
+              </Link>
+              <p className="mt-1 text-sm text-slate-600">{participant.participantModules.filter((m) => m.status === "PASSED").length}/11 modules passed</p>
+            </div>
+            <Badge status={participant.certification?.outcome ?? participant.status}>{participant.certification?.outcome ?? participant.status}</Badge>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

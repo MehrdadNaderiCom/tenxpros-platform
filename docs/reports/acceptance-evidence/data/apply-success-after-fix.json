@@ -1,0 +1,17 @@
+{
+  "email": "apply-fixed.1778864342353@tenxpros.test",
+  "url": "http://localhost:3003/apply/thank-you?id=cmp75whcu00035krorsxryc7o",
+  "screenshotPath": "docs/reports/acceptance-evidence/screenshots/apply-success-after-fix.png",
+  "application": {
+    "id": "cmp75whcu00035krorsxryc7o",
+    "status": "SUBMITTED",
+    "fullName": "Apply Fixed Browser Applicant",
+    "pricingTierAtApply": "FOUNDING"
+  },
+  "user": {
+    "id": "cmp75whcm00015kroebl0c40j",
+    "email": "apply-fixed.1778864342353@tenxpros.test",
+    "role": "APPLICANT",
+    "name": "Apply Fixed Browser Applicant"
+  }
+}

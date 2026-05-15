@@ -15,41 +15,30 @@ const config: Config = {
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
-        muted: "hsl(var(--muted))",
-        "muted-foreground": "hsl(var(--muted-foreground))",
         border: "hsl(var(--border))",
-        ring: "hsl(var(--ring))",
-        card: "hsl(var(--card))",
-        "card-foreground": "hsl(var(--card-foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+        navy: {
+          50: "#EEF5FB",
+          100: "#D8E8F5",
+          500: "#2E75B6",
+          700: "#255D91",
+          900: "#1F4E79",
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+        gold: {
+          50: "#FBF7EA",
+          100: "#F4EAC8",
+          500: "#C9A961",
+          800: "#7C6230",
         },
-        success: "hsl(var(--success))",
-        warning: "hsl(var(--warning))",
-        danger: "hsl(var(--danger))",
+        success: "#10B981",
+        warning: "#F59E0B",
+        danger: "#EF4444",
       },
       borderRadius: {
-        lg: "12px",
-        md: "10px",
-        sm: "8px",
+        md: "8px",
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
-      },
-      keyframes: {
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(4px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-      },
-      animation: {
-        "fade-in": "fade-in 200ms ease-out",
+        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "monospace"],
       },
     },
   },

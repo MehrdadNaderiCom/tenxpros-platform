@@ -1,16 +1,18 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/lib/auth/session";
-import { AdminNav } from "@/components/site/admin-nav";
+import { notFound, redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { AdminNav } from "@/components/shared/admin-nav";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  if (!user) redirect("/sign-in");
-  if (user.role !== "ADMIN" && user.role !== "REVIEWER") redirect("/dashboard");
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  if (session.user.role !== "ADMIN") notFound();
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <AdminNav name={user.name ?? user.email} />
-      <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">{children}</main>
+    <div className="min-h-screen bg-neutral-50 md:flex">
+      <AdminNav name={session.user.name} />
+      <main className="w-full px-6 py-8 md:px-8">{children}</main>
     </div>
   );
 }

@@ -1,0 +1,33 @@
+import { auth } from "@/lib/auth";
+import { completeStarterPack } from "@/lib/actions/participant";
+import { prisma } from "@/lib/prisma";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared/page-shell";
+
+export default async function StarterPackPage() {
+  const session = await auth();
+  const profile = await prisma.participantProfile.findUnique({ where: { userId: session?.user.id ?? "" } });
+  const completed = Boolean(profile?.starterPackCompletedAt);
+
+  return (
+    <div className="space-y-8">
+      <PageHeader title="Starter Pack" description="Orientation, confidentiality discipline, program rhythm, and dossier expectations." />
+      <div className="grid gap-4 md:grid-cols-3">
+        {["Program rhythm", "Confidentiality guardrails", "Dossier standards"].map((item) => (
+          <Card key={item}>
+            <h2 className="text-xl font-semibold text-navy-900">{item}</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-600">
+              Review this before starting the diagnostic intake. The goal is disciplined professional AI adoption.
+            </p>
+          </Card>
+        ))}
+      </div>
+      <form action={completeStarterPack}>
+        <Button type="submit" disabled={completed}>
+          {completed ? "Starter Pack completed" : "Mark Starter Pack complete"}
+        </Button>
+      </form>
+    </div>
+  );
+}

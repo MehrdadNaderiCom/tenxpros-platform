@@ -1,0 +1,37 @@
+{
+  "email": "acceptance.1778861937363@tenxpros.test",
+  "userRole": "PARTICIPANT",
+  "applicationStatus": "ENROLLED",
+  "participantStatus": "CERTIFIED",
+  "starterPackCompleted": true,
+  "diagnosticComplete": true,
+  "pathApproved": true,
+  "moduleStatuses": {
+    "PASSED": 1,
+    "LOCKED": 10
+  },
+  "dossierSectionStatuses": {
+    "APPROVED": 1,
+    "DRAFT": 11
+  },
+  "certificationOutcome": "CERTIFIED",
+  "badges": [
+    {
+      "name": "TenX Mindset Badge",
+      "category": "MODULE",
+      "verificationCode": "cmp74iexk0015j2hu7mfq5rcq"
+    },
+    {
+      "name": "Certified TenXPro Capstone Seal",
+      "category": "CAPSTONE",
+      "verificationCode": "cmp74iopy001nj2hu4v2y1n5e"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "cmp74il6s001dj2hu4evnzvt6",
+      "status": "RESOLVED",
+      "messages": 2
+    }
+  ]
+}

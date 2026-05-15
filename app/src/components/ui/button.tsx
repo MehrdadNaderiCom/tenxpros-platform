@@ -1,48 +1,66 @@
-import * as React from "react";
+import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from "react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
-type Size = "sm" | "md" | "lg";
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  size?: Size;
-  asChild?: never;
-}
-
-const variantClasses: Record<Variant, string> = {
-  primary:
-    "bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary",
-  secondary:
-    "bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-accent",
-  outline:
-    "border border-border bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring",
-  ghost:
-    "bg-transparent hover:bg-muted text-foreground focus-visible:ring-ring",
-  danger:
-    "bg-[hsl(var(--danger))] text-white hover:opacity-90 focus-visible:ring-[hsl(var(--danger))]",
+const variants = {
+  primary: "bg-navy-900 text-white hover:bg-navy-700",
+  secondary: "border border-navy-900 bg-white text-navy-900 hover:bg-navy-50",
+  ghost: "text-navy-900 hover:bg-navy-50",
+  danger: "bg-red-600 text-white hover:bg-red-700",
 };
 
-const sizeClasses: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm rounded-md",
-  md: "h-10 px-4 text-sm rounded-md",
-  lg: "h-12 px-6 text-base rounded-md",
+const sizes = {
+  sm: "h-9 px-3 text-sm",
+  md: "h-11 px-5 text-sm",
+  lg: "h-12 px-6 text-base",
 };
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { className, variant = "primary", size = "md", ...props },
-  ref,
-) {
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+};
+
+export function Button({ className, variant = "primary", size = "md", ...props }: ButtonProps) {
   return (
     <button
-      ref={ref}
       className={cn(
-        "inline-flex items-center justify-center gap-2 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:pointer-events-none",
-        variantClasses[variant],
-        sizeClasses[size],
+        "inline-flex items-center justify-center rounded-md font-medium transition focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
+        variants[variant],
+        sizes[size],
         className,
       )}
       {...props}
     />
   );
-});
+}
+
+type ButtonLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
+  href: string;
+  children: ReactNode;
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+};
+
+export function ButtonLink({
+  className,
+  href,
+  variant = "primary",
+  size = "md",
+  children,
+  ...props
+}: ButtonLinkProps) {
+  return (
+    <Link
+      href={href}
+      className={cn(
+        "inline-flex items-center justify-center rounded-md font-medium transition focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2",
+        variants[variant],
+        sizes[size],
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+}

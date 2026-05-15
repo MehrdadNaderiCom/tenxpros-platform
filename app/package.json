@@ -2,7 +2,7 @@
   "name": "tenxpros",
   "version": "0.1.0",
   "private": true,
-  "description": "TenXPros — AI adoption, education, assessment, certification and talent-connection platform for individual professionals.",
+  "description": "Clean Next.js rebuild scaffold for TenXPros.",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -12,9 +12,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
+    "db:format": "prisma format",
+    "db:validate": "prisma validate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
   },
@@ -22,30 +23,34 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "5.22.0",
-    "bcryptjs": "2.4.3",
-    "clsx": "2.1.1",
-    "lucide-react": "0.453.0",
-    "next": "14.2.18",
-    "prisma": "5.22.0",
+    "@auth/prisma-adapter": "^2.11.2",
+    "@hookform/resolvers": "^5.2.2",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.16.0",
+    "next": "14.2.35",
+    "next-auth": "5.0.0-beta.31",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "tailwind-merge": "2.5.4",
-    "zod": "3.23.8"
+    "react-hook-form": "^7.75.0",
+    "resend": "^6.12.3",
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/bcryptjs": "2.4.6",
-    "@types/node": "20.16.10",
+    "@types/node": "20.19.0",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "autoprefixer": "10.4.20",
     "eslint": "8.57.1",
-    "eslint-config-next": "14.2.18",
+    "eslint-config-next": "14.2.35",
     "postcss": "8.4.49",
+    "prisma": "^5.22.0",
     "tailwindcss": "3.4.14",
-    "tsx": "4.19.2",
+    "tsx": "^4.22.0",
     "typescript": "5.6.3",
-    "vitest": "2.1.4"
+    "vitest": "^4.1.6"
   },
   "engines": {
     "node": ">=20.0.0"
