@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
+import { assertParticipantCanEditDossierSection } from "@/lib/dossier";
 import { prisma } from "@/lib/prisma";
 import {
   diagnosticSchema,
@@ -95,21 +96,41 @@ export async function submitModuleArtifact(formData: FormData) {
 export async function saveDossierSection(formData: FormData) {
   const profile = await requireParticipant();
   const parsed = dossierSectionSchema.parse(Object.fromEntries(formData));
-  await prisma.dossierSection.update({
+  const section = await prisma.dossierSection.findFirstOrThrow({
     where: { id: parsed.sectionId, dossier: { participantId: profile.id } },
-    data: { content: parsed.content, lastEditedAt: new Date(), status: "DRAFT" },
+    select: { id: true, status: true },
   });
+  assertParticipantCanEditDossierSection(section.status);
+  const savedAt = new Date();
+  const update = await prisma.dossierSection.updateMany({
+    where: { id: section.id, status: { in: ["DRAFT", "REVIEWED", "REVISED"] } },
+    data: { content: parsed.content, lastEditedAt: savedAt },
+  });
+  if (update.count !== 1) throw new Error("This section is submitted for review and cannot be edited.");
+  const saved = await prisma.dossierSection.findUniqueOrThrow({ where: { id: section.id } });
   safeRevalidatePath("/portal/dossier");
+  safeRevalidatePath(`/portal/dossier/${section.id}`);
+  return { ok: true, savedAt: saved.lastEditedAt?.toISOString() ?? savedAt.toISOString(), status: saved.status };
 }
 
 export async function submitDossierSection(formData: FormData) {
   const profile = await requireParticipant();
   const parsed = dossierSectionSchema.parse(Object.fromEntries(formData));
-  await prisma.dossierSection.update({
+  const section = await prisma.dossierSection.findFirstOrThrow({
     where: { id: parsed.sectionId, dossier: { participantId: profile.id } },
-    data: { content: parsed.content, lastEditedAt: new Date(), status: "SUBMITTED" },
+    select: { id: true, status: true },
   });
+  assertParticipantCanEditDossierSection(section.status);
+  const submittedAt = new Date();
+  const update = await prisma.dossierSection.updateMany({
+    where: { id: section.id, status: { in: ["DRAFT", "REVIEWED", "REVISED"] } },
+    data: { content: parsed.content, lastEditedAt: submittedAt, status: "SUBMITTED" },
+  });
+  if (update.count !== 1) throw new Error("This section is submitted for review and cannot be edited.");
+  const submitted = await prisma.dossierSection.findUniqueOrThrow({ where: { id: section.id } });
   safeRevalidatePath("/portal/dossier");
+  safeRevalidatePath(`/portal/dossier/${section.id}`);
+  return { ok: true, savedAt: submitted.lastEditedAt?.toISOString() ?? submittedAt.toISOString(), status: submitted.status };
 }
 
 export async function createTicket(formData: FormData) {

@@ -163,6 +163,7 @@ export async function decideCertification(formData: FormData) {
     | "NOT_COMPLETED";
   const reviewerNotes = String(formData.get("reviewerNotes") ?? "");
   const participant = await prisma.participantProfile.findUniqueOrThrow({ where: { id: participantId } });
+  const certificateReset = outcome === "CERTIFIED" ? {} : { certificateUrl: null, badgeIssuedAt: null };
   const review = await prisma.certificationReview.upsert({
     where: { participantId },
     update: {
@@ -171,6 +172,7 @@ export async function decideCertification(formData: FormData) {
       reviewedBy: admin.id,
       reviewedAt: new Date(),
       rubricScores: { overall: outcome },
+      ...certificateReset,
     },
     create: {
       participantId,
@@ -178,6 +180,8 @@ export async function decideCertification(formData: FormData) {
       reviewerNotes,
       reviewedBy: admin.id,
       rubricScores: { overall: outcome },
+      certificateUrl: null,
+      badgeIssuedAt: null,
     },
   });
 
@@ -197,6 +201,10 @@ export async function decideCertification(formData: FormData) {
 
   if (outcome === "CERTIFIED") {
     await issueBadge(participant.userId, "capstone-certified-tenxpro-seal", { type: "CAPSTONE", ref: review.id });
+    await prisma.certificationReview.update({
+      where: { id: review.id },
+      data: { badgeIssuedAt: new Date(), certificateUrl: `/certificate/${review.id}` },
+    });
     await prisma.directoryProfile.upsert({
       where: { userId: participant.userId },
       update: {},

@@ -16,6 +16,14 @@ export default async function DossierPage() {
   return (
     <div className="space-y-8">
       <PageHeader title="Dossier Builder" description="Build and submit each section for section-level review." />
+      <div className="print-hidden">
+        <Link
+          href="/portal/dossier/preview"
+          className="inline-flex h-10 items-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-navy-900 transition hover:bg-neutral-50"
+        >
+          Preview Full Dossier
+        </Link>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         {dossier.sections.map((section) => (
           <Card key={section.id} className="space-y-3">
