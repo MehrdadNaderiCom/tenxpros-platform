@@ -14,12 +14,30 @@ const baseUrl = (
   "http://localhost:3003"
 ).replace(/\/$/, "");
 const verifyCode = argValue("--verify-code") ?? process.env.LAUNCH_SMOKE_VERIFY_CODE;
+const timeoutMs = Number(argValue("--timeout-ms") ?? process.env.LAUNCH_SMOKE_TIMEOUT_MS ?? 10_000);
+
+if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
+  console.error("Invalid timeout. Use --timeout-ms with a positive number.");
+  process.exit(2);
+}
 
 const failures = [];
 const warnings = [];
 
 async function checkRoute(route, expectation = {}) {
-  const response = await fetch(`${baseUrl}${route}`, { redirect: expectation.redirect ? "manual" : "follow" });
+  const url = `${baseUrl}${route}`;
+  let response;
+  try {
+    response = await fetch(url, {
+      redirect: expectation.redirect ? "manual" : "follow",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    printResult(route, false, `request failed: ${reason}`);
+    failures.push(`${route} request failed: ${reason}`);
+    return;
+  }
   const status = response.status;
 
   if (expectation.redirect) {
@@ -54,6 +72,7 @@ function printResult(route, ok, detail) {
 
 console.log("TenXPros launch smoke check");
 console.log(`Base URL: ${baseUrl}`);
+console.log(`Timeout: ${timeoutMs}ms`);
 console.log("");
 
 await checkRoute("/");

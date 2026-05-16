@@ -30,6 +30,8 @@ npm run launch:env-check
 - [ ] Configure production env vars in the hosting provider, not in committed files.
 - [ ] Set the production domain before final auth testing.
 
+See [DEPLOYMENT_TARGET_DECISION.md](./DEPLOYMENT_TARGET_DECISION.md).
+
 ## 3. PostgreSQL Setup
 
 - [ ] Create production PostgreSQL database.
@@ -137,6 +139,8 @@ Also verify in the browser:
 - [ ] Confirm database migrations are forward-compatible before deploy.
 - [ ] If rollback needs database action, stop and write a specific rollback plan before launch.
 - [ ] Keep a copy of the deployment env var set in the provider UI or secret manager.
+
+See [ROLLBACK_PLAN.md](./ROLLBACK_PLAN.md).
 
 ## 13. Final Go/No-Go
 
