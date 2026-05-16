@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function DiagnosticsPage() {
   const diagnostics = await prisma.diagnosticIntake.findMany({
@@ -22,6 +22,15 @@ export default async function DiagnosticsPage() {
             </p>
           </Card>
         ))}
+        {diagnostics.length === 0 ? (
+          <EmptyState
+            eyebrow="No diagnostics"
+            title="No diagnostic intakes are waiting."
+            description="Submitted participant intakes will appear here so you can approve or tune a personalized path."
+            actionLabel="View participants"
+            actionHref="/admin/participants"
+          />
+        ) : null}
       </div>
     </div>
   );

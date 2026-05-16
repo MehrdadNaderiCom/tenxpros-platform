@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/shared/page-shell";
-import { Card } from "@/components/ui/card";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export const metadata: Metadata = {
   title: "Directory",
@@ -14,11 +13,13 @@ export default function DirectoryPage() {
         title="The TenXPros Directory will open after certified profiles exist."
         description="Directory visibility is reserved for certified participants who opt in and control their public profile."
       />
-      <Card>
-        <p className="text-slate-600">
-          Launch state: directory infrastructure exists, but public profiles remain closed until certification outcomes are available.
-        </p>
-      </Card>
+      <EmptyState
+        eyebrow="Coming soon"
+        title="No Certified TenXPro profiles are public yet."
+        description="Profiles become eligible only after certification and explicit opt-in. Until then, the directory stays closed rather than padded with placeholders."
+        actionLabel="Apply for Founding Charter"
+        actionHref="/apply"
+      />
     </main>
   );
 }

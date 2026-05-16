@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JourneySteps } from "@/components/marketing/marketing-sections";
 import { PageHeader } from "@/components/shared/page-shell";
+import { ButtonLink } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "How It Works",
@@ -22,8 +23,8 @@ export default function HowItWorksPage() {
       <section className="mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-24">
         <PageHeader
           eyebrow="Process"
-          title="Selective, async-first, and anchored in real work."
-          description="TenXPros is not a generic course. The workflow is designed around application review, diagnostic personalization, coached artifacts, and certification evidence."
+          title="A reviewed path from problem to credential."
+          description="TenXPros is selective, async-first, and anchored in real work. Admission, diagnostic intake, module artifacts, dossier review, and certification all serve one purpose: defensible AI adoption."
         />
         <ol className="mt-10 grid gap-3">
           {steps.map((step, index) => (
@@ -35,6 +36,12 @@ export default function HowItWorksPage() {
             </li>
           ))}
         </ol>
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <ButtonLink href="/apply">Apply for Founding Charter</ButtonLink>
+          <ButtonLink href="/dossier" variant="secondary">
+            See the Dossier
+          </ButtonLink>
+        </div>
       </section>
       <JourneySteps />
     </main>

@@ -15,6 +15,11 @@ export default async function EmailPage() {
             <Badge status={email.status === "sent" ? "ACCEPTED" : "HOLD"}>{email.status}</Badge>
           </p>
         ))}
+        {emails.length === 0 ? (
+          <p className="text-slate-600">
+            No email events yet. Application, enrollment, payment placeholder, ticket, and certification messages will be logged here after they send.
+          </p>
+        ) : null}
       </Card>
     </div>
   );

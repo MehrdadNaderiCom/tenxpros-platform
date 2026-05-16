@@ -11,16 +11,16 @@ export function MarketingHero() {
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-[1.05fr_0.95fr] md:px-8 md:py-24">
         <div className="flex flex-col justify-center space-y-7">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-800">
-            Certified AI adoption for professionals
+            You bring the domain. We bring the AI method.
           </p>
           <div className="space-y-5">
             <h1 className="text-4xl font-semibold leading-tight tracking-normal text-navy-900 md:text-6xl">
-              Become the professional who can frame, design, and defend AI adoption.
+              Build AI adoption work serious enough to be reviewed.
             </h1>
             <p className="max-w-2xl text-lg leading-relaxed text-slate-600">
-              TenXPros is a selective 12-week program for professionals who need practical AI
-              capability, responsible judgment, and a Living AI Solution Dossier they can use in
-              real work.
+              TenXPros is not a passive course. It is a selective 12-week certification where you
+              frame a real professional problem, design responsibly, prove value, and produce a
+              Living AI Solution Dossier.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -29,11 +29,11 @@ export function MarketingHero() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </ButtonLink>
             <ButtonLink href="/program" variant="secondary" size="lg">
-              View program
+              See the method
             </ButtonLink>
           </div>
           <div className="grid gap-3 text-sm text-slate-700 sm:grid-cols-3">
-            {["12 weeks", "11 modules", "1 Dossier"].map((item) => (
+            {["12 weeks", "11 modules", "Reviewed Dossier"].map((item) => (
               <div key={item} className="rounded-md border border-neutral-200 bg-neutral-50 px-4 py-3">
                 {item}
               </div>
@@ -65,8 +65,8 @@ export function MarketingHero() {
                 </div>
               ))}
             </div>
-            <div className="mt-5 grid grid-cols-3 gap-3">
-              {["Frame", "Design", "Prove"].map((label) => (
+            <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {["Frame", "Design", "Prove", "Foresee"].map((label) => (
                 <div key={label} className="rounded-md bg-navy-50 p-4 text-center">
                   <p className="text-xs uppercase tracking-wide text-slate-500">{label}</p>
                   <p className="mt-1 text-lg font-semibold text-navy-900">Ready</p>
@@ -83,8 +83,8 @@ export function MarketingHero() {
 export function JourneySteps() {
   const steps = [
     ["Apply", "A selective application captures context, problem fit, commitment, and confidentiality consent."],
-    ["Diagnose", "The diagnostic intake turns your work context into customization dimensions."],
-    ["Build", "Eleven modules create practical artifacts and progressively assemble the Dossier."],
+    ["Diagnose", "The intake turns your role, domain, risk, stakeholders, and output goals into a usable path."],
+    ["Build", "Eleven modules create practical artifacts and progressively assemble the Living AI Solution Dossier."],
     ["Certify", "A section-level review and capstone decision determine the credential outcome."],
   ];
 
@@ -92,9 +92,9 @@ export function JourneySteps() {
     <section className="mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-24">
       <div className="max-w-3xl space-y-4">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-800">Journey</p>
-        <h2 className="text-3xl font-semibold tracking-normal text-navy-900">From applicant to Certified TenXPro.</h2>
+        <h2 className="text-3xl font-semibold tracking-normal text-navy-900">From professional problem to Certified TenXPro.</h2>
         <p className="text-slate-600">
-          The experience is async-first, coached, and anchored in a real professional problem.
+          Frame. Design. Prove. Foresee. The experience is async-first, coach-supported, and anchored in real work.
         </p>
       </div>
       <div className="mt-10 grid gap-4 md:grid-cols-4">
@@ -155,12 +155,16 @@ export function PricingGrid() {
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-xl font-semibold text-navy-900">{tier.name}</h3>
-              <Badge status={tier.isActive ? "ACCEPTED" : "SUBMITTED"}>
-                {tier.isActive ? "Open" : "Preview"}
+              <Badge status={tier.isActive ? "ACCEPTED" : "LOCKED"}>
+                {tier.isActive ? "Open" : "Closed preview"}
               </Badge>
             </div>
             <p className="text-3xl font-semibold text-slate-900">{formatCurrency(tier.price)}</p>
-            <p className="text-sm text-slate-600">Member capacity: {tier.membersLimit}</p>
+            <p className="text-sm text-slate-600">
+              {tier.name === "Founding Charter"
+                ? "Active for members 1-10. Founder-led launch cohort."
+                : `Preview only. Opens after ${tier.membersLimit === 20 ? "Founding Charter" : "the prior tier"} closes.`}
+            </p>
             <ul className="space-y-2 text-sm text-slate-600">
               {tier.benefits.map((benefit) => (
                 <li key={benefit} className="flex gap-2">
@@ -171,7 +175,7 @@ export function PricingGrid() {
             </ul>
             {tier.isActive ? (
               <ButtonLink href="/apply" className="w-full">
-                Apply
+                Apply for Founding Charter
               </ButtonLink>
             ) : (
               <button

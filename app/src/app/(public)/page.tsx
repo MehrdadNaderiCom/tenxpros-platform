@@ -4,7 +4,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Certified AI Adoption for Professionals",
+  title: "TenXPros | Certified AI Adoption for Professionals",
 };
 
 export default function HomePage() {
@@ -31,12 +31,17 @@ export default function HomePage() {
             </p>
             <h2 className="text-3xl font-semibold text-navy-900">Tier 1 is open for the first 10 members.</h2>
             <p className="text-slate-600">
-              Honest scarcity, transparent pricing transitions, and a selective admission review.
+              Founding Charter is the launch cohort: selective admission, manual payment after acceptance, and reviewed work toward the Certified TenXPro credential.
             </p>
           </div>
-          <ButtonLink href="/pricing" size="lg">
-            View pricing
-          </ButtonLink>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <ButtonLink href="/apply" size="lg">
+              Apply for Founding Charter
+            </ButtonLink>
+            <ButtonLink href="/pricing" variant="secondary" size="lg">
+              View pricing
+            </ButtonLink>
+          </div>
         </div>
       </section>
     </main>

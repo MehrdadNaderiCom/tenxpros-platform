@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function ModulesPage() {
   const session = await auth();
@@ -15,7 +15,10 @@ export default async function ModulesPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Modules" description="Each module produces a practical artifact and may earn a badge after review." />
+      <PageHeader
+        title="Modules"
+        description="Each module produces a practical artifact and may earn a badge after review."
+      />
       <div className="grid gap-4">
         {profile.participantModules.map((item) => (
           <Card key={item.id} className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -25,6 +28,11 @@ export default async function ModulesPage() {
               </p>
               <h2 className="mt-2 text-xl font-semibold text-navy-900">{item.module.title}</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">{item.module.description}</p>
+              {item.status === "LOCKED" ? (
+                <p className="mt-2 text-sm text-slate-500">
+                  Locked until your path or prior module evidence is ready.
+                </p>
+              ) : null}
             </div>
             <div className="flex items-center gap-3">
               <Badge status={item.status}>{item.status}</Badge>
@@ -36,6 +44,15 @@ export default async function ModulesPage() {
             </div>
           </Card>
         ))}
+        {profile.participantModules.length === 0 ? (
+          <EmptyState
+            eyebrow="No modules yet"
+            title="Your module path has not been generated."
+            description="Complete the Starter Pack and Diagnostic Intake first. Admin approval then unlocks the right starting sequence."
+            actionLabel="Go to diagnostic"
+            actionHref="/portal/diagnostic"
+          />
+        ) : null}
       </div>
     </div>
   );

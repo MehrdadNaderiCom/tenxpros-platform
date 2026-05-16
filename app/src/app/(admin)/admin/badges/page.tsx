@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function BadgesPage() {
   const [badges, issued] = await Promise.all([
@@ -24,9 +24,18 @@ export default async function BadgesPage() {
           {issued.map((item) => (
             <p key={item.id}>{item.badge.name} · {item.user.email} · /verify/{item.verificationCode}</p>
           ))}
-          {issued.length === 0 ? <p>No badges issued yet.</p> : null}
+          {issued.length === 0 ? (
+            <p>No badges issued yet. Module badges and capstone seals will appear here after reviewed work passes.</p>
+          ) : null}
         </div>
       </Card>
+      {badges.length === 0 ? (
+        <EmptyState
+          eyebrow="Badge catalog"
+          title="The badge catalog has not been seeded."
+          description="Run the launch seed in a non-production environment to create the full TenXPros badge library."
+        />
+      ) : null}
     </div>
   );
 }

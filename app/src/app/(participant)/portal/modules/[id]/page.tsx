@@ -26,6 +26,11 @@ export default async function ModulePage({ params }: { params: { id: string } })
         <p className="text-sm text-slate-600">
           Estimated hours: {item.module.estimatedHours} · Badge: {item.module.badgeName}
         </p>
+        {item.status === "LOCKED" ? (
+          <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-slate-600">
+            This module is locked until your approved path or prior module evidence opens it.
+          </p>
+        ) : null}
         {item.status === "UNLOCKED" ? (
           <form action={startModule}>
             <input type="hidden" name="participantModuleId" value={item.id} />

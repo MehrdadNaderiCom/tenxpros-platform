@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function ParticipantsPage() {
   const participants = await prisma.participantProfile.findMany({
@@ -41,6 +41,15 @@ export default async function ParticipantsPage() {
           </tbody>
         </table>
       </Card>
+      {participants.length === 0 ? (
+        <EmptyState
+          eyebrow="No participants"
+          title="Enrollment has not started yet."
+          description="Accepted applicants become participants only after manual payment confirmation and enrollment."
+          actionLabel="Review applications"
+          actionHref="/admin/applications"
+        />
+      ) : null}
     </div>
   );
 }

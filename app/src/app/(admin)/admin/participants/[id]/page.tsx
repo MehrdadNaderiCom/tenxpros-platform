@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { reviewParticipantModule } from "@/lib/actions/admin";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
@@ -23,6 +23,24 @@ export default async function ParticipantDetailPage({ params }: { params: { id: 
   return (
     <div className="space-y-8">
       <PageHeader title={participant.user.name ?? participant.user.email} description={`${participant.tier} · ${participant.status}`} />
+      <Card className="flex flex-col gap-3 bg-neutral-50 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-xl font-semibold text-navy-900">Participant workspace</h2>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Jump to the operational surface that needs attention: path, dossier review, or certification decision.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {participant.dossier ? (
+            <ButtonLink href={`/admin/dossiers/${participant.dossier.id}`} variant="secondary" size="sm">
+              Dossier
+            </ButtonLink>
+          ) : null}
+          <ButtonLink href={`/admin/certifications/${participant.id}`} variant="secondary" size="sm">
+            Certification
+          </ButtonLink>
+        </div>
+      </Card>
       <div className="grid gap-4 md:grid-cols-4">
         <Card><p className="text-sm text-slate-500">Status</p><Badge className="mt-3" status={participant.status}>{participant.status}</Badge></Card>
         <Card><p className="text-sm text-slate-500">Diagnostic</p><p className="mt-3 font-semibold">{participant.diagnostic?.isComplete ? "Submitted" : "Pending"}</p></Card>

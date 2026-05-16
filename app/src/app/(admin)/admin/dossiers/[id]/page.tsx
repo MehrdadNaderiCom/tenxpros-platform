@@ -16,6 +16,11 @@ export default async function DossierReviewPage({ params }: { params: { id: stri
   return (
     <div className="space-y-8">
       <PageHeader title={dossier.title ?? "Dossier"} description={dossier.participant.user.email} />
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Review at the section level. Choose reviewed, approved, or revision requested, then write feedback the participant can act on.
+        </p>
+      </Card>
       <div className="grid gap-4">
         {dossier.sections.map((section) => (
           <Card key={section.id} className="space-y-4">

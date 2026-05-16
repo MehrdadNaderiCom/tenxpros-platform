@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 const sections = [
+  ["Founder/legal review", "Founder/legal review required before production launch."],
   ["Program nature", "TenXPros is a selective professional education and certification program. Admission, participation, feedback, and certification decisions are based on fit, submitted work, evidence quality, and professional judgment."],
   ["No guaranteed outcome", "TenXPros does not guarantee employment, promotion, revenue, directory leads, or certification. The program provides education, structure, review, and credentialing standards."],
   ["Participant responsibilities", "Participants are responsible for truthful application information, protecting confidential data, respecting third-party rights, and submitting original work."],
@@ -17,7 +18,10 @@ const sections = [
 export default function TermsPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-16 md:px-8 md:py-24">
-      <PageHeader title="Terms of Service" description="Launch terms for the TenXPros program and platform." />
+      <PageHeader
+        title="Terms of Service"
+        description="Founder-review-ready launch terms for the TenXPros program and platform."
+      />
       <div className="space-y-4">
         {sections.map(([title, copy]) => (
           <Card key={title}>

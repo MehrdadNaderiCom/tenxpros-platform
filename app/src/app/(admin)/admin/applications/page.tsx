@@ -48,8 +48,8 @@ export default async function ApplicationsPage() {
             ))}
             {applications.length === 0 ? (
               <tr>
-                <td className="px-4 py-8 text-center text-slate-500" colSpan={6}>
-                  No applications yet.
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
+                  No applications yet. New Founding Charter applications will appear here for fit review, decision notes, payment link handling, and enrollment.
                 </td>
               </tr>
             ) : null}
