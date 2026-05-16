@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function PaymentsPage() {
   const payments = await prisma.paymentRecord.findMany({
@@ -27,6 +27,15 @@ export default async function PaymentsPage() {
           </tbody>
         </table>
       </Card>
+      {payments.length === 0 ? (
+        <EmptyState
+          eyebrow="No payments"
+          title="No manual payment records have been created."
+          description="At launch, accepted applicants receive manual Stripe Payment Links. Confirmed payments create records here."
+          actionLabel="Review applications"
+          actionHref="/admin/applications"
+        />
+      ) : null}
     </div>
   );
 }

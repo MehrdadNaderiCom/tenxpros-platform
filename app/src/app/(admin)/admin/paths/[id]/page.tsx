@@ -15,6 +15,11 @@ export default async function PathBuilderPage({ params }: { params: { id: string
   return (
     <div className="space-y-8">
       <PageHeader title="Path Builder" description={path.participant.user.name ?? path.participant.user.email} />
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Approving the path gives the participant a clear working sequence. Keep notes short, concrete, and tied to diagnostic risk, stakeholder complexity, and output type.
+        </p>
+      </Card>
       <Card>
         <form action={approvePath} className="space-y-4">
           <input type="hidden" name="pathId" value={path.id} />

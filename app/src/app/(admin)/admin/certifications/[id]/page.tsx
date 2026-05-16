@@ -15,6 +15,11 @@ export default async function CertificationDecisionPage({ params }: { params: { 
   return (
     <div className="space-y-8">
       <PageHeader title="Certification Decision" description={participant.user.name ?? participant.user.email} />
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Use this decision only after reviewing module evidence, dossier quality, and capstone readiness. Certification is not automatic completion.
+        </p>
+      </Card>
       <div className="grid gap-4 md:grid-cols-3">
         <Card><p className="text-sm text-slate-500">Modules passed</p><p className="mt-3 text-2xl font-semibold">{participant.participantModules.filter((m) => m.status === "PASSED").length}/11</p></Card>
         <Card><p className="text-sm text-slate-500">Dossier approved</p><p className="mt-3 text-2xl font-semibold">{participant.dossier?.sections.filter((s) => s.status === "APPROVED").length ?? 0}/12</p></Card>

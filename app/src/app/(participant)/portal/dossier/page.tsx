@@ -16,6 +16,11 @@ export default async function DossierPage() {
   return (
     <div className="space-y-8">
       <PageHeader title="Dossier Builder" description="Build and submit each section for section-level review." />
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Draft freely, submit when a section is ready, and wait for section-level feedback. Submitted and approved sections lock so review has a stable artifact.
+        </p>
+      </Card>
       <div className="print-hidden">
         <Link
           href="/portal/dossier/preview"

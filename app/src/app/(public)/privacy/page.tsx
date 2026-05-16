@@ -7,6 +7,7 @@ export const metadata: Metadata = {
 };
 
 const sections = [
+  ["Founder/legal review", "Founder/legal review required before production launch."],
   ["What we collect", "We collect application details, account information, diagnostic responses, program submissions, dossier content, support tickets, payment status records, and operational analytics."],
   ["How we use data", "We use data to review applications, deliver the program, personalize paths, provide feedback, manage certification, operate support, and improve TenXPros."],
   ["Confidentiality", "TenXPros is designed around professional confidentiality. Participants should avoid uploading sensitive third-party information unless they have the right to use it."],
@@ -17,7 +18,10 @@ const sections = [
 export default function PrivacyPage() {
   return (
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-16 md:px-8 md:py-24">
-      <PageHeader title="Privacy Policy" description="How TenXPros handles participant, applicant, and operational data." />
+      <PageHeader
+        title="Privacy Policy"
+        description="Founder-review-ready privacy language for participant, applicant, and operational data."
+      />
       <div className="space-y-4">
         {sections.map(([title, copy]) => (
           <Card key={title}>

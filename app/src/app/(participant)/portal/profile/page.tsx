@@ -18,6 +18,11 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader title="Profile & Directory Settings" description="Directory publishing is opt-in and mainly intended for certified participants." />
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Nothing becomes public just because you fill this out. Public directory visibility requires eligibility, opt-in, and admin-managed launch timing.
+        </p>
+      </Card>
       <Card>
         <form action={updateDirectoryProfile} className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
@@ -59,7 +64,14 @@ export default async function ProfilePage() {
               <p className="text-sm text-slate-600">{item.isPublic ? "Public" : "Private"}</p>
             </div>
           ))}
-          {profile.user.earnedBadges.length === 0 ? <p className="text-sm text-slate-600">No badges earned yet.</p> : null}
+          {profile.user.earnedBadges.length === 0 ? (
+            <div className="rounded-md border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm leading-6 text-slate-600 md:col-span-2">
+              <p className="font-semibold text-navy-900">No badges earned yet.</p>
+              <p className="mt-1">
+                Earned badges appear here after module review or certification. You can decide what becomes public when eligible.
+              </p>
+            </div>
+          ) : null}
         </div>
       </Card>
     </div>

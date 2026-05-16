@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function AdminDirectoryPage() {
   const profiles = await prisma.directoryProfile.findMany({ include: { user: true }, orderBy: { updatedAt: "desc" } });
@@ -18,7 +18,15 @@ export default async function AdminDirectoryPage() {
             <Badge status={profile.isPublic ? "ACCEPTED" : "SUBMITTED"}>{profile.isPublic ? "Public" : "Draft"}</Badge>
           </Card>
         ))}
-        {profiles.length === 0 ? <Card>No directory profiles yet.</Card> : null}
+        {profiles.length === 0 ? (
+          <EmptyState
+            eyebrow="No directory profiles"
+            title="No profiles are ready for directory review."
+            description="Certified participants can opt in to profile visibility. Keep the public directory closed until real certified profiles exist."
+            actionLabel="View certifications"
+            actionHref="/admin/certifications"
+          />
+        ) : null}
       </div>
     </div>
   );

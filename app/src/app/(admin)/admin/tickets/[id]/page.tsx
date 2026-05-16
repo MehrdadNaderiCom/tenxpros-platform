@@ -17,6 +17,11 @@ export default async function AdminTicketPage({ params }: { params: { id: string
     <div className="space-y-8">
       <PageHeader title={ticket.subject} description={`${ticket.user.email} · ${ticket.category}`} />
       <Badge status={ticket.status}>{ticket.status}</Badge>
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Answer with the next useful step, then set the thread to awaiting participant, resolved, or closed so the queue stays readable.
+        </p>
+      </Card>
       {ticket.messages.map((message) => (
         <Card key={message.id}>
           <p className="text-sm font-medium text-navy-900">{message.user.name ?? message.user.email}</p>

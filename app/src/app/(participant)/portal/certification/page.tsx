@@ -15,7 +15,10 @@ export default async function CertificationStatusPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Certification Status" description="Certification becomes available after module, dossier, and capstone review." />
+      <PageHeader
+        title="Certification Status"
+        description="Certification becomes available after module, dossier, and capstone review."
+      />
       <Card className="space-y-4">
         <Badge status={profile.certification?.outcome ?? profile.status}>{profile.certification?.outcome ?? profile.status}</Badge>
         <p className="text-sm leading-6 text-slate-600">
@@ -41,7 +44,15 @@ export default async function CertificationStatusPage() {
               <p className="mt-1 text-sm text-slate-600">Verification: /verify/{item.verificationCode}</p>
             </div>
           ))}
-          {profile.user.earnedBadges.length === 0 ? <p className="text-sm text-slate-600">No badges earned yet.</p> : null}
+          {profile.user.earnedBadges.length === 0 ? (
+            <div className="rounded-md border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm leading-6 text-slate-600 md:col-span-2">
+              <p className="font-semibold text-navy-900">No badges earned yet.</p>
+              <p className="mt-1">Module badges and the capstone seal appear here after reviewed work is approved.</p>
+              <Link href="/portal/modules" className="mt-3 inline-flex font-medium text-navy-900">
+                Review modules
+              </Link>
+            </div>
+          ) : null}
         </div>
       </Card>
     </div>

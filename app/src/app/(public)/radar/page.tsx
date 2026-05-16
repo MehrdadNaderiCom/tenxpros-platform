@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { PageHeader } from "@/components/shared/page-shell";
-import { Card } from "@/components/ui/card";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export const metadata: Metadata = {
   title: "Radar",
@@ -14,11 +13,13 @@ export default function RadarPage() {
         title="TenXPro Radar is the alumni signal layer."
         description="Radar will provide post-program AI updates, scenario signals, and practice refreshers for certified alumni."
       />
-      <Card>
-        <p className="text-slate-600">
-          Launch state: informational only. Subscription automation is intentionally deferred.
-        </p>
-      </Card>
+      <EmptyState
+        eyebrow="Coming soon"
+        title="Radar opens after the first certified cohort."
+        description="The launch priority is the certification lifecycle. Radar subscription automation stays intentionally closed until there are alumni to serve."
+        actionLabel="View the program"
+        actionHref="/program"
+      />
     </main>
   );
 }

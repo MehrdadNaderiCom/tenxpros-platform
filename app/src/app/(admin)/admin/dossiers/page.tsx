@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function AdminDossiersPage() {
   const dossiers = await prisma.dossier.findMany({
@@ -10,7 +10,10 @@ export default async function AdminDossiersPage() {
   });
   return (
     <div className="space-y-8">
-      <PageHeader title="Dossiers" description="Section-level review queues. Inline annotation is intentionally deferred." />
+      <PageHeader
+        title="Dossiers"
+        description="Section-level review queues. Inline annotation is intentionally deferred."
+      />
       <div className="grid gap-4">
         {dossiers.map((dossier) => (
           <Card key={dossier.id}>
@@ -22,6 +25,15 @@ export default async function AdminDossiersPage() {
             </p>
           </Card>
         ))}
+        {dossiers.length === 0 ? (
+          <EmptyState
+            eyebrow="No dossier reviews"
+            title="No dossier sections are awaiting review."
+            description="Submitted sections will appear here. Launch review remains section-level, with feedback captured in the participant history."
+            actionLabel="View participants"
+            actionHref="/admin/participants"
+          />
+        ) : null}
       </div>
     </div>
   );

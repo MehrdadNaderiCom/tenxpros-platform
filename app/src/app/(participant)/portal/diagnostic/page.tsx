@@ -16,9 +16,22 @@ export default async function DiagnosticPage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Diagnostic Intake" description="Save a draft as you go, then submit when the core context is complete." />
+      <PageHeader
+        title="Diagnostic Intake"
+        description="Save a draft as you go, then submit when the core context is complete."
+      />
+      <Card className="bg-neutral-50">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-800">Guided context</p>
+        <p className="mt-2 text-sm leading-6 text-slate-700">
+          This intake gives the admin enough signal to tune your path: risk, stakeholders, output type, success criteria, and the support you need.
+        </p>
+      </Card>
       <Card>
         <form className="space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold text-navy-900">1. Operating context</h2>
+            <p className="text-sm text-slate-600">Choose the closest fit. You can refine the nuance in the written fields below.</p>
+          </div>
           <div className="grid gap-4 md:grid-cols-2">
             <Field label="Risk profile">
               <Select name="riskProfile" defaultValue={diagnostic?.riskProfile ?? "MODERATE"}>

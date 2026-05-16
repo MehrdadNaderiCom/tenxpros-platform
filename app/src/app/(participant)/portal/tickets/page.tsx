@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function TicketsPage() {
   const session = await auth();
@@ -34,7 +34,15 @@ export default async function TicketsPage() {
             <Badge status={ticket.status}>{ticket.status}</Badge>
           </Card>
         ))}
-        {tickets.length === 0 ? <Card>No tickets yet.</Card> : null}
+        {tickets.length === 0 ? (
+          <EmptyState
+            eyebrow="Support"
+            title="No tickets yet."
+            description="Use tickets for substantive module, dossier, evidence, workflow, foresight, capstone, or technical questions. Fair use keeps support focused for everyone."
+            actionLabel="Create a ticket"
+            actionHref="/portal/tickets/new"
+          />
+        ) : null}
       </div>
     </div>
   );

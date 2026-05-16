@@ -11,8 +11,8 @@ export default function AboutPage() {
     <main className="mx-auto max-w-7xl space-y-10 px-6 py-16 md:px-8 md:py-24">
       <PageHeader
         eyebrow="Philosophy"
-        title="TenXPros exists because AI adoption is now professional judgment work."
-        description="The program is built for people who need to understand where AI fits, where it does not fit, and how to defend a practical solution in their own domain."
+        title="You bring the domain. We bring the AI method."
+        description="TenXPros exists because AI adoption is now professional judgment work. The program is built for people who need to know where AI fits, where it does not, and how to defend a practical solution in their own domain."
       />
       <div className="grid gap-4 md:grid-cols-3">
         {[

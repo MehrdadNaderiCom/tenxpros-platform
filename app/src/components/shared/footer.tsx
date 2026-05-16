@@ -18,8 +18,7 @@ export function Footer() {
         <div className="space-y-2">
           <Logo />
           <p className="max-w-xl text-sm text-slate-600">
-            A selective AI adoption program for professionals who need practical,
-            responsible, evidence-based capability.
+            You bring the domain. We bring the AI method. TenXPros helps serious professionals build reviewed AI adoption work they can defend.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">

@@ -63,7 +63,12 @@ export function ApplicationForm() {
           <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{serverError}</p>
         ) : null}
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold text-navy-900">Professional context</h2>
+            <p className="mt-1 text-sm text-slate-600">Tell us who you are and where the work will be grounded.</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
           <Field label="Full name" error={errors.fullName?.message}>
             <Input {...register("fullName")} autoComplete="name" />
           </Field>
@@ -82,9 +87,15 @@ export function ApplicationForm() {
           <Field label="LinkedIn URL" error={errors.linkedinUrl?.message}>
             <Input {...register("linkedinUrl")} type="url" placeholder="https://www.linkedin.com/in/..." />
           </Field>
+          </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold text-navy-900">Program fit</h2>
+            <p className="mt-1 text-sm text-slate-600">Choose the closest operating profile for the work you want to bring.</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-3">
           <Field label="AI experience" error={errors.aiExperience?.message}>
             <Select {...register("aiExperience")}>
               <option value="BEGINNER">Beginner</option>
@@ -107,6 +118,7 @@ export function ApplicationForm() {
               <option value="HOURS_12_PLUS">12+ hours</option>
             </Select>
           </Field>
+          </div>
         </section>
 
         <Field label="Why TenXPros?" error={errors.whyTenXPros?.message}>
@@ -127,7 +139,8 @@ export function ApplicationForm() {
           <Input {...register("preferredLanguage")} />
         </Field>
 
-        <div className="space-y-3">
+        <div className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+          <h2 className="text-xl font-semibold text-navy-900">Consent and confidentiality</h2>
           <label className="flex gap-3 text-sm leading-6 text-slate-700">
             <input className="mt-1 h-4 w-4" type="checkbox" {...register("consentConfidentiality")} />
             I understand I must not submit confidential, sensitive, regulated, or third-party data unless I have the right safeguards and authority.

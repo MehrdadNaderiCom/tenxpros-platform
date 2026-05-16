@@ -13,6 +13,11 @@ export default async function StarterPackPage() {
   return (
     <div className="space-y-8">
       <PageHeader title="Starter Pack" description="Orientation, confidentiality discipline, program rhythm, and dossier expectations." />
+      <Card className="bg-neutral-50">
+        <p className="text-sm leading-6 text-slate-700">
+          Complete this once before the diagnostic. It sets the working agreement: protect sensitive data, use real professional context, and build evidence that can be reviewed.
+        </p>
+      </Card>
       <div className="grid gap-4 md:grid-cols-3">
         {["Program rhythm", "Confidentiality guardrails", "Dossier standards"].map((item) => (
           <Card key={item}>

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function PathPage() {
   const session = await auth();
@@ -25,6 +25,15 @@ export default async function PathPage() {
           {profile.path?.customizationNotes ?? "Initial path pending diagnostic review."}
         </p>
       </Card>
+      {!profile.path?.approvedByAdmin ? (
+        <EmptyState
+          eyebrow="Pending review"
+          title="Your personalized path is waiting for admin approval."
+          description="Submit the diagnostic intake first. Once reviewed, this page becomes the practical sequence for your module work."
+          actionLabel={profile.diagnostic?.isComplete ? "Review modules" : "Complete diagnostic"}
+          actionHref={profile.diagnostic?.isComplete ? "/portal/modules" : "/portal/diagnostic"}
+        />
+      ) : null}
       <div className="grid gap-4">
         {profile.participantModules.map((item) => (
           <Card key={item.id} className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

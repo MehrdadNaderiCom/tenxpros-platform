@@ -30,7 +30,7 @@ export function PublicNav() {
             Login
           </Link>
           <ButtonLink href="/apply" size="sm">
-            Apply
+            Apply for Founding Charter
           </ButtonLink>
         </div>
       </div>

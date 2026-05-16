@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/shared/page-shell";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function PathsPage() {
   const paths = await prisma.programPath.findMany({
@@ -24,6 +24,15 @@ export default async function PathsPage() {
             <Badge status={path.approvedByAdmin ? "ACCEPTED" : "UNDER_REVIEW"}>{path.approvedByAdmin ? "APPROVED" : "DRAFT"}</Badge>
           </Card>
         ))}
+        {paths.length === 0 ? (
+          <EmptyState
+            eyebrow="No paths"
+            title="No participant paths have been generated."
+            description="Paths are created during enrollment and become useful after diagnostic review."
+            actionLabel="View diagnostics"
+            actionHref="/admin/diagnostics"
+          />
+        ) : null}
       </div>
     </div>
   );

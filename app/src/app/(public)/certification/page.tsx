@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BadgeGallery } from "@/components/marketing/marketing-sections";
 import { PageHeader } from "@/components/shared/page-shell";
+import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
@@ -12,9 +13,15 @@ export default function CertificationPage() {
     <main className="mx-auto max-w-7xl space-y-12 px-6 py-16 md:px-8 md:py-24">
       <PageHeader
         eyebrow="Credential"
-        title="Certified TenXPro signals practical, responsible AI adoption capability."
-        description="Certification is based on dossier quality, module artifacts, capstone evidence, and professional judgment."
+        title="Certified TenXPro is earned through reviewed work."
+        description="This is not a certificate of attendance. Certification is based on dossier quality, module artifacts, capstone evidence, and professional judgment."
       />
+      <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <p className="max-w-2xl text-sm leading-6 text-slate-600">
+          TenXPros separates completion from certification so the credential stays meaningful for serious professionals and the people who rely on their judgment.
+        </p>
+        <ButtonLink href="/apply">Apply for Founding Charter</ButtonLink>
+      </Card>
       <div className="grid gap-4 md:grid-cols-3">
         {[
           ["Certified", "The participant meets the capstone standard and receives the Capstone Seal."],
