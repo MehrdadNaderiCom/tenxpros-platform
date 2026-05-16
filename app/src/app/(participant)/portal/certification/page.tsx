@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
+import Link from "next/link";
 
 export default async function CertificationStatusPage() {
   const session = await auth();
@@ -22,6 +23,14 @@ export default async function CertificationStatusPage() {
             ? profile.certification.reviewerNotes
             : "No certification decision has been recorded yet."}
         </p>
+        {profile.certification?.certificateUrl ? (
+          <Link
+            href={profile.certification.certificateUrl}
+            className="inline-flex h-10 items-center rounded-md border border-neutral-300 px-4 text-sm font-medium text-navy-900 transition hover:bg-neutral-50"
+          >
+            View certificate
+          </Link>
+        ) : null}
       </Card>
       <Card>
         <h2 className="text-xl font-semibold text-navy-900">Badges</h2>

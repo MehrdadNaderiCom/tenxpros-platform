@@ -38,3 +38,13 @@ a {
   background: #c9a961;
   color: #1a202c;
 }
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .print-hidden {
+    display: none !important;
+  }
+}
