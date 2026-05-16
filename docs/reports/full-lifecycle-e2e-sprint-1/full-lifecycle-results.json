@@ -1,0 +1,24 @@
+{
+  "applicantEmail": "e2e.full.lifecycle.1778901558678-xg2xyg@tenxpros.test",
+  "applicationId": "cmp7s24m200bdhkwu2akz00ti",
+  "participantId": "cmp7s26bp00bkhkwutwwsbc3m",
+  "moduleStatus": "PASSED",
+  "dossierSectionStatus": "APPROVED",
+  "ticketStatus": "RESOLVED",
+  "certificationOutcome": "CERTIFIED",
+  "badgeVerificationCode": "cmp7s2fyg00d3hkwuaxhcmcql",
+  "finalPass": true,
+  "screenshots": [
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/01-application-submitted-thank-you-page.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/02-admin-application-detail-enrolled-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/03-participant-dashboard-after-login.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/04-diagnostic-submitted-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/05-module-submitted-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/06-module-passed-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/07-dossier-submitted-locked-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/08-admin-dossier-review-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/09-ticket-resolved-state.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/10-certification-status-page.png",
+    "docs/reports/full-lifecycle-e2e-sprint-1/screenshots/11-public-badge-verification-page.png"
+  ]
+}
