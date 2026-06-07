@@ -1,0 +1,255 @@
+{
+  "desktop": {
+    "anchorWorks": true,
+    "measurements": {
+      "scrollHeight": 6581,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 6416,
+        "absBottom": 6581
+      },
+      "trailingBlank": 0,
+      "maxGap": 1799,
+      "sections": [
+        {
+          "text": "Apply with one real professional problem.",
+          "found": true,
+          "absTop": 244,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Strong applications are specific.",
+          "found": true,
+          "absTop": 882,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What happens after you apply.",
+          "found": true,
+          "absTop": 1542,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Start your Founding Charter application.",
+          "found": true,
+          "absTop": 2164,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Before you submit.",
+          "found": true,
+          "absTop": 3963,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "See the standard before you apply.",
+          "found": true,
+          "absTop": 4603,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Ready to apply?",
+          "found": true,
+          "absTop": 6097,
+          "visible": true,
+          "withinDoc": true
+        }
+      ],
+      "formFields": [
+        {
+          "name": "fullName",
+          "present": true
+        },
+        {
+          "name": "email",
+          "present": true
+        },
+        {
+          "name": "country",
+          "present": true
+        },
+        {
+          "name": "professionalRole",
+          "present": true
+        },
+        {
+          "name": "domain",
+          "present": true
+        },
+        {
+          "name": "linkedinUrl",
+          "present": true
+        },
+        {
+          "name": "aiExperience",
+          "present": true
+        },
+        {
+          "name": "dataSensitivity",
+          "present": true
+        },
+        {
+          "name": "timeAvailability",
+          "present": true
+        },
+        {
+          "name": "whyTenXPros",
+          "present": true
+        },
+        {
+          "name": "realProblemBrief",
+          "present": true
+        },
+        {
+          "name": "preferredLanguage",
+          "present": true
+        },
+        {
+          "name": "consentConfidentiality",
+          "present": true
+        },
+        {
+          "name": "consentTerms",
+          "present": true
+        }
+      ],
+      "hasForm": true,
+      "hasSubmit": true,
+      "anchorTarget": true
+    }
+  },
+  "mobile": {
+    "menuCenter": "NAV.flex flex-1 flex-col gap-1 px-6 py-6",
+    "anchorWorks": true,
+    "measurements": {
+      "scrollHeight": 9788,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 9503,
+        "absBottom": 9788
+      },
+      "trailingBlank": 0,
+      "maxGap": 2389,
+      "sections": [
+        {
+          "text": "Apply with one real professional problem.",
+          "found": true,
+          "absTop": 178,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Strong applications are specific.",
+          "found": true,
+          "absTop": 1328,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What happens after you apply.",
+          "found": true,
+          "absTop": 2353,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Start your Founding Charter application.",
+          "found": true,
+          "absTop": 3488,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Before you submit.",
+          "found": true,
+          "absTop": 5877,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "See the standard before you apply.",
+          "found": true,
+          "absTop": 7292,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Ready to apply?",
+          "found": true,
+          "absTop": 9206,
+          "visible": true,
+          "withinDoc": true
+        }
+      ],
+      "formFields": [
+        {
+          "name": "fullName",
+          "present": true
+        },
+        {
+          "name": "email",
+          "present": true
+        },
+        {
+          "name": "country",
+          "present": true
+        },
+        {
+          "name": "professionalRole",
+          "present": true
+        },
+        {
+          "name": "domain",
+          "present": true
+        },
+        {
+          "name": "linkedinUrl",
+          "present": true
+        },
+        {
+          "name": "aiExperience",
+          "present": true
+        },
+        {
+          "name": "dataSensitivity",
+          "present": true
+        },
+        {
+          "name": "timeAvailability",
+          "present": true
+        },
+        {
+          "name": "whyTenXPros",
+          "present": true
+        },
+        {
+          "name": "realProblemBrief",
+          "present": true
+        },
+        {
+          "name": "preferredLanguage",
+          "present": true
+        },
+        {
+          "name": "consentConfidentiality",
+          "present": true
+        },
+        {
+          "name": "consentTerms",
+          "present": true
+        }
+      ],
+      "hasForm": true,
+      "hasSubmit": true,
+      "anchorTarget": true
+    }
+  }
+}

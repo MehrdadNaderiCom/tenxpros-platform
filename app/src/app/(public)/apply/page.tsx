@@ -1,31 +1,41 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ApplicationForm } from "@/components/marketing/application-form";
-import { SampleDossierPreview } from "@/components/marketing/sample-dossier-preview";
-import { PageHeader } from "@/components/shared/page-shell";
+import {
+  ApplyHero,
+  ApplyStrong,
+  ApplyAfter,
+  ApplyFormShell,
+  ApplyReassure,
+  ApplyProof,
+  ApplyAudience,
+  ApplyFinalCta,
+} from "@/components/marketing/apply-instrument";
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Apply",
+  title: "Apply — Founding Charter",
+  description:
+    "Apply with one real professional problem. TenXPros is selective because the work is reviewed — no payment details required, and you pay only after acceptance.",
 };
 
 export default function ApplyPage() {
   return (
-    <main className="mx-auto max-w-4xl space-y-10 px-6 py-16 md:px-8 md:py-24">
-      <PageHeader
-        eyebrow="Application"
-        title="Apply for the Founding Charter with a real professional problem."
-        description="TenXPros reviews fit, seriousness, readiness, and whether your problem is appropriate for responsible AI adoption work. Payment happens only after acceptance."
-      />
-      <Card className="bg-neutral-50">
-        <p className="text-sm leading-6 text-slate-700">
-          Strong applications are specific: your domain, your real constraint, the people affected, and why reviewed AI adoption work matters now.
-        </p>
-      </Card>
-      <SampleDossierPreview variant="apply" />
-      <Suspense fallback={<Card>Loading application form...</Card>}>
-        <ApplicationForm />
-      </Suspense>
+    <main className="bg-[#070B14] text-slate-300">
+      {/* 1 Hero · 2 Strong application · 3 After you apply · 4 Form · 5 Reassurance · 6 Proof · 7 Fit · 8 Final CTA */}
+      <ApplyHero />
+      <ApplyStrong />
+      <ApplyAfter />
+      <ApplyFormShell>
+        {/* Existing application form — fields, validation, and server action unchanged */}
+        <Suspense fallback={<Card>Loading application form...</Card>}>
+          <ApplicationForm />
+        </Suspense>
+      </ApplyFormShell>
+      <ApplyReassure />
+      <ApplyProof />
+      <ApplyAudience />
+      <ApplyFinalCta />
     </main>
   );
 }
