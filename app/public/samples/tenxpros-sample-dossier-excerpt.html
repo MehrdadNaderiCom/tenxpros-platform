@@ -125,6 +125,9 @@ body{
 @media print{
   .sheet{ margin:0; box-shadow:none; width:auto; }
   .sheet.cover{ min-height:297mm; }
+  /* Prevent single-line orphans/widows at page boundaries (hardening). */
+  p, li, dd, dt, .note, .panel, .block{ orphans:3; widows:3; }
+  h1, h2, h3, .sec-head, thead, .note-head{ break-after:avoid; }
 }
 
 /* ---------- Cover-only capture mode (used by the cover PNG generator) ---- */

@@ -68,8 +68,8 @@ export function PricingHero() {
             Apply first. Pay only after acceptance.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
-            The Founding Charter is open for the first 10 accepted members. You apply with one real
-            professional problem; payment happens only if you are accepted.
+            The Founding Charter is open during a limited founding review-capacity window. You apply
+            with one real professional problem; payment happens only if you are accepted.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
@@ -119,7 +119,7 @@ export function PricingHero() {
             </div>
             <ul className="mt-6 space-y-px">
               {[
-                ["Seats", "First 10 accepted"],
+                ["Review capacity", "Limited founding window"],
                 ["Before acceptance", "$0"],
                 ["Payment", "Only after acceptance"],
               ].map(([k, v]) => (
@@ -187,7 +187,7 @@ export function PricingCard() {
 
           <div className="relative mt-6 flex flex-wrap items-end gap-x-4 gap-y-1">
             <span className="text-6xl font-semibold tracking-tight text-white">$997 USD</span>
-            <span className="pb-2 text-sm text-slate-400">First 10 accepted members</span>
+            <span className="pb-2 text-sm text-slate-400">Limited founding review-capacity window</span>
           </div>
           <p className="relative mt-3 max-w-xl text-sm leading-6 text-slate-400">
             The founding window is limited because dossier review is manual and capacity is
@@ -221,7 +221,7 @@ export function PricingCard() {
 /* ----------------------------------------------------------- 3. Pricing ladder */
 
 const LADDER: Array<{ name: string; price: string; status: string; desc: string; open?: boolean }> = [
-  { name: "Founding Charter", price: "$997 USD", status: "Open now", desc: "Open now — the first 10 accepted members.", open: true },
+  { name: "Founding Charter", price: "$997 USD", status: "Open now", desc: "Open while founding review capacity remains.", open: true },
   { name: "Early Charter", price: "$1,247 USD", status: "Preview", desc: "Opens after Founding Charter closes." },
   { name: "Late Charter", price: "$1,497 USD", status: "Preview", desc: "Opens after Early Charter closes." },
   { name: "Final Charter", price: "$1,747 USD", status: "Preview", desc: "Opens after Late Charter closes." },
@@ -281,8 +281,8 @@ export function PricingLadder() {
       </ul>
       <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
         The program structure stays the same; the entry price changes by charter window. No
-        countdowns, no pressure mechanics — only the stated founding-seat limit (the first 10
-        accepted members).
+        countdowns and no pressure mechanics — the Founding Charter simply stays open while founding
+        review capacity remains.
       </p>
     </SectionShell>
   );
@@ -306,7 +306,7 @@ export function PricingValue() {
       <div className="max-w-3xl">
         <MonoLabel>What you pay for</MonoLabel>
         <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-          What you are paying for is not a video course.
+          What your Founding Charter builds.
         </h2>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">

@@ -332,6 +332,77 @@ export function CertOutcomes() {
 
 /* --------------------------------------------------- 6. The dossier behind it */
 
+const RANKS: Array<[string, string, string]> = [
+  ["AI-Ready Professional", "Frame", "Earned on completing the Frame phase."],
+  ["AI Problem Solver & Solution Designer", "Design", "Earned on completing the Design phase."],
+  ["Future-Ready AI Solution Designer", "Prove · Foresee", "Earned on completing the Prove and Foresee phases."],
+];
+
+export function CertMilestones() {
+  return (
+    <SectionShell>
+      <div className="max-w-3xl">
+        <MonoLabel>Milestones, ranks &amp; the seal</MonoLabel>
+        <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
+          Milestones, ranks, and the final credential.
+        </h2>
+        <p className="mt-5 text-lg leading-relaxed text-slate-300">
+          Progress is marked by reviewed work, not attendance — and it builds toward one credential.
+        </p>
+      </div>
+
+      <div className="mt-12 grid gap-4 lg:grid-cols-3">
+        {/* Module milestones */}
+        <div className="rounded-xl border border-white/10 bg-[#0B1120] p-6">
+          <MonoLabel className="text-slate-400">Module milestones</MonoLabel>
+          <p className="mt-3 text-2xl font-semibold text-white">11</p>
+          <p className="mt-2 text-sm leading-6 text-slate-300">
+            One per core module, earned through the work you submit — not for watching or attending.
+          </p>
+        </div>
+
+        {/* Ranks */}
+        <div className="rounded-xl border border-white/10 bg-[#0B1120] p-6 lg:col-span-2">
+          <MonoLabel className="text-slate-400">Ranks · progress through the method</MonoLabel>
+          <ul className="mt-4 space-y-px">
+            {RANKS.map(([name, phase, desc]) => (
+              <li key={name} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-white/5 py-3 last:border-0">
+                <span>
+                  <span className="block text-[0.95rem] font-semibold text-white">{name}</span>
+                  <span className="text-xs leading-5 text-slate-400">{desc}</span>
+                </span>
+                <span className="font-mono text-[0.6rem] uppercase tracking-[0.16em] text-indigo-300/80">{phase}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Capstone seal — gold credential moment */}
+      <div className="mt-4 flex flex-col gap-4 rounded-xl border border-[#C9A961]/30 bg-[#0B1120] p-6 ring-1 ring-[#C9A961]/10 sm:flex-row sm:items-center sm:gap-6 md:p-8">
+        <span
+          className="flex h-12 w-12 flex-none items-center justify-center rounded-full border"
+          style={{ borderColor: `${GOLD}55` }}
+          aria-hidden="true"
+        >
+          <ShieldCheck className="h-5 w-5" style={{ color: GOLD }} />
+        </span>
+        <div>
+          <p className="font-mono text-[0.62rem] uppercase tracking-[0.18em]" style={{ color: `${GOLD}cc` }}>
+            The final credential
+          </p>
+          <h3 className="mt-1 text-lg font-semibold text-white">Certified TenXPro Capstone Seal</h3>
+          <p className="mt-1.5 text-sm leading-6 text-slate-300">
+            The seal belongs to certified dossier work — earned when the reviewed dossier meets the
+            standard. Verification confirms credential metadata without exposing the confidential
+            contents of your work.
+          </p>
+        </div>
+      </div>
+    </SectionShell>
+  );
+}
+
 export function CertDossier() {
   return (
     <SectionShell>

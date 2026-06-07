@@ -237,24 +237,22 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
           <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
             Start your Founding Charter application.
           </h2>
-          <p className="mt-5 text-base leading-relaxed text-slate-300">
-            Use this form to explain the professional problem you want to carry through the 12-week
-            program. The more specific your problem, the easier it is to assess fit.
-          </p>
-          <p className="mt-3 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">
-            No payment details required · Pay only after acceptance
+          <p className="mt-4 text-base leading-relaxed text-slate-300">
+            Explain the one real professional problem you want to carry through the 12-week program —
+            the more specific, the easier it is to assess fit. No payment details required; you pay
+            only after acceptance.
           </p>
 
-          {/* Static pre-form block — server-rendered, visible before the form hydrates */}
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <div className="rounded-xl border border-white/10 bg-[#0B1120] p-6">
+          {/* Compact pre-form panel — server-rendered, visible before the form hydrates */}
+          <div className="mt-7 grid gap-5 rounded-xl border border-white/10 bg-[#0B1120] p-5 sm:grid-cols-2 sm:p-6">
+            <div>
               <MonoLabel>Before you apply</MonoLabel>
-              <ul className="mt-4 space-y-2.5 text-sm leading-6 text-slate-300">
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
                 {[
-                  "Takes about 7–10 minutes.",
-                  "No payment details are required.",
-                  "Do not include confidential client, employer, patient, or regulated data — use redacted or fictionalized examples.",
-                  "If accepted, payment confirms enrollment; then onboarding and the diagnostic begin.",
+                  "About 7–10 minutes.",
+                  "No payment details required.",
+                  "Use redacted or fictionalized examples — no confidential client, employer, patient, or regulated data.",
+                  "If accepted, payment confirms enrollment; onboarding and the diagnostic follow.",
                 ].map((t) => (
                   <li key={t} className="flex gap-2.5">
                     <Check className="mt-0.5 h-4 w-4 flex-none text-indigo-400" aria-hidden="true" />
@@ -262,28 +260,16 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 text-xs leading-5 text-slate-500">
-                If the form does not load, refresh the page and try again. If it still fails, email{" "}
-                <a
-                  href="mailto:hello@tenxpros.com"
-                  className="text-indigo-300 underline-offset-2 hover:underline"
-                >
-                  hello@tenxpros.com
-                </a>
-                .
-              </p>
             </div>
-
-            <div className="rounded-xl border border-white/10 bg-[#0B1120] p-6">
-              <MonoLabel className="text-slate-400">What the form will ask</MonoLabel>
-              <ul className="mt-4 grid gap-2.5 text-sm leading-6 text-slate-200">
+            <div className="sm:border-l sm:border-white/10 sm:pl-5">
+              <MonoLabel className="text-slate-400">What the form asks</MonoLabel>
+              <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-200">
                 {[
-                  "Your professional role and field",
-                  "Your AI experience",
-                  "Your weekly time availability",
-                  "Why TenXPros fits your context now",
-                  "The one real professional problem you want to carry through the program",
-                  "Confidentiality and terms consent",
+                  "Your role and field",
+                  "AI experience & weekly time",
+                  "Why TenXPros fits now",
+                  "Your one real professional problem",
+                  "Confidentiality & terms consent",
                 ].map((t, i) => (
                   <li key={t} className="flex gap-3">
                     <span className="font-mono text-xs text-indigo-300/70">{String(i + 1).padStart(2, "0")}</span>
@@ -294,8 +280,17 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
 
-          {/* Existing ApplicationForm (its own white card surface) — unmodified */}
-          <div className="mt-8">{children}</div>
+          {/* Existing ApplicationForm (unmodified) on a premium frame */}
+          <div className="mt-7 rounded-2xl border border-indigo-400/20 bg-indigo-500/[0.03] p-2 shadow-2xl shadow-black/40 ring-1 ring-indigo-400/10 sm:p-3">
+            {children}
+          </div>
+          <p className="mt-4 text-center text-xs leading-5 text-slate-500">
+            If the form does not load, refresh and try again. If it still fails, email{" "}
+            <a href="mailto:hello@tenxpros.com" className="text-indigo-300 underline-offset-2 hover:underline">
+              hello@tenxpros.com
+            </a>
+            .
+          </p>
         </div>
       </div>
     </section>

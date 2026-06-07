@@ -551,8 +551,8 @@ export function HomeFinalCta() {
             Bring one real problem. Leave with reviewed evidence.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
-            The Founding Charter is open for the first 10 members. You apply with one real
-            professional problem; payment happens only after acceptance.
+            The Founding Charter is open during a limited founding review-capacity window. You apply
+            with one real professional problem; payment happens only after acceptance.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>

@@ -248,17 +248,15 @@ export function AboutFounder() {
         </span>
         <div className="space-y-3">
           <p className="text-base leading-7 text-slate-300">
-            <span className="font-medium text-white">TenXPros was created by Mehrdad Naderi</span> as
-            an applied method for AI adoption, professional learning, and human–AI collaboration.
-            The program reflects his work across AI training, AI adoption strategy, product
-            thinking, and professional education.
+            <span className="font-medium text-white">TenXPros was created by Mehrdad Naderi</span>,
+            who designed the TenX Method and the review standard behind the credential. He built it
+            because AI adoption has become professional judgment work — deciding where AI belongs,
+            where it must stay human-led, and how to prove value responsibly — and experienced
+            professionals needed a rigorous way to do that, not more tips.
           </p>
           <p className="text-sm leading-6 text-slate-400">
-            The credential rests on the public standard — the sample dossier, the eight review
-            criteria, the review outcomes, and verification — not on the name behind it.
-          </p>
-          <p className="text-sm leading-6 text-slate-400">
-            Created by Mehrdad Naderi.{" "}
+            His work centers on AI adoption, professional learning, and human–AI collaboration,
+            drawing on AI training and product thinking.{" "}
             <a
               href="https://www.linkedin.com/in/mehrdad-naderi/"
               target="_blank"
@@ -268,6 +266,10 @@ export function AboutFounder() {
               Read his public profile
             </a>
             .
+          </p>
+          <p className="text-sm leading-6 text-slate-400">
+            The credential rests on the public standard — the sample dossier, the eight review
+            criteria, the review outcomes, and verification — not on the name behind it.
           </p>
         </div>
       </div>
@@ -293,17 +295,30 @@ export function AboutPrinciples() {
       <div className="max-w-3xl">
         <MonoLabel>Principles</MonoLabel>
         <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-          What we will not compromise.
+          The principles we hold to.
         </h2>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
-        {PRINCIPLES.map(([title, desc], index) => (
-          <li key={title} className="flex flex-col bg-[#0B1120] p-6">
-            <span className="font-mono text-xs text-indigo-300">{String(index + 1).padStart(2, "0")}</span>
-            <h3 className="mt-3 text-base font-semibold leading-snug text-white">{title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{desc}</p>
-          </li>
-        ))}
+        {PRINCIPLES.map(([title, desc], index) => {
+          const isLast = index === PRINCIPLES.length - 1;
+          return (
+            <li
+              key={title}
+              className={cn(
+                "flex flex-col bg-[#0B1120] p-6",
+                isLast && "sm:col-span-2 lg:col-span-3 sm:flex-row sm:items-baseline sm:gap-5",
+              )}
+            >
+              <span className="font-mono text-xs text-indigo-300">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div className={cn(!isLast && "mt-3")}>
+                <h3 className="text-base font-semibold leading-snug text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{desc}</p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
     </SectionShell>
   );
@@ -387,6 +402,11 @@ export function AboutTrust() {
           See the review standard
         </ButtonLink>
       </div>
+      <p className="mt-6 max-w-3xl text-xs leading-5 text-slate-500">
+        To be clear about what it is: TenXPros is a private professional certification — not a
+        university degree, academic accreditation, or a guarantee of job, income, or business
+        outcomes. The credential reflects reviewed work.
+      </p>
     </SectionShell>
   );
 }

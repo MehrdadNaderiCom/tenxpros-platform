@@ -12,6 +12,7 @@ const sections = [
   ["Before enrollment", "If payment is made but enrollment has not yet been activated, refund requests are reviewed manually."],
   ["After program access", "Once participant access, starter materials, diagnostic intake, or review begins, refunds may be limited because capacity and review resources have been reserved."],
   ["Certification outcomes", "Completing the program does not guarantee certification. Public review outcomes are Certified, Strong Draft (specific revisions are returned before certification), or Completed (the program is finished and the credential is not yet earned). Refund eligibility is assessed by where you are in the program, not by the certification outcome."],
+  ["Statutory rights and cooling-off", "Statutory consumer rights may still apply depending on your jurisdiction. For EU/UK-style 14-day withdrawal or cooling-off contexts, starting access or review work during the withdrawal period requires your explicit consent and acknowledgment that beginning the service may affect your refund rights."],
   ["How to request review", "Participants can request review by email or support ticket. TenXPros records refund decisions in its payment and audit workflow."],
 ];
 

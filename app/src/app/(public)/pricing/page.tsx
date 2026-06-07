@@ -14,7 +14,7 @@ import {
 export const metadata: Metadata = {
   title: "Pricing — Founding Charter",
   description:
-    "Apply first, pay only after acceptance. The Founding Charter ($997) is open for the first 10 accepted members — a reviewed Living AI Solution Dossier, not a video course. Preview the sample before you apply.",
+    "Apply first, pay only after acceptance. The Founding Charter ($997 USD) is open during a limited founding review-capacity window — earn a reviewed Living AI Solution Dossier. Preview the sample before you apply.",
 };
 
 export default function PricingPage() {

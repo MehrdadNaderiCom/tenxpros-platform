@@ -6,7 +6,6 @@ import {
   AboutStandard,
   AboutFounder,
   AboutPrinciples,
-  AboutNot,
   AboutTrust,
   AboutFinalCta,
 } from "@/components/marketing/about-instrument";
@@ -20,14 +19,13 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <main className="bg-[#070B14] text-slate-300">
-      {/* 1 Hero · 2 Problem · 3 Answer · 4 Standard · 5 Founder · 6 Principles · 7 What it is not · 8 Trust · 9 Final CTA */}
+      {/* 1 Hero · 2 Problem · 3 Answer · 4 Standard · 5 Founder · 6 Principles · 7 Trust (incl. quiet boundary) · 8 Final CTA */}
       <AboutHero />
       <AboutProblem />
       <AboutAnswer />
       <AboutStandard />
       <AboutFounder />
       <AboutPrinciples />
-      <AboutNot />
       <AboutTrust />
       <AboutFinalCta />
     </main>

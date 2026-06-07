@@ -469,7 +469,7 @@ export function ProgramNotTools() {
       <div className="max-w-3xl">
         <MonoLabel>What makes it different</MonoLabel>
         <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-          This is not a prompt library.
+          Built to hold up to review.
         </h2>
       </div>
       <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 md:grid-cols-2">
