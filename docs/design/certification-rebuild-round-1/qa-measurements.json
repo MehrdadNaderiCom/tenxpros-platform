@@ -1,0 +1,173 @@
+{
+  "desktop": {
+    "measurements": {
+      "scrollHeight": 7055,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 6890,
+        "absBottom": 7055
+      },
+      "trailingBlank": 0,
+      "maxGap": 953,
+      "sections": [
+        {
+          "text": "Certification is earned, not attended.",
+          "found": true,
+          "absTop": 222,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What the credential signals.",
+          "found": true,
+          "absTop": 812,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What it is not.",
+          "found": true,
+          "absTop": 1533,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "The eight review criteria.",
+          "found": true,
+          "absTop": 2084,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Three outcomes. One standard.",
+          "found": true,
+          "absTop": 2866,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "The credential has work behind it.",
+          "found": true,
+          "absTop": 3435,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "How verification works.",
+          "found": true,
+          "absTop": 4359,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "How you get there.",
+          "found": true,
+          "absTop": 4978,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Honest answers about the credential.",
+          "found": true,
+          "absTop": 5579,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Build work that can be reviewed.",
+          "found": true,
+          "absTop": 6532,
+          "visible": true,
+          "withinDoc": true
+        }
+      ]
+    }
+  },
+  "mobile": {
+    "menuCenter": "NAV.flex flex-1 flex-col gap-1 px-6 py-6",
+    "measurements": {
+      "scrollHeight": 10646,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 10361,
+        "absBottom": 10646
+      },
+      "trailingBlank": 0,
+      "maxGap": 1350,
+      "sections": [
+        {
+          "text": "Certification is earned, not attended.",
+          "found": true,
+          "absTop": 195,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What the credential signals.",
+          "found": true,
+          "absTop": 1252,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What it is not.",
+          "found": true,
+          "absTop": 2382,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "The eight review criteria.",
+          "found": true,
+          "absTop": 3174,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Three outcomes. One standard.",
+          "found": true,
+          "absTop": 4310,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "The credential has work behind it.",
+          "found": true,
+          "absTop": 5660,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "How verification works.",
+          "found": true,
+          "absTop": 6558,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "How you get there.",
+          "found": true,
+          "absTop": 7725,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Honest answers about the credential.",
+          "found": true,
+          "absTop": 8857,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Build work that can be reviewed.",
+          "found": true,
+          "absTop": 9892,
+          "visible": true,
+          "withinDoc": true
+        }
+      ]
+    }
+  }
+}
