@@ -1,0 +1,145 @@
+{
+  "desktop": {
+    "measurements": {
+      "scrollHeight": 7286,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 7121,
+        "absBottom": 7286
+      },
+      "trailingBlank": 0,
+      "maxGap": 1369,
+      "sections": [
+        {
+          "text": "Apply first. Pay only after acceptance.",
+          "found": true,
+          "absTop": 222,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "One program. A rising entry point.",
+          "found": true,
+          "absTop": 1591,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What you are paying for is not a video course.",
+          "found": true,
+          "absTop": 2425,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Different by design — not a replacement for university executive education.",
+          "found": true,
+          "absTop": 3281,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "See the artifact before you apply.",
+          "found": true,
+          "absTop": 4239,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "How payment works.",
+          "found": true,
+          "absTop": 5163,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Honest answers before you apply.",
+          "found": true,
+          "absTop": 5809,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Leave with reviewed evidence.",
+          "found": true,
+          "absTop": 6762,
+          "visible": true,
+          "withinDoc": true
+        }
+      ]
+    }
+  },
+  "mobile": {
+    "center": "NAV.flex flex-1 flex-col gap-1 px-6 py-6",
+    "measurements": {
+      "scrollHeight": 10857,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 10572,
+        "absBottom": 10857
+      },
+      "trailingBlank": 0,
+      "maxGap": 2447,
+      "sections": [
+        {
+          "text": "Apply first. Pay only after acceptance.",
+          "found": true,
+          "absTop": 178,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "One program. A rising entry point.",
+          "found": true,
+          "absTop": 2138,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "What you are paying for is not a video course.",
+          "found": true,
+          "absTop": 3174,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Different by design — not a replacement for university executive education.",
+          "found": true,
+          "absTop": 4629,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "See the artifact before you apply.",
+          "found": true,
+          "absTop": 7076,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "How payment works.",
+          "found": true,
+          "absTop": 8033,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Honest answers before you apply.",
+          "found": true,
+          "absTop": 9146,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Leave with reviewed evidence.",
+          "found": true,
+          "absTop": 10073,
+          "visible": true,
+          "withinDoc": true
+        }
+      ]
+    }
+  }
+}
