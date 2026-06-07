@@ -257,6 +257,18 @@ export function AboutFounder() {
             The credential rests on the public standard — the sample dossier, the eight review
             criteria, the review outcomes, and verification — not on the name behind it.
           </p>
+          <p className="text-sm leading-6 text-slate-400">
+            Created by Mehrdad Naderi.{" "}
+            <a
+              href="https://www.linkedin.com/in/mehrdad-naderi/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-300 underline-offset-2 hover:underline"
+            >
+              Read his public profile
+            </a>
+            .
+          </p>
         </div>
       </div>
     </SectionShell>

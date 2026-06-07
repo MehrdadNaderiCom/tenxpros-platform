@@ -112,7 +112,7 @@ export function PricingHero() {
               </span>
             </div>
             <div className="flex items-end gap-3 pt-6">
-              <span className="text-5xl font-semibold tracking-tight text-white">$997</span>
+              <span className="text-5xl font-semibold tracking-tight text-white">$997 USD</span>
               <span className="pb-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-slate-500">
                 one-time · first cohort
               </span>
@@ -186,9 +186,13 @@ export function PricingCard() {
           </div>
 
           <div className="relative mt-6 flex flex-wrap items-end gap-x-4 gap-y-1">
-            <span className="text-6xl font-semibold tracking-tight text-white">$997</span>
+            <span className="text-6xl font-semibold tracking-tight text-white">$997 USD</span>
             <span className="pb-2 text-sm text-slate-400">First 10 accepted members</span>
           </div>
+          <p className="relative mt-3 max-w-xl text-sm leading-6 text-slate-400">
+            The founding window is limited because dossier review is manual and capacity is
+            intentionally constrained — not as a pressure tactic.
+          </p>
 
           <ul className="relative mt-8 grid gap-x-8 gap-y-3 sm:grid-cols-2">
             {FOUNDING_INCLUDES.map((item) => (
@@ -216,12 +220,12 @@ export function PricingCard() {
 
 /* ----------------------------------------------------------- 3. Pricing ladder */
 
-const LADDER: Array<{ name: string; price: string; status: string; open?: boolean }> = [
-  { name: "Founding Charter", price: "$997", status: "Open now", open: true },
-  { name: "Early Charter", price: "$1,247", status: "Preview" },
-  { name: "Late Charter", price: "$1,497", status: "Preview" },
-  { name: "Final Charter", price: "$1,747", status: "Preview" },
-  { name: "Standard", price: "$1,997", status: "Preview" },
+const LADDER: Array<{ name: string; price: string; status: string; desc: string; open?: boolean }> = [
+  { name: "Founding Charter", price: "$997 USD", status: "Open now", desc: "Open now — the first 10 accepted members.", open: true },
+  { name: "Early Charter", price: "$1,247 USD", status: "Preview", desc: "Opens after Founding Charter closes." },
+  { name: "Late Charter", price: "$1,497 USD", status: "Preview", desc: "Opens after Early Charter closes." },
+  { name: "Final Charter", price: "$1,747 USD", status: "Preview", desc: "Opens after Late Charter closes." },
+  { name: "Standard", price: "$1,997 USD", status: "Preview", desc: "Ongoing entry point after charter windows." },
 ];
 
 export function PricingLadder() {
@@ -239,7 +243,7 @@ export function PricingLadder() {
       </div>
 
       <ul className="mt-12 overflow-hidden rounded-xl border border-white/10">
-        {LADDER.map(({ name, price, status, open }, index) => (
+        {LADDER.map(({ name, price, status, desc, open }, index) => (
           <li
             key={name}
             className={cn(
@@ -247,12 +251,15 @@ export function PricingLadder() {
               open ? "bg-indigo-500/[0.07]" : "bg-[#0B1120]",
             )}
           >
-            <div className="flex items-center gap-4">
-              <span className="font-mono text-xs tabular-nums text-indigo-300/70">
+            <div className="flex items-start gap-4">
+              <span className="mt-0.5 font-mono text-xs tabular-nums text-indigo-300/70">
                 {String(index + 1).padStart(2, "0")}
               </span>
-              <span className={cn("text-base font-semibold", open ? "text-white" : "text-slate-200")}>
-                {name}
+              <span>
+                <span className={cn("block text-base font-semibold", open ? "text-white" : "text-slate-200")}>
+                  {name}
+                </span>
+                <span className="mt-0.5 block text-xs leading-5 text-slate-500">{desc}</span>
               </span>
             </div>
             <div className="flex items-center gap-5">
@@ -311,6 +318,11 @@ export function PricingValue() {
           </li>
         ))}
       </ul>
+      <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
+        Professionals use the dossier to explain AI adoption decisions to clients, leadership, and
+        teams — not as a promise of outcomes, but as reviewed work they can stand behind when asked
+        how they evaluated the problem, risks, workflow, and evidence.
+      </p>
     </SectionShell>
   );
 }
@@ -453,13 +465,13 @@ export function PricingProof() {
             <SampleThumb src={SAMPLE_ASSETS_URL} label="Eight Assets & Rubric" />
           </div>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <ButtonLink href={SAMPLE_PDF_URL} size="lg" className={PRIMARY_CTA} target="_blank" rel="noopener noreferrer">
+            <ButtonLink href={SAMPLE_HTML_URL} size="lg" className={PRIMARY_CTA} target="_blank" rel="noopener noreferrer">
               <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
-              Preview sample dossier
-            </ButtonLink>
-            <ButtonLink href={SAMPLE_HTML_URL} size="lg" variant="secondary" className={SECONDARY_CTA} target="_blank" rel="noopener noreferrer">
-              Open HTML preview
+              Preview in browser
               <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            </ButtonLink>
+            <ButtonLink href={SAMPLE_PDF_URL} size="lg" variant="secondary" className={SECONDARY_CTA} target="_blank" rel="noopener noreferrer">
+              Download PDF
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-xl text-xs leading-5 text-slate-500">{SAMPLE_DISCLAIMER}</p>

@@ -87,6 +87,10 @@ export function DossierHero() {
             into a structured, reviewed dossier: context, boundaries, workflow, evaluation, value,
             governance, and a 90-day path forward.
           </p>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
+            <span className="text-slate-200">Living</span> means the dossier is designed to be
+            updated as your workflow, evidence, risks, and adoption context evolve.
+          </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink
               href={SAMPLE_PDF_URL}
@@ -460,25 +464,25 @@ export function DossierSample() {
       <div className="mt-8 flex flex-col gap-4 border-t border-white/10 pt-8 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <ButtonLink
-            href={SAMPLE_PDF_URL}
+            href={SAMPLE_HTML_URL}
             size="lg"
             className={PRIMARY_CTA}
             target="_blank"
             rel="noopener noreferrer"
           >
             <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
-            Preview the full sample
+            Preview in browser
+            <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
           </ButtonLink>
           <ButtonLink
-            href={SAMPLE_HTML_URL}
+            href={SAMPLE_PDF_URL}
             size="lg"
             variant="secondary"
             className={SECONDARY_CTA}
             target="_blank"
             rel="noopener noreferrer"
           >
-            Open HTML preview
-            <ArrowUpRight className="ml-2 h-4 w-4" aria-hidden="true" />
+            Download PDF
           </ButtonLink>
         </div>
         <p className="max-w-md text-xs leading-5 text-slate-500">{SAMPLE_DISCLAIMER}</p>

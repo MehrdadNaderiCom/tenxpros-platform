@@ -376,12 +376,12 @@ export function ApplyProof() {
             <SampleThumb src={SAMPLE_ASSETS_URL} label="Eight Assets & Rubric" />
           </div>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <ButtonLink href={SAMPLE_PDF_URL} size="lg" className={PRIMARY_CTA} target="_blank" rel="noopener noreferrer">
+            <ButtonLink href={SAMPLE_HTML_URL} size="lg" className={PRIMARY_CTA} target="_blank" rel="noopener noreferrer">
               <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
-              Preview sample dossier
+              Preview in browser
             </ButtonLink>
-            <ButtonLink href={SAMPLE_HTML_URL} size="lg" variant="secondary" className={SECONDARY_CTA} target="_blank" rel="noopener noreferrer">
-              Open HTML preview
+            <ButtonLink href={SAMPLE_PDF_URL} size="lg" variant="secondary" className={SECONDARY_CTA} target="_blank" rel="noopener noreferrer">
+              Download PDF
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-xl text-xs leading-5 text-slate-500">{SAMPLE_DISCLAIMER}</p>

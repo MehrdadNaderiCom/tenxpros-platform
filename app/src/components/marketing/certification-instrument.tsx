@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 const SAMPLE_PDF_URL = "/samples/tenxpros-sample-dossier-excerpt.pdf";
 const SAMPLE_HTML_URL = "/samples/tenxpros-sample-dossier-excerpt.html";
+const SAMPLE_VERIFY_URL = "/samples/tenxpros-sample-verification.html";
 const SAMPLE_COVER_URL = "/samples/tenxpros-sample-dossier-cover.png";
 const SAMPLE_SNAPSHOT_URL = "/samples/tenxpros-sample-dossier-snapshot.png";
 const SAMPLE_ASSETS_URL = "/samples/tenxpros-sample-dossier-assets-rubric.png";
@@ -368,12 +369,12 @@ export function CertDossier() {
             <SampleThumb src={SAMPLE_ASSETS_URL} label="Eight Assets & Rubric" />
           </div>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <ButtonLink href={SAMPLE_PDF_URL} size="lg" className={PRIMARY_CTA} target="_blank" rel="noopener noreferrer">
+            <ButtonLink href={SAMPLE_HTML_URL} size="lg" className={PRIMARY_CTA} target="_blank" rel="noopener noreferrer">
               <FileText className="mr-2 h-4 w-4" aria-hidden="true" />
-              Preview sample dossier
+              Preview in browser
             </ButtonLink>
-            <ButtonLink href={SAMPLE_HTML_URL} size="lg" variant="secondary" className={SECONDARY_CTA} target="_blank" rel="noopener noreferrer">
-              Open HTML preview
+            <ButtonLink href={SAMPLE_PDF_URL} size="lg" variant="secondary" className={SECONDARY_CTA} target="_blank" rel="noopener noreferrer">
+              Download PDF
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-xl text-xs leading-5 text-slate-500">{SAMPLE_DISCLAIMER}</p>
@@ -452,6 +453,15 @@ export function CertReviewMechanics() {
           </li>
         ))}
       </ul>
+      <div className="mt-6 rounded-xl border border-white/10 bg-[#0B1120] p-6 md:p-8">
+        <MonoLabel className="text-slate-300">Who reviews the dossier?</MonoLabel>
+        <p className="mt-4 text-[0.95rem] leading-7 text-slate-300">
+          For the Founding Charter, dossier review is conducted by the TenXPros review team and
+          program architect using the same eight public criteria. Review is human-led,
+          section-specific, and based on the evidence in the dossier. As the program grows,
+          additional reviewers may be added under the same published standard.
+        </p>
+      </div>
       <p className="mt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">
         No certification outcome is guaranteed.
       </p>
@@ -481,6 +491,19 @@ export function CertVerification() {
               </li>
             ))}
           </ul>
+          <p className="mt-6 max-w-xl text-sm leading-6 text-slate-400">
+            When a credential is earned, verification confirms credential metadata without exposing
+            the dossier.{" "}
+            <a
+              href={SAMPLE_VERIFY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-300 underline-offset-2 hover:underline"
+            >
+              View illustrative verification example
+            </a>
+            .
+          </p>
         </div>
 
         {/* Illustrative, non-clickable verification panel */}
