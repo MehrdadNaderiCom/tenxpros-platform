@@ -1,173 +1,175 @@
 {
   "desktop": {
     "measurements": {
-      "scrollHeight": 7055,
+      "scrollHeight": 8028,
       "overflowX": 0,
       "footer": {
         "found": true,
-        "absTop": 6890,
-        "absBottom": 7055
+        "absTop": 7863,
+        "absBottom": 8028
       },
       "trailingBlank": 0,
-      "maxGap": 953,
+      "maxGap": 2092,
       "sections": [
         {
-          "text": "Certification is earned, not attended.",
+          "text": "Frame. Design. Prove. Foresee.",
           "found": true,
           "absTop": 222,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "What the credential signals.",
+          "text": "Using AI is easy. Leading adoption is harder.",
           "found": true,
           "absTop": 812,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "What it is not.",
+          "text": "The four phases.",
           "found": true,
-          "absTop": 1533,
+          "absTop": 1295,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The eight review criteria.",
+          "text": "The guided path.",
           "found": true,
-          "absTop": 2084,
+          "absTop": 1823,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Three outcomes. One standard.",
+          "text": "Eight assets, one dossier.",
           "found": true,
-          "absTop": 2866,
+          "absTop": 3915,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The credential has work behind it.",
+          "text": "Field-specific, not improvised.",
           "found": true,
-          "absTop": 3435,
+          "absTop": 4818,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "How verification works.",
+          "text": "Every phase moves toward review.",
           "found": true,
-          "absTop": 4359,
+          "absTop": 5586,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "How you get there.",
+          "text": "This is not a prompt library.",
           "found": true,
-          "absTop": 4978,
+          "absTop": 6204,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Honest answers about the credential.",
+          "text": "See where the method leads.",
           "found": true,
-          "absTop": 5579,
+          "absTop": 6893,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Bring one real problem. Build work that can be reviewed.",
+          "text": "Bring your expertise. We bring the AI method.",
           "found": true,
-          "absTop": 6532,
+          "absTop": 7505,
           "visible": true,
           "withinDoc": true
         }
-      ]
+      ],
+      "moduleCount": 11
     }
   },
   "mobile": {
     "menuCenter": "NAV.flex flex-1 flex-col gap-1 px-6 py-6",
     "measurements": {
-      "scrollHeight": 10646,
+      "scrollHeight": 13114,
       "overflowX": 0,
       "footer": {
         "found": true,
-        "absTop": 10361,
-        "absBottom": 10646
+        "absTop": 12829,
+        "absBottom": 13114
       },
       "trailingBlank": 0,
-      "maxGap": 1350,
+      "maxGap": 3344,
       "sections": [
         {
-          "text": "Certification is earned, not attended.",
+          "text": "Frame. Design. Prove. Foresee.",
           "found": true,
-          "absTop": 195,
+          "absTop": 178,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "What the credential signals.",
+          "text": "Using AI is easy. Leading adoption is harder.",
           "found": true,
-          "absTop": 1252,
+          "absTop": 1169,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "What it is not.",
+          "text": "The four phases.",
           "found": true,
-          "absTop": 2382,
+          "absTop": 1705,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The eight review criteria.",
+          "text": "The guided path.",
           "found": true,
-          "absTop": 3174,
+          "absTop": 2692,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Three outcomes. One standard.",
+          "text": "Eight assets, one dossier.",
           "found": true,
-          "absTop": 4310,
+          "absTop": 6036,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The credential has work behind it.",
+          "text": "Field-specific, not improvised.",
           "found": true,
-          "absTop": 5660,
+          "absTop": 7840,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "How verification works.",
+          "text": "Every phase moves toward review.",
           "found": true,
-          "absTop": 6558,
+          "absTop": 9231,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "How you get there.",
+          "text": "This is not a prompt library.",
           "found": true,
-          "absTop": 7725,
+          "absTop": 10374,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Honest answers about the credential.",
+          "text": "See where the method leads.",
           "found": true,
-          "absTop": 8857,
+          "absTop": 11711,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Bring one real problem. Build work that can be reviewed.",
+          "text": "Bring your expertise. We bring the AI method.",
           "found": true,
-          "absTop": 9892,
+          "absTop": 12367,
           "visible": true,
           "withinDoc": true
         }
-      ]
+      ],
+      "moduleCount": 11
     }
   }
 }
