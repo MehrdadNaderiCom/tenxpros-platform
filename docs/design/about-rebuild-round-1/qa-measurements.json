@@ -1,175 +1,161 @@
 {
   "desktop": {
     "measurements": {
-      "scrollHeight": 8028,
+      "scrollHeight": 5934,
       "overflowX": 0,
       "footer": {
         "found": true,
-        "absTop": 7863,
-        "absBottom": 8028
+        "absTop": 5769,
+        "absBottom": 5934
       },
       "trailingBlank": 0,
-      "maxGap": 2092,
+      "maxGap": 814,
       "sections": [
         {
-          "text": "Frame. Design. Prove. Foresee.",
+          "text": "AI adoption has become professional judgment work.",
           "found": true,
           "absTop": 222,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Using AI is easy. Leading adoption is harder.",
+          "text": "Most AI training stops too early.",
           "found": true,
-          "absTop": 812,
+          "absTop": 860,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The four phases.",
+          "text": "A method for turning expertise into reviewed AI adoption work.",
           "found": true,
-          "absTop": 1295,
+          "absTop": 1303,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The guided path.",
+          "text": "The standard is the product.",
           "found": true,
-          "absTop": 1823,
+          "absTop": 2084,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Eight assets, one dossier.",
+          "text": "Who set the standard.",
           "found": true,
-          "absTop": 3915,
+          "absTop": 2751,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Field-specific, not improvised.",
+          "text": "What we will not compromise.",
           "found": true,
-          "absTop": 4818,
+          "absTop": 3291,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Every phase moves toward review.",
+          "text": "What TenXPros is not.",
           "found": true,
-          "absTop": 5586,
+          "absTop": 4105,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "This is not a prompt library.",
+          "text": "You can inspect the standard before you apply.",
           "found": true,
-          "absTop": 6204,
-          "visible": true,
-          "withinDoc": true
-        },
-        {
-          "text": "See where the method leads.",
-          "found": true,
-          "absTop": 6893,
+          "absTop": 4685,
           "visible": true,
           "withinDoc": true
         },
         {
           "text": "Bring your expertise. We bring the AI method.",
           "found": true,
-          "absTop": 7505,
+          "absTop": 5411,
           "visible": true,
           "withinDoc": true
         }
       ],
-      "moduleCount": 11
+      "hasHoursClaim": false
     }
   },
   "mobile": {
     "menuCenter": "NAV.flex flex-1 flex-col gap-1 px-6 py-6",
     "measurements": {
-      "scrollHeight": 13114,
+      "scrollHeight": 8658,
       "overflowX": 0,
       "footer": {
         "found": true,
-        "absTop": 12829,
-        "absBottom": 13114
+        "absTop": 8373,
+        "absBottom": 8658
       },
       "trailingBlank": 0,
-      "maxGap": 3344,
+      "maxGap": 1463,
       "sections": [
         {
-          "text": "Frame. Design. Prove. Foresee.",
+          "text": "AI adoption has become professional judgment work.",
           "found": true,
           "absTop": 178,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Using AI is easy. Leading adoption is harder.",
+          "text": "Most AI training stops too early.",
           "found": true,
-          "absTop": 1169,
+          "absTop": 1245,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The four phases.",
+          "text": "A method for turning expertise into reviewed AI adoption work.",
           "found": true,
-          "absTop": 1705,
+          "absTop": 1743,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "The guided path.",
+          "text": "The standard is the product.",
           "found": true,
-          "absTop": 2692,
+          "absTop": 2546,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Eight assets, one dossier.",
+          "text": "Who set the standard.",
           "found": true,
-          "absTop": 6036,
+          "absTop": 3577,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Field-specific, not improvised.",
+          "text": "What we will not compromise.",
           "found": true,
-          "absTop": 7840,
+          "absTop": 4376,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "Every phase moves toward review.",
+          "text": "What TenXPros is not.",
           "found": true,
-          "absTop": 9231,
+          "absTop": 5839,
           "visible": true,
           "withinDoc": true
         },
         {
-          "text": "This is not a prompt library.",
+          "text": "You can inspect the standard before you apply.",
           "found": true,
-          "absTop": 10374,
-          "visible": true,
-          "withinDoc": true
-        },
-        {
-          "text": "See where the method leads.",
-          "found": true,
-          "absTop": 11711,
+          "absTop": 6697,
           "visible": true,
           "withinDoc": true
         },
         {
           "text": "Bring your expertise. We bring the AI method.",
           "found": true,
-          "absTop": 12367,
+          "absTop": 7912,
           "visible": true,
           "withinDoc": true
         }
       ],
-      "moduleCount": 11
+      "hasHoursClaim": false
     }
   }
 }
