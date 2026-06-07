@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ApplicationForm } from "@/components/marketing/application-form";
+import { SampleDossierPreview } from "@/components/marketing/sample-dossier-preview";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
 
@@ -21,6 +22,7 @@ export default function ApplyPage() {
           Strong applications are specific: your domain, your real constraint, the people affected, and why reviewed AI adoption work matters now.
         </p>
       </Card>
+      <SampleDossierPreview variant="apply" />
       <Suspense fallback={<Card>Loading application form...</Card>}>
         <ApplicationForm />
       </Suspense>

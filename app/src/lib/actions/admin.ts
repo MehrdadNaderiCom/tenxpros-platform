@@ -1,19 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { requireAdminUser as requireAdmin } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { badgeCatalog } from "@/lib/program-data";
 
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
-  if (session.user.role !== "ADMIN") throw new Error("Admin access required.");
-  return session.user;
+export async function issueBadge(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
+  await requireAdmin();
+  return issueBadgeForAdmin(userId, badgeSlug, context);
 }
 
-export async function issueBadge(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
+async function issueBadgeForAdmin(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
   const badge = await prisma.badge.findUnique({ where: { slug: badgeSlug } });
   if (!badge) throw new Error(`Badge not found: ${badgeSlug}`);
   return prisma.participantBadge.upsert({
@@ -35,13 +32,13 @@ async function issueRankBadges(userId: string, participantId: string) {
   });
   const passedNumbers = new Set(passed.map((item) => item.module.number));
   if ([1, 2, 3, 4].every((number) => passedNumbers.has(number))) {
-    await issueBadge(userId, "rank-ai-ready-professional", { type: "RANK", ref: "FRAME" });
+    await issueBadgeForAdmin(userId, "rank-ai-ready-professional", { type: "RANK", ref: "FRAME" });
   }
   if ([1, 2, 3, 4, 5, 6, 7, 8].every((number) => passedNumbers.has(number))) {
-    await issueBadge(userId, "rank-ai-problem-solver-solution-designer", { type: "RANK", ref: "DESIGN" });
+    await issueBadgeForAdmin(userId, "rank-ai-problem-solver-solution-designer", { type: "RANK", ref: "DESIGN" });
   }
   if ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].every((number) => passedNumbers.has(number))) {
-    await issueBadge(userId, "rank-future-ready-ai-solution-designer", { type: "RANK", ref: "FULL_PROGRAM" });
+    await issueBadgeForAdmin(userId, "rank-future-ready-ai-solution-designer", { type: "RANK", ref: "FULL_PROGRAM" });
   }
 }
 
@@ -64,7 +61,7 @@ export async function reviewParticipantModule(formData: FormData) {
 
   if (status === "PASSED") {
     const badge = badgeCatalog.find((entry) => entry.name === item.module.badgeName);
-    if (badge) await issueBadge(item.participant.userId, badge.slug, { type: "MODULE", ref: item.moduleId });
+    if (badge) await issueBadgeForAdmin(item.participant.userId, badge.slug, { type: "MODULE", ref: item.moduleId });
     await issueRankBadges(item.participant.userId, item.participantId);
   }
 
@@ -200,7 +197,7 @@ export async function decideCertification(formData: FormData) {
   });
 
   if (outcome === "CERTIFIED") {
-    await issueBadge(participant.userId, "capstone-certified-tenxpro-seal", { type: "CAPSTONE", ref: review.id });
+    await issueBadgeForAdmin(participant.userId, "capstone-certified-tenxpro-seal", { type: "CAPSTONE", ref: review.id });
     await prisma.certificationReview.update({
       where: { id: review.id },
       data: { badgeIssuedAt: new Date(), certificateUrl: `/certificate/${review.id}` },

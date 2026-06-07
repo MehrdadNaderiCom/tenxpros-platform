@@ -1,0 +1,117 @@
+{
+  "desktop": {
+    "measurements": {
+      "scrollHeight": 4697,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 4532,
+        "absBottom": 4697
+      },
+      "trailingBlank": 0,
+      "maxGap": 1401,
+      "sections": [
+        {
+          "text": "Lead AI adoption in your field. Don’t just use AI.",
+          "found": true,
+          "absTop": 222,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Most professionals are using AI. Few can lead its adoption.",
+          "found": true,
+          "absTop": 1057,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Eight assets. One defensible dossier.",
+          "found": true,
+          "absTop": 1510,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Frame. Design. Prove. Foresee.",
+          "found": true,
+          "absTop": 2215,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Reviewed work, not attendance.",
+          "found": true,
+          "absTop": 2743,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Leave with reviewed evidence.",
+          "found": true,
+          "absTop": 4144,
+          "visible": true,
+          "withinDoc": true
+        }
+      ]
+    }
+  },
+  "mobile": {
+    "center": "NAV.flex flex-1 flex-col gap-1 px-6 py-6",
+    "measurements": {
+      "scrollHeight": 7565,
+      "overflowX": 0,
+      "footer": {
+        "found": true,
+        "absTop": 7280,
+        "absBottom": 7565
+      },
+      "trailingBlank": 0,
+      "maxGap": 2316,
+      "sections": [
+        {
+          "text": "Lead AI adoption in your field. Don’t just use AI.",
+          "found": true,
+          "absTop": 195,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Most professionals are using AI. Few can lead its adoption.",
+          "found": true,
+          "absTop": 1497,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Eight assets. One defensible dossier.",
+          "found": true,
+          "absTop": 2012,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Frame. Design. Prove. Foresee.",
+          "found": true,
+          "absTop": 3488,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Reviewed work, not attendance.",
+          "found": true,
+          "absTop": 4465,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Leave with reviewed evidence.",
+          "found": true,
+          "absTop": 6781,
+          "visible": true,
+          "withinDoc": true
+        }
+      ]
+    }
+  }
+}

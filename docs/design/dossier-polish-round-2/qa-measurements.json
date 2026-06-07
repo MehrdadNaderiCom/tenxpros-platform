@@ -1,0 +1,216 @@
+{
+  "desktop": {
+    "measurements": {
+      "scrollHeight": 6820,
+      "clientHeight": 900,
+      "scrollWidth": 1440,
+      "overflowX": 0,
+      "sections": [
+        {
+          "text": "The Living AI Solution Dossier is the work behind the credential.",
+          "found": true,
+          "absTop": 239,
+          "width": 605,
+          "height": 144,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "A dossier proves that your AI work can be understood, reviewed, and defended.",
+          "found": true,
+          "absTop": 942,
+          "width": 768,
+          "height": 120,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Twelve sections, organized by the TenX Method.",
+          "found": true,
+          "absTop": 1566,
+          "width": 768,
+          "height": 80,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Eight assets become one professional dossier.",
+          "found": true,
+          "absTop": 2892,
+          "width": 768,
+          "height": 80,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Review is part of the product.",
+          "found": true,
+          "absTop": 3805,
+          "width": 529,
+          "height": 80,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Preview the artifact before you apply.",
+          "found": true,
+          "absTop": 4365,
+          "width": 768,
+          "height": 80,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "A reviewed artifact is different from a completion certificate.",
+          "found": true,
+          "absTop": 5600,
+          "width": 768,
+          "height": 80,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Leave with reviewed evidence.",
+          "found": true,
+          "absTop": 6296,
+          "width": 672,
+          "height": 80,
+          "visible": true,
+          "withinDoc": true
+        }
+      ],
+      "footer": {
+        "found": true,
+        "absTop": 6655,
+        "absBottom": 6820,
+        "height": 165
+      },
+      "maxGap": 1326,
+      "maxGapPair": {
+        "from": 1566,
+        "to": 2892,
+        "gap": 1326
+      },
+      "trailingBlank": 0,
+      "tallElements": [
+        {
+          "tag": "main",
+          "cls": "bg-[#070B14] text-slate-300",
+          "height": 6586
+        }
+      ],
+      "bodyScrollHeight": 6820
+    },
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    }
+  },
+  "mobile": {
+    "measurements": {
+      "scrollHeight": 11227,
+      "clientHeight": 844,
+      "scrollWidth": 390,
+      "overflowX": 0,
+      "sections": [
+        {
+          "text": "The Living AI Solution Dossier is the work behind the credential.",
+          "found": true,
+          "absTop": 178,
+          "width": 342,
+          "height": 147,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "A dossier proves that your AI work can be understood, reviewed, and defended.",
+          "found": true,
+          "absTop": 1379,
+          "width": 342,
+          "height": 188,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Twelve sections, organized by the TenX Method.",
+          "found": true,
+          "absTop": 2396,
+          "width": 342,
+          "height": 113,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Eight assets become one professional dossier.",
+          "found": true,
+          "absTop": 4035,
+          "width": 342,
+          "height": 150,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Review is part of the product.",
+          "found": true,
+          "absTop": 5914,
+          "width": 342,
+          "height": 75,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Preview the artifact before you apply.",
+          "found": true,
+          "absTop": 6893,
+          "width": 342,
+          "height": 75,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "A reviewed artifact is different from a completion certificate.",
+          "found": true,
+          "absTop": 9395,
+          "width": 342,
+          "height": 150,
+          "visible": true,
+          "withinDoc": true
+        },
+        {
+          "text": "Bring one real problem. Leave with reviewed evidence.",
+          "found": true,
+          "absTop": 10443,
+          "width": 342,
+          "height": 150,
+          "visible": true,
+          "withinDoc": true
+        }
+      ],
+      "footer": {
+        "found": true,
+        "absTop": 10942,
+        "absBottom": 11227,
+        "height": 285
+      },
+      "maxGap": 2502,
+      "maxGapPair": {
+        "from": 6893,
+        "to": 9395,
+        "gap": 2502
+      },
+      "trailingBlank": 0,
+      "tallElements": [
+        {
+          "tag": "main",
+          "cls": "bg-[#070B14] text-slate-300",
+          "height": 10869
+        }
+      ],
+      "bodyScrollHeight": 11227
+    },
+    "viewport": {
+      "width": 390,
+      "height": 844
+    }
+  }
+}

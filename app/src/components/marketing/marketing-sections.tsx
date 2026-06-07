@@ -11,7 +11,7 @@ export function MarketingHero() {
       <div className="mx-auto grid max-w-7xl gap-10 px-6 py-16 md:grid-cols-[1.05fr_0.95fr] md:px-8 md:py-24">
         <div className="flex flex-col justify-center space-y-7">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-800">
-            You bring the domain. We bring the AI method.
+            You bring the expertise. We bring the AI method.
           </p>
           <div className="space-y-5">
             <h1 className="text-4xl font-semibold leading-tight tracking-normal text-navy-900 md:text-6xl">

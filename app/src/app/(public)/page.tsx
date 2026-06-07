@@ -1,49 +1,31 @@
 import type { Metadata } from "next";
-import { MarketingHero, JourneySteps, proofCards } from "@/components/marketing/marketing-sections";
-import { ButtonLink } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  HomeHero,
+  HomeShift,
+  HomeAssets,
+  HomeMethod,
+  HomeCertification,
+  HomeAudience,
+  HomeFinalCta,
+} from "@/components/marketing/home-instrument";
 
 export const metadata: Metadata = {
-  title: "TenXPros | Certified AI Adoption for Professionals",
+  title: "Selective AI Adoption Certification for Experienced Professionals",
+  description:
+    "Lead AI adoption in your field. A selective 12-week certification where experienced professionals turn one real problem into a reviewed Living AI Solution Dossier. Apply first, pay only after acceptance.",
 };
 
 export default function HomePage() {
   return (
-    <main>
-      <MarketingHero />
-      <section className="bg-neutral-50">
-        <div className="mx-auto grid max-w-7xl gap-4 px-6 py-16 md:grid-cols-3 md:px-8">
-          {proofCards.map(([Icon, title, description]) => (
-            <Card key={title} className="space-y-3">
-              <Icon className="h-6 w-6 text-gold-800" />
-              <h2 className="text-xl font-semibold text-navy-900">{title}</h2>
-              <p className="text-sm leading-6 text-slate-600">{description}</p>
-            </Card>
-          ))}
-        </div>
-      </section>
-      <JourneySteps />
-      <section className="border-t border-neutral-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-6 py-16 md:flex-row md:items-center md:justify-between md:px-8">
-          <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-800">
-              Founding Charter
-            </p>
-            <h2 className="text-3xl font-semibold text-navy-900">Tier 1 is open for the first 10 members.</h2>
-            <p className="text-slate-600">
-              Founding Charter is the launch cohort: selective admission, manual payment after acceptance, and reviewed work toward the Certified TenXPro credential.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <ButtonLink href="/apply" size="lg">
-              Apply for Founding Charter
-            </ButtonLink>
-            <ButtonLink href="/pricing" variant="secondary" size="lg">
-              View pricing
-            </ButtonLink>
-          </div>
-        </div>
-      </section>
+    <main className="bg-[#070B14] text-slate-300">
+      {/* 1 Hero · 2 Shift · 3 Eight assets · 4 TenX Method · 5 Review standard/Certification · 6 For/Not-for · 7 Founding Charter CTA */}
+      <HomeHero />
+      <HomeShift />
+      <HomeAssets />
+      <HomeMethod />
+      <HomeCertification />
+      <HomeAudience />
+      <HomeFinalCta />
     </main>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PricingGrid } from "@/components/marketing/marketing-sections";
+import { SampleDossierPreview } from "@/components/marketing/sample-dossier-preview";
 import { PageHeader } from "@/components/shared/page-shell";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +17,7 @@ export default function PricingPage() {
         title="Founding Charter is open. Later tiers are preview only."
         description="Tier 1 is active for the first 10 members. Later tiers are shown in advance so applicants understand the pricing path before they apply."
       />
+      <SampleDossierPreview variant="pricing" />
       <PricingGrid />
       <Card className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="max-w-2xl">

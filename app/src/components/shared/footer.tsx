@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Logo } from "@/components/shared/logo";
 
 const links = [
-  ["Program", "/program"],
-  ["Dossier", "/dossier"],
+  ["The Method", "/program"],
+  ["The Dossier", "/dossier"],
+  ["How it works", "/how-it-works"],
   ["Certification", "/certification"],
   ["Pricing", "/pricing"],
   ["Terms", "/terms"],
@@ -18,7 +19,7 @@ export function Footer() {
         <div className="space-y-2">
           <Logo />
           <p className="max-w-xl text-sm text-slate-600">
-            You bring the domain. We bring the AI method. TenXPros helps serious professionals build reviewed AI adoption work they can defend.
+            You bring the expertise. We bring the AI method. TenXPros helps serious professionals build reviewed AI adoption work they can defend.
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">

@@ -19,7 +19,7 @@ export default function ProgramPage() {
       <Card className="flex flex-col gap-4 bg-navy-900 text-white md:flex-row md:items-center md:justify-between">
         <div className="max-w-2xl">
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-gold-200">Founder-led launch cohort</p>
-          <h2 className="mt-2 text-2xl font-semibold">You bring the domain. We bring the AI method.</h2>
+          <h2 className="mt-2 text-2xl font-semibold">You bring the expertise. We bring the AI method.</h2>
           <p className="mt-2 text-sm leading-6 text-slate-200">
             The program is built for serious professionals who need usable judgment, not passive AI content.
           </p>

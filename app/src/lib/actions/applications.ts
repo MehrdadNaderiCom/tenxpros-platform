@@ -3,6 +3,7 @@
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { requireAdminUser } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
 import { applicationSchema, applicationStatusSchema, type ApplicationInput } from "@/lib/validations/application";
 import { setPasswordSchema } from "@/lib/validations/auth";
@@ -94,6 +95,7 @@ export async function submitApplication(input: ApplicationInput) {
 }
 
 export async function updateApplicationStatus(formData: FormData) {
+  const admin = await requireAdminUser();
   const parsed = applicationStatusSchema.safeParse({
     applicationId: formData.get("applicationId"),
     status: formData.get("status"),
@@ -119,7 +121,8 @@ export async function updateApplicationStatus(formData: FormData) {
 
   await prisma.auditLog.create({
     data: {
-      actorRole: "ADMIN",
+      actorId: admin.id,
+      actorRole: admin.role,
       action: "STATUS_CHANGE",
       entity: "Application",
       entityId: application.id,
@@ -171,6 +174,7 @@ async function createPendingPaymentAndSendAcceptedEmail(applicationId: string) {
 }
 
 export async function markPaymentReceivedAndEnroll(formData: FormData) {
+  const admin = await requireAdminUser();
   const applicationId = String(formData.get("applicationId") ?? "");
   const application = await prisma.application.findUniqueOrThrow({
     where: { id: applicationId },
@@ -260,7 +264,8 @@ export async function markPaymentReceivedAndEnroll(formData: FormData) {
 
     await tx.auditLog.create({
       data: {
-        actorRole: "ADMIN",
+        actorId: admin.id,
+        actorRole: admin.role,
         action: "ENROLL",
         entity: "Application",
         entityId: application.id,
