@@ -524,9 +524,9 @@ export function HomeFounderBand() {
           <div className="space-y-1.5">
             <MonoLabel className="text-slate-400">Designed by</MonoLabel>
             <p className="text-[0.95rem] leading-7 text-slate-300">
-              <span className="font-medium text-white">Mehrdad Naderi</span>, an official
-              DeepLearning.AI Ambassador with 19,000+ hours of professional training and applied
-              AI work across HealthTech, FinTech, EdTech, and PropTech.
+              <span className="font-medium text-white">Mehrdad Naderi</span>. The credential rests
+              on the public standard: the sample dossier, eight review criteria, review outcomes,
+              and verification.
             </p>
           </div>
         </div>

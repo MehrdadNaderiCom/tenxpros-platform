@@ -3,6 +3,7 @@ import {
   ProgramHero,
   ProgramWhy,
   ProgramPhases,
+  ProgramFormat,
   ProgramModules,
   ProgramAssets,
   ProgramPersonalization,
@@ -21,10 +22,11 @@ export const metadata: Metadata = {
 export default function ProgramPage() {
   return (
     <main className="bg-[#070B14] text-slate-300">
-      {/* 1 Hero · 2 Why · 3 Four phases · 4 Guided path (modules) · 5 Eight assets · 6 Personalization · 7 Review checkpoints · 8 Not a tools course · 9 Proof · 10 Final CTA */}
+      {/* 1 Hero · 2 Why · 3 Four phases · 3b Format & commitment · 4 Guided path · 5 Eight assets · 6 Personalization · 7 Review checkpoints · 8 Not a tools course · 9 Proof · 10 Final CTA */}
       <ProgramHero />
       <ProgramWhy />
       <ProgramPhases />
+      <ProgramFormat />
       <ProgramModules />
       <ProgramAssets />
       <ProgramPersonalization />

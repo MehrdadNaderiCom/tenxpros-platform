@@ -244,6 +244,56 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
           <p className="mt-3 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">
             No payment details required · Pay only after acceptance
           </p>
+
+          {/* Static pre-form block — server-rendered, visible before the form hydrates */}
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <div className="rounded-xl border border-white/10 bg-[#0B1120] p-6">
+              <MonoLabel>Before you apply</MonoLabel>
+              <ul className="mt-4 space-y-2.5 text-sm leading-6 text-slate-300">
+                {[
+                  "Takes about 7–10 minutes.",
+                  "No payment details are required.",
+                  "Do not include confidential client, employer, patient, or regulated data — use redacted or fictionalized examples.",
+                  "If accepted, payment confirms enrollment; then onboarding and the diagnostic begin.",
+                ].map((t) => (
+                  <li key={t} className="flex gap-2.5">
+                    <Check className="mt-0.5 h-4 w-4 flex-none text-indigo-400" aria-hidden="true" />
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs leading-5 text-slate-500">
+                If the form does not load, refresh the page and try again. If it still fails, email{" "}
+                <a
+                  href="mailto:hello@tenxpros.com"
+                  className="text-indigo-300 underline-offset-2 hover:underline"
+                >
+                  hello@tenxpros.com
+                </a>
+                .
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-white/10 bg-[#0B1120] p-6">
+              <MonoLabel className="text-slate-400">What the form will ask</MonoLabel>
+              <ul className="mt-4 grid gap-2.5 text-sm leading-6 text-slate-200">
+                {[
+                  "Your professional role and field",
+                  "Your AI experience",
+                  "Your weekly time availability",
+                  "Why TenXPros fits your context now",
+                  "The one real professional problem you want to carry through the program",
+                  "Confidentiality and terms consent",
+                ].map((t, i) => (
+                  <li key={t} className="flex gap-3">
+                    <span className="font-mono text-xs text-indigo-300/70">{String(i + 1).padStart(2, "0")}</span>
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
           {/* Existing ApplicationForm (its own white card surface) — unmodified */}
           <div className="mt-8">{children}</div>
         </div>

@@ -196,6 +196,42 @@ export function ProgramPhases() {
   );
 }
 
+/* --------------------------------------------------- 3b. Format & commitment */
+
+const FORMAT: Array<[string, string]> = [
+  ["Duration", "12 guided weeks"],
+  ["Structure", "11 core modules + final dossier & capstone review"],
+  ["Built for", "Working professionals"],
+  ["Weekly commitment", "Approximately 3–5 hours per week"],
+  ["Format", "Async-first"],
+  ["Checkpoints", "Tied to the dossier, not video attendance"],
+];
+
+export function ProgramFormat() {
+  return (
+    <SectionShell>
+      <div className="max-w-3xl">
+        <MonoLabel>Format &amp; commitment</MonoLabel>
+        <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
+          Built for working professionals.
+        </h2>
+      </div>
+      <dl className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
+        {FORMAT.map(([k, v]) => (
+          <div key={k} className="bg-[#0B1120] p-6">
+            <dt className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-indigo-300/70">{k}</dt>
+            <dd className="mt-2 text-[0.95rem] font-medium leading-6 text-slate-100">{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
+        No coding is required — but serious professional judgment is. Review and checkpoints are
+        tied to the dossier you build, not to video attendance.
+      </p>
+    </SectionShell>
+  );
+}
+
 /* ------------------------------------------------- 4. The guided path (modules) */
 
 export function ProgramModules() {
@@ -242,7 +278,7 @@ export function ProgramModules() {
                       <p className="mt-1 text-sm leading-6 text-slate-400">{m.coreQuestion}</p>
                       <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-0.5 font-mono text-[0.56rem] uppercase tracking-[0.14em] text-slate-400">
                         <ShieldCheck className="h-3 w-3 text-indigo-300/70" aria-hidden="true" />
-                        {m.badgeName}
+                        Milestone · {m.badgeName.replace(/\s*Badge$/i, "")}
                       </span>
                     </div>
                   </li>

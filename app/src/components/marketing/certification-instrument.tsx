@@ -417,11 +417,47 @@ const VERIFY_ROWS: Array<[string, string]> = [
 ];
 
 const VERIFY_POINTS = [
-  "Every credential has a public verification page.",
-  "Anyone can check the credential, its status, and its issue date.",
-  "Verification shows recipient, credential status, issue date, and badge metadata.",
+  "Each earned credential is issued with a public verification page.",
+  "When a credential is issued, anyone can check it, its status, and its issue date.",
+  "Verification shows recipient, credential status, issue date, and credential metadata.",
   "It does not expose the confidential contents of your dossier.",
 ];
+
+const REVIEW_MECHANICS = [
+  "Your dossier is assessed against the eight public criteria — the same standard shown before you apply.",
+  "The review is performed by a qualified human reviewer using the TenXPros review standard.",
+  "For the founding cohort, review is handled directly by the TenXPros review team and program architect.",
+  "Outcomes are Certified, Strong Draft, or Completed.",
+  "A Strong Draft includes specific revision guidance; certification is earned only when the dossier meets the standard.",
+  "Verification confirms credential metadata; it does not expose the confidential contents of your dossier.",
+];
+
+export function CertReviewMechanics() {
+  return (
+    <SectionShell>
+      <div className="max-w-3xl">
+        <MonoLabel>Review mechanics</MonoLabel>
+        <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
+          How dossier review works.
+        </h2>
+        <p className="mt-5 text-lg leading-relaxed text-slate-300">
+          Review is a human judgment against an explicit standard — not a quiz and not attendance.
+        </p>
+      </div>
+      <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2">
+        {REVIEW_MECHANICS.map((item, index) => (
+          <li key={item} className="flex items-start gap-3 bg-[#0B1120] p-6">
+            <span className="font-mono text-xs text-indigo-300">{String(index + 1).padStart(2, "0")}</span>
+            <span className="text-[0.95rem] leading-6 text-slate-200">{item}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">
+        No certification outcome is guaranteed.
+      </p>
+    </SectionShell>
+  );
+}
 
 export function CertVerification() {
   return (
@@ -433,9 +469,9 @@ export function CertVerification() {
             How verification works.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
-            A credential is only as good as the ability to check it. Each TenXPros credential is
-            verifiable on a public page — confirming the credential without revealing the work
-            behind it.
+            A credential is only as good as the ability to check it. When a credential is earned, it
+            is issued with a public verification page — confirming the credential without revealing
+            the work behind it.
           </p>
           <ul className="mt-6 space-y-3">
             {VERIFY_POINTS.map((point) => (

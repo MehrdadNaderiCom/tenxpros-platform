@@ -7,11 +7,10 @@ export const metadata: Metadata = {
 };
 
 const sections = [
-  ["Founder/legal review", "Founder/legal review required before production launch."],
   ["What we collect", "We collect application details, account information, diagnostic responses, program submissions, dossier content, support tickets, payment status records, and operational analytics."],
   ["How we use data", "We use data to review applications, deliver the program, personalize paths, provide feedback, manage certification, operate support, and improve TenXPros."],
-  ["Confidentiality", "TenXPros is designed around professional confidentiality. Participants should avoid uploading sensitive third-party information unless they have the right to use it."],
-  ["Public visibility", "Directory profiles and badge verification pages are public only when a participant or admin action makes the relevant record public."],
+  ["Confidentiality and what not to submit", "TenXPros is designed around professional confidentiality. Do not submit confidential client, employer, patient, regulated, or other third-party data unless you have the right to use it. Use redacted or fictionalized examples in your application and dossier."],
+  ["Public visibility", "Directory profiles and credential verification pages are public only when a participant or admin action makes the relevant record public."],
   ["Email and analytics", "Transactional emails are used for application, enrollment, review, support, and certification workflows. Analytics focus on product and operational decisions."],
 ];
 
@@ -20,7 +19,7 @@ export default function PrivacyPage() {
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-16 md:px-8 md:py-24">
       <PageHeader
         title="Privacy Policy"
-        description="Founder-review-ready privacy language for participant, applicant, and operational data."
+        description="How TenXPros handles applicant, participant, and operational data."
       />
       <div className="space-y-4">
         {sections.map(([title, copy]) => (

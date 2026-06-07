@@ -254,9 +254,8 @@ export function AboutFounder() {
             thinking, and professional education.
           </p>
           <p className="text-sm leading-6 text-slate-400">
-            An official DeepLearning.AI Ambassador, with applied AI work across HealthTech, FinTech,
-            EdTech, and PropTech. The standard — not the name behind it — is what the credential
-            rests on.
+            The credential rests on the public standard — the sample dossier, the eight review
+            criteria, the review outcomes, and verification — not on the name behind it.
           </p>
         </div>
       </div>

@@ -134,7 +134,7 @@ export function PricingHero() {
             </ul>
             <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-400">
               <span>Lowest founding entry</span>
-              <span className="text-indigo-200/90">Apply to hold a seat</span>
+              <span className="text-indigo-200/90">Apply to be considered for a seat</span>
             </div>
           </div>
         </div>
@@ -272,8 +272,10 @@ export function PricingLadder() {
           </li>
         ))}
       </ul>
-      <p className="mt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">
-        No countdowns. The only stated limit is the first 10 accepted members.
+      <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
+        The program structure stays the same; the entry price changes by charter window. No
+        countdowns, no pressure mechanics — only the stated founding-seat limit (the first 10
+        accepted members).
       </p>
     </SectionShell>
   );
@@ -322,7 +324,7 @@ const COMPARE_COLUMNS = [
 ] as const;
 
 const COMPARE_ROWS: Array<{ label: string; tools: string; uni: string; tenx: string }> = [
-  { label: "Typical price", tools: "Free – ~$500", uni: "Often $10,000+", tenx: "$997 (Founding Charter)" },
+  { label: "Typical price", tools: "Free – ~$500", uni: "Often many thousands, depending on provider and format", tenx: "$997 (Founding Charter)" },
   { label: "Main focus", tools: "Features and prompts", uni: "Institutional strategy & networks", tenx: "One real problem, made defensible" },
   { label: "Personalization", tools: "Generic, one-size-fits-all", uni: "Cohort case method", tenx: "Your role, domain, and problem" },
   { label: "Output", tools: "Completion certificate", uni: "Executive certificate", tenx: "Reviewed Living AI Solution Dossier" },
@@ -537,6 +539,7 @@ const FAQS: Array<[string, string]> = [
   ["Is this for non-technical professionals?", "Yes. It is built for experienced professionals across fields. You bring the expertise; we bring the AI method. No coding is required."],
   ["What exactly will I produce?", "A reviewed Living AI Solution Dossier — eight connected assets covering one real problem, from framing to a 90-day roadmap."],
   ["Can I expense this through my company?", "Many participants do. We provide an itemized receipt after payment; check your employer's professional-development policy."],
+  ["I'm applying from outside the US — anything I should know?", "Prices are listed in USD, and payment is requested only after acceptance. The path is designed to be async-friendly for international professionals, and the review language is English unless otherwise stated. You can request an invoice or receipt after acceptance and payment. As always, do not submit confidential or regulated data — use redacted or fictionalized examples."],
   ["Is my data safe?", "You control what you bring, and the program emphasizes confidentiality and governance. The public sample dossier uses fictional data only."],
 ];
 

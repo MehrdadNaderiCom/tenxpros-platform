@@ -7,13 +7,12 @@ export const metadata: Metadata = {
 };
 
 const sections = [
-  ["Founder/legal review", "Founder/legal review required before production launch."],
-  ["Selective admission", "Applying does not create enrollment or a payment obligation. TenXPros reviews each application before sending any payment instructions."],
-  ["Manual launch payments", "At launch, accepted applicants pay through manual Stripe Payment Links. Admins record payment status after confirmation."],
-  ["Before enrollment", "If payment is made but enrollment has not been activated, refund requests are reviewed manually."],
-  ["After program access", "Once participant access, starter materials, diagnostic intake, or coach review begins, refunds may be limited because capacity and review resources have been reserved."],
-  ["Certification outcomes", "Program completion does not automatically guarantee certification. Outcomes may include certified, conditionally certified, completed not certified, or not completed."],
-  ["How to request review", "Participants can request review by email or support ticket. TenXPros records refund decisions in the admin payment and audit workflow."],
+  ["Apply first, pay only after acceptance", "Applying does not create enrollment or a payment obligation. TenXPros reviews each application before sending any payment instructions."],
+  ["Accepted applicants pay to enroll", "Accepted applicants pay through a Stripe Payment Link. Enrollment is activated and recorded after payment is confirmed."],
+  ["Before enrollment", "If payment is made but enrollment has not yet been activated, refund requests are reviewed manually."],
+  ["After program access", "Once participant access, starter materials, diagnostic intake, or review begins, refunds may be limited because capacity and review resources have been reserved."],
+  ["Certification outcomes", "Completing the program does not guarantee certification. Public review outcomes are Certified, Strong Draft (specific revisions are returned before certification), or Completed (the program is finished and the credential is not yet earned). Refund eligibility is assessed by where you are in the program, not by the certification outcome."],
+  ["How to request review", "Participants can request review by email or support ticket. TenXPros records refund decisions in its payment and audit workflow."],
 ];
 
 export default function RefundPage() {
@@ -21,7 +20,7 @@ export default function RefundPage() {
     <main className="mx-auto max-w-4xl space-y-8 px-6 py-16 md:px-8 md:py-24">
       <PageHeader
         title="Refund Policy"
-        description="Manual launch refund handling for selective admission and charter enrollment."
+        description="How refunds are handled for selective admission and charter enrollment."
       />
       <div className="space-y-4">
         {sections.map(([title, copy]) => (
