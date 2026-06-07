@@ -1,7 +1,7 @@
 # TenXPros — Public Review Package
 
 **Live site:** https://tenxpros.com
-**Reviewed build:** commit `7d3299a` (public pages rebuilt in the "Instrument" design direction; full QA passed)
+**Reviewed build:** commit `6bd2232` (public pages rebuilt in the "Instrument" design direction; full QA passed)
 **Prepared:** 2026-06-07
 **Purpose:** A structured pack for selected human reviewers and LLM reviewers to evaluate the live TenXPros public site.
 
