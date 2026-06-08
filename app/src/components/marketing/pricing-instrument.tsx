@@ -69,7 +69,8 @@ export function PricingHero() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
             The Founding Charter is open during a limited founding review-capacity window. You apply
-            with one real professional problem; payment happens only if you are accepted.
+            with your expertise and the challenges you want to explore; payment happens only if you
+            are accepted.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
@@ -119,7 +120,7 @@ export function PricingHero() {
             </div>
             <ul className="mt-6 space-y-px">
               {[
-                ["Review capacity", "Limited founding window"],
+                ["Future standard", "$2,497 USD"],
                 ["Before acceptance", "$0"],
                 ["Payment", "Only after acceptance"],
               ].map(([k, v]) => (
@@ -187,11 +188,16 @@ export function PricingCard() {
 
           <div className="relative mt-6 flex flex-wrap items-end gap-x-4 gap-y-1">
             <span className="text-6xl font-semibold tracking-tight text-white">$997 USD</span>
-            <span className="pb-2 text-sm text-slate-400">Limited founding review-capacity window</span>
+            <span className="pb-2 text-sm text-slate-400">Current Founding Charter</span>
           </div>
+          <p className="relative mt-2 text-sm text-slate-500">
+            <span className="text-slate-400 line-through decoration-slate-600">Future standard: $2,497 USD</span>
+            <span className="mx-2 text-slate-600">·</span>
+            available during the founding review-capacity window.
+          </p>
           <p className="relative mt-3 max-w-xl text-sm leading-6 text-slate-400">
             The founding window is limited because dossier review is manual and capacity is
-            intentionally constrained — not as a pressure tactic.
+            intentionally constrained. It is not a pressure tactic.
           </p>
 
           <ul className="relative mt-8 grid gap-x-8 gap-y-3 sm:grid-cols-2">
@@ -225,7 +231,7 @@ const LADDER: Array<{ name: string; price: string; status: string; desc: string;
   { name: "Early Charter", price: "$1,247 USD", status: "Preview", desc: "Opens after Founding Charter closes." },
   { name: "Late Charter", price: "$1,497 USD", status: "Preview", desc: "Opens after Early Charter closes." },
   { name: "Final Charter", price: "$1,747 USD", status: "Preview", desc: "Opens after Late Charter closes." },
-  { name: "Standard", price: "$1,997 USD", status: "Preview", desc: "Ongoing entry point after charter windows." },
+  { name: "Standard", price: "$2,497 USD", status: "Preview", desc: "Ongoing entry point after the charter windows close." },
 ];
 
 export function PricingLadder() {
@@ -292,7 +298,7 @@ export function PricingLadder() {
 
 const VALUE_STACK: Array<[string, string]> = [
   ["A reviewed professional asset", "Not watched lessons — a dossier reviewed against explicit criteria."],
-  ["One real problem from your field", "You bring the work; the program makes it defensible."],
+  ["A focused challenge from your field", "You bring the work; the program makes it defensible."],
   ["Guided 12-week method", "Frame · Design · Prove · Foresee, with coaching checkpoints."],
   ["Dossier review against criteria", "Eight explicit review criteria, applied to your work."],
   ["Sample dossier and public rubric", "You see the standard before you apply."],
@@ -333,9 +339,52 @@ export function PricingValue() {
       </ul>
       <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
         Professionals use the dossier to explain AI adoption decisions to clients, leadership, and
-        teams — not as a promise of outcomes, but as reviewed work they can stand behind when asked
-        how they evaluated the problem, risks, workflow, and evidence.
+        teams. It is reviewed work they can stand behind when asked how they evaluated the problem,
+        the risks, the workflow, and the evidence. It is not a promise of outcomes.
       </p>
+    </SectionShell>
+  );
+}
+
+/* ------------------------------------------------ 4b. What each module includes */
+
+const MODULE_INCLUDES: Array<[string, string]> = [
+  ["Structured core learning", "A focused concept set for the module, written for working professionals."],
+  ["Field-specific application", "You apply each idea to your own role, domain, and context."],
+  ["A guided exercise", "A practical artifact that moves real work forward, not a quiz."],
+  ["Dossier progress", "Each module advances a section of your Living AI Solution Dossier."],
+  ["Review feedback at checkpoints", "Written feedback where the work is reviewed against the standard."],
+  ["Technical support", "Help when you need it, through your participant support channel."],
+  ["Milestones and ranks", "Successful module work earns a milestone badge, building toward the ranks and the capstone seal."],
+];
+
+export function PricingModuleIncludes() {
+  return (
+    <SectionShell>
+      <div className="max-w-3xl">
+        <MonoLabel>Inside each module</MonoLabel>
+        <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
+          What each module includes.
+        </h2>
+        <p className="mt-5 text-lg leading-relaxed text-slate-300">
+          The charter is one program with eleven core modules and a capstone. Every module is built
+          to produce real, reviewable work in your field.
+        </p>
+      </div>
+      <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2">
+        {MODULE_INCLUDES.map(([title, desc], index) => {
+          const isLast = index === MODULE_INCLUDES.length - 1;
+          return (
+            <li key={title} className={cn("flex gap-3 bg-[#0B1120] p-6", isLast && "sm:col-span-2")}>
+              <Check className="mt-0.5 h-5 w-5 flex-none text-indigo-400" aria-hidden="true" />
+              <div>
+                <h3 className="text-[0.95rem] font-semibold leading-snug text-white">{title}</h3>
+                <p className="mt-1.5 text-sm leading-6 text-slate-300">{desc}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </SectionShell>
   );
 }
@@ -350,7 +399,7 @@ const COMPARE_COLUMNS = [
 
 const COMPARE_ROWS: Array<{ label: string; tools: string; uni: string; tenx: string }> = [
   { label: "Typical price", tools: "Free – ~$500", uni: "Often many thousands, depending on provider and format", tenx: "$997 (Founding Charter)" },
-  { label: "Main focus", tools: "Features and prompts", uni: "Institutional strategy & networks", tenx: "One real problem, made defensible" },
+  { label: "Main focus", tools: "Features and prompts", uni: "Institutional strategy & networks", tenx: "Your real work, made defensible" },
   { label: "Personalization", tools: "Generic, one-size-fits-all", uni: "Cohort case method", tenx: "Your role, domain, and problem" },
   { label: "Output", tools: "Completion certificate", uni: "Executive certificate", tenx: "Reviewed Living AI Solution Dossier" },
   { label: "Review standard", tools: "None", uni: "Varies by program", tenx: "Explicit 8-criteria review" },
@@ -364,12 +413,12 @@ export function PricingCompare() {
       <div className="max-w-3xl">
         <MonoLabel>Different by design</MonoLabel>
         <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-          Different by design — not a replacement for university executive education.
+          Different by design: applied, reviewed, and field-specific.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          Universities are strongest for institutional perspective. Tools courses are useful for
-          quick tactics. TenXPros is built for one thing: helping experienced professionals turn
-          one real problem into reviewed AI adoption work they can defend.
+          TenXPros helps experienced professionals turn the right AI adoption opportunity in their
+          field into reviewed work they can defend. It complements executive education and tools
+          training rather than replacing them.
         </p>
       </div>
 
@@ -520,7 +569,7 @@ function SampleThumb({ src, label }: { src: string; label: string }) {
 /* --------------------------------------------------------- 7. How payment works */
 
 const STEPS: Array<[string, string]> = [
-  ["Apply with one real problem", "Tell us the professional problem you would carry through the program."],
+  ["Apply with your expertise", "Tell us your field, goals, and the challenges you want to explore."],
   ["We review fit and seriousness", "A reviewed application — we look for a real problem and real commitment."],
   ["If accepted, you receive the payment link", "Acceptance comes first; only then do we send a Stripe payment link."],
   ["You pay, then begin onboarding", "Payment happens only after acceptance, and onboarding starts right after."],
@@ -562,7 +611,7 @@ const FAQS: Array<[string, string]> = [
   ["What if I am not accepted?", "You pay nothing. Where we can, we explain the fit gap and point you toward a more suitable next step."],
   ["What if I cannot finish in 12 weeks?", "The 12 weeks are guided, but the dossier is the goal. We work with you on reasonable timing — certification is based on the work, not the clock."],
   ["Is this for non-technical professionals?", "Yes. It is built for experienced professionals across fields. You bring the expertise; we bring the AI method. No coding is required."],
-  ["What exactly will I produce?", "A reviewed Living AI Solution Dossier — eight connected assets covering one real problem, from framing to a 90-day roadmap."],
+  ["What exactly will I produce?", "A reviewed Living AI Solution Dossier: eight connected assets covering a focused professional challenge, from framing to a 90-day roadmap."],
   ["Can I expense this through my company?", "Many participants do. We provide an itemized receipt after payment; check your employer's professional-development policy."],
   ["I'm applying from outside the US — anything I should know?", "Prices are listed in USD, and payment is requested only after acceptance. The path is designed to be async-friendly for international professionals, and the review language is English unless otherwise stated. You can request an invoice or receipt after acceptance and payment. As always, do not submit confidential or regulated data — use redacted or fictionalized examples."],
   ["Is my data safe?", "You control what you bring, and the program emphasizes confidentiality and governance. The public sample dossier uses fictional data only."],
@@ -607,7 +656,7 @@ export function PricingFinalCta() {
         <div className="mx-auto max-w-2xl text-center">
           <MonoLabel>Founding Charter</MonoLabel>
           <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-            Bring one real problem. Leave with reviewed evidence.
+            Bring your expertise. Leave with reviewed evidence.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
             Apply for the Founding Charter with a serious professional problem. Payment happens

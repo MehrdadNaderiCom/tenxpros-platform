@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "Selective AI Adoption Certification for Experienced Professionals",
   description:
-    "Lead AI adoption in your field. A selective 12-week certification where experienced professionals turn one real problem into a reviewed Living AI Solution Dossier. Apply first, pay only after acceptance.",
+    "Lead AI adoption in your field. A selective 12-week certification where experienced professionals turn their expertise into a reviewed Living AI Solution Dossier. Apply first, pay only after acceptance.",
 };
 
 export default function HomePage() {

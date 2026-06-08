@@ -83,9 +83,10 @@ export function DossierHero() {
             The Living AI Solution Dossier is the work behind the credential.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
-            Participants do not simply complete lessons. They turn one real professional problem
+            Participants do not simply complete lessons. They turn a focused professional challenge
             into a structured, reviewed dossier: context, boundaries, workflow, evaluation, value,
-            governance, and a 90-day path forward.
+            governance, and a 90-day path forward. It is a visible record of what you can think
+            through and defend.
           </p>
           <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
             <span className="text-slate-200">Living</span> means the dossier is designed to be
@@ -93,7 +94,7 @@ export function DossierHero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink
-              href={SAMPLE_PDF_URL}
+              href={SAMPLE_HTML_URL}
               size="lg"
               className={PRIMARY_CTA}
               target="_blank"
@@ -189,7 +190,7 @@ function HeroThumb({ src, label }: { src: string; label: string }) {
 const PROOF_PILLARS: Array<[string, string]> = [
   [
     "Clear problem framing",
-    "One real professional problem, scoped and defined precisely enough that someone else could review it.",
+    "A focused professional problem, scoped and defined precisely enough that someone else could review it.",
   ],
   [
     "Responsible solution design",
@@ -553,7 +554,7 @@ const GENERIC_COURSE = [
 ];
 
 const TENX_DOSSIER = [
-  "Starts from one real problem",
+  "Starts from your real work",
   "Builds a structured AI adoption system",
   "Includes evaluation and governance",
   "Reviewed against explicit criteria",
@@ -612,7 +613,7 @@ export function DossierFinalCta() {
         <div className="mx-auto max-w-2xl text-center">
           <MonoLabel>Founding Charter</MonoLabel>
           <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-            Bring one real problem. Leave with reviewed evidence.
+            Turn your expertise into a reviewed artifact.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
             Apply for the Founding Charter with a serious professional problem. Payment happens

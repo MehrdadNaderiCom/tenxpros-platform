@@ -14,6 +14,7 @@ const sections = [
   ["Participant responsibilities", "Participants are responsible for truthful application information, protecting confidential data, respecting third-party rights, and submitting original work."],
   ["Responsible data use", "Participants must not submit confidential client, employer, patient, regulated, or other third-party data unless they have the authority and appropriate safeguards. Use redacted or fictionalized examples."],
   ["Account access", "Participant accounts are created after admission and enrollment. Accounts may be suspended for misuse, non-payment, policy violation, or harmful conduct."],
+  ["Contact and official communication", "Acceptance and payment instructions are sent only from hello@tenxpros.com. For questions or support, contact support@tenxpros.com. Treat any payment request from another address as suspicious."],
 ];
 
 export default function TermsPage() {

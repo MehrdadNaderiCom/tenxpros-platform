@@ -277,7 +277,7 @@ const OUTCOMES: Array<{ title: string; desc: string; tone: "gold" | "indigo" | "
   },
   {
     title: "Completed",
-    desc: "The program is finished; the credential is not yet earned. A real, professional outcome — not a failure.",
+    desc: "The program is finished; the credential is not yet earned. A real, professional outcome, not a failure.",
     tone: "neutral",
   },
 ];
@@ -347,7 +347,7 @@ export function CertMilestones() {
           Milestones, ranks, and the final credential.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          Progress is marked by reviewed work, not attendance — and it builds toward one credential.
+          Progress is marked by reviewed work, not attendance, and it builds toward one credential.
         </p>
       </div>
 
@@ -624,7 +624,7 @@ export function CertVerification() {
 /* ------------------------------------------------------- 8. Certification path */
 
 const PATH = [
-  "Apply with one real problem",
+  "Apply with your expertise",
   "Complete the diagnostic and personalized path",
   "Build the eight assets",
   "Assemble the Living AI Solution Dossier",
@@ -668,16 +668,16 @@ export function CertPath() {
 /* ------------------------------------------------------------------- 9. FAQ */
 
 const FAQS: Array<[string, string]> = [
-  ["Is this a university certificate?", "No. It is a private professional certification earned through reviewed work — not a university degree or academic program."],
-  ["Is the certificate accredited?", "No. It is not academically accredited. Its credibility comes from explicit review criteria, a reviewed dossier, and public verification — not an accreditation body."],
   ["What makes the credential credible?", "Transparent work: a reviewed artifact, published criteria, clear outcomes, and a verifiable badge. Anyone can see the standard before and after."],
-  ["What if my dossier is not certified on the first review?", "You receive specific revisions — a “Strong Draft” outcome — and can revise toward the standard. Review is part of the program, not a one-shot exam."],
+  ["What does the reviewer check?", "Your dossier is assessed against the eight public criteria: problem clarity, risk and boundaries, prioritization, evaluation, usability, value evidence, governance, and roadmap realism."],
+  ["What if my dossier is not certified on the first review?", "You receive specific revisions (a “Strong Draft” outcome) and can revise toward the standard. Review is part of the program, not a one-shot exam."],
   ["Can I still finish the program without earning the credential?", "Yes. “Completed” means you finished the program; certification is a separate, evidence-based decision. Both are honest professional outcomes."],
   ["Can employers verify it?", "Yes. Each credential has a public verification page showing the credential, its status, and its issue date."],
+  ["How can I use the credential?", "Share the verification link with clients, employers, or your network, add the badge to a profile, and use the dossier itself as reviewed proof of how you think through AI adoption."],
   ["Does verification reveal my confidential work?", "No. Verification confirms the credential and its metadata; it does not expose the contents of your dossier."],
-  ["Is this suitable for non-technical professionals?", "Yes. You bring judgment and a real problem; no coding is required to earn the credential."],
-  ["What if my field is regulated?", "You keep regulated or confidential data out of the work and use redacted or fictionalized examples. Governance and confidentiality are part of the review."],
-  ["Does certification guarantee career or business outcomes?", "No. It certifies reviewed work, not outcomes. We make no income, job, promotion, or business guarantees."],
+  ["Is this suitable for non-technical professionals?", "Yes. You bring judgment and your field expertise; no coding is required to earn the credential."],
+  ["What if my field is regulated?", "Keep regulated or confidential data out of the work and use general or redacted examples. Governance and confidentiality are part of the review."],
+  ["How is this different from a university or accredited program?", "It is a private professional certification, not a university degree or an accredited academic program. Its weight comes from reviewed work, public criteria, and verification rather than an accreditation body, and it does not on its own guarantee a job, income, or promotion."],
 ];
 
 export function CertFaq() {
@@ -719,7 +719,7 @@ export function CertFinalCta() {
         <div className="mx-auto max-w-2xl text-center">
           <MonoLabel>Founding Charter</MonoLabel>
           <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-            Bring one real problem. Build work that can be reviewed.
+            Bring your expertise. Build work that can be reviewed.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
             Apply for the Founding Charter. Payment happens only after acceptance.

@@ -68,7 +68,7 @@ export function AboutHero() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
             TenXPros was built for experienced professionals who need more than AI tips. It helps
-            them turn one real problem into reviewed AI adoption work they can explain, defend, and
+            them turn their expertise into reviewed AI adoption work they can explain, defend, and
             use.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -143,7 +143,7 @@ export function AboutProblem() {
 /* --------------------------------------------------- 3. The TenXPros answer */
 
 const SPINE = [
-  "Bring one real problem",
+  "Bring your expertise and a focused challenge",
   "Frame the decision",
   "Design responsible AI use",
   "Prove value and risk boundaries",
@@ -433,8 +433,8 @@ export function AboutFinalCta() {
             Bring your expertise. We bring the AI method.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
-            Apply for the Founding Charter with one real professional problem. Payment happens only
-            after acceptance.
+            Apply for the Founding Charter with your expertise and the challenges you want to
+            explore. Payment happens only after acceptance.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>

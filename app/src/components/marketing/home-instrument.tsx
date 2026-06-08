@@ -4,7 +4,6 @@ import {
   Award,
   Check,
   FileText,
-  Minus,
   ShieldCheck,
 } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
@@ -110,9 +109,9 @@ export function HomeHero() {
             <span className="text-slate-400">Don’t just use AI.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-400 sm:mt-6 sm:text-lg">
-            A selective 12-week certification for experienced professionals. Bring one real
-            problem, apply the TenX Method, and finish with a reviewed Living AI Solution
-            Dossier — evidence you can defend.
+            A selective 12-week certification for experienced professionals. Bring your expertise,
+            find where AI truly belongs in your field, and finish with a reviewed Living AI Solution
+            Dossier you can defend.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
@@ -249,6 +248,11 @@ export function HomeAssets() {
         <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
           Eight assets. One defensible dossier.
         </h2>
+        <p className="mt-5 text-lg leading-relaxed text-slate-300">
+          Each asset covers part of responsible adoption: where AI belongs, how risk and governance
+          are handled, how value is evaluated, and how the work stays valid over time. Together they
+          become one dossier you can defend.
+        </p>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
         {ASSETS.map(([title, desc], index) => (
@@ -374,19 +378,18 @@ export function HomeSampleProof() {
 /* ----------------------------------------------------------- 6. For / not for */
 
 const FOR_LIST = [
-  "Experienced professionals",
-  "Consultants and advisors",
-  "Managers and team leads",
-  "Researchers, educators, knowledge workers",
-  "Professionals in sensitive or high-stakes domains",
+  "Experienced professionals and senior operators",
+  "Consultants, advisors, and freelancers",
+  "Managers, team leads, and decision-makers",
+  "Startup founders, entrepreneurs, and SMB owners",
+  "Researchers, educators, and knowledge workers",
 ];
 
-const NOT_FOR_LIST = [
-  "People who want a certificate for watching videos",
-  "People looking only for prompt tricks",
-  "People without a real problem to bring",
-  "People who cannot commit serious work",
-  "People expecting a guaranteed job, income, or business outcome",
+const BEST_FIT = [
+  "You bring real expertise and judgment in your field",
+  "You want to lead AI adoption, not just use AI tools",
+  "You can commit a few focused hours each week",
+  "You want reviewed, defensible work you can show",
 ];
 
 export function HomeAudience() {
@@ -408,11 +411,11 @@ export function HomeAudience() {
           </ul>
         </div>
         <div className="bg-[#0B1120] p-8 md:p-10">
-          <MonoLabel className="text-slate-400">Who it is not for</MonoLabel>
+          <MonoLabel className="text-indigo-300/80">It works best when</MonoLabel>
           <ul className="mt-6 space-y-4">
-            {NOT_FOR_LIST.map((item) => (
-              <li key={item} className="flex gap-3 text-slate-400">
-                <Minus className="mt-0.5 h-5 w-5 flex-none text-slate-500" aria-hidden="true" />
+            {BEST_FIT.map((item) => (
+              <li key={item} className="flex gap-3 text-slate-100">
+                <Check className="mt-0.5 h-5 w-5 flex-none text-indigo-400" aria-hidden="true" />
                 <span className="leading-6">{item}</span>
               </li>
             ))}
@@ -548,11 +551,12 @@ export function HomeFinalCta() {
         <div className="mx-auto max-w-2xl text-center">
           <MonoLabel>Founding Charter</MonoLabel>
           <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
-            Bring one real problem. Leave with reviewed evidence.
+            Bring your expertise. Leave with reviewed evidence.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-400">
             The Founding Charter is open during a limited founding review-capacity window. You apply
-            with one real professional problem; payment happens only after acceptance.
+            with your expertise and the challenges you want to explore; payment happens only after
+            acceptance.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>

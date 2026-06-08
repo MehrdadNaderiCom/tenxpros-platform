@@ -113,31 +113,33 @@ export function ApplicationForm() {
           </Field>
           <Field label="Weekly availability" error={errors.timeAvailability?.message}>
             <Select {...register("timeAvailability")}>
-              <option value="HOURS_5">5 hours</option>
-              <option value="HOURS_8">8 hours</option>
-              <option value="HOURS_12_PLUS">12+ hours</option>
+              <option value="HOURS_5">About 2–5 hours / week</option>
+              <option value="HOURS_8">About 6–8 hours / week</option>
+              <option value="HOURS_12_PLUS">12+ hours / week</option>
             </Select>
           </Field>
           </div>
         </section>
 
-        <Field label="Why TenXPros?" error={errors.whyTenXPros?.message}>
+        <Field label="Your goals with AI" error={errors.whyTenXPros?.message}>
           <Textarea
             {...register("whyTenXPros")}
-            placeholder="Explain why this program fits your professional context now."
+            placeholder="What do you want to be able to do with AI in your field, and why is now the right time?"
           />
         </Field>
 
-        <Field label="Real problem brief" error={errors.realProblemBrief?.message}>
+        <Field
+          label="Challenges or opportunities you want to explore with AI"
+          error={errors.realProblemBrief?.message}
+        >
           <Textarea
             {...register("realProblemBrief")}
-            placeholder="Describe the real professional problem you may use during the program."
+            placeholder="Describe the professional challenges or opportunities in your field where AI might help. You do not need a finished answer; bring the context."
           />
         </Field>
 
-        <Field label="Preferred language" error={errors.preferredLanguage?.message}>
-          <Input {...register("preferredLanguage")} />
-        </Field>
+        {/* English-only program: language captured implicitly, no visible field needed. */}
+        <input type="hidden" defaultValue="English" {...register("preferredLanguage")} />
 
         <div className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
           <h2 className="text-xl font-semibold text-navy-900">Consent and confidentiality</h2>

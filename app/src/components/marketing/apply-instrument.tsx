@@ -52,13 +52,13 @@ function SectionShell({ children, className }: { children: React.ReactNode; clas
 
 /* ------------------------------------------------------------------ 1. Hero */
 
-const HERO_TRUST = ["No payment details required", "Reviewed application", "Pay only after acceptance"];
+const HERO_TRUST = ["No payment details required", "Response within 48 hours", "Pay only after acceptance"];
 
 const APPLICATION_PATH: Array<[string, string]> = [
-  ["Application received", "Your problem brief and context."],
-  ["Fit review", "We read for a real problem and real commitment."],
-  ["Payment link — after acceptance", "Sent only if you are accepted."],
-  ["Onboarding & diagnostic", "You begin once payment is complete."],
+  ["Application received", "Your goals, field, and the challenges you want to explore."],
+  ["Fit review", "A human read for fit and commitment, with a reply within 48 hours."],
+  ["Payment link after acceptance", "Sent only if you are accepted."],
+  ["Onboarding and diagnostic", "You begin once payment is complete."],
 ];
 
 export function ApplyHero() {
@@ -72,11 +72,12 @@ export function ApplyHero() {
         <div className="flex flex-col justify-center">
           <MonoLabel>Founding Charter application</MonoLabel>
           <h1 className="mt-6 text-[2.15rem] font-semibold leading-[1.1] tracking-tight text-white sm:text-4xl md:text-5xl">
-            Apply with one real professional problem.
+            Tell us about your expertise and where AI could help.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
-            TenXPros is selective because the work is reviewed. Apply with a serious problem from
-            your field; if accepted, you receive the payment link and begin onboarding.
+            TenXPros is selective because the work is reviewed. Share your field, your goals, and the
+            professional challenges you want to explore with AI. If accepted, you receive the payment
+            link and begin onboarding.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href={FORM_ANCHOR} size="lg" className={PRIMARY_CTA}>
@@ -194,9 +195,9 @@ export function ApplyStrong() {
 /* ------------------------------------------------- 3. What happens after */
 
 const AFTER_STEPS: Array<[string, string]> = [
-  ["You submit the application", "One real problem, your field, and a little about you."],
-  ["We review fit and seriousness", "A human read — not an automated decision."],
-  ["If accepted, you receive the payment link", "Acceptance comes first; the Stripe link follows."],
+  ["You submit the application", "Your field, goals, and the challenges you want to explore."],
+  ["We review fit and seriousness", "A human read, with a reply by email within 48 hours."],
+  ["If accepted, you receive the payment link", "Acceptance comes first, then the secure payment link."],
   ["You complete onboarding and begin the diagnostic", "Payment first, then onboarding and your diagnostic."],
 ];
 
@@ -238,9 +239,10 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
             Start your Founding Charter application.
           </h2>
           <p className="mt-4 text-base leading-relaxed text-slate-300">
-            Explain the one real professional problem you want to carry through the 12-week program —
-            the more specific, the easier it is to assess fit. No payment details required; you pay
-            only after acceptance.
+            Tell us about your expertise, your field, and the professional challenges you want to
+            explore with AI. You do not need a finished problem statement; the clearer the context,
+            the easier it is to assess fit. No payment details required, and you pay only after
+            acceptance.
           </p>
 
           {/* Compact pre-form panel — server-rendered, visible before the form hydrates */}
@@ -249,9 +251,10 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
               <MonoLabel>Before you apply</MonoLabel>
               <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
                 {[
-                  "About 7–10 minutes.",
+                  "About 5–7 minutes.",
                   "No payment details required.",
-                  "Use redacted or fictionalized examples — no confidential client, employer, patient, or regulated data.",
+                  "Do not include confidential client, employer, patient, or regulated data. Keep examples general or redacted.",
+                  "You will receive a response by email within 48 hours.",
                   "If accepted, payment confirms enrollment; onboarding and the diagnostic follow.",
                 ].map((t) => (
                   <li key={t} className="flex gap-2.5">
@@ -267,8 +270,8 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
                 {[
                   "Your role and field",
                   "AI experience & weekly time",
-                  "Why TenXPros fits now",
-                  "Your one real professional problem",
+                  "Your goals with AI",
+                  "Challenges you want to explore",
                   "Confidentiality & terms consent",
                 ].map((t, i) => (
                   <li key={t} className="flex gap-3">
@@ -284,12 +287,20 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
           <div className="mt-7 rounded-2xl border border-indigo-400/20 bg-indigo-500/[0.03] p-2 shadow-2xl shadow-black/40 ring-1 ring-indigo-400/10 sm:p-3">
             {children}
           </div>
-          <p className="mt-4 text-center text-xs leading-5 text-slate-500">
-            If the form does not load, refresh and try again. If it still fails, email{" "}
+          <p className="mt-5 rounded-lg border border-white/10 bg-[#0B1120] p-4 text-xs leading-5 text-slate-400">
+            You will receive a response by email within 48 hours. Official acceptance and payment
+            instructions are sent only from{" "}
             <a href="mailto:hello@tenxpros.com" className="text-indigo-300 underline-offset-2 hover:underline">
               hello@tenxpros.com
             </a>
+            . For questions or support, contact{" "}
+            <a href="mailto:support@tenxpros.com" className="text-indigo-300 underline-offset-2 hover:underline">
+              support@tenxpros.com
+            </a>
             .
+          </p>
+          <p className="mt-3 text-center text-xs leading-5 text-slate-500">
+            If the form does not load, refresh and try again.
           </p>
         </div>
       </div>
@@ -473,7 +484,7 @@ export function ApplyFinalCta() {
             Ready to apply?
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
-            Bring the problem. We will bring the method. Payment happens only after acceptance.
+            Bring your expertise. We will bring the AI method. Payment happens only after acceptance.
           </p>
           <div className="mt-9 flex justify-center">
             <ButtonLink href={FORM_ANCHOR} size="lg" className={PRIMARY_CTA}>

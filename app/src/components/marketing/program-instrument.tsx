@@ -76,8 +76,9 @@ export function ProgramHero() {
             Frame. Design. Prove. Foresee.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
-            A 12-week applied path for experienced professionals. Bring one real problem, turn it
-            into eight connected assets, and assemble a reviewed Living AI Solution Dossier.
+            A 12-week applied path for experienced professionals. Build practical AI judgment: find
+            where AI belongs in your field, design responsibly, prove the value, and assemble a
+            reviewed Living AI Solution Dossier.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
@@ -154,8 +155,8 @@ export function ProgramWhy() {
         <p className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-300">
           Adoption is not a prompt. It means deciding where AI belongs in your work, where it
           creates risk, how humans stay accountable, and how value is proven. The TenX Method is a
-          repeatable way to do that with one real problem — and to leave with evidence you can
-          defend.
+          repeatable way to do that with a focused professional challenge, and to leave with evidence
+          you can defend.
         </p>
       </div>
     </SectionShell>
@@ -225,8 +226,9 @@ export function ProgramFormat() {
         ))}
       </dl>
       <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
-        No coding is required — but serious professional judgment is. Review and checkpoints are
-        tied to the dossier you build, not to video attendance.
+        You do not need to code. You do need professional judgment, because the work is reviewed
+        against a real standard. Progress is measured by the dossier you build, not by hours of
+        video watched.
       </p>
     </SectionShell>
   );
@@ -243,9 +245,10 @@ export function ProgramModules() {
           The guided path.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          12 guided weeks, organized into 4 phases, with 11 core modules plus a final dossier and
-          capstone review. Each module carries a guiding question and a milestone badge — and moves
-          the dossier forward.
+          12 guided weeks across 4 phases: 11 core modules plus a final dossier and capstone review.
+          The early weeks build AI orientation and problem discovery; later weeks move into
+          responsible design, proof, and foresight. Each module carries a guiding question and a
+          milestone badge, and moves the dossier forward.
         </p>
       </div>
 
@@ -487,9 +490,9 @@ export function ProgramNotTools() {
         ))}
       </ul>
       <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
-        A generic AI tools course can leave you with prompts and a completion certificate. The
-        TenX Method leaves you with a reviewed artifact — the difference an employer, client, or
-        team can actually check.
+        TenXPros teaches a deeper level of AI use: how to discover the right problems, decide where
+        AI genuinely belongs, design responsibly, and prove the value in your own field. The result
+        is reviewed work an employer, client, or team can actually check.
       </p>
     </SectionShell>
   );
@@ -558,12 +561,12 @@ export function ProgramFinalCta() {
       <div className="relative mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-28">
         <div className="mx-auto max-w-2xl text-center">
           <MonoLabel>Founding Charter</MonoLabel>
-          <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
+          <h2 className="mt-5 text-balance text-3xl font-semibold leading-tight text-white md:text-4xl">
             Bring your expertise. We bring the AI method.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
-            Apply for the Founding Charter with one real professional problem. Payment happens only
-            after acceptance.
+            Apply for the Founding Charter with your expertise and the challenges you want to
+            explore. Payment happens only after acceptance.
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>

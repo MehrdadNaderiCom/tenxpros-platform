@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = {
   title: "About — Why TenXPros exists",
   description:
-    "TenXPros exists because AI adoption is now professional judgment work. It helps experienced professionals turn one real problem into reviewed AI adoption work — built around an explicit, public standard, not attendance.",
+    "TenXPros exists because AI adoption is now professional judgment work. It helps experienced professionals turn their expertise into reviewed AI adoption work, built around an explicit, public standard, not attendance.",
 };
 
 export default function AboutPage() {

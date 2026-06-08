@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 export const metadata: Metadata = {
   title: "Apply — Founding Charter",
   description:
-    "Apply with one real professional problem. TenXPros is selective because the work is reviewed — no payment details required, and you pay only after acceptance.",
+    "Tell us about your expertise and the challenges you want to explore with AI. TenXPros is selective because the work is reviewed. No payment details required, and you pay only after acceptance.",
 };
 
 export default function ApplyPage() {
