@@ -9,6 +9,8 @@ const portalRoles = ["PARTICIPANT", "COACH", "ADMIN"];
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) redirect("/login");
+  // Admins belong in the admin panel, not the participant portal.
+  if (session.user.role === "ADMIN") redirect("/admin");
   if (!portalRoles.includes(session.user.role)) redirect("/login");
 
   return (

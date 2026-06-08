@@ -5,7 +5,15 @@ const authSecret = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? pro
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = await getToken({ req: request, secret: authSecret });
+  // In production the site runs behind an HTTPS proxy, so the session cookie is
+  // named `__Secure-authjs.session-token`. getToken must be told to use the secure
+  // cookie name, otherwise it reads the wrong cookie, returns null, and every
+  // protected route redirects to /login even for a valid session.
+  const token = await getToken({
+    req: request,
+    secret: authSecret,
+    secureCookie: process.env.NODE_ENV === "production",
+  });
 
   if (pathname.startsWith("/portal")) {
     if (!token) return redirectToLogin(request);
