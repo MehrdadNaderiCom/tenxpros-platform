@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
 import { Field, Input } from "@/components/ui/form-fields";
 import { SubmitButton } from "./submit-button";
@@ -15,16 +16,29 @@ export default function LoginPage({
 }: {
   searchParams?: { callbackUrl?: string; error?: string };
 }) {
-  const callbackUrl = searchParams?.callbackUrl ?? "/portal";
+  // Default empty: when there's no explicit in-app callback, route by role below.
+  const callbackUrl = searchParams?.callbackUrl ?? "";
 
   async function login(formData: FormData) {
     "use server";
-    try {
-      await signIn("credentials", {
-        email: String(formData.get("email") ?? ""),
-        password: String(formData.get("password") ?? ""),
-        redirectTo: String(formData.get("callbackUrl") ?? "/portal"),
+    const email = String(formData.get("email") ?? "");
+    const password = String(formData.get("password") ?? "");
+    const requested = String(formData.get("callbackUrl") ?? "");
+
+    // Honor an explicit in-app callbackUrl; otherwise send admins to /admin and
+    // everyone else to /portal.
+    let destination =
+      requested.startsWith("/") && !requested.startsWith("/login") ? requested : "";
+    if (!destination) {
+      const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+        select: { role: true },
       });
+      destination = user?.role === "ADMIN" ? "/admin" : "/portal";
+    }
+
+    try {
+      await signIn("credentials", { email, password, redirectTo: destination });
     } catch (error) {
       if (error instanceof AuthError) {
         redirect("/login?error=CredentialsSignin");
