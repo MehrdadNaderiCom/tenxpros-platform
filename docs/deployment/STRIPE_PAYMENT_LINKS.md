@@ -1,108 +1,80 @@
-# Stripe Payment Links Guide
+# Payment Links Guide (provider-agnostic)
 
-TenXPros launch uses manual Stripe Payment Links. Full Stripe Checkout and webhook automation are intentionally out of scope for the current launch.
+> Filename is kept for history; this guide is **not Stripe-only**. A payment link
+> is just a URL, so it can point at **Wise**, a **manual checkout/instructions
+> page**, or **Stripe**. Full Stripe Checkout and webhook automation remain out
+> of scope for the current launch; enrollment is a manual admin action.
 
-## 1. Required Charter Tier Links
+## 1. Charter tier links and env vars
 
-| Tier | Members | Price | Env var |
-| --- | ---: | ---: | --- |
-| Founding Charter | 1-10 | $997 | `STRIPE_PAYMENT_LINK_FOUNDING` |
-| Early Charter | 11-20 | $1,247 | `STRIPE_PAYMENT_LINK_EARLY` |
-| Late Charter | 21-30 | $1,497 | `STRIPE_PAYMENT_LINK_LATE` |
-| Final Charter | 31-40 | $1,747 | `STRIPE_PAYMENT_LINK_FINAL` |
-| Standard | 41-99 | $1,997 | `STRIPE_PAYMENT_LINK_STANDARD` |
+Set one URL per tier. The app resolves the **generic** key first, then falls back
+to the **legacy Stripe-named** key, then to the FOUNDING link, then to a safe
+placeholder (`Manual payment link pending`). See `app/src/lib/services/payment-link.ts`.
 
-## 2. Suggested Payment Link Names
+| Tier | Price (USD) | Preferred env var | Legacy env var (still works) |
+| --- | ---: | --- | --- |
+| Founding Charter | 997 | `PAYMENT_LINK_FOUNDING` | `STRIPE_PAYMENT_LINK_FOUNDING` |
+| Early Charter | 1,247 | `PAYMENT_LINK_EARLY` | `STRIPE_PAYMENT_LINK_EARLY` |
+| Late Charter | 1,497 | `PAYMENT_LINK_LATE` | `STRIPE_PAYMENT_LINK_LATE` |
+| Final Charter | 1,747 | `PAYMENT_LINK_FINAL` | `STRIPE_PAYMENT_LINK_FINAL` |
+| Standard | 2,497 | `PAYMENT_LINK_STANDARD` | `STRIPE_PAYMENT_LINK_STANDARD` |
 
-- `TenXPros - Founding Charter - $997`
-- `TenXPros - Early Charter - $1,247`
-- `TenXPros - Late Charter - $1,497`
-- `TenXPros - Final Charter - $1,747`
-- `TenXPros - Standard - $1,997`
+For the founding window you only strictly need `PAYMENT_LINK_FOUNDING` (or the
+legacy `STRIPE_PAYMENT_LINK_FOUNDING`). A Wise link or a manual instructions page
+URL is valid here — the value is treated as an opaque URL.
 
-Recommended Stripe Product names:
+## 2. Provider options
 
-- `TenXPros Founding Charter`
-- `TenXPros Early Charter`
-- `TenXPros Late Charter`
-- `TenXPros Final Charter`
-- `TenXPros Standard`
+- **Wise / manual:** create a hosted payment request or a simple instructions page
+  and paste its URL into `PAYMENT_LINK_FOUNDING`.
+- **Stripe (manual Payment Link):** create a Payment Link product/price and paste
+  its URL into `PAYMENT_LINK_FOUNDING` (or the legacy key). No webhooks needed.
 
-Recommended Stripe Price labels:
-
-- `Founding Charter - USD 997`
-- `Early Charter - USD 1247`
-- `Late Charter - USD 1497`
-- `Final Charter - USD 1747`
-- `Standard - USD 1997`
-
-## 3. Description And Metadata
-
-Use descriptions that match the product scope:
+Suggested page copy (any provider):
 
 ```text
-TenXPros 12-week certification program. Includes Living AI Solution Dossier work and certification review. Certification is not automatically guaranteed.
+Payment for accepted TenXPros applicants only. This payment activates program
+enrollment after manual admin confirmation. Certification depends on reviewed
+work and is not automatically guaranteed.
 ```
 
-Suggested Payment Link page copy:
+## 3. Where to set the values
 
-```text
-Payment for accepted TenXPros applicants only. This payment activates program enrollment after manual admin confirmation. Certification depends on reviewed work and is not automatically guaranteed.
-```
-
-Suggested metadata if Stripe Payment Links allow it:
-
-- `product=tenxpros`
-- `tier=FOUNDING`, `EARLY`, `LATE`, `FINAL`, or `STANDARD`
-- `launch_scope=manual_payment_link`
-
-Do not include sensitive applicant information in static payment link metadata.
-
-## 4. Where To Place Env Vars
-
-Set the five `STRIPE_PAYMENT_LINK_*` values in the production hosting provider.
-
-Do not commit real payment links into the repository.
-
+Set the values in the production hosting provider's environment (the server's
+`.env.production`). **Do not commit real payment links into the repository.**
 Local placeholders may exist only in local env files used for acceptance testing.
 
-## 5. Manual Enrollment Workflow
+## 4. Manual enrollment workflow (provider-neutral)
 
 1. Visitor submits `/apply`.
-2. Admin reviews application.
-3. Admin accepts application.
-4. Accepted-applicant email includes the relevant manual Stripe Payment Link.
-5. Applicant pays through Stripe.
-6. Founder/admin confirms payment in Stripe.
-7. Admin marks payment received in TenXPros.
-8. User is enrolled as `PARTICIPANT`.
-9. Participant receives welcome/password setup flow.
+2. Admin reviews the application (reply target: within 48 hours).
+3. Admin accepts the application.
+4. The accepted-applicant email includes the relevant payment link
+   (or `Manual payment link pending` if none is configured yet).
+5. Applicant pays through the chosen provider.
+6. Founder/admin confirms the payment with the provider.
+7. Admin clicks **Mark payment received & enroll** in TenXPros admin.
+8. The user is enrolled as `PARTICIPANT`.
+9. The participant receives the welcome / password-setup flow.
 
-Keep this manual confirmation step for launch. It prevents accidental enrollment from an unpaid or disputed Payment Link session.
+Keep the manual confirmation step for launch. It prevents accidental enrollment
+from an unpaid or disputed payment session, and it is provider-independent.
 
-## 6. How To Test With A Real Accepted Applicant
+## 5. How to test with a founder-controlled applicant
 
-Use a founder-controlled test applicant before public launch:
+Use a founder-controlled test applicant before public launch (never a real prospect):
 
 1. Submit `/apply` with a controlled test email.
 2. Accept the application in admin.
-3. Confirm the accepted email includes the tier’s Payment Link.
-4. Open the Payment Link and confirm:
-   - product name
-   - price
-   - description
-   - currency
-   - receipt behavior
-5. Complete a real or Stripe-supported test payment only if the Stripe account mode and launch plan allow it.
-6. Confirm the payment in Stripe.
-7. In TenXPros admin, click `Mark payment received & enroll`.
-8. Confirm the user role becomes `PARTICIPANT`.
-9. Confirm the welcome/password setup email is delivered.
+3. Confirm the accepted email includes the tier's payment link.
+4. Open the link and confirm the amount, description, currency, and receipt behavior.
+5. Complete a test/real payment only if the provider account and launch plan allow it.
+6. Confirm the payment with the provider.
+7. In admin, click **Mark payment received & enroll**.
+8. Confirm the user role becomes `PARTICIPANT` and the password-setup email is delivered.
 
-Do not use a real prospect for this first operational test.
-
-## 7. Explicit Launch Scope
+## 6. Launch scope
 
 Do not implement Stripe Checkout or webhooks before the later planned phase.
-
-For this launch, payment evidence is manual and enrollment is an admin action.
+For this launch, payment evidence is manual and enrollment is an admin action,
+regardless of which provider issues the link.

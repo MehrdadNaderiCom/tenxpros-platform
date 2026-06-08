@@ -1,6 +1,10 @@
 import { Resend } from "resend";
 import { prisma } from "@/lib/prisma";
 
+// Re-exported so existing importers (`@/lib/services/email`) are unchanged while
+// the implementation lives in a pure, dependency-free, testable module.
+export { paymentLinkForTier } from "./payment-link";
+
 type EmailInput = {
   to: string;
   subject: string;
@@ -50,7 +54,3 @@ export async function sendEmail(input: EmailInput) {
   if (error) throw new Error(error);
 }
 
-export function paymentLinkForTier(tier?: string | null) {
-  const key = tier ? `STRIPE_PAYMENT_LINK_${tier}` : "STRIPE_PAYMENT_LINK_FOUNDING";
-  return process.env[key] || process.env.STRIPE_PAYMENT_LINK_FOUNDING || "Manual payment link pending";
-}

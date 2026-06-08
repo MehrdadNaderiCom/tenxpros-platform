@@ -43,7 +43,7 @@ export const pricingTiers: Array<{
   {
     name: "Standard",
     tier: "STANDARD",
-    price: 1997,
+    price: 2497,
     membersLimit: 99,
     isActive: false,
     benefits: ["12-week TenXPros program", "Living AI Solution Dossier", "Standard program access"],
