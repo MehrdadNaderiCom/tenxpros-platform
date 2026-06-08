@@ -128,6 +128,11 @@ body{
   /* Prevent single-line orphans/widows at page boundaries (hardening). */
   p, li, dd, dt, .note, .panel, .block{ orphans:3; widows:3; }
   h1, h2, h3, .sec-head, thead, .note-head{ break-after:avoid; }
+  /* A lead-in label directly under a section heading must travel with the body
+     it introduces, so a section never begins at the foot of a page with its
+     content stranded overleaf. */
+  .sec-head + p{ break-after:avoid; }
+  .callout-quote{ break-before:avoid; }
 }
 
 /* ---------- Cover-only capture mode (used by the cover PNG generator) ---- */

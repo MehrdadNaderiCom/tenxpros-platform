@@ -1,4 +1,4 @@
-import { ArrowRight, Check, FileText, Minus, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, FileText, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { modules } from "@/lib/program-data";
 import { cn } from "@/lib/utils";
@@ -446,58 +446,51 @@ export function ProgramReview() {
   );
 }
 
-/* --------------------------------------------------------- 8. Not a tools course */
+/* ------------------------------------------------ 8. What makes the work defensible */
 
-const GENERIC = [
-  "Learns tools",
-  "Copies prompts",
-  "Earns an attendance certificate",
-  "Rarely touches real governance",
-];
-
-const TENX = [
-  "Starts from a real problem",
-  "Designs responsible AI use",
-  "Tests outputs against a rubric",
-  "Documents risks and value",
-  "Produces reviewed work",
+const DEFENSIBLE: Array<[string, string]> = [
+  ["Starts from a real problem", "Work from your actual field and constraints — not a sandbox exercise."],
+  ["Designs responsible AI use", "Explicit boundaries, governance, and the judgment that stays with a human."],
+  ["Tests outputs against a rubric", "An evaluation rubric and a test set — not a claim that it simply works."],
+  ["Documents risks and value", "Risk, ethics, and the value case written down where they can be reviewed."],
+  ["Becomes reviewed evidence", "A dossier assessed against the eight public criteria — work you can stand behind."],
 ];
 
 export function ProgramNotTools() {
   return (
     <SectionShell>
       <div className="max-w-3xl">
-        <MonoLabel>What makes it different</MonoLabel>
+        <MonoLabel>What makes the work defensible</MonoLabel>
         <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">
           Built to hold up to review.
         </h2>
+        <p className="mt-5 text-lg leading-relaxed text-slate-300">
+          The difference is not which tools you touch — it is whether the work holds up when
+          someone asks how you decided. Every phase of the TenX Method leaves evidence you can
+          defend.
+        </p>
       </div>
-      <div className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 md:grid-cols-2">
-        <div className="bg-[#0B1120] p-8 md:p-10">
-          <p className="font-mono text-[0.7rem] uppercase tracking-[0.22em] text-slate-500">
-            Generic AI tools course
-          </p>
-          <ul className="mt-6 space-y-4">
-            {GENERIC.map((item) => (
-              <li key={item} className="flex gap-3 text-slate-400">
-                <Minus className="mt-0.5 h-5 w-5 flex-none text-slate-500" aria-hidden="true" />
-                <span className="leading-6">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="bg-[#0B1120] p-8 md:p-10">
-          <MonoLabel>The TenX Method</MonoLabel>
-          <ul className="mt-6 space-y-4">
-            {TENX.map((item) => (
-              <li key={item} className="flex gap-3 text-slate-100">
-                <Check className="mt-0.5 h-5 w-5 flex-none text-indigo-400" aria-hidden="true" />
-                <span className="leading-6">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
+      <ul className="mt-12 overflow-hidden rounded-xl border border-white/10">
+        {DEFENSIBLE.map(([title, desc], index) => (
+          <li
+            key={title}
+            className="flex items-start gap-4 border-b border-white/10 bg-[#0B1120] px-5 py-5 last:border-0 sm:px-7"
+          >
+            <span className="mt-0.5 font-mono text-xs tabular-nums text-indigo-300">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <div>
+              <h3 className="text-[0.95rem] font-semibold leading-snug text-white">{title}</h3>
+              <p className="mt-1.5 text-sm leading-6 text-slate-300">{desc}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
+        A generic AI tools course can leave you with prompts and a completion certificate. The
+        TenX Method leaves you with a reviewed artifact — the difference an employer, client, or
+        team can actually check.
+      </p>
     </SectionShell>
   );
 }

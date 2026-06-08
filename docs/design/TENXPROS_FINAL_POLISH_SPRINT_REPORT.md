@@ -1,114 +1,134 @@
 # TenXPros — Final Product Polish Sprint Report
 
-**Scope:** Presentational marketing copy/UX + legal-copy + one sample-asset print-CSS hardening. No backend/application logic.
-**Base:** `23f6d07` (live site at `6bd2232`). **Not committed, deployed, or pushed.**
-**Status:** typecheck / test / build green; local route + content + form + mobile checks pass; claims clean.
+**Date:** 2026-06-08
+**Branch:** `deployment/production-deployment-sprint-a`
+**Working-tree base at start:** `fe20d2b` ("Polish TenXPros public site for early applications"). Live site deployed at `6bd2232`.
+**Scope:** Presentational marketing copy/UX + one sample-asset (print-CSS + regenerated PDF). No backend/application logic.
+**Status:** `typecheck` / `test` / `build` green. Local route + content + form + sample-asset checks pass. No fake proof, no unsupported claims, no fake social proof added.
+**Not committed, not pushed, not deployed** (per instruction).
 
 ---
 
-## 1. Files changed (13)
+## 0. Context — two passes of the same sprint
+
+The prior commit `fe20d2b` was an earlier pass of this "Final Product Polish Sprint." It already delivered most of the requested items (founder section, milestones/ranks section, Apply form moved up, deadline/refund/cooling-off policy copy, removal of the prominent "What it is not" sections, and the bulk of the "first 10 accepted members" → capacity-window rewrite). Critically, its own report noted the dossier print-CSS hardening was added **"for future PDF regenerations"** — i.e. the served PDF was never rebuilt.
+
+This pass audited every requirement against the current state, then **fixed the genuinely-remaining gaps** and **verified the rest**. The table in §1 marks each file as **NEW this pass** or **pre-existing (verified)**.
+
+---
+
+## 1. Files changed (this pass: 5)
 
 | File | Change | Item(s) |
 | --- | --- | --- |
-| `app/src/components/marketing/about-instrument.tsx` | Principles grid fixed (6 + 1 full-width) + positive headline; founder section made more human + integrated LinkedIn; quiet boundary line added to Trust. | 1,2,5,9 |
-| `app/src/app/(public)/about/page.tsx` | Removed the prominent "What it is not" section (boundary now quiet, in Trust). | 2,9 |
-| `app/src/components/marketing/certification-instrument.tsx` | New "Milestones, ranks, and the final credential" section (real rank/capstone data). | 4 |
-| `app/src/app/(public)/certification/page.tsx` | Added `CertMilestones`; removed the prominent "What it is not" section. | 2,4,9 |
-| `app/src/components/marketing/apply-instrument.tsx` | Compact single pre-form panel; premium frame around the form. | 6,9 |
-| `app/src/app/(public)/apply/page.tsx` | Form moved up (right after hero); dropped repetitive Strong/Reassurance/Fit sections. | 6,9 |
-| `app/src/components/marketing/pricing-instrument.tsx` | Removed "first 10 accepted members" (×4) → capacity-window framing; positive value headline. | 2,3 |
-| `app/src/app/(public)/pricing/page.tsx` | Metadata: "first 10 accepted members" → capacity-window framing; `$997 USD`. | 3 |
-| `app/src/components/marketing/home-instrument.tsx` | Final CTA "first 10 members" → capacity-window framing. | 3 |
-| `app/src/components/marketing/program-instrument.tsx` | "This is not a prompt library." → "Built to hold up to review." | 2 |
-| `app/src/app/(public)/terms/page.tsx` | Added "Deadlines, extensions, and resubmission" (one reasonable extension; admin/review fee for extra cycles). | 7 |
-| `app/src/app/(public)/refund/page.tsx` | Added "Statutory rights and cooling-off" (EU/UK 14-day, explicit consent during withdrawal). | 7 |
-| `app/public/samples/tenxpros-sample-dossier-excerpt.html` | Print-CSS hardening: `orphans/widows` + heading `break-after:avoid` (for future PDF regenerations). | 8 |
+| `app/public/samples/tenxpros-sample-dossier-excerpt.pdf` | **Regenerated** from the hardened HTML (was stale: Chrome 148 / 2026-06-06, predating the orphan/widow + heading-break CSS). Now Chrome 149, 12 pages, valid. | 8 |
+| `app/public/samples/tenxpros-sample-dossier-excerpt.html` | **+5 lines** of print CSS: keep a section heading's lead-in label with its body (`.sec-head + p{break-after:avoid}`, `.callout-quote{break-before:avoid}`) — fixes a real stranded "Problem Definition" heading. | 8 |
+| `app/src/components/marketing/pricing-instrument.tsx` | Removed the last two seat references ("Limited founding seats" → "Limited review capacity"; "Apply to be considered for a seat" → "Open while founding review capacity remains"). Fixed the 7-item **"What you pay for" grid** that left 2 empty cells on the 3-col layout (final item now spans full width). | 1, 3 |
+| `app/src/components/marketing/program-instrument.tsx` | Reframed the standalone "Generic AI tools course vs TenX" comparison into a positive **"What makes the work defensible."** list; the negative contrast is now a single quiet closing line. Dropped the now-unused `Minus` import. | 2 |
+| `app/src/components/marketing/about-instrument.tsx` | Founder section made more human: "**creator and architect** of the TenX Method," a human motivation line ("…had no defensible way to show they could *lead* its adoption…"), and a warmer focus sentence. LinkedIn link retained. | 5 |
 
-**Not touched:** `application-form.tsx`, the zod schema, the submit action, auth, Prisma/DB/migrations, admin, participant portal, payment/enrollment logic.
+**Pre-existing and verified this pass (no change needed):**
+`about/page.tsx`, `apply/page.tsx`, `certification/page.tsx`, `terms/page.tsx`, `refund/page.tsx`, `privacy/page.tsx`, `certification-instrument.tsx`, `apply-instrument.tsx`, `home-instrument.tsx`.
+
+**Not touched (hard safety rules honored):** `application-form.tsx`, the zod schema (`validations/application.ts`), the `submitApplication` server action, auth, Prisma / DB / migrations, admin, participant portal, payment/enrollment logic, `program-data.ts`, and the cover/snapshot/rubric PNGs (cover PNG re-rendered byte-identical → git shows no change).
 
 ---
 
 ## 2. Design / UX fixes
 
-- **Item 1 — incomplete grid:** the About "Principles" 7-item grid (which left empty cells in a 3-col layout) is now **6 cards + 1 full-width final card** (`sm/lg:col-span` on the last item) — no empty cells, balanced on all breakpoints.
-- **Item 6 — Apply page:** the **form now sits directly under the hero** (was 4th section). The "Before you apply" + "What the form asks" content is collapsed into **one compact two-column panel** (shorter, tighter), and the form is wrapped in a **premium indigo-tinted frame** (border + ring + shadow). Repetitive "Strong applications," "Before you submit," and "Good fit / Not a fit" sections were removed.
-- **Item 9 — compression:** Apply dropped 3 repetitive sections; About and Certification each dropped a standalone "What it is not" section. Proof-critical content is preserved everywhere (sample dossier, review criteria, review outcomes, pay-after-acceptance, confidentiality warning).
+- **Item 1 — incomplete grids.** Audited every rendered grid. The About "Principles" grid was already balanced (6 + 1 full-width). The remaining offender was Pricing **"What your Founding Charter builds"** — 7 items in a `sm:grid-cols-2 lg:grid-cols-3` grid left **2 empty trailing cells** on desktop. The final item now spans the full row (`sm:col-span-2 lg:col-span-3`), so the panel always reads as complete on every breakpoint. No empty grid blocks remain anywhere.
+- **Item 9 — compression (verified).** Apply was already reduced to 5 sections (Hero → Form → After → Proof → CTA). The Program reframe also removes a two-column comparison in favor of a single list, a net reduction. Proof-critical content preserved everywhere.
 
 ## 3. Copy / positioning fixes (item 2)
 
-- Reframed high-conversion headlines positively: Pricing value "…is not a video course" → **"What your Founding Charter builds."**; Program "This is not a prompt library." → **"Built to hold up to review."**; About principles "What we will not compromise." → **"The principles we hold to."**
-- Removed the two standalone **"What TenXPros is not"** sections (About, Certification). Boundaries are retained where useful but **quieter and later** — the About Trust section ends with a small boundary line, and the Certification and Pricing FAQs still answer "Is this a university certificate?".
+- **Program — "What makes the work defensible."** The section that led with a "Generic AI tools course" negative column is now a positive, premium list of five defensibility points (real problem → responsible design → rubric testing → documented risk/value → reviewed evidence). A single quiet sentence retains the contrast without leading with it.
+- The two prominent **"What TenXPros is not"** sections (About, Certification) were already unmounted from their routes in the prior pass; boundaries now live quietly in the About Trust footnote and in the Certification / Pricing FAQs. Verified still in place.
+- High-conversion sections (Home hero, About hero, Certification "What the credential signals," Pricing "What your Founding Charter builds") lead positively. Verified.
 
-## 4. Founding-window framing (item 3)
+## 4. "First 10 accepted members" / seats (item 3)
 
-All public "first 10 accepted members" / "first 10 members" copy (7 occurrences across Pricing, Home, and Pricing metadata) replaced with capacity-window language: **"limited founding review-capacity window," "open while founding review capacity remains," "Limited founding review-capacity window."** No seat counter, no fabricated urgency. **$997 USD Founding Charter price kept.** The existing "review is manual and capacity is intentionally constrained" note remains.
+- Repo-wide grep for `first (10|ten)`, `accepted members`, `seats?`, `waitlist`, `considered for a seat` → **0 matches** in rendered source after this pass.
+- The only remaining seat-flavored copy ("Limited founding seats", "Apply to be considered for a seat") was replaced with capacity-window language. The site now uses: "Limited review capacity," "Limited founding review-capacity window," and "Open while founding review capacity remains."
+- **No seat counter, no countdown, no invented urgency.** The `$997 USD` Founding Charter price is unchanged.
 
-## 5. Policy / refund / deadline changes (item 7)
+## 5. Policy / refund / deadline changes (item 7) — verified, already in place
 
-- **Terms** now states participants follow module/dossier deadlines; **one reasonable extension or resubmission** may be granted; additional missed deadlines / repeated resubmissions / extra review cycles may require an **administrative or review fee** (capacity is reserved).
-- **Refund** now adds **statutory rights & cooling-off**: statutory consumer rights may still apply by jurisdiction; for **EU/UK-style 14-day withdrawal**, starting access/review during the withdrawal period requires **explicit consent** and acknowledgment that it may affect refund rights.
-- Existing rules retained: certification not guaranteed; refund eligibility limited once access/diagnostic/materials/review begin. No "no refunds ever," no claim that this is final legal advice. Suitable for later legal review.
+Confirmed in the prerendered HTML (no edits needed this pass):
 
-## 6. Badge / rank visibility added (item 4)
+- **Terms** — "Deadlines, extensions, and resubmission": participants expected to follow module/dossier deadlines; **one reasonable extension or resubmission** when justified; additional missed deadlines / repeated resubmissions / extra review cycles **may require an administrative or review fee** (capacity is reserved). Plus "No guaranteed outcome."
+- **Refund** — "After program access" (refunds limited once access/materials/diagnostic/review begin because **capacity and review resources are reserved**); "Certification outcomes" (not guaranteed; Certified / Strong Draft / Completed); "**Statutory rights and cooling-off**" (statutory consumer rights may apply; EU/UK-style **14-day withdrawal** requires **explicit consent** to start service during the withdrawal period, acknowledging refund rights may be affected).
+- Tone is conservative, not "no refunds ever," and suitable for later legal review (not presented as final legal advice).
 
-New Certification section **"Milestones, ranks, and the final credential"** using the actual `program-data` badge/rank data:
-- **11 module milestones** — earned through submitted work, not attendance.
-- **3 ranks** reflecting phase progress: **AI-Ready Professional** (Frame), **AI Problem Solver & Solution Designer** (Design), **Future-Ready AI Solution Designer** (Prove · Foresee).
-- **Certified TenXPro Capstone Seal** (gold) — belongs to certified dossier work; verification confirms metadata without exposing confidential work.
-- **No public-directory-visibility promise** was added (that requires certification + opt-in).
+## 6. Badge / rank visibility (item 4) — verified, already in place
+
+- `/certification` renders **"Milestones, ranks, and the final credential."** — 11 module milestones (earned through submitted work), the three ranks across **Frame / Design / Prove / Foresee**, and the capstone **Certified TenXPro Capstone Seal** (earned only when the reviewed dossier meets the standard). It states verification confirms credential metadata **without exposing confidential work**.
+- Rank names match the canonical `program-data.ts` ranks (AI-Ready Professional → Frame; AI Problem Solver & Solution Designer → Design; Future-Ready AI Solution Designer → Prove · Foresee).
+- `/program` also surfaces a per-module "Milestone · {badge}" chip from the canonical module data. No promise of public directory visibility absent certification + opt-in.
 
 ## 7. About founder changes (item 5)
 
-The founder block now explains **why** TenXPros was created (AI adoption became professional judgment work), names **Mehrdad Naderi as the creator/architect** of the method and review standard, states his **professional focus** (AI adoption, professional learning, human–AI collaboration, AI training, product thinking), and links his **public LinkedIn** once (de-duplicated). Founder remains a trust layer, not the headline advantage. **No** unsupported numbers, logos, degrees, awards, or affiliations were added (the removed "DeepLearning.AI Ambassador / 19,000 hours" copy stays removed).
+- Names **Mehrdad Naderi** as **creator and architect** of the TenX Method and the review standard.
+- States why TenXPros was created (AI adoption is now professional judgment work) and adds a more human motivation line about the gap it answers.
+- Professional focus retained: AI adoption, professional learning, human–AI collaboration, AI training, product thinking.
+- Public **LinkedIn** link retained (`linkedin.com/in/mehrdad-naderi`).
+- Founder remains a restrained trust layer ("the credential rests on the public standard… not on the name behind it"). **No** unsupported numbers, client logos, degrees, awards, or affiliations were added.
 
-## 8. Apply page improvements (item 6)
+## 8. Apply page improvements (item 6) — verified, already in place
 
-Form moved to the top; compact pre-form panel; premium form frame; load-failure fallback (`hello@tenxpros.com`) retained. **All 14 fields, labels, validation, and the submit action are unchanged** (verified 14/14 + submit post-hydration). "No payment details required" and the confidentiality warning remain clearly visible.
+- Form sits **directly under the hero** (section 2 of 5). The compact "Before you apply" + "What the form asks" two-column panel is retained; the form is wrapped in a **premium indigo-tinted frame**.
+- "No payment details required" / "pay only after acceptance" and the confidentiality (redacted/fictionalized examples) warning are clearly present.
+- **Form unchanged:** all **14** user-facing fields (fullName, email, country, professionalRole, domain, linkedinUrl, aiExperience, dataSensitivity, timeAvailability, whyTenXPros, realProblemBrief, preferredLanguage, consentConfidentiality, consentTerms) + submit. Validation and the submit action are untouched.
 
-## 9. Dossier PDF action taken (item 8)
+## 9. Dossier PDF action taken (item 8) — regenerated + repaired
 
-- **Inspected:** the live PDF is valid — `%PDF-1.4`, **11 pages**, A4, rendered by Chromium/Skia, 465,633 bytes (non-empty).
-- **Source review:** the HTML print CSS already implements the requested safeguards — `.sec-head { break-after:avoid; break-inside:avoid }` (×25, prevents stranded section headings), `.note/.panel/.block { break-inside:avoid }` (prevents orphan reviewer-note headers), `tr { break-inside:avoid }` + `thead { break-after:avoid }` (prevents broken table rows).
-- **Hardening added** to the HTML source: `orphans:3; widows:3;` on paragraphs/list-items and an extra `break-after:avoid` on headings/note-headers — for **future** regenerations.
-- **PDF NOT regenerated** this sprint (honest note, no faked success): the documented generator (`scripts/generate-sample-dossier-pdf.mjs`) relies on an AppArmor-confined snap Chromium that is not reliably runnable here, and re-rendering with a different headless Chromium risks altering the original's carefully-crafted typography. The current 11-page PDF already reflects the robust break rules; **no broken pagination was introduced.**
-- **Recommendation:** a human visual proofread of the 11-page PDF before print distribution; if specific stranded-heading examples are found, regenerate via the documented script in a controlled environment (the source CSS now includes orphans/widows).
+The generation workflow is clear and safe (`scripts/generate-sample-dossier-pdf.mjs`, headless Chromium present), so the PDF was **regenerated**, not faked.
+
+1. **Diagnosis:** the served PDF was dated 2026-06-06 (Chrome 148) and **predated** the prior pass's print-CSS hardening — it was stale.
+2. **Visual inspection** (all pages rendered to PNG): found exactly **one** genuine stranded heading — Section 2 "Problem Definition" sat at the foot of a page with its statement body overleaf, because `break-after:avoid` did not chain through the intervening "Problem statement." lead-in label.
+3. **Fix:** added `.sec-head + p{break-after:avoid}` and `.callout-quote{break-before:avoid}` so the heading → lead-in → body travel together.
+4. **Regenerated** → PDF is now **12 pages** (was 11; the fix pushed Section 2 to a clean page start), valid (`%PDF-1.4`, 465 KB, Chrome 149).
+5. **Re-verified all 12 pages:** no stranded section headings, no orphan reviewer-note headers (note panels stay whole), no broken table rows (rows keep `break-inside:avoid`; long tables flow by design). Premium and readable. The cover PNG re-rendered **byte-identical** (no asset churn).
 
 ## 10. Tests run and results
 
 | Command | Result |
 | --- | --- |
-| `pnpm typecheck` | ✅ Pass (exit 0) |
-| `pnpm test` | ✅ Pass — 5 files, 16 tests |
-| `pnpm build` | ✅ Compiled successfully |
-| Local route check (13 routes/assets) | ✅ all 200 |
-| Item-by-item content checks (22) | ✅ all pass |
-| Apply form (post-hydration) | ✅ 14/14 fields + submit present |
-| Mobile (390px: about, apply, certification, pricing) | ✅ 0px overflow, footer flush, 0 broken images, menu opens/closes |
-| Claims sweep | ✅ no DeepLearning / 19,000 / founder-led / $10,000 / blockchain / guaranteed-income / testimonials |
+| `pnpm typecheck` (`tsc --noEmit`) | **PASS** (exit 0) |
+| `pnpm test` (vitest) | **PASS** — 5 files, 16/16 tests |
+| `pnpm build` (`next build`) | **PASS** (exit 0) — all marketing routes prerendered static (`/`, `/about`, `/program`, `/dossier`, `/certification`, `/pricing`, `/apply`, `/privacy`, `/refund`, `/terms`) |
+
+**Route / content checks (against prerendered `.next/server/app` HTML + served assets):**
+
+- No empty-looking principle grids (About 6+1; Pricing now full-width final card). ✓
+- No "first 10 accepted members" / no seat language; capacity-window language present (`Limited review capacity` ×3, `founding review capacity remains` ×6, `founding review-capacity window` on home). ✓
+- About founder section improved (`creator and architect`, motivation line, LinkedIn). ✓
+- Badges/ranks visible publicly (Certification milestones/ranks; Program per-module milestone chips). ✓
+- Apply form intact: 14/14 fields + submit (client island, bundled at 30.4 kB on the static route). ✓
+- No payment details requested before acceptance (form has no payment fields; copy reinforces pay-after-acceptance). ✓
+- Policy pages include deadline / extension / resubmission / refund / cooling-off logic. ✓
+- Certification proof-critical content retained (eight criteria, three outcomes, sample dossier, verification). ✓
+- Sample assets served and valid: `…excerpt.html` (70.6 KB), `…excerpt.pdf` (12 pp, 465 KB, valid), `…verification.html` (4.6 KB). ✓
+- No unsupported claims (accreditation / university equivalence / guaranteed outcomes / cryptographic verification / third-party recognition) added; no fake testimonials, logos, or counts added. ✓
 
 ## 11. Remaining caveats
 
-- **Sample PDF not regenerated** (see §9) — the live PDF is unchanged and valid; the orphans/widows hardening benefits only future regenerations. A human proofread is recommended before print distribution.
-- **Unused exports retained:** `AboutNot`, `CertNot`, `ApplyStrong`, `ApplyReassure`, `ApplyAudience` remain defined in their files but are no longer composed (kept to avoid churn; easy to delete or re-add later).
-- **Legal copy** is conservative and suitable for later legal review (no claim of final legal advice; no "no refunds ever").
-- **Tablet nav (768–1023px)** still uses the hamburger menu (functional; unchanged) — flagged in the prior sprint for real-device QA.
-- Not committed, pushed, or deployed (per instructions).
+- **Legal copy is conservative, not final advice.** Terms/Refund/Privacy are written for later legal review; jurisdiction-specific consumer-law wording should be confirmed by counsel before broad outreach.
+- **Live verification routes** (`/verify/[code]`, `/certificate/[id]`) require real issued credentials; the on-page verification panel is explicitly labelled *Illustrative* and shows no real personal data.
+- **Negative-section components remain defined but unmounted.** `AboutNot`, `CertNot`, `ApplyStrong`, `ApplyReassure`, `ApplyAudience` are exported but not rendered by any route (verified: no external imports). They were intentionally left in place (harmless, not on the live site) rather than deleted, to keep this pass's diff focused; they can be removed in a later cleanup if desired.
+- **Report filename.** This file already existed from the prior pass (`fe20d2b`) and was **updated in place** to reflect the final state; the prior version remains recoverable in git history. (Surfaced because it was not authored in this pass.)
+- The PDF/HTML changes affect only the **public sample asset**; the participant-facing dossier/certificate print output was not in scope and was not modified.
 
-## 12. Final `git status --short`
+## 12. Final git status
 
 ```
  M app/public/samples/tenxpros-sample-dossier-excerpt.html
- M app/src/app/(public)/about/page.tsx
- M app/src/app/(public)/apply/page.tsx
- M app/src/app/(public)/certification/page.tsx
- M app/src/app/(public)/pricing/page.tsx
- M app/src/app/(public)/refund/page.tsx
- M app/src/app/(public)/terms/page.tsx
+ M app/public/samples/tenxpros-sample-dossier-excerpt.pdf
  M app/src/components/marketing/about-instrument.tsx
- M app/src/components/marketing/apply-instrument.tsx
- M app/src/components/marketing/certification-instrument.tsx
- M app/src/components/marketing/home-instrument.tsx
  M app/src/components/marketing/pricing-instrument.tsx
  M app/src/components/marketing/program-instrument.tsx
+ (+ docs/design/TENXPROS_FINAL_POLISH_SPRINT_REPORT.md — this report)
 ```
-HEAD unchanged at `23f6d07`. 13 files modified (presentational/legal/sample-asset only). Application form fields/schema/submit and all app logic untouched. No commit, push, or deploy.
+
+Diffstat (code/assets): 5 files changed, 74 insertions(+), 57 deletions(-); PDF binary 465633 → 465130 bytes.
+
+**No commit. No push. No deploy.** Awaiting review/approval.

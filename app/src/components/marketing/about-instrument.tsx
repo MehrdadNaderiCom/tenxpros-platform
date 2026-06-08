@@ -249,14 +249,20 @@ export function AboutFounder() {
         <div className="space-y-3">
           <p className="text-base leading-7 text-slate-300">
             <span className="font-medium text-white">TenXPros was created by Mehrdad Naderi</span>,
-            who designed the TenX Method and the review standard behind the credential. He built it
-            because AI adoption has become professional judgment work — deciding where AI belongs,
-            where it must stay human-led, and how to prove value responsibly — and experienced
-            professionals needed a rigorous way to do that, not more tips.
+            the creator and architect of the TenX Method and the review standard behind the
+            credential. He built it because AI adoption has become professional judgment work —
+            deciding where AI belongs, where it must stay human-led, and how to prove value
+            responsibly — and experienced professionals needed a rigorous way to do that, not more
+            tips.
+          </p>
+          <p className="text-base leading-7 text-slate-300">
+            He kept meeting capable professionals who could already use AI but had no defensible way
+            to show they could lead its adoption. TenXPros is his answer to that gap — a standard to
+            work toward, not another course to sit through.
           </p>
           <p className="text-sm leading-6 text-slate-400">
-            His work centers on AI adoption, professional learning, and human–AI collaboration,
-            drawing on AI training and product thinking.{" "}
+            His work sits at the intersection of professional learning and applied AI — AI adoption,
+            human–AI collaboration, AI training, and product thinking.{" "}
             <a
               href="https://www.linkedin.com/in/mehrdad-naderi/"
               target="_blank"

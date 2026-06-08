@@ -52,7 +52,7 @@ function SectionShell({ children, className }: { children: React.ReactNode; clas
 
 /* ------------------------------------------------------------------ 1. Hero */
 
-const HERO_TRUST = ["$0 before acceptance", "Reviewed application", "Limited founding seats"];
+const HERO_TRUST = ["$0 before acceptance", "Reviewed application", "Limited review capacity"];
 
 export function PricingHero() {
   return (
@@ -134,7 +134,7 @@ export function PricingHero() {
             </ul>
             <div className="mt-5 flex items-center justify-between border-t border-white/10 pt-4 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-400">
               <span>Lowest founding entry</span>
-              <span className="text-indigo-200/90">Apply to be considered for a seat</span>
+              <span className="text-indigo-200/90">Open while founding review capacity remains</span>
             </div>
           </div>
         </div>
@@ -310,13 +310,26 @@ export function PricingValue() {
         </h2>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-3">
-        {VALUE_STACK.map(([title, desc], index) => (
-          <li key={title} className="flex flex-col bg-[#0B1120] p-6">
-            <span className="font-mono text-xs text-indigo-300">{String(index + 1).padStart(2, "0")}</span>
-            <h3 className="mt-3 text-base font-semibold leading-snug text-white">{title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-300">{desc}</p>
-          </li>
-        ))}
+        {VALUE_STACK.map(([title, desc], index) => {
+          // 7 items in a 2/3-column grid would leave empty trailing cells; the
+          // final item spans the full row so the panel always reads as complete.
+          const isLast = index === VALUE_STACK.length - 1;
+          return (
+            <li
+              key={title}
+              className={cn(
+                "flex flex-col bg-[#0B1120] p-6",
+                isLast && "sm:col-span-2 lg:col-span-3 sm:flex-row sm:items-baseline sm:gap-5",
+              )}
+            >
+              <span className="font-mono text-xs text-indigo-300">{String(index + 1).padStart(2, "0")}</span>
+              <div className={cn(!isLast && "mt-3")}>
+                <h3 className="text-base font-semibold leading-snug text-white">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{desc}</p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
       <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-400">
         Professionals use the dossier to explain AI adoption decisions to clients, leadership, and
