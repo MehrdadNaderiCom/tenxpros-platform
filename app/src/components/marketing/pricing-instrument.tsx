@@ -1,6 +1,7 @@
 import { ArrowRight, ArrowUpRight, Check, FileText, Minus, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { usd, usdPlain, LADDER_DESC, type PricingTierView } from "@/lib/pricing";
 
 /**
  * Pricing — "The Instrument" direction
@@ -54,7 +55,7 @@ function SectionShell({ children, className }: { children: React.ReactNode; clas
 
 const HERO_TRUST = ["$0 before acceptance", "Reviewed application", "Limited review capacity"];
 
-export function PricingHero() {
+export function PricingHero({ founding, standard }: { founding: number; standard: number }) {
   return (
     <section className="relative overflow-hidden">
       <div
@@ -113,14 +114,14 @@ export function PricingHero() {
               </span>
             </div>
             <div className="flex items-end gap-3 pt-6">
-              <span className="text-5xl font-semibold tracking-tight text-white">$997 USD</span>
+              <span className="text-5xl font-semibold tracking-tight text-white">{usd(founding)}</span>
               <span className="pb-1.5 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-slate-500">
                 one-time · first cohort
               </span>
             </div>
             <ul className="mt-6 space-y-px">
               {[
-                ["Future standard", "$2,497 USD"],
+                ["Future standard", usd(standard)],
                 ["Before acceptance", "$0"],
                 ["Payment", "Only after acceptance"],
               ].map(([k, v]) => (
@@ -159,7 +160,7 @@ const FOUNDING_INCLUDES = [
   "Pay only after acceptance",
 ];
 
-export function PricingCard() {
+export function PricingCard({ founding, standard }: { founding: number; standard: number }) {
   return (
     <SectionShell>
       <div className="mx-auto max-w-3xl">
@@ -187,11 +188,11 @@ export function PricingCard() {
           </div>
 
           <div className="relative mt-6 flex flex-wrap items-end gap-x-4 gap-y-1">
-            <span className="text-6xl font-semibold tracking-tight text-white">$997 USD</span>
+            <span className="text-6xl font-semibold tracking-tight text-white">{usd(founding)}</span>
             <span className="pb-2 text-sm text-slate-400">Current Founding Charter</span>
           </div>
           <p className="relative mt-2 text-sm text-slate-500">
-            <span className="text-slate-400 line-through decoration-slate-600">Future standard: $2,497 USD</span>
+            <span className="text-slate-400 line-through decoration-slate-600">Future standard: {usd(standard)}</span>
             <span className="mx-2 text-slate-600">·</span>
             available during the founding review-capacity window.
           </p>
@@ -226,15 +227,7 @@ export function PricingCard() {
 
 /* ----------------------------------------------------------- 3. Pricing ladder */
 
-const LADDER: Array<{ name: string; price: string; status: string; desc: string; open?: boolean }> = [
-  { name: "Founding Charter", price: "$997 USD", status: "Open now", desc: "Open while founding review capacity remains.", open: true },
-  { name: "Early Charter", price: "$1,247 USD", status: "Preview", desc: "Opens after Founding Charter closes." },
-  { name: "Late Charter", price: "$1,497 USD", status: "Preview", desc: "Opens after Early Charter closes." },
-  { name: "Final Charter", price: "$1,747 USD", status: "Preview", desc: "Opens after Late Charter closes." },
-  { name: "Standard", price: "$2,497 USD", status: "Preview", desc: "Ongoing entry point after the charter windows close." },
-];
-
-export function PricingLadder() {
+export function PricingLadder({ tiers }: { tiers: PricingTierView[] }) {
   return (
     <SectionShell>
       <div className="max-w-3xl">
@@ -249,7 +242,13 @@ export function PricingLadder() {
       </div>
 
       <ul className="mt-12 overflow-hidden rounded-xl border border-white/10">
-        {LADDER.map(({ name, price, status, desc, open }, index) => (
+        {tiers.map((tier, index) => {
+          const open = tier.isActive;
+          const status = open ? "Open now" : "Preview";
+          const price = usd(tier.price);
+          const desc = LADDER_DESC[tier.tier] ?? "";
+          const name = tier.name;
+          return (
           <li
             key={name}
             className={cn(
@@ -283,7 +282,8 @@ export function PricingLadder() {
               )}
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
       <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
         The program structure stays the same; the entry price changes by charter window. No
@@ -397,17 +397,20 @@ const COMPARE_COLUMNS = [
   { key: "tenx", label: "TenXPros", highlight: true },
 ] as const;
 
-const COMPARE_ROWS: Array<{ label: string; tools: string; uni: string; tenx: string }> = [
-  { label: "Typical price", tools: "Free – ~$500", uni: "Often many thousands, depending on provider and format", tenx: "$997 (Founding Charter)" },
-  { label: "Main focus", tools: "Features and prompts", uni: "Institutional strategy & networks", tenx: "Your real work, made defensible" },
-  { label: "Personalization", tools: "Generic, one-size-fits-all", uni: "Cohort case method", tenx: "Your role, domain, and problem" },
-  { label: "Output", tools: "Completion certificate", uni: "Executive certificate", tenx: "Reviewed Living AI Solution Dossier" },
-  { label: "Review standard", tools: "None", uni: "Varies by program", tenx: "Explicit 8-criteria review" },
-  { label: "Credential meaning", tools: "You attended", uni: "You completed a program", tenx: "You produced reviewed evidence" },
-  { label: "Best fit", tools: "Quick tactics", uni: "Institutional perspective", tenx: "Experienced pros leading AI adoption" },
-];
+function compareRows(founding: number): Array<{ label: string; tools: string; uni: string; tenx: string }> {
+  return [
+    { label: "Typical price", tools: "Free – ~$500", uni: "Often many thousands, depending on provider and format", tenx: `${usdPlain(founding)} (Founding Charter)` },
+    { label: "Main focus", tools: "Features and prompts", uni: "Institutional strategy & networks", tenx: "Your real work, made defensible" },
+    { label: "Personalization", tools: "Generic, one-size-fits-all", uni: "Cohort case method", tenx: "Your role, domain, and problem" },
+    { label: "Output", tools: "Completion certificate", uni: "Executive certificate", tenx: "Reviewed Living AI Solution Dossier" },
+    { label: "Review standard", tools: "None", uni: "Varies by program", tenx: "Explicit 8-criteria review" },
+    { label: "Credential meaning", tools: "You attended", uni: "You completed a program", tenx: "You produced reviewed evidence" },
+    { label: "Best fit", tools: "Quick tactics", uni: "Institutional perspective", tenx: "Experienced pros leading AI adoption" },
+  ];
+}
 
-export function PricingCompare() {
+export function PricingCompare({ founding }: { founding: number }) {
+  const rows = compareRows(founding);
   return (
     <SectionShell>
       <div className="max-w-3xl">
@@ -437,7 +440,7 @@ export function PricingCompare() {
               {c.label}
             </div>
           ))}
-          {COMPARE_ROWS.map((row) => (
+          {rows.map((row) => (
             <div key={row.label} className="contents">
               <div className="border-t border-white/10 bg-[#0B1120] p-4 text-xs font-medium uppercase tracking-wide text-slate-500">
                 {row.label}
@@ -471,7 +474,7 @@ export function PricingCompare() {
               {c.label}
             </p>
             <dl className="mt-4 space-y-3">
-              {COMPARE_ROWS.map((row) => (
+              {rows.map((row) => (
                 <div key={row.label} className="flex justify-between gap-4 border-b border-white/5 pb-3 last:border-0 last:pb-0">
                   <dt className="text-xs uppercase tracking-wide text-slate-500">{row.label}</dt>
                   <dd className={cn("text-right text-sm", c.highlight ? "font-medium text-slate-100" : "text-slate-300")}>

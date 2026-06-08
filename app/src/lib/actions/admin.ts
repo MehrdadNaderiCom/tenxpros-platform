@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdminUser as requireAdmin } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { badgeCatalog } from "@/lib/program-data";
+import { parsePricingUpdate } from "@/lib/pricing";
 
 export async function issueBadge(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
   await requireAdmin();
@@ -240,6 +241,42 @@ export async function setActivePricingTier(formData: FormData) {
     }),
   ]);
   safeRevalidatePath("/admin/pricing");
+}
+
+export async function updatePricingTier(formData: FormData) {
+  const admin = await requireAdmin();
+  const tierId = String(formData.get("tierId") ?? "");
+  if (!tierId) throw new Error("Missing pricing tier id.");
+
+  // Validate price + membersLimit (positive whole numbers under a sanity ceiling).
+  const { price, membersLimit } = parsePricingUpdate({
+    price: formData.get("price"),
+    membersLimit: formData.get("membersLimit"),
+  });
+
+  const existing = await prisma.pricingTier.findUnique({ where: { id: tierId } });
+  if (!existing) throw new Error("Pricing tier not found.");
+
+  await prisma.$transaction([
+    prisma.pricingTier.update({ where: { id: tierId }, data: { price, membersLimit } }),
+    prisma.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "UPDATE_PRICING_TIER",
+        entity: "PricingTier",
+        entityId: tierId,
+        changes: {
+          before: { price: existing.price, membersLimit: existing.membersLimit },
+          after: { price, membersLimit },
+        },
+      },
+    }),
+  ]);
+
+  // public /pricing reads these tiers, so revalidate it too.
+  safeRevalidatePath("/admin/pricing");
+  safeRevalidatePath("/pricing");
 }
 
 export async function updateAdminSetting(formData: FormData) {
