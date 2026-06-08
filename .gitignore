@@ -14,3 +14,6 @@ Thumbs.db
 
 # Local logs
 *.log
+
+# Database backups / dumps — may contain password hashes; never commit.
+backups/
