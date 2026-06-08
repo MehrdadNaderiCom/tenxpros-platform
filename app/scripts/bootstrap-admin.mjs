@@ -33,10 +33,12 @@ import { hash } from "bcryptjs";
 
 const email = (process.env.ADMIN_EMAIL || "").trim().toLowerCase();
 
-// Password source: ADMIN_PASSWORD env if present, otherwise read from stdin when
-// invoked with --password-stdin (so it never appears on a command line).
-let password = process.env.ADMIN_PASSWORD || "";
-if (!password && process.argv.includes("--password-stdin")) {
+// Password source: when --password-stdin is passed, STDIN is authoritative — so an
+// ADMIN_PASSWORD baked into the container env (e.g. from .env.production) can never
+// silently override the password actually typed/piped in. Otherwise fall back to the
+// ADMIN_PASSWORD environment variable.
+let password = "";
+if (process.argv.includes("--password-stdin")) {
   password = await new Promise((resolve, reject) => {
     let data = "";
     process.stdin.setEncoding("utf8");
@@ -44,6 +46,8 @@ if (!password && process.argv.includes("--password-stdin")) {
     process.stdin.on("end", () => resolve(data.trim()));
     process.stdin.on("error", reject);
   });
+} else {
+  password = process.env.ADMIN_PASSWORD || "";
 }
 
 if (!email || !password) {

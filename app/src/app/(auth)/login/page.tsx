@@ -3,8 +3,8 @@ import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/form-fields";
+import { SubmitButton } from "./submit-button";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -52,9 +52,7 @@ export default function LoginPage({
         <Field label="Password">
           <Input name="password" type="password" autoComplete="current-password" required />
         </Field>
-        <Button className="w-full" type="submit">
-          Sign in
-        </Button>
+        <SubmitButton />
       </form>
     </Card>
   );
