@@ -7,7 +7,7 @@ import { requireAdminUser } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
 import { applicationSchema, applicationStatusSchema, type ApplicationInput } from "@/lib/validations/application";
 import { setPasswordSchema } from "@/lib/validations/auth";
-import { paymentLinkForTier, sendEmail } from "@/lib/services/email";
+import { paymentLinkForTier, safeSendEmail } from "@/lib/services/email";
 import { assertApplicationTransition } from "@/lib/services/status";
 import { dossierSections, pricingTiers } from "@/lib/program-data";
 
@@ -83,7 +83,7 @@ export async function submitApplication(input: ApplicationInput) {
     return created;
   });
 
-  await sendEmail({
+  await safeSendEmail({
     to: application.email,
     subject: "TenXPros application received",
     template: "application_received",
@@ -134,7 +134,7 @@ export async function updateApplicationStatus(formData: FormData) {
   if (updated.status === "ACCEPTED") {
     await createPendingPaymentAndSendAcceptedEmail(updated.id);
   } else if (updated.status === "REVISE_AND_REAPPLY" || updated.status === "NOT_ACCEPTED") {
-    await sendEmail({
+    await safeSendEmail({
       to: updated.email,
       subject: `TenXPros application update: ${updated.status.replaceAll("_", " ").toLowerCase()}`,
       template: "application_status_update",
@@ -165,7 +165,7 @@ async function createPendingPaymentAndSendAcceptedEmail(applicationId: string) {
   });
 
   const paymentLink = paymentLinkForTier(tier);
-  await sendEmail({
+  await safeSendEmail({
     to: application.email,
     subject: "TenXPros application accepted",
     template: "application_accepted_payment_link",
@@ -276,7 +276,7 @@ export async function markPaymentReceivedAndEnroll(formData: FormData) {
     return profile;
   });
 
-  await sendEmail({
+  await safeSendEmail({
     to: application.email,
     subject: "Welcome to TenXPros",
     template: "enrollment_welcome",
