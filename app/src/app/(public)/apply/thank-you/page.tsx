@@ -15,7 +15,9 @@ export default function ThankYouPage({ searchParams }: { searchParams?: { id?: s
         </p>
         <h1 className="text-3xl font-semibold text-navy-900">Thank you for applying to TenXPros.</h1>
         <p className="text-slate-600">
-          The review team will assess fit, problem clarity, and readiness. You will receive the next update by email.
+          The review team will personally assess your application for fit, problem clarity, and readiness — typically
+          within 48 hours. You will receive your decision by email, and if you are accepted it will include your payment
+          and onboarding details. No payment is requested before acceptance.
         </p>
         {searchParams?.id ? <p className="text-sm text-slate-500">Application ID: {searchParams.id}</p> : null}
         <ButtonLink href="/" variant="secondary">
