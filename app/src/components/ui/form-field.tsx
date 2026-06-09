@@ -19,16 +19,22 @@ import { cn } from "@/lib/utils";
 export function InfoTip({ id, label, text }: { id: string; label: string; text: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <span className="relative inline-flex">
+    // Hover handlers live on the wrapper so moving the pointer from the button
+    // onto the tooltip popover keeps it open (the popover is a child here).
+    <span
+      className="relative inline-flex"
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
       <button
         type="button"
         aria-label={label}
         aria-expanded={open}
+        aria-controls={id}
+        aria-describedby={open ? id : undefined}
         onClick={() => setOpen((o) => !o)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
         onKeyDown={(event) => {
           if (event.key === "Escape") setOpen(false);
         }}

@@ -1,33 +1,69 @@
-import Link from "next/link";
 import { signOut } from "@/lib/auth";
 import { Logo } from "@/components/shared/logo";
 import { Badge } from "@/components/ui/badge";
+import { AdminNavClient, type NavSection } from "@/components/shared/admin-nav-client";
 
-const adminItems = [
-  ["Dashboard", "/admin"],
-  ["Applications", "/admin/applications"],
-  ["Participants", "/admin/participants"],
-  ["Diagnostics", "/admin/diagnostics"],
-  ["Paths", "/admin/paths"],
-  ["Modules", "/admin/modules"],
-  ["Dossiers", "/admin/dossiers"],
-  ["Tickets", "/admin/tickets"],
-  ["Certifications", "/admin/certifications"],
-  ["Directory", "/admin/directory"],
-  ["Pricing", "/admin/pricing"],
-  ["Payments", "/admin/payments"],
-  ["Analytics", "/admin/analytics"],
-  ["Badges", "/admin/badges"],
-  ["Users", "/admin/users"],
-  ["Email", "/admin/email"],
-  ["Audit", "/admin/audit"],
-  ["Reports", "/admin/reports"],
-  ["Settings", "/admin/settings"],
+/**
+ * Admin sidebar information architecture. Grouped into sections (verified to
+ * cover every admin route exactly once) so the long flat menu reads as a clean,
+ * professional, searchable navigation. Search + collapse + active highlighting
+ * live in the AdminNavClient island.
+ */
+const sections: NavSection[] = [
+  { title: "Overview", items: [{ label: "Dashboard", href: "/admin" }] },
+  {
+    title: "People",
+    items: [
+      { label: "Applications", href: "/admin/applications" },
+      { label: "Participants", href: "/admin/participants" },
+      { label: "Tickets", href: "/admin/tickets" },
+    ],
+  },
+  {
+    title: "Learning",
+    items: [
+      { label: "Diagnostics", href: "/admin/diagnostics" },
+      { label: "Paths", href: "/admin/paths" },
+      { label: "Modules", href: "/admin/modules" },
+      { label: "Dossiers", href: "/admin/dossiers" },
+    ],
+  },
+  {
+    title: "Credentials",
+    items: [
+      { label: "Certifications", href: "/admin/certifications" },
+      { label: "Badges", href: "/admin/badges" },
+      { label: "Directory", href: "/admin/directory" },
+    ],
+  },
+  {
+    title: "Revenue",
+    items: [
+      { label: "Pricing", href: "/admin/pricing" },
+      { label: "Payments", href: "/admin/payments" },
+    ],
+  },
+  {
+    title: "Insights",
+    items: [
+      { label: "Analytics", href: "/admin/analytics" },
+      { label: "Reports", href: "/admin/reports" },
+    ],
+  },
+  {
+    title: "System",
+    items: [
+      { label: "Users", href: "/admin/users" },
+      { label: "Email", href: "/admin/email" },
+      { label: "Audit", href: "/admin/audit" },
+      { label: "Settings", href: "/admin/settings" },
+    ],
+  },
 ];
 
 export function AdminNav({ name }: { name?: string | null }) {
   return (
-    <aside className="border-b border-neutral-200 bg-white p-5 md:min-h-screen md:w-72 md:border-b-0 md:border-r">
+    <aside className="border-b border-neutral-200 bg-white p-5 md:min-h-screen md:w-72 md:shrink-0 md:border-b-0 md:border-r">
       <div className="space-y-6">
         <Logo />
         <div className="space-y-2">
@@ -35,17 +71,9 @@ export function AdminNav({ name }: { name?: string | null }) {
           <p className="font-medium text-slate-900">{name ?? "Admin"}</p>
           <p className="text-xs text-slate-500">Environment: {process.env.NODE_ENV}</p>
         </div>
-        <nav className="grid gap-1 text-sm">
-          {adminItems.map(([label, href]) => (
-            <Link
-              key={href}
-              href={href}
-              className="rounded-md px-3 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+
+        <AdminNavClient sections={sections} />
+
         <form
           action={async () => {
             "use server";

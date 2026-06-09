@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/form-fields";
+import { InfoTip } from "@/components/ui/form-field";
 import { PageHeader } from "@/components/shared/page-shell";
 import { formatCurrency } from "@/lib/utils";
 import { PAYMENT_METHODS, formatPaymentMethod, formatPaymentStatus } from "@/lib/payment-terms";
@@ -30,6 +31,22 @@ import {
 import { DeleteApplicationButton } from "@/components/admin/delete-application-button";
 
 const statuses = ["UNDER_REVIEW", "ACCEPTED", "REVISE_AND_REAPPLY", "NOT_ACCEPTED"] as const;
+
+// Precise, mistake-proof guidance for each status action (verified against the
+// real transition rules and email side-effects), so any admin acts correctly.
+const STATUS_SHARED_NOTE =
+  "The Admin note is saved to the application and written to the audit log on every action. It is emailed to the applicant only for 'Revise & reapply' and 'Not accepted' (shown as 'Reviewer notes'), and only if you actually write something. For 'Under review' and 'Accepted' it stays internal.";
+
+const STATUS_TIPS: Record<(typeof statuses)[number], string> = {
+  UNDER_REVIEW:
+    "Marks the application as actively being evaluated. No email is sent, and the Admin note stays internal. Allowed from Submitted, or from an application you previously sent back to revise.",
+  ACCEPTED:
+    "Records acceptance, creates a pending payment record, and emails the applicant their acceptance with payment instructions (amount, due date, manual-invoice details, support contact). The Admin note is not included and stays internal. Enrollment is a separate later step: after the payment arrives, use 'Mark payment received & enroll', which also sends the welcome and set-password email.",
+  REVISE_AND_REAPPLY:
+    "Emails the applicant a request to revise and resubmit. If you write an Admin note it is included verbatim under 'Reviewer notes'; if you leave it blank, no note is sent. Write it as polite, applicant-facing guidance, since they read it exactly as typed.",
+  NOT_ACCEPTED:
+    "Sends the applicant a polite decline. If you write an Admin note it is included verbatim under 'Reviewer notes'; leave it blank to send none. This is a final status with no further transitions, so use it only when the decision is final.",
+};
 
 export default async function ApplicationDetailPage({ params }: { params: { id: string } }) {
   async function enroll(formData: FormData) {
@@ -174,13 +191,26 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
         <aside className="space-y-4">
           <Card className="space-y-4">
             <h2 className="text-xl font-semibold text-navy-900">Status transition</h2>
+            <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs leading-5 text-slate-500">{STATUS_SHARED_NOTE}</p>
             {statuses.map((status) => (
               <form key={status} action={updateApplicationStatus} className="space-y-3 rounded-md border border-neutral-200 p-3">
                 <input type="hidden" name="applicationId" value={application.id} />
                 <input type="hidden" name="status" value={status} />
-                <Textarea name="adminNotes" placeholder="Admin note for audit/email" defaultValue={application.adminNotes ?? ""} />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold text-navy-900">{applicationStatusLabel(status)}</span>
+                  <InfoTip
+                    id={`status-tip-${status}`}
+                    label={`About marking ${applicationStatusLabel(status)}`}
+                    text={STATUS_TIPS[status]}
+                  />
+                </div>
+                <Textarea
+                  name="adminNotes"
+                  placeholder="Admin note (audited; emailed to the applicant only for revise/decline)"
+                  defaultValue={application.adminNotes ?? ""}
+                />
                 <Button className="w-full" type="submit" variant={status === "NOT_ACCEPTED" ? "danger" : "primary"}>
-                  Mark {status.replaceAll("_", " ").toLowerCase()}
+                  Mark {applicationStatusLabel(status).toLowerCase()}
                 </Button>
               </form>
             ))}
