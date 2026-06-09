@@ -1,9 +1,85 @@
-import { RouteShell } from "@/components/shared/page-shell";
+import Link from "next/link";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
-export default function Page() {
+const STATUS_FILTERS = ["sent", "error"] as const;
+
+function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {
   return (
-    <main className="mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-24">
-      <RouteShell title='Email Log' description='Sent email log shell.' />
-    </main>
+    <Link
+      href={href}
+      className={
+        active
+          ? "rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold text-white"
+          : "rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-neutral-50"
+      }
+    >
+      {label}
+    </Link>
+  );
+}
+
+export default async function EmailLogPage({ searchParams }: { searchParams: { status?: string } }) {
+  const raw = searchParams.status;
+  const status = raw && (STATUS_FILTERS as readonly string[]).includes(raw) ? raw : undefined;
+
+  const where: Prisma.EmailEventWhereInput | undefined = status ? { status } : undefined;
+  const emails = await prisma.emailEvent.findMany({ where, orderBy: { createdAt: "desc" }, take: 200 });
+
+  return (
+    <div className="space-y-8">
+      <PageHeader title="Email log" description="Every transactional email event, newest first (latest 200)." />
+      <Link href="/admin/email" className="text-sm font-medium text-navy-600 hover:underline">
+        ← Back to email
+      </Link>
+
+      <div className="flex flex-wrap gap-2">
+        <FilterChip label="All" href="/admin/email/log" active={!status} />
+        {STATUS_FILTERS.map((s) => (
+          <FilterChip key={s} label={s} href={`/admin/email/log?status=${s}`} active={status === s} />
+        ))}
+      </div>
+
+      {emails.length ? (
+        <Card className="overflow-x-auto p-0">
+          <table className="w-full min-w-[820px] text-sm">
+            <thead className="bg-navy-900 text-left text-white">
+              <tr>
+                <th className="px-4 py-3">When</th>
+                <th className="px-4 py-3">Template</th>
+                <th className="px-4 py-3">To</th>
+                <th className="px-4 py-3">Subject</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {emails.map((email, index) => (
+                <tr key={email.id} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
+                  <td className="px-4 py-3 text-xs text-slate-500">{email.createdAt.toLocaleString()}</td>
+                  <td className="px-4 py-3">{email.template}</td>
+                  <td className="px-4 py-3">{email.to}</td>
+                  <td className="px-4 py-3">
+                    {email.subject}
+                    {email.error ? <span className="block text-xs text-red-600">{email.error}</span> : null}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge status={email.status === "sent" ? "ACCEPTED" : "HOLD"}>{email.status}</Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      ) : (
+        <EmptyState
+          eyebrow="No email events"
+          title={status ? `No "${status}" email events.` : "No email events yet."}
+          description="Application, acceptance, payment, and enrollment emails are logged here after they send."
+        />
+      )}
+    </div>
   );
 }
