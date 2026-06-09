@@ -933,6 +933,16 @@ model PricingTier {
 
   benefits Json
 
+  paymentMethod PaymentMethod?
+
+  paymentCurrency String?
+
+  paymentLink String?
+
+  paymentInstructions String?
+
+  paymentDueDays Int?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -961,6 +971,26 @@ model PaymentRecord {
 
   paidAt DateTime?
 
+  method PaymentMethod?
+
+  paymentLink String?
+
+  paymentInstructions String?
+
+  dueAt DateTime?
+
+  discountNote String?
+
+  showDiscountNoteToApplicant Boolean @default(false)
+
+  internalNote String?
+
+  instructionsSentAt DateTime?
+
+  waivedAt DateTime?
+
+  cancelledAt DateTime?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -969,11 +999,29 @@ model PaymentRecord {
 enum PaymentStatus {
   PENDING
 
+  INSTRUCTIONS_SENT
+
   PAID
+
+  WAIVED
 
   FAILED
 
+  CANCELLED
+
   REFUNDED
+}
+
+enum PaymentMethod {
+  WISE
+
+  STRIPE
+
+  MANUAL_INVOICE
+
+  BANK_TRANSFER
+
+  OTHER
 }
 
 // ============================================================
