@@ -7,7 +7,9 @@ export const applicationSchema = z.object({
   professionalRole: z.string().trim().min(2, "Enter your professional role."),
   domain: z.string().trim().min(2, "Enter your professional domain."),
   linkedinUrl: z.union([z.string().trim().url("Enter a valid URL."), z.literal("")]).optional(),
-  aiExperience: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
+  aiExperience: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"], {
+    error: "Select the closest option.",
+  }),
   whyTenXPros: z.string().trim().min(80, "Write at least 80 characters."),
   realProblemBrief: z.string().trim().min(80, "Write at least 80 characters."),
   dataSensitivity: z.enum(["LOW", "MODERATE", "HIGH", "CRITICAL"]),

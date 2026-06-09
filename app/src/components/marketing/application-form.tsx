@@ -12,7 +12,8 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form-fields";
 
 const defaultValues: Partial<ApplicationInput> = {
   preferredLanguage: "English",
-  aiExperience: "BEGINNER",
+  // No aiExperience default — applicants pick the closest option themselves
+  // (an unselected placeholder fails validation, so it cannot default to "new").
   dataSensitivity: "MODERATE",
   timeAvailability: "HOURS_8",
   consentConfidentiality: false as true,
@@ -78,11 +79,21 @@ export function ApplicationForm() {
           <Field label="Country" error={errors.country?.message}>
             <Input {...register("country")} />
           </Field>
-          <Field label="Professional role" error={errors.professionalRole?.message}>
-            <Input {...register("professionalRole")} />
+          <Field label="Role / job function" error={errors.professionalRole?.message}>
+            <span className="block text-xs leading-5 text-slate-500">
+              What role do you currently play professionally?
+            </span>
+            <Input
+              {...register("professionalRole")}
+              placeholder="Founder, HR Director, Operations Manager, Consultant, Legal Counsel..."
+            />
           </Field>
-          <Field label="Professional domain" error={errors.domain?.message}>
-            <Input {...register("domain")} placeholder="Healthcare, legal, operations, education..." />
+          <Field label="Field / industry context" error={errors.domain?.message}>
+            <span className="block text-xs leading-5 text-slate-500">Where is your work grounded?</span>
+            <Input
+              {...register("domain")}
+              placeholder="Healthcare, legal services, logistics, education, finance, public sector..."
+            />
           </Field>
           <Field label="LinkedIn URL" error={errors.linkedinUrl?.message}>
             <Input {...register("linkedinUrl")} type="url" placeholder="https://www.linkedin.com/in/..." />
@@ -96,11 +107,14 @@ export function ApplicationForm() {
             <p className="mt-1 text-sm text-slate-600">Choose the closest operating profile for the work you want to bring.</p>
           </div>
           <div className="grid gap-4 md:grid-cols-3">
-          <Field label="AI experience" error={errors.aiExperience?.message}>
-            <Select {...register("aiExperience")}>
-              <option value="BEGINNER">Beginner</option>
-              <option value="INTERMEDIATE">Intermediate</option>
-              <option value="ADVANCED">Advanced</option>
+          <Field label="AI familiarity in professional work" error={errors.aiExperience?.message}>
+            <Select {...register("aiExperience")} defaultValue="">
+              <option value="" disabled>
+                Select the closest option
+              </option>
+              <option value="BEGINNER">New to AI in my professional work</option>
+              <option value="INTERMEDIATE">Experimenting with / using AI tools</option>
+              <option value="ADVANCED">Leading or advising AI initiatives</option>
             </Select>
           </Field>
           <Field label="Data sensitivity" error={errors.dataSensitivity?.message}>
@@ -121,20 +135,29 @@ export function ApplicationForm() {
           </div>
         </section>
 
-        <Field label="Your goals with AI" error={errors.whyTenXPros?.message}>
+        <Field
+          label="What would make these 12 weeks professionally valuable for you?"
+          error={errors.whyTenXPros?.message}
+        >
+          <span className="block text-xs leading-5 text-slate-500">
+            A rough direction is enough. You do not need a finished AI idea or solution.
+          </span>
           <Textarea
             {...register("whyTenXPros")}
-            placeholder="What do you want to be able to do with AI in your field, and why is now the right time?"
+            placeholder="For example: identify useful AI opportunities in my work, redesign a recurring workflow, improve decision support, or build a clearer AI adoption plan."
           />
         </Field>
 
         <Field
-          label="Challenges or opportunities you want to explore with AI"
+          label="What work situations, workflows, decisions, or opportunities should we explore with you?"
           error={errors.realProblemBrief?.message}
         >
+          <span className="block text-xs leading-5 text-slate-500">
+            Share 1–2 examples from your work context. Please avoid confidential or sensitive details.
+          </span>
           <Textarea
             {...register("realProblemBrief")}
-            placeholder="Describe the professional challenges or opportunities in your field where AI might help. You do not need a finished answer; bring the context."
+            placeholder="For example: reporting, client onboarding, compliance review, training design, knowledge search, operations planning, or customer support."
           />
         </Field>
 
@@ -154,6 +177,14 @@ export function ApplicationForm() {
             <input className="mt-1 h-4 w-4" type="checkbox" {...register("consentTerms")} />I agree to the TenXPros terms, privacy policy, and refund policy.
           </label>
           {errors.consentTerms ? <p className="text-sm text-red-600">{errors.consentTerms.message}</p> : null}
+          <p className="text-xs leading-5 text-slate-500">
+            I understand TenXPros is selective, and payment is requested only after acceptance according to the
+            active pricing tier shown on the{" "}
+            <a href="/pricing" className="text-navy-600 underline-offset-2 hover:underline">
+              Pricing page
+            </a>
+            .
+          </p>
         </div>
 
         <Button type="submit" disabled={isPending}>
