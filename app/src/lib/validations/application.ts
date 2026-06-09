@@ -6,7 +6,7 @@ export const applicationSchema = z.object({
   country: z.string().trim().min(2, "Enter your country."),
   professionalRole: z.string().trim().min(2, "Enter your role or job function."),
   domain: z.string().trim().min(2, "Enter your field or industry."),
-  linkedinUrl: z.union([z.string().trim().url("Enter a valid URL."), z.literal("")]).optional(),
+  linkedinUrl: z.string().trim().url("Enter your LinkedIn profile URL (https://...)."),
   aiExperience: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"], {
     error: "Select the closest option.",
   }),

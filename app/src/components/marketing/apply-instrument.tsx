@@ -251,7 +251,7 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
               <MonoLabel>Before you apply</MonoLabel>
               <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
                 {[
-                  "About 5–7 minutes.",
+                  "About 3–5 minutes.",
                   "No payment details required.",
                   "Do not include confidential client, employer, patient, or regulated data. Keep examples general or redacted.",
                   "You will receive a response by email within 48 hours.",

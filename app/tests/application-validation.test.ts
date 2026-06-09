@@ -7,7 +7,7 @@ const validApplication = {
   country: "United States",
   professionalRole: "Clinical Operations Lead",
   domain: "Healthcare operations",
-  linkedinUrl: "",
+  linkedinUrl: "https://www.linkedin.com/in/ada-participant",
   aiExperience: "INTERMEDIATE",
   whyTenXPros:
     "I need a structured professional path for learning how to adopt AI responsibly in a real, evidence-heavy operating environment.",
@@ -28,6 +28,11 @@ describe("applicationSchema", () => {
   it("requires consent", () => {
     const result = applicationSchema.safeParse({ ...validApplication, consentTerms: false });
     expect(result.success).toBe(false);
+  });
+
+  it("requires a valid LinkedIn URL (no longer optional)", () => {
+    expect(applicationSchema.safeParse({ ...validApplication, linkedinUrl: "" }).success).toBe(false);
+    expect(applicationSchema.safeParse({ ...validApplication, linkedinUrl: "not-a-url" }).success).toBe(false);
   });
 
   it("returns helpful field-level validation messages", () => {

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
+import { COUNTRIES } from "@/lib/countries";
 
 const defaultValues: Partial<ApplicationInput> = {
   preferredLanguage: "English",
@@ -69,7 +70,7 @@ export function ApplicationForm() {
           <div>
             <h2 className="text-xl font-semibold text-navy-900">Professional context</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Tell us who you are and where the work will be grounded. All fields are required unless marked optional.
+              Tell us who you are and where the work will be grounded. All fields are required.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
@@ -90,39 +91,42 @@ export function ApplicationForm() {
             <Field
               label="Country"
               error={errors.country?.message}
-              hint="The country where you are currently based. Write the full name in English (e.g., United States, not USA)."
+              hint="The country where you are currently based. Start typing to search the list and pick your country."
             >
-              <Input {...register("country")} placeholder="United States" />
+              <Input
+                {...register("country")}
+                list="country-options"
+                autoComplete="country-name"
+                placeholder="Start typing… e.g. United States"
+              />
             </Field>
             <Field
               label="Role / job function"
               error={errors.professionalRole?.message}
-              hint="Your current job title or main professional role."
+              hint="Your current job title or main professional role — e.g. Founder, HR Director, Operations Manager, Consultant, Legal Counsel."
             >
-              <Input
-                {...register("professionalRole")}
-                placeholder="Founder, HR Director, Operations Manager, Consultant..."
-              />
+              <Input {...register("professionalRole")} placeholder="e.g. Operations Manager" />
             </Field>
             <Field
               label="Field / industry context"
               error={errors.domain?.message}
-              hint="The industry or sector you work in (e.g., healthcare, finance, legal services, education)."
+              hint="The industry or sector you work in — e.g. healthcare, finance, legal services, education, logistics, public sector."
             >
-              <Input
-                {...register("domain")}
-                placeholder="Healthcare, legal services, logistics, education, finance..."
-              />
+              <Input {...register("domain")} placeholder="e.g. Healthcare" />
             </Field>
             <Field
               label="LinkedIn URL"
-              optional
               error={errors.linkedinUrl?.message}
-              hint="Optional. Paste the full link to your LinkedIn profile, starting with https://."
+              hint="Paste the full link to your LinkedIn profile, starting with https://."
             >
               <Input {...register("linkedinUrl")} type="url" placeholder="https://www.linkedin.com/in/..." />
             </Field>
           </div>
+          <datalist id="country-options">
+            {COUNTRIES.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
         </section>
 
         <section className="space-y-4">
