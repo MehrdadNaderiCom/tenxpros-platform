@@ -2,12 +2,19 @@
 
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
-import { absoluteUrl, formatCurrency } from "@/lib/utils";
+import { absoluteUrl } from "@/lib/utils";
 import { applicationSchema, applicationStatusSchema, type ApplicationInput } from "@/lib/validations/application";
 import { setPasswordSchema } from "@/lib/validations/auth";
 import { safeSendEmail } from "@/lib/services/email";
+import {
+  applicationReceivedEmail,
+  applicationStatusEmail,
+  enrollmentWelcomeEmail,
+  paymentInstructionsEmail,
+} from "@/lib/email/templates";
 import { assertApplicationTransition } from "@/lib/services/status";
 import {
   assertPaymentTransition,
@@ -90,11 +97,16 @@ export async function submitApplication(input: ApplicationInput) {
     return created;
   });
 
+  const receivedEmail = applicationReceivedEmail({
+    fullName: application.fullName,
+    applicationId: application.id,
+  });
   await safeSendEmail({
     to: application.email,
-    subject: "TenXPros application received",
+    subject: receivedEmail.subject,
     template: "application_received",
-    text: `Hi ${application.fullName},\\n\\nWe received your TenXPros application. The review team will assess fit, problem clarity, and readiness.\\n\\nApplication ID: ${application.id}`,
+    text: receivedEmail.text,
+    html: receivedEmail.html,
   });
 
   safeRevalidatePath("/admin/applications");
@@ -141,16 +153,130 @@ export async function updateApplicationStatus(formData: FormData) {
   if (updated.status === "ACCEPTED") {
     await createPendingPaymentAndSendAcceptedEmail(updated.id);
   } else if (updated.status === "REVISE_AND_REAPPLY" || updated.status === "NOT_ACCEPTED") {
+    const statusEmail = applicationStatusEmail({
+      fullName: updated.fullName,
+      status: updated.status,
+      notes: updated.adminNotes,
+    });
     await safeSendEmail({
       to: updated.email,
-      subject: `TenXPros application update: ${updated.status.replaceAll("_", " ").toLowerCase()}`,
+      subject: statusEmail.subject,
       template: "application_status_update",
-      text: `Hi ${updated.fullName},\\n\\nYour TenXPros application status is now ${updated.status}.\\n\\nNotes:\\n${updated.adminNotes ?? "No notes provided."}`,
+      text: statusEmail.text,
+      html: statusEmail.html,
     });
   }
 
   safeRevalidatePath("/admin/applications");
   safeRevalidatePath(`/admin/applications/${application.id}`);
+}
+
+const AI_EXPERIENCE_VALUES = ["BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
+const DATA_SENSITIVITY_VALUES = ["LOW", "MODERATE", "HIGH", "CRITICAL"] as const;
+const TIME_AVAILABILITY_VALUES = ["HOURS_5", "HOURS_8", "HOURS_12_PLUS"] as const;
+
+/** Admin edit of an application's core applicant details. Validated + audited. */
+export async function updateApplicationDetails(formData: FormData) {
+  const admin = await requireAdminUser();
+  const applicationId = String(formData.get("applicationId") ?? "");
+  if (!applicationId) throw new Error("Missing application id.");
+
+  const existing = await prisma.application.findUniqueOrThrow({ where: { id: applicationId } });
+
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const country = String(formData.get("country") ?? "").trim();
+  const professionalRole = String(formData.get("professionalRole") ?? "").trim();
+  const domain = String(formData.get("domain") ?? "").trim();
+  const linkedinUrl = String(formData.get("linkedinUrl") ?? "").trim();
+  const aiExperience = String(formData.get("aiExperience") ?? "");
+  const dataSensitivity = String(formData.get("dataSensitivity") ?? "");
+  const timeAvailability = String(formData.get("timeAvailability") ?? "");
+
+  if (fullName.length < 2) throw new Error("Full name is required.");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("A valid email is required.");
+  if (country.length < 2) throw new Error("Country is required.");
+  if (professionalRole.length < 2) throw new Error("Role / job function is required.");
+  if (domain.length < 2) throw new Error("Field / industry is required.");
+  if (linkedinUrl && !/^https?:\/\//i.test(linkedinUrl)) throw new Error("LinkedIn must be a valid URL.");
+  if (!(AI_EXPERIENCE_VALUES as readonly string[]).includes(aiExperience)) throw new Error("Invalid AI familiarity.");
+  if (!(DATA_SENSITIVITY_VALUES as readonly string[]).includes(dataSensitivity)) throw new Error("Invalid data sensitivity.");
+  if (!(TIME_AVAILABILITY_VALUES as readonly string[]).includes(timeAvailability)) throw new Error("Invalid weekly availability.");
+
+  await prisma.application.update({
+    where: { id: applicationId },
+    data: {
+      fullName,
+      email,
+      country,
+      professionalRole,
+      domain,
+      linkedinUrl: linkedinUrl || null,
+      aiExperience: aiExperience as (typeof AI_EXPERIENCE_VALUES)[number],
+      dataSensitivity: dataSensitivity as (typeof DATA_SENSITIVITY_VALUES)[number],
+      timeAvailability: timeAvailability as (typeof TIME_AVAILABILITY_VALUES)[number],
+    },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: "UPDATE_APPLICATION_DETAILS",
+      entity: "Application",
+      entityId: applicationId,
+      changes: {
+        before: {
+          fullName: existing.fullName,
+          email: existing.email,
+          country: existing.country,
+          professionalRole: existing.professionalRole,
+          domain: existing.domain,
+          aiExperience: existing.aiExperience,
+          dataSensitivity: existing.dataSensitivity,
+          timeAvailability: existing.timeAvailability,
+        },
+        after: { fullName, email, country, professionalRole, domain, aiExperience, dataSensitivity, timeAvailability },
+      },
+    },
+  });
+
+  safeRevalidatePath("/admin/applications");
+  safeRevalidatePath(`/admin/applications/${applicationId}`);
+}
+
+/** Permanently delete an application and its payment records. Audited; admin only. */
+export async function deleteApplication(formData: FormData) {
+  const admin = await requireAdminUser();
+  const applicationId = String(formData.get("applicationId") ?? "");
+  if (!applicationId) throw new Error("Missing application id.");
+
+  const application = await prisma.application.findUniqueOrThrow({ where: { id: applicationId } });
+
+  await prisma.$transaction([
+    prisma.paymentRecord.deleteMany({ where: { applicationId } }),
+    prisma.application.delete({ where: { id: applicationId } }),
+    prisma.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "DELETE_APPLICATION",
+        entity: "Application",
+        entityId: applicationId,
+        changes: {
+          before: {
+            fullName: application.fullName,
+            email: application.email,
+            status: application.status,
+          },
+        },
+      },
+    }),
+  ]);
+
+  safeRevalidatePath("/admin/applications");
+  safeRevalidatePath("/admin/payments");
+  redirect("/admin/applications");
 }
 
 function loadTierForApplication(tierName: string) {
@@ -168,31 +294,23 @@ function loadTierForApplication(tierName: string) {
 async function sendPaymentInstructionsEmail(
   application: { email: string; fullName: string },
   terms: ResolvedPaymentTerms,
-  subject = "TenXPros application accepted",
 ) {
-  const lines = [
-    `Hi ${application.fullName},`,
-    "",
-    "Your TenXPros application has been accepted.",
-    "",
-    `Amount due: ${formatCurrency(terms.amount, terms.currency)}`,
-  ];
-  if (terms.dueAt) lines.push(`Please complete payment by: ${terms.dueAt.toDateString()}`);
-  lines.push("", `Payment link: ${terms.paymentLink}`);
-  if (terms.paymentInstructions) lines.push("", terms.paymentInstructions);
-  if (terms.publicDiscountNote) lines.push("", `Note: ${terms.publicDiscountNote}`);
-  lines.push(
-    "",
-    `Questions about payment? Contact ${terms.supportEmail}.`,
-    "",
-    "After your payment is confirmed, your participant account will be activated.",
-  );
-
+  const mail = paymentInstructionsEmail({
+    fullName: application.fullName,
+    amount: terms.amount,
+    currency: terms.currency,
+    dueAt: terms.dueAt,
+    paymentLink: terms.paymentLink,
+    paymentInstructions: terms.paymentInstructions,
+    publicDiscountNote: terms.publicDiscountNote,
+    supportEmail: terms.supportEmail,
+  });
   await safeSendEmail({
     to: application.email,
-    subject,
+    subject: mail.subject,
     template: "application_accepted_payment_link",
-    text: lines.join("\n"),
+    text: mail.text,
+    html: mail.html,
   });
 }
 
@@ -341,11 +459,19 @@ async function enrollAcceptedApplication(
     return profile;
   });
 
+  const welcomeEmail = enrollmentWelcomeEmail({
+    fullName: application.fullName,
+    setPasswordUrl: absoluteUrl(
+      `/set-password?email=${encodeURIComponent(application.email)}&token=${encodeURIComponent(setupToken)}`,
+    ),
+    portalUrl: absoluteUrl("/portal"),
+  });
   await safeSendEmail({
     to: application.email,
-    subject: "Welcome to TenXPros",
+    subject: welcomeEmail.subject,
     template: "enrollment_welcome",
-    text: `Hi ${application.fullName},\\n\\nYour TenXPros enrollment is active. Set your password here: ${absoluteUrl(`/set-password?email=${encodeURIComponent(application.email)}&token=${encodeURIComponent(setupToken)}`)}\\n\\nYour portal opens at ${absoluteUrl("/portal")}.`,
+    text: welcomeEmail.text,
+    html: welcomeEmail.html,
   });
 
   safeRevalidatePath("/admin/applications");
@@ -477,7 +603,7 @@ export async function markPaymentInstructionsSent(formData: FormData) {
   if (record.application) {
     const tierRecord = await loadTierForApplication(record.application.pricingTierAtApply ?? "FOUNDING");
     const terms = resolvePaymentTerms({ record, tier: tierRecord, now: new Date() });
-    await sendPaymentInstructionsEmail(record.application, terms, "TenXPros payment instructions");
+    await sendPaymentInstructionsEmail(record.application, terms);
   }
 }
 

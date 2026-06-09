@@ -12,6 +12,7 @@ type EmailInput = {
   subject: string;
   template: string;
   text: string;
+  html?: string;
 };
 
 /**
@@ -31,6 +32,7 @@ async function deliver(from: string, input: EmailInput): Promise<void> {
       to: input.to,
       subject: input.subject,
       text: input.text,
+      ...(input.html ? { html: input.html } : {}),
     });
     return;
   }
@@ -42,7 +44,8 @@ async function deliver(from: string, input: EmailInput): Promise<void> {
       to: input.to,
       subject: input.subject,
       text: input.text,
-    });
+      ...(input.html ? { html: input.html } : {}),
+    } as Parameters<typeof resend.emails.send>[0]);
     return;
   }
 
@@ -50,6 +53,7 @@ async function deliver(from: string, input: EmailInput): Promise<void> {
     to: input.to,
     subject: input.subject,
     template: input.template,
+    hasHtml: Boolean(input.html),
     text: input.text,
   });
 }

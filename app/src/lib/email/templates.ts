@@ -1,0 +1,316 @@
+/**
+ * Branded, email-client-safe HTML templates for every email TenXPros sends.
+ *
+ * Pure and dependency-free (no prisma / no network), so it can be reused by the
+ * server actions, unit-tested, and rendered by a preview script. HTML is
+ * table-based with inline styles for broad email-client compatibility; every
+ * template also returns a clean plain-text fallback (real newlines).
+ */
+
+export type EmailContent = { subject: string; html: string; text: string };
+
+const NAVY = "#0B1F3A";
+const GOLD = "#B58A3C";
+const TEXT = "#334155";
+const MUTED = "#94A3B8";
+const FONT =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+function esc(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function money(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount}`;
+  }
+}
+
+function paragraph(html: string): string {
+  return `<p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:${TEXT};">${html}</p>`;
+}
+
+function button(href: string, label: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:22px 0 8px;"><tr><td style="border-radius:8px;background:${NAVY};"><a href="${esc(
+    href,
+  )}" style="display:inline-block;padding:13px 28px;font-family:${FONT};font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">${esc(
+    label,
+  )}</a></td></tr></table>`;
+}
+
+/** A light info box of label/value rows (used for IDs, payment details, notes). */
+function infoBox(rows: Array<{ label: string; value: string }>): string {
+  const inner = rows
+    .map(
+      (row) =>
+        `<tr><td style="padding:4px 0;font-size:13px;color:${MUTED};width:140px;vertical-align:top;">${esc(
+          row.label,
+        )}</td><td style="padding:4px 0;font-size:14px;color:${TEXT};font-weight:600;">${esc(
+          row.value,
+        )}</td></tr>`,
+    )
+    .join("");
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:6px 0 16px;background:#F8FAFC;border:1px solid #E3E8EF;border-radius:10px;"><tr><td style="padding:14px 18px;"><table role="presentation" cellpadding="0" cellspacing="0" width="100%">${inner}</table></td></tr></table>`;
+}
+
+function noteBox(title: string, body: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:6px 0 16px;background:#F8FAFC;border-left:3px solid ${GOLD};border-radius:6px;"><tr><td style="padding:12px 16px;"><p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${GOLD};">${esc(
+    title,
+  )}</p><p style="margin:0;font-size:14px;line-height:1.6;color:${TEXT};white-space:pre-wrap;">${esc(
+    body,
+  )}</p></td></tr></table>`;
+}
+
+function layout(opts: {
+  preheader: string;
+  eyebrow?: string;
+  heading: string;
+  bodyHtml: string;
+}): string {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>
+<body style="margin:0;padding:0;background:#EEF2F7;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#EEF2F7;">${esc(opts.preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EEF2F7;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:100%;background:#ffffff;border:1px solid #E3E8EF;border-radius:14px;overflow:hidden;font-family:${FONT};">
+  <tr><td style="background:${NAVY};padding:22px 32px;">
+    <span style="font-size:19px;font-weight:700;letter-spacing:0.03em;color:#ffffff;">TenXPros</span>
+    <span style="font-size:12px;color:#9FB0C8;padding-left:10px;">AI adoption certification</span>
+  </td></tr>
+  <tr><td style="height:3px;background:${GOLD};font-size:0;line-height:0;">&nbsp;</td></tr>
+  <tr><td style="padding:34px 32px 6px;">
+    ${
+      opts.eyebrow
+        ? `<p style="margin:0 0 12px;font-size:12px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:${GOLD};">${esc(
+            opts.eyebrow,
+          )}</p>`
+        : ""
+    }
+    <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:${NAVY};font-weight:700;">${esc(
+      opts.heading,
+    )}</h1>
+    ${opts.bodyHtml}
+  </td></tr>
+  <tr><td style="padding:6px 32px 30px;">
+    <div style="border-top:1px solid #E3E8EF;margin-top:18px;padding-top:18px;font-size:12px;line-height:1.7;color:${MUTED};">
+      You are receiving this because you applied to or are enrolled in TenXPros.<br>
+      Sent by TenXPros · <a href="mailto:hello@tenxpros.com" style="color:#64748B;text-decoration:none;">hello@tenxpros.com</a> · Support: <a href="mailto:support@tenxpros.com" style="color:#64748B;text-decoration:none;">support@tenxpros.com</a>
+    </div>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+// ---------------------------------------------------------------------------
+// 1. Application received
+// ---------------------------------------------------------------------------
+export function applicationReceivedEmail(params: {
+  fullName: string;
+  applicationId: string;
+}): EmailContent {
+  const { fullName, applicationId } = params;
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("Thank you for applying to TenXPros. We have received your application.") +
+    paragraph(
+      "Our review team reads every application personally and replies by email within 48 hours. No payment is requested before acceptance.",
+    ) +
+    infoBox([{ label: "Application ID", value: applicationId }]);
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Thank you for applying to TenXPros. We have received your application.",
+    "",
+    "Our review team reads every application personally and replies by email within 48 hours. No payment is requested before acceptance.",
+    "",
+    `Application ID: ${applicationId}`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "We have received your TenXPros application",
+    html: layout({
+      preheader: "We have received your application. A decision follows by email within 48 hours.",
+      eyebrow: "Application received",
+      heading: "Thank you for applying to TenXPros.",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 2. Application status update (revise & reapply / not accepted)
+// ---------------------------------------------------------------------------
+export function applicationStatusEmail(params: {
+  fullName: string;
+  status: "REVISE_AND_REAPPLY" | "NOT_ACCEPTED" | string;
+  notes?: string | null;
+}): EmailContent {
+  const { fullName, status, notes } = params;
+  const revise = status === "REVISE_AND_REAPPLY";
+
+  const lead = revise
+    ? "Thank you for applying to TenXPros. After review, we would like you to refine a few points and resubmit. We see real potential and want to give your application its best chance."
+    : "Thank you for your interest in TenXPros. After careful review, we are not able to offer you a place in this cohort.";
+  const closing = revise
+    ? "When you are ready, you can update and resubmit your application from our site."
+    : "We appreciate the time you invested, and you are welcome to apply again in a future cohort.";
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph(lead) +
+    (notes ? noteBox("Reviewer notes", notes) : "") +
+    paragraph(closing);
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    lead,
+    ...(notes ? ["", `Reviewer notes:`, notes] : []),
+    "",
+    closing,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: revise
+      ? "Your TenXPros application: a request to revise and resubmit"
+      : "An update on your TenXPros application",
+    html: layout({
+      preheader: revise
+        ? "We would like you to refine and resubmit your application."
+        : "An update on your TenXPros application.",
+      eyebrow: "Application update",
+      heading: "An update on your application",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 3. Accepted — payment instructions
+// ---------------------------------------------------------------------------
+export function paymentInstructionsEmail(params: {
+  fullName: string;
+  amount: number;
+  currency: string;
+  dueAt?: Date | null;
+  paymentLink?: string | null;
+  paymentInstructions?: string | null;
+  publicDiscountNote?: string | null;
+  supportEmail: string;
+}): EmailContent {
+  const { fullName, amount, currency, dueAt, paymentLink, paymentInstructions, publicDiscountNote, supportEmail } =
+    params;
+
+  const hasLinkUrl = typeof paymentLink === "string" && /^https?:\/\//i.test(paymentLink);
+  const rows: Array<{ label: string; value: string }> = [
+    { label: "Amount due", value: money(amount, currency) },
+  ];
+  if (dueAt) rows.push({ label: "Please pay by", value: dueAt.toDateString() });
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("Congratulations. Your application has been accepted, and one step remains to confirm your place: completing payment.") +
+    infoBox(rows) +
+    (hasLinkUrl ? button(paymentLink as string, "Complete payment") : "") +
+    (paymentInstructions ? noteBox("Payment instructions", paymentInstructions) : "") +
+    (publicDiscountNote ? noteBox("Note", publicDiscountNote) : "") +
+    paragraph(
+      `Once your payment is confirmed, we will activate your participant account and share onboarding next steps. Questions about payment? Contact <a href="mailto:${esc(
+        supportEmail,
+      )}" style="color:${NAVY};">${esc(supportEmail)}</a>.`,
+    );
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Congratulations. Your application has been accepted, and one step remains to confirm your place: completing payment.",
+    "",
+    `Amount due: ${money(amount, currency)}`,
+    ...(dueAt ? [`Please pay by: ${dueAt.toDateString()}`] : []),
+    ...(hasLinkUrl ? ["", `Complete payment: ${paymentLink}`] : []),
+    ...(paymentInstructions ? ["", "Payment instructions:", paymentInstructions] : []),
+    ...(publicDiscountNote ? ["", `Note: ${publicDiscountNote}`] : []),
+    "",
+    `Once your payment is confirmed, we will activate your participant account and share onboarding next steps. Questions about payment? Contact ${supportEmail}.`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "Your TenXPros application is accepted: next steps to enroll",
+    html: layout({
+      preheader: "Your application is accepted. Here is how to complete payment and enroll.",
+      eyebrow: "Application accepted",
+      heading: "You're in. Let's complete your enrollment.",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 4. Enrollment welcome (set password)
+// ---------------------------------------------------------------------------
+export function enrollmentWelcomeEmail(params: {
+  fullName: string;
+  setPasswordUrl: string;
+  portalUrl: string;
+}): EmailContent {
+  const { fullName, setPasswordUrl, portalUrl } = params;
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("Welcome to TenXPros. Your enrollment is now active, so set your password to access your participant portal and begin onboarding.") +
+    button(setPasswordUrl, "Set your password") +
+    paragraph(
+      `Your portal will open at <a href="${esc(portalUrl)}" style="color:${NAVY};">${esc(portalUrl)}</a>.`,
+    ) +
+    paragraph(
+      'For your security, the password link above expires in 7 days. If it expires, contact <a href="mailto:support@tenxpros.com" style="color:' +
+        NAVY +
+        ';">support@tenxpros.com</a> and we will send a new one.',
+    );
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Welcome to TenXPros. Your enrollment is now active, so set your password to access your participant portal and begin onboarding.",
+    "",
+    `Set your password: ${setPasswordUrl}`,
+    "",
+    `Your portal: ${portalUrl}`,
+    "",
+    "For your security, the password link above expires in 7 days. If it expires, contact support@tenxpros.com and we will send a new one.",
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "Welcome to TenXPros: set your password",
+    html: layout({
+      preheader: "Your enrollment is active. Set your password to access your portal.",
+      eyebrow: "Welcome to TenXPros",
+      heading: "Welcome aboard.",
+      bodyHtml,
+    }),
+    text,
+  };
+}

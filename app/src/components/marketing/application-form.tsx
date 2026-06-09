@@ -11,6 +11,11 @@ import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
 import { COUNTRIES } from "@/lib/countries";
+import {
+  AI_EXPERIENCE_OPTIONS,
+  DATA_SENSITIVITY_OPTIONS,
+  WEEKLY_AVAILABILITY_OPTIONS,
+} from "@/lib/application-labels";
 
 const defaultValues: Partial<ApplicationInput> = {
   preferredLanguage: "English",
@@ -146,9 +151,11 @@ export function ApplicationForm() {
                 <option value="" disabled>
                   Select the closest option
                 </option>
-                <option value="BEGINNER">New to AI at work</option>
-                <option value="INTERMEDIATE">Use AI tools occasionally or regularly</option>
-                <option value="ADVANCED">Lead or advise on AI initiatives</option>
+                {AI_EXPERIENCE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Select>
             </Field>
             <Field
@@ -160,10 +167,11 @@ export function ApplicationForm() {
                 <option value="" disabled>
                   Select the closest level
                 </option>
-                <option value="LOW">Low — public or general info</option>
-                <option value="MODERATE">Moderate — internal business data</option>
-                <option value="HIGH">High — personal, financial, or client data</option>
-                <option value="CRITICAL">Critical — regulated (health, legal, gov)</option>
+                {DATA_SENSITIVITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Select>
             </Field>
             <Field
@@ -175,9 +183,11 @@ export function ApplicationForm() {
                 <option value="" disabled>
                   Select your weekly time
                 </option>
-                <option value="HOURS_5">About 2–5 hours / week</option>
-                <option value="HOURS_8">About 6–10 hours / week</option>
-                <option value="HOURS_12_PLUS">More than 10 hours / week</option>
+                {WEEKLY_AVAILABILITY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </Select>
             </Field>
           </div>

@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import {
+  deleteApplication,
   markPaymentCancelled,
   markPaymentFailed,
   markPaymentInstructionsSent,
   markPaymentReceivedAndEnroll,
   markPaymentWaived,
+  updateApplicationDetails,
   updateApplicationStatus,
   upsertApplicationPaymentTerms,
 } from "@/lib/actions/applications";
@@ -16,6 +18,16 @@ import { Field, Input, Select, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 import { formatCurrency } from "@/lib/utils";
 import { PAYMENT_METHODS, formatPaymentMethod, formatPaymentStatus } from "@/lib/payment-terms";
+import {
+  AI_EXPERIENCE_OPTIONS,
+  DATA_SENSITIVITY_OPTIONS,
+  WEEKLY_AVAILABILITY_OPTIONS,
+  aiExperienceLabel,
+  applicationStatusLabel,
+  dataSensitivityLabel,
+  weeklyAvailabilityLabel,
+} from "@/lib/application-labels";
+import { DeleteApplicationButton } from "@/components/admin/delete-application-button";
 
 const statuses = ["UNDER_REVIEW", "ACCEPTED", "REVISE_AND_REAPPLY", "NOT_ACCEPTED"] as const;
 
@@ -49,7 +61,7 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
         <div className="space-y-6">
           <Card className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-              <Badge status={application.status}>{application.status}</Badge>
+              <Badge status={application.status}>{applicationStatusLabel(application.status)}</Badge>
               <span className="text-sm text-slate-500">Applied {application.createdAt.toLocaleString()}</span>
             </div>
             <dl className="grid gap-4 md:grid-cols-2">
@@ -62,16 +74,16 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
                 <dd className="text-slate-900">{application.linkedinUrl ?? "Not provided"}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-slate-500">AI experience</dt>
-                <dd className="text-slate-900">{application.aiExperience}</dd>
+                <dt className="text-sm font-medium text-slate-500">AI familiarity</dt>
+                <dd className="text-slate-900">{aiExperienceLabel(application.aiExperience)}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-slate-500">Time availability</dt>
-                <dd className="text-slate-900">{application.timeAvailability}</dd>
+                <dt className="text-sm font-medium text-slate-500">Weekly availability</dt>
+                <dd className="text-slate-900">{weeklyAvailabilityLabel(application.timeAvailability)}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-slate-500">Data sensitivity</dt>
-                <dd className="text-slate-900">{application.dataSensitivity}</dd>
+                <dd className="text-slate-900">{dataSensitivityLabel(application.dataSensitivity)}</dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-slate-500">Pricing tier snapshot</dt>
@@ -89,6 +101,73 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-slate-700">
               {application.realProblemBrief}
             </p>
+          </Card>
+
+          <Card className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold text-navy-900">Edit application details</h2>
+              <DeleteApplicationButton
+                applicationId={application.id}
+                applicantName={application.fullName}
+                className="rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+              />
+            </div>
+            <p className="text-sm text-slate-600">
+              Correct any applicant detail. Changes are recorded in the audit log. Deleting is permanent.
+            </p>
+            <form action={updateApplicationDetails} className="space-y-4">
+              <input type="hidden" name="applicationId" value={application.id} />
+              <div className="grid gap-4 md:grid-cols-2">
+                <Field label="Full name">
+                  <Input name="fullName" defaultValue={application.fullName} required />
+                </Field>
+                <Field label="Email">
+                  <Input name="email" type="email" defaultValue={application.email} required />
+                </Field>
+                <Field label="Country">
+                  <Input name="country" defaultValue={application.country} required />
+                </Field>
+                <Field label="Role / job function">
+                  <Input name="professionalRole" defaultValue={application.professionalRole} required />
+                </Field>
+                <Field label="Field / industry context">
+                  <Input name="domain" defaultValue={application.domain} required />
+                </Field>
+                <Field label="LinkedIn URL">
+                  <Input name="linkedinUrl" type="url" defaultValue={application.linkedinUrl ?? ""} />
+                </Field>
+                <Field label="AI familiarity">
+                  <Select name="aiExperience" defaultValue={application.aiExperience}>
+                    {AI_EXPERIENCE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Data sensitivity">
+                  <Select name="dataSensitivity" defaultValue={application.dataSensitivity}>
+                    {DATA_SENSITIVITY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field label="Weekly availability">
+                  <Select name="timeAvailability" defaultValue={application.timeAvailability}>
+                    {WEEKLY_AVAILABILITY_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              <Button type="submit" variant="secondary">
+                Save details
+              </Button>
+            </form>
           </Card>
         </div>
 
