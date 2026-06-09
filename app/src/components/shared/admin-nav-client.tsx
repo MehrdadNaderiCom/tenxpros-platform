@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -74,7 +74,22 @@ export function AdminNavClient({ sections }: { sections: NavSection[] }) {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  // Sections are collapsed by default; the section for the current page starts
+  // open so the admin always sees where they are. Click a header to toggle.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    for (const section of sections) {
+      if (section.items.some((item) => isActiveHref(pathname, item.href))) initial[section.title] = true;
+    }
+    return initial;
+  });
+
+  // Keep the active section open as the admin navigates between pages, without
+  // collapsing any section they have opened themselves.
+  useEffect(() => {
+    const active = sections.find((section) => section.items.some((item) => isActiveHref(pathname, item.href)));
+    if (active) setExpanded((prev) => (prev[active.title] ? prev : { ...prev, [active.title]: true }));
+  }, [pathname, sections]);
 
   const q = query.trim().toLowerCase();
 
@@ -120,7 +135,7 @@ export function AdminNavClient({ sections }: { sections: NavSection[] }) {
         <nav className="space-y-3">
           {visibleSections.map((section) => {
             const searching = Boolean(q);
-            const sectionCollapsed = searching ? false : Boolean(collapsed[section.title]);
+            const sectionCollapsed = searching ? false : !expanded[section.title];
             const panelId = sectionPanelId(section.title);
             return (
               <div key={section.title}>
@@ -128,7 +143,7 @@ export function AdminNavClient({ sections }: { sections: NavSection[] }) {
                   type="button"
                   onClick={() => {
                     if (searching) return; // sections are force-expanded while searching
-                    setCollapsed((prev) => ({ ...prev, [section.title]: !prev[section.title] }));
+                    setExpanded((prev) => ({ ...prev, [section.title]: !prev[section.title] }));
                   }}
                   aria-expanded={!sectionCollapsed}
                   aria-controls={panelId}
