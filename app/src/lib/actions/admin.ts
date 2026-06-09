@@ -5,6 +5,7 @@ import { requireAdminUser as requireAdmin } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { badgeCatalog } from "@/lib/program-data";
 import { parsePricingUpdate } from "@/lib/pricing";
+import { parseTierPaymentDefaults } from "@/lib/payment-terms";
 
 export async function issueBadge(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
   await requireAdmin();
@@ -277,6 +278,45 @@ export async function updatePricingTier(formData: FormData) {
   // public /pricing reads these tiers, so revalidate it too.
   safeRevalidatePath("/admin/pricing");
   safeRevalidatePath("/pricing");
+}
+
+export async function updatePricingTierPaymentTerms(formData: FormData) {
+  const admin = await requireAdmin();
+  const tierId = String(formData.get("tierId") ?? "");
+  if (!tierId) throw new Error("Missing pricing tier id.");
+
+  // Validate the default payment terms. Price and capacity are NOT touched here.
+  const terms = parseTierPaymentDefaults(formData);
+
+  const existing = await prisma.pricingTier.findUnique({ where: { id: tierId } });
+  if (!existing) throw new Error("Pricing tier not found.");
+
+  await prisma.$transaction([
+    prisma.pricingTier.update({ where: { id: tierId }, data: terms }),
+    prisma.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "UPDATE_TIER_PAYMENT_TERMS",
+        entity: "PricingTier",
+        entityId: tierId,
+        changes: {
+          before: {
+            paymentMethod: existing.paymentMethod,
+            paymentCurrency: existing.paymentCurrency,
+            paymentLink: existing.paymentLink,
+            paymentInstructions: existing.paymentInstructions,
+            paymentDueDays: existing.paymentDueDays,
+          },
+          after: terms,
+        },
+      },
+    }),
+  ]);
+
+  safeRevalidatePath("/admin/pricing");
+  safeRevalidatePath("/pricing");
+  safeRevalidatePath("/admin/payments");
 }
 
 export async function updateAdminSetting(formData: FormData) {

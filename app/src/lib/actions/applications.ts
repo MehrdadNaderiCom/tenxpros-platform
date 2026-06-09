@@ -4,11 +4,18 @@ import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
-import { absoluteUrl } from "@/lib/utils";
+import { absoluteUrl, formatCurrency } from "@/lib/utils";
 import { applicationSchema, applicationStatusSchema, type ApplicationInput } from "@/lib/validations/application";
 import { setPasswordSchema } from "@/lib/validations/auth";
-import { paymentLinkForTier, safeSendEmail } from "@/lib/services/email";
+import { safeSendEmail } from "@/lib/services/email";
 import { assertApplicationTransition } from "@/lib/services/status";
+import {
+  assertPaymentTransition,
+  parseApplicationPaymentOverride,
+  resolvePaymentTerms,
+  type PaymentStatus,
+  type ResolvedPaymentTerms,
+} from "@/lib/payment-terms";
 import { dossierSections, pricingTiers } from "@/lib/program-data";
 
 export async function submitApplication(input: ApplicationInput) {
@@ -146,36 +153,94 @@ export async function updateApplicationStatus(formData: FormData) {
   safeRevalidatePath(`/admin/applications/${application.id}`);
 }
 
+function loadTierForApplication(tierName: string) {
+  return prisma.pricingTier.findFirst({
+    where: { tier: tierName as "FOUNDING" | "EARLY" | "LATE" | "FINAL" | "STANDARD" },
+  });
+}
+
+/**
+ * Build and send the "accepted — here's how to pay" email from resolved terms.
+ * Sender is hello@ (email service default); support copy is support@ (from the
+ * resolver). The discount note is included ONLY when the admin marked it visible
+ * to the applicant (`publicDiscountNote`). Uses safeSendEmail (never throws).
+ */
+async function sendPaymentInstructionsEmail(
+  application: { email: string; fullName: string },
+  terms: ResolvedPaymentTerms,
+  subject = "TenXPros application accepted",
+) {
+  const lines = [
+    `Hi ${application.fullName},`,
+    "",
+    "Your TenXPros application has been accepted.",
+    "",
+    `Amount due: ${formatCurrency(terms.amount, terms.currency)}`,
+  ];
+  if (terms.dueAt) lines.push(`Please complete payment by: ${terms.dueAt.toDateString()}`);
+  lines.push("", `Payment link: ${terms.paymentLink}`);
+  if (terms.paymentInstructions) lines.push("", terms.paymentInstructions);
+  if (terms.publicDiscountNote) lines.push("", `Note: ${terms.publicDiscountNote}`);
+  lines.push(
+    "",
+    `Questions about payment? Contact ${terms.supportEmail}.`,
+    "",
+    "After your payment is confirmed, your participant account will be activated.",
+  );
+
+  await safeSendEmail({
+    to: application.email,
+    subject,
+    template: "application_accepted_payment_link",
+    text: lines.join("\n"),
+  });
+}
+
 async function createPendingPaymentAndSendAcceptedEmail(applicationId: string) {
   const application = await prisma.application.findUniqueOrThrow({ where: { id: applicationId } });
-  const tier = application.pricingTierAtApply ?? "FOUNDING";
-  const tierRecord = await prisma.pricingTier.findFirst({
-    where: { tier: tier as "FOUNDING" | "EARLY" | "LATE" | "FINAL" | "STANDARD" },
-  });
+  const tierName = application.pricingTierAtApply ?? "FOUNDING";
+  const tierRecord = await loadTierForApplication(tierName);
+  const now = new Date();
 
+  // Snapshot tier-default amount/currency/dueAt onto a PENDING record so the
+  // payments table and later edits start from sensible values. Method/link/
+  // instructions stay null on the record so they resolve tier -> env at send time.
+  const seed = resolvePaymentTerms({ record: null, tier: tierRecord, now });
   await prisma.paymentRecord.upsert({
     where: { id: `pending-${application.id}` },
-    update: {},
+    update: {}, // never clobber an admin's prior customization on re-accept
     create: {
       id: `pending-${application.id}`,
       applicationId: application.id,
-      amount: tierRecord?.price ?? 997,
+      amount: seed.amount,
+      currency: seed.currency,
+      dueAt: seed.dueAt,
       status: "PENDING",
     },
   });
 
-  const paymentLink = paymentLinkForTier(tier);
-  await safeSendEmail({
-    to: application.email,
-    subject: "TenXPros application accepted",
-    template: "application_accepted_payment_link",
-    text: `Hi ${application.fullName},\\n\\nYour TenXPros application has been accepted.\\n\\nUse this manual payment link to enroll: ${paymentLink}\\n\\nAfter payment is confirmed, your participant account will be activated.`,
-  });
+  // Re-read so any admin override already on the record is honored in the email.
+  const record = await prisma.paymentRecord.findUnique({ where: { id: `pending-${application.id}` } });
+  const terms = resolvePaymentTerms({ record, tier: tierRecord, now });
+  await sendPaymentInstructionsEmail(application, terms);
 }
 
 export async function markPaymentReceivedAndEnroll(formData: FormData) {
   const admin = await requireAdminUser();
   const applicationId = String(formData.get("applicationId") ?? "");
+  await enrollAcceptedApplication(applicationId, admin);
+}
+
+/**
+ * Enroll an ACCEPTED application: create the participant profile, path, dossier,
+ * modules, and set-password token; flip any PENDING payment to PAID; and send the
+ * welcome email. Shared by "mark paid & enroll" and "waive & enroll" — a WAIVED
+ * record is left untouched (only PENDING records flip to PAID).
+ */
+async function enrollAcceptedApplication(
+  applicationId: string,
+  admin: Awaited<ReturnType<typeof requireAdminUser>>,
+) {
   const application = await prisma.application.findUniqueOrThrow({
     where: { id: applicationId },
     include: { user: true, payments: true },
@@ -285,8 +350,158 @@ export async function markPaymentReceivedAndEnroll(formData: FormData) {
 
   safeRevalidatePath("/admin/applications");
   safeRevalidatePath("/admin/participants");
+  safeRevalidatePath("/admin/payments");
   safeRevalidatePath(`/admin/applications/${application.id}`);
   void participant;
+}
+
+/**
+ * Save admin-customized payment terms onto the application's PaymentRecord.
+ * Targets the canonical `pending-<id>` record (or the most recent one), creating
+ * it only once the application is accepted/enrolled. Validates all fields, audits
+ * the change, and DOES NOT send any email (sending is an explicit status action).
+ */
+export async function upsertApplicationPaymentTerms(formData: FormData) {
+  const admin = await requireAdminUser();
+  const applicationId = String(formData.get("applicationId") ?? "");
+  if (!applicationId) throw new Error("Missing application id.");
+
+  const application = await prisma.application.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: { payments: true },
+  });
+
+  const override = parseApplicationPaymentOverride(formData, new Date());
+
+  const recordId = `pending-${application.id}`;
+  const existing =
+    application.payments.find((payment) => payment.id === recordId) ??
+    application.payments.slice().sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0] ??
+    null;
+
+  if (!existing && application.status !== "ACCEPTED" && application.status !== "ENROLLED") {
+    throw new Error("Accept the application before configuring its payment.");
+  }
+
+  const data = {
+    amount: override.amount,
+    currency: override.currency,
+    method: override.method,
+    paymentLink: override.paymentLink,
+    paymentInstructions: override.paymentInstructions,
+    dueAt: override.dueAt,
+    discountNote: override.discountNote,
+    showDiscountNoteToApplicant: override.showDiscountNoteToApplicant,
+    internalNote: override.internalNote,
+  };
+
+  const saved = existing
+    ? await prisma.paymentRecord.update({ where: { id: existing.id }, data })
+    : await prisma.paymentRecord.create({
+        data: { id: recordId, applicationId: application.id, status: "PENDING", ...data },
+      });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: "UPDATE_PAYMENT_TERMS",
+      entity: "PaymentRecord",
+      entityId: saved.id,
+      changes: {
+        before: existing
+          ? {
+              amount: existing.amount,
+              currency: existing.currency,
+              method: existing.method,
+              paymentLink: existing.paymentLink,
+              showDiscountNoteToApplicant: existing.showDiscountNoteToApplicant,
+            }
+          : null,
+        after: { amount: data.amount, currency: data.currency, method: data.method, paymentLink: data.paymentLink, showDiscountNoteToApplicant: data.showDiscountNoteToApplicant },
+      },
+    },
+  });
+
+  safeRevalidatePath(`/admin/applications/${application.id}`);
+  safeRevalidatePath("/admin/payments");
+}
+
+/**
+ * Apply a guarded payment-status transition to a single PaymentRecord, with a
+ * timestamp side-effect, an audit entry, and revalidation. Shared by the
+ * instructions-sent / waived / failed / cancelled actions.
+ */
+async function transitionPaymentStatus(
+  formData: FormData,
+  target: PaymentStatus,
+  extra: Record<string, unknown> = {},
+) {
+  const admin = await requireAdminUser();
+  const paymentRecordId = String(formData.get("paymentRecordId") ?? "");
+  if (!paymentRecordId) throw new Error("Missing payment record id.");
+
+  const record = await prisma.paymentRecord.findUniqueOrThrow({
+    where: { id: paymentRecordId },
+    include: { application: true },
+  });
+
+  assertPaymentTransition(record.status as PaymentStatus, target);
+
+  await prisma.paymentRecord.update({
+    where: { id: record.id },
+    data: { status: target, ...extra },
+  });
+
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: "PAYMENT_STATUS_CHANGE",
+      entity: "PaymentRecord",
+      entityId: record.id,
+      changes: { before: { status: record.status }, after: { status: target } },
+    },
+  });
+
+  if (record.applicationId) safeRevalidatePath(`/admin/applications/${record.applicationId}`);
+  safeRevalidatePath("/admin/payments");
+  return { admin, record };
+}
+
+/** Mark instructions sent and (re)send the resolved payment-instructions email. */
+export async function markPaymentInstructionsSent(formData: FormData) {
+  const { record } = await transitionPaymentStatus(formData, "INSTRUCTIONS_SENT", {
+    instructionsSentAt: new Date(),
+  });
+  if (record.application) {
+    const tierRecord = await loadTierForApplication(record.application.pricingTierAtApply ?? "FOUNDING");
+    const terms = resolvePaymentTerms({ record, tier: tierRecord, now: new Date() });
+    await sendPaymentInstructionsEmail(record.application, terms, "TenXPros payment instructions");
+  }
+}
+
+/** Mark the payment failed (e.g. a manual transfer did not arrive). No enroll. */
+export async function markPaymentFailed(formData: FormData) {
+  await transitionPaymentStatus(formData, "FAILED");
+}
+
+/** Cancel the payment (e.g. applicant withdrew). No enroll. */
+export async function markPaymentCancelled(formData: FormData) {
+  await transitionPaymentStatus(formData, "CANCELLED", { cancelledAt: new Date() });
+}
+
+/**
+ * Waive the payment, and ONLY enroll if the admin explicitly opted in via the
+ * `enroll` checkbox and the application is ACCEPTED. The waived record stays
+ * WAIVED through enrollment (enrollment flips PENDING records to PAID only).
+ */
+export async function markPaymentWaived(formData: FormData) {
+  const { admin, record } = await transitionPaymentStatus(formData, "WAIVED", { waivedAt: new Date() });
+  const enroll = String(formData.get("enroll") ?? "") === "on";
+  if (enroll && record.application && record.application.status === "ACCEPTED") {
+    await enrollAcceptedApplication(record.application.id, admin);
+  }
 }
 
 export async function setParticipantPassword(formData: FormData) {
