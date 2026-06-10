@@ -6,7 +6,13 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
-import { applicationSchema, applicationStatusSchema, type ApplicationInput } from "@/lib/validations/application";
+import {
+  applicationSchema,
+  applicationStatusSchema,
+  isPdfMagic,
+  resumeFileError,
+  resumeRuleError,
+} from "@/lib/validations/application";
 import { setPasswordSchema } from "@/lib/validations/auth";
 import { safeSendEmail } from "@/lib/services/email";
 import {
@@ -25,13 +31,63 @@ import {
 } from "@/lib/payment-terms";
 import { dossierSections, pricingTiers } from "@/lib/program-data";
 
-export async function submitApplication(input: ApplicationInput) {
-  const parsed = applicationSchema.safeParse(input);
+export async function submitApplication(formData: FormData) {
+  const text = (name: string) => {
+    const value = formData.get(name);
+    return typeof value === "string" ? value : "";
+  };
+  const optional = (name: string) => {
+    const value = text(name);
+    return value.length > 0 ? value : undefined;
+  };
+
+  const parsed = applicationSchema.safeParse({
+    fullName: text("fullName"),
+    email: text("email"),
+    country: text("country"),
+    professionalRole: text("professionalRole"),
+    domain: text("domain"),
+    phone: text("phone"),
+    linkedinUrl: text("linkedinUrl"),
+    aiExperience: text("aiExperience"),
+    whyTenXPros: text("whyTenXPros"),
+    realProblemBrief: text("realProblemBrief"),
+    dataSensitivity: text("dataSensitivity"),
+    timeAvailability: text("timeAvailability"),
+    preferredLanguage: text("preferredLanguage") || "English",
+    consentConfidentiality: text("consentConfidentiality") === "true",
+    consentTerms: text("consentTerms") === "true",
+    utmSource: optional("utmSource"),
+    utmMedium: optional("utmMedium"),
+    utmCampaign: optional("utmCampaign"),
+    utmTerm: optional("utmTerm"),
+    utmContent: optional("utmContent"),
+    referrerUrl: optional("referrerUrl"),
+    landingPage: optional("landingPage"),
+  });
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid application." };
   }
 
   const data = parsed.data;
+
+  // Resume PDF: required when no LinkedIn URL was provided; always validated
+  // (type, size, %PDF- magic bytes) when present.
+  const resumeEntry = formData.get("resume");
+  const resumeFile = resumeEntry instanceof File && resumeEntry.size > 0 ? resumeEntry : null;
+
+  const ruleError = resumeRuleError(data.linkedinUrl, Boolean(resumeFile));
+  if (ruleError) return { ok: false, message: ruleError };
+
+  let resumeBuffer: Buffer | null = null;
+  if (resumeFile) {
+    const fileError = resumeFileError({ type: resumeFile.type, size: resumeFile.size });
+    if (fileError) return { ok: false, message: fileError };
+    resumeBuffer = Buffer.from(await resumeFile.arrayBuffer());
+    if (!isPdfMagic(new Uint8Array(resumeBuffer.subarray(0, 8)))) {
+      return { ok: false, message: "Resume must be a valid PDF file." };
+    }
+  }
   const existing = await prisma.application.findFirst({
     where: {
       email: data.email,
@@ -64,6 +120,7 @@ export async function submitApplication(input: ApplicationInput) {
         country: data.country,
         professionalRole: data.professionalRole,
         domain: data.domain,
+        phone: data.phone,
         linkedinUrl: data.linkedinUrl || undefined,
         aiExperience: data.aiExperience,
         whyTenXPros: data.whyTenXPros,
@@ -83,6 +140,18 @@ export async function submitApplication(input: ApplicationInput) {
         landingPage: data.landingPage,
       },
     });
+
+    if (resumeBuffer && resumeFile) {
+      await tx.applicationResume.create({
+        data: {
+          applicationId: created.id,
+          filename: resumeFile.name || "resume.pdf",
+          mimeType: "application/pdf",
+          size: resumeBuffer.length,
+          data: resumeBuffer,
+        },
+      });
+    }
 
     await tx.siteEvent.create({
       data: {
@@ -186,6 +255,7 @@ export async function updateApplicationDetails(formData: FormData) {
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const country = String(formData.get("country") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
   const professionalRole = String(formData.get("professionalRole") ?? "").trim();
   const domain = String(formData.get("domain") ?? "").trim();
   const linkedinUrl = String(formData.get("linkedinUrl") ?? "").trim();
@@ -199,6 +269,8 @@ export async function updateApplicationDetails(formData: FormData) {
   if (professionalRole.length < 2) throw new Error("Role / job function is required.");
   if (domain.length < 2) throw new Error("Field / industry is required.");
   if (linkedinUrl && !/^https?:\/\//i.test(linkedinUrl)) throw new Error("LinkedIn must be a valid URL.");
+  // Optional in admin edit (legacy applications may predate the phone field).
+  if (phone && !/^\+?[0-9(][0-9\s()-]{5,18}$/.test(phone)) throw new Error("Enter a valid phone number.");
   if (!(AI_EXPERIENCE_VALUES as readonly string[]).includes(aiExperience)) throw new Error("Invalid AI familiarity.");
   if (!(DATA_SENSITIVITY_VALUES as readonly string[]).includes(dataSensitivity)) throw new Error("Invalid data sensitivity.");
   if (!(TIME_AVAILABILITY_VALUES as readonly string[]).includes(timeAvailability)) throw new Error("Invalid weekly availability.");
@@ -209,6 +281,7 @@ export async function updateApplicationDetails(formData: FormData) {
       fullName,
       email,
       country,
+      phone: phone || null,
       professionalRole,
       domain,
       linkedinUrl: linkedinUrl || null,
@@ -230,13 +303,14 @@ export async function updateApplicationDetails(formData: FormData) {
           fullName: existing.fullName,
           email: existing.email,
           country: existing.country,
+          phone: existing.phone,
           professionalRole: existing.professionalRole,
           domain: existing.domain,
           aiExperience: existing.aiExperience,
           dataSensitivity: existing.dataSensitivity,
           timeAvailability: existing.timeAvailability,
         },
-        after: { fullName, email, country, professionalRole, domain, aiExperience, dataSensitivity, timeAvailability },
+        after: { fullName, email, country, phone, professionalRole, domain, aiExperience, dataSensitivity, timeAvailability },
       },
     },
   });

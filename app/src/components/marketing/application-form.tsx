@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submitApplication } from "@/lib/actions/applications";
-import { applicationSchema, type ApplicationInput } from "@/lib/validations/application";
+import {
+  applicationSchema,
+  resumeFileError,
+  resumeRuleError,
+  type ApplicationInput,
+} from "@/lib/validations/application";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
@@ -30,6 +35,8 @@ export function ApplicationForm() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [resumeError, setResumeError] = useState<string | null>(null);
+  const resumeRef = useRef<HTMLInputElement>(null);
   const {
     register,
     handleSubmit,
@@ -52,8 +59,27 @@ export function ApplicationForm() {
 
   const onSubmit = (data: ApplicationInput) => {
     setServerError(null);
+    setResumeError(null);
+
+    // Either LinkedIn or a resume PDF must be provided; the file is validated
+    // here for fast feedback and again on the server.
+    const file = resumeRef.current?.files?.[0] ?? null;
+    const ruleError = resumeRuleError(data.linkedinUrl, Boolean(file));
+    const fileError = file ? resumeFileError({ type: file.type, size: file.size }) : null;
+    if (ruleError || fileError) {
+      setResumeError(ruleError ?? fileError);
+      return;
+    }
+
     startTransition(async () => {
-      const result = await submitApplication(data);
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(data)) {
+        if (value === undefined || value === null) continue;
+        formData.append(key, typeof value === "boolean" ? String(value) : String(value));
+      }
+      if (file) formData.append("resume", file);
+
+      const result = await submitApplication(formData);
       if (!result.ok) {
         setServerError(result.message ?? "Application could not be submitted.");
         return;
@@ -75,7 +101,8 @@ export function ApplicationForm() {
           <div>
             <h2 className="text-xl font-semibold text-navy-900">Professional context</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Tell us who you are and where the work will be grounded. All fields are required.
+              Tell us who you are and where the work will be grounded. All fields are required; for LinkedIn and
+              resume, provide at least one.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
@@ -106,6 +133,13 @@ export function ApplicationForm() {
               />
             </Field>
             <Field
+              label="Phone number"
+              error={errors.phone?.message}
+              hint="Include your country code, e.g. +44 7700 900123. Used only if we need to reach you about your application."
+            >
+              <Input {...register("phone")} type="tel" autoComplete="tel" placeholder="+44 7700 900123" />
+            </Field>
+            <Field
               label="Role / job function"
               error={errors.professionalRole?.message}
               hint="Your current job title or main professional role — e.g. Founder, HR Director, Operations Manager, Consultant, Legal Counsel."
@@ -122,9 +156,23 @@ export function ApplicationForm() {
             <Field
               label="LinkedIn URL"
               error={errors.linkedinUrl?.message}
-              hint="Paste the full link to your LinkedIn profile, starting with https://."
+              hint="Paste the full link to your LinkedIn profile, starting with https://. If you prefer not to share LinkedIn, upload your resume instead."
             >
               <Input {...register("linkedinUrl")} type="url" placeholder="https://www.linkedin.com/in/..." />
+            </Field>
+            <Field
+              label="Resume (PDF)"
+              error={resumeError ?? undefined}
+              hint="Required if you leave LinkedIn empty. One PDF file, up to 5 MB."
+            >
+              <input
+                ref={resumeRef}
+                type="file"
+                name="resume"
+                accept="application/pdf"
+                onChange={() => setResumeError(null)}
+                className="block h-11 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition file:mr-3 file:rounded file:border-0 file:bg-navy-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-navy-700 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20"
+              />
             </Field>
           </div>
           <datalist id="country-options">

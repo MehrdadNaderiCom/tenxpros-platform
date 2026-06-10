@@ -56,7 +56,12 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
 
   const application = await prisma.application.findUnique({
     where: { id: params.id },
-    include: { payments: true, user: true },
+    include: {
+      payments: true,
+      user: true,
+      // never load the PDF bytes here; only metadata for the download link
+      resume: { select: { id: true, filename: true, size: true } },
+    },
   });
 
   if (!application) notFound();
@@ -87,8 +92,27 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
                 <dd className="text-slate-900">{application.email}</dd>
               </div>
               <div>
+                <dt className="text-sm font-medium text-slate-500">Phone</dt>
+                <dd className="text-slate-900">{application.phone ?? "Not provided"}</dd>
+              </div>
+              <div>
                 <dt className="text-sm font-medium text-slate-500">LinkedIn</dt>
                 <dd className="text-slate-900">{application.linkedinUrl ?? "Not provided"}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-medium text-slate-500">Resume</dt>
+                <dd className="text-slate-900">
+                  {application.resume ? (
+                    <a
+                      href={`/admin/applications/${application.id}/resume`}
+                      className="text-navy-600 underline-offset-2 hover:underline"
+                    >
+                      {application.resume.filename} ({Math.round(application.resume.size / 1024)} KB)
+                    </a>
+                  ) : (
+                    "Not provided"
+                  )}
+                </dd>
               </div>
               <div>
                 <dt className="text-sm font-medium text-slate-500">AI familiarity</dt>
@@ -143,6 +167,9 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
                 </Field>
                 <Field label="Country">
                   <Input name="country" defaultValue={application.country} required />
+                </Field>
+                <Field label="Phone number">
+                  <Input name="phone" type="tel" defaultValue={application.phone ?? ""} />
                 </Field>
                 <Field label="Role / job function">
                   <Input name="professionalRole" defaultValue={application.professionalRole} required />

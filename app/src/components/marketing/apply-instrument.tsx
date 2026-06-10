@@ -268,7 +268,8 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
               <MonoLabel className="text-slate-400">What the form asks</MonoLabel>
               <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-200">
                 {[
-                  "Your role and field",
+                  "Your contact details, role, and field",
+                  "LinkedIn or your resume (PDF)",
                   "AI experience & weekly time",
                   "Your goals with AI",
                   "Challenges you want to explore",

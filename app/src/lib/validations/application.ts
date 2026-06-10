@@ -6,7 +6,15 @@ export const applicationSchema = z.object({
   country: z.string().trim().min(2, "Enter your country."),
   professionalRole: z.string().trim().min(2, "Enter your role or job function."),
   domain: z.string().trim().min(2, "Enter your field or industry."),
-  linkedinUrl: z.string().trim().url("Enter your LinkedIn profile URL (https://...)."),
+  phone: z
+    .string()
+    .trim()
+    .min(7, "Enter a valid phone number.")
+    .max(20, "Enter a valid phone number.")
+    .regex(/^\+?[0-9(][0-9\s()-]{5,18}$/, "Enter a valid phone number (digits, spaces, +, -, parentheses)."),
+  // Optional, but the submit flow requires EITHER LinkedIn OR an uploaded
+  // resume PDF (see resumeRuleError below, enforced client- and server-side).
+  linkedinUrl: z.union([z.string().trim().url("Enter a valid URL."), z.literal("")]).optional(),
   aiExperience: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"], {
     error: "Select the closest option.",
   }),
@@ -31,6 +39,38 @@ export const applicationSchema = z.object({
 });
 
 export type ApplicationInput = z.infer<typeof applicationSchema>;
+
+// ---------------------------------------------------------------------------
+// Resume rules (pure, shared by the client form and the server action)
+// ---------------------------------------------------------------------------
+
+export const RESUME_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+/** A PDF file starts with the magic bytes "%PDF-". */
+export function isPdfMagic(bytes: Uint8Array): boolean {
+  const magic = [0x25, 0x50, 0x44, 0x46, 0x2d]; // %PDF-
+  if (bytes.length < magic.length) return false;
+  return magic.every((value, index) => bytes[index] === value);
+}
+
+/**
+ * Either LinkedIn or a resume must be provided. Returns a user-facing error
+ * message, or null when the rule is satisfied.
+ */
+export function resumeRuleError(linkedinUrl: string | null | undefined, hasResume: boolean): string | null {
+  const hasLinkedin = Boolean(linkedinUrl && linkedinUrl.trim().length > 0);
+  if (hasLinkedin || hasResume) return null;
+  return "Provide your LinkedIn URL or upload your resume as a PDF (at least one is required).";
+}
+
+/** Validate an uploaded resume's basic properties. Returns an error message or null. */
+export function resumeFileError(file: { type: string; size: number } | null | undefined): string | null {
+  if (!file) return null;
+  if (file.type !== "application/pdf") return "Resume must be a PDF file.";
+  if (file.size <= 0) return "Resume file is empty.";
+  if (file.size > RESUME_MAX_BYTES) return "Resume must be 5 MB or smaller.";
+  return null;
+}
 
 export const applicationStatusSchema = z.object({
   applicationId: z.string().min(1),

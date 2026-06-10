@@ -147,6 +147,8 @@ model Application {
 
   domain String
 
+  phone String?
+
   linkedinUrl String?
 
   aiExperience AIExperienceLevel
@@ -195,9 +197,31 @@ model Application {
 
   payments PaymentRecord[]
 
+  resume ApplicationResume?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
+}
+
+// Uploaded resume PDF, stored as bytes in its own table so list queries never
+// load file contents. Cascade-deleted with the application.
+model ApplicationResume {
+  id String @id @default(cuid())
+
+  applicationId String @unique
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  filename String
+
+  mimeType String
+
+  size Int
+
+  data Bytes
+
+  createdAt DateTime @default(now())
 }
 
 enum ApplicationStatus {

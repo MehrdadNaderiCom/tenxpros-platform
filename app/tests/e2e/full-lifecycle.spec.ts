@@ -126,6 +126,7 @@ async function submitPublicApplication(page: Page, fullName: string, email: stri
   await page.locator('input[name="fullName"]').fill(fullName);
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="country"]').fill("United States");
+  await page.locator('input[name="phone"]').fill("+1 415 555 0100");
   await page.locator('input[name="professionalRole"]').fill("Operations Director");
   await page.locator('input[name="domain"]').fill("Professional services operations");
   await page.locator('input[name="linkedinUrl"]').fill("https://www.linkedin.com/in/e2e-full-lifecycle");

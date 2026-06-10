@@ -28,11 +28,11 @@ export async function GET(_req: Request, { params }: { params: { type: string } 
   if (type === "applications") {
     const apps = await prisma.application.findMany({ orderBy: { createdAt: "desc" } });
     headers = [
-      "id", "fullName", "email", "country", "role", "field", "aiExperience", "dataSensitivity",
+      "id", "fullName", "email", "phone", "country", "role", "field", "aiExperience", "dataSensitivity",
       "timeAvailability", "status", "tier", "utmSource", "utmMedium", "createdAt",
     ];
     rows = apps.map((a) => [
-      a.id, a.fullName, a.email, a.country, a.professionalRole, a.domain, a.aiExperience, a.dataSensitivity,
+      a.id, a.fullName, a.email, a.phone ?? "", a.country, a.professionalRole, a.domain, a.aiExperience, a.dataSensitivity,
       a.timeAvailability, a.status, a.pricingTierAtApply ?? "", a.utmSource ?? "", a.utmMedium ?? "", a.createdAt,
     ]);
   } else if (type === "participants") {
