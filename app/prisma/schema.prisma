@@ -1314,3 +1314,236 @@ model AdminSetting {
 
   updatedBy String?
 }
+
+// ============================================================
+
+// MARKETING — "TenXPros Command": founder-led sales operating system.
+// Super-admin only (SUPER_ADMIN_EMAIL). Campaigns set goals & channel quotas;
+// prospects move through an outreach pipeline with a follow-up cadence; daily
+// activity is logged against quotas; the playbook holds editable templates.
+
+// ============================================================
+
+model MarketingCampaign {
+  id String @id @default(cuid())
+
+  name String
+
+  isActive Boolean @default(false)
+
+  startDate DateTime
+
+  endDate DateTime
+
+  // Outcome goals (paid customers): three tiers of success.
+  targetBreakEven Int @default(2)
+
+  targetIdeal Int @default(3)
+
+  targetStretch Int @default(5)
+
+  // How many live (not lost/dropped) prospects should be in motion.
+  targetPipeline Int @default(30)
+
+  // Coach pivot thresholds.
+  pivotMessagesThreshold Int @default(150)
+
+  pivotCallsThreshold Int @default(10)
+
+  // Paid customers won outside the site (counted into goal progress).
+  offPlatformPaid Int @default(0)
+
+  notes String? @db.Text
+
+  channels MarketingChannel[]
+
+  prospects Prospect[]
+
+  dailyLogs MarketingDailyLog[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+}
+
+model MarketingChannel {
+  id String @id @default(cuid())
+
+  campaignId String
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  channel String // linkedin, whatsapp, email, instagram, telegram, twitter, phone
+
+  // Daily floor/ceiling and weekly cap (stay under platform ban thresholds).
+  dailyMin Int @default(5)
+
+  dailyMax Int @default(15)
+
+  weeklyCap Int @default(70)
+
+  enabled Boolean @default(true)
+
+  @@unique([campaignId, channel])
+}
+
+enum ProspectStage {
+  LIST
+
+  APPROACHED
+
+  REPLIED
+
+  CALL_BOOKED
+
+  CALL_HELD
+
+  APPLIED
+
+  PAID
+
+  LOST
+
+  DROPPED
+}
+
+enum ProspectWarmth {
+  WARM
+
+  REFERRAL
+
+  COLD_ENGAGED
+
+  COLD
+}
+
+enum FollowupStatus {
+  ACTIVE
+
+  PARKED
+
+  DROPPED
+}
+
+model Prospect {
+  id String @id @default(cuid())
+
+  campaignId String
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  name String
+
+  // Industry/role context — no confidential details.
+  context String?
+
+  warmth ProspectWarmth @default(COLD)
+
+  // 1-5 each; prioritization score = warmthWeight x (pain + authority + icpFit).
+  pain Int @default(3)
+
+  authority Int @default(3)
+
+  icpFit Int @default(3)
+
+  stage ProspectStage @default(LIST)
+
+  lostReason String?
+
+  // Contact handles (any subset).
+  email String?
+
+  linkedin String?
+
+  whatsapp String?
+
+  phone String?
+
+  telegram String?
+
+  instagram String?
+
+  twitter String?
+
+  // Comma-separated asset keys sent: founder_letter,sample_dossier,review_rubric
+  assetsSent String?
+
+  followupStatus FollowupStatus @default(ACTIVE)
+
+  followupStep Int @default(0)
+
+  followupNextDue DateTime?
+
+  followupDropReason String?
+
+  // Set when the prospect's email matches a real Application (live funnel link).
+  applicationId String?
+
+  notes String? @db.Text
+
+  touches ProspectTouch[]
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@index([campaignId, stage])
+}
+
+model ProspectTouch {
+  id String @id @default(cuid())
+
+  prospectId String
+
+  prospect Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  type String // message, follow_up, reply, call, asset, note
+
+  channel String?
+
+  summary String?
+
+  at DateTime @default(now())
+
+  @@index([prospectId, at])
+}
+
+model MarketingDailyLog {
+  id String @id @default(cuid())
+
+  campaignId String
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  // Calendar date (UTC midnight) the activity belongs to.
+  date DateTime
+
+  channel String
+
+  messages Int @default(0)
+
+  replies Int @default(0)
+
+  calls Int @default(0)
+
+  notes String?
+
+  @@unique([campaignId, date, channel])
+}
+
+model MarketingTemplate {
+  id String @id @default(cuid())
+
+  // Stable key for seeded entries (e.g. outreach_warm, objection_price).
+  key String @unique
+
+  category String // outreach, follow_up, objection, asset, question, principle
+
+  title String
+
+  body String @db.Text
+
+  sortOrder Int @default(0)
+
+  updatedAt DateTime @updatedAt
+}

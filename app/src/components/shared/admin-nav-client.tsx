@@ -10,6 +10,7 @@ import {
   BarChart3,
   BookOpen,
   BookUser,
+  CalendarClock,
   ChevronDown,
   CreditCard,
   FileBarChart,
@@ -19,13 +20,17 @@ import {
   LayoutDashboard,
   LifeBuoy,
   Mail,
+  Megaphone,
   Menu,
+  NotebookPen,
   Route,
   Search,
   Settings,
   ShieldCheck,
   Tag,
+  Target,
   UserCog,
+  Users,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -58,11 +63,16 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/users": UserCog,
   "/admin/email": Mail,
   "/admin/settings": Settings,
+  "/admin/marketing": Target,
+  "/admin/marketing/prospects": Users,
+  "/admin/marketing/campaigns": Megaphone,
+  "/admin/marketing/activity": CalendarClock,
+  "/admin/marketing/playbook": NotebookPen,
 };
 
 function isActiveHref(pathname: string, href: string): boolean {
-  // "/admin" (Dashboard) matches only itself, since every admin route starts with it.
-  if (href === "/admin") return pathname === "/admin";
+  // Section hubs match only themselves; their children are separate nav items.
+  if (href === "/admin" || href === "/admin/marketing") return pathname === href;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 

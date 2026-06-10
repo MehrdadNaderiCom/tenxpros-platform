@@ -1,4 +1,5 @@
 import { signOut } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/authz";
 import { Logo } from "@/components/shared/logo";
 import { Badge } from "@/components/ui/badge";
 import { AdminNavClient, type NavSection } from "@/components/shared/admin-nav-client";
@@ -61,7 +62,22 @@ const sections: NavSection[] = [
   },
 ];
 
-export function AdminNav({ name }: { name?: string | null }) {
+/** Visible only to the super admin (TenXPros Command). */
+const marketingSection: NavSection = {
+  title: "Marketing",
+  items: [
+    { label: "Command", href: "/admin/marketing" },
+    { label: "Prospects", href: "/admin/marketing/prospects" },
+    { label: "Campaigns", href: "/admin/marketing/campaigns" },
+    { label: "Activity", href: "/admin/marketing/activity" },
+    { label: "Playbook", href: "/admin/marketing/playbook" },
+  ],
+};
+
+export function AdminNav({ name, email }: { name?: string | null; email?: string | null }) {
+  const visibleSections = isSuperAdmin(email)
+    ? [sections[0], marketingSection, ...sections.slice(1)]
+    : sections;
   return (
     <aside className="border-b border-neutral-200 bg-white p-5 md:min-h-screen md:w-72 md:shrink-0 md:border-b-0 md:border-r">
       <div className="space-y-6">
@@ -72,7 +88,7 @@ export function AdminNav({ name }: { name?: string | null }) {
           <p className="text-xs text-slate-500">Environment: {process.env.NODE_ENV}</p>
         </div>
 
-        <AdminNavClient sections={sections} />
+        <AdminNavClient sections={visibleSections} />
 
         <form
           action={async () => {
