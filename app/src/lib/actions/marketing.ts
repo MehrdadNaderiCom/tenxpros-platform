@@ -14,6 +14,12 @@ import {
   requestCoachAdvice,
 } from "@/lib/marketing/ai-coach";
 import { campaignMetrics, getActiveCampaign } from "@/lib/marketing/data";
+import {
+  buildAreaExtras,
+  buildSuggestContext,
+  type SuggestArea,
+} from "@/lib/marketing/ai-suggest";
+import { callOpenRouter } from "@/lib/marketing/ai-coach";
 
 const CHANNEL_VALUES = MARKETING_CHANNELS.map((c) => c.value) as string[];
 const STAGE_VALUES = PROSPECT_STAGES.map((s) => s.value) as string[];
@@ -154,6 +160,11 @@ export async function saveChannel(formData: FormData) {
       dailyMin: intIn(formData, "dailyMin", existing?.dailyMin ?? 5, 0, 1000),
       dailyMax: intIn(formData, "dailyMax", existing?.dailyMax ?? 15, 0, 1000),
       weeklyCap: intIn(formData, "weeklyCap", existing?.weeklyCap ?? 70, 0, 10000),
+      postsPerDay: intIn(formData, "postsPerDay", existing?.postsPerDay ?? 0, 0, 100),
+      engagePerDay: intIn(formData, "engagePerDay", existing?.engagePerDay ?? 0, 0, 1000),
+      // The note input is always part of the form, so an empty value is an
+      // intentional clear (no fallback to the old note).
+      contentNote: text(formData, "contentNote") || null,
     },
     create: {
       campaignId,
@@ -161,15 +172,36 @@ export async function saveChannel(formData: FormData) {
       dailyMin: intIn(formData, "dailyMin", 5, 0, 1000),
       dailyMax: intIn(formData, "dailyMax", 15, 0, 1000),
       weeklyCap: intIn(formData, "weeklyCap", 70, 0, 10000),
+      postsPerDay: intIn(formData, "postsPerDay", 0, 0, 100),
+      engagePerDay: intIn(formData, "engagePerDay", 0, 0, 1000),
+      contentNote: text(formData, "contentNote") || null,
     },
   });
   refresh();
 }
 
 export async function removeChannel(formData: FormData) {
-  await requireSuperAdmin();
+  const admin = await requireSuperAdmin();
   const id = text(formData, "channelId");
+  const existing = await prisma.marketingChannel.findUnique({ where: { id } });
+  if (!existing) {
+    // Stale/double submit: already gone — nothing to do.
+    refresh();
+    return;
+  }
   await prisma.marketingChannel.delete({ where: { id } });
+  // Quotas + content plan land in the audit log so a misclick is recoverable.
+  await audit(admin.id, "MARKETING_CHANNEL_DELETE", "MarketingChannel", id, {
+    before: {
+      channel: existing.channel,
+      dailyMin: existing.dailyMin,
+      dailyMax: existing.dailyMax,
+      weeklyCap: existing.weeklyCap,
+      postsPerDay: existing.postsPerDay,
+      engagePerDay: existing.engagePerDay,
+      contentNote: existing.contentNote,
+    },
+  });
   refresh();
 }
 
@@ -408,6 +440,8 @@ export async function logDailyActivity(formData: FormData) {
     messages: intIn(formData, "messages", 0, 0, 10000),
     replies: intIn(formData, "replies", 0, 0, 10000),
     calls: intIn(formData, "calls", 0, 0, 10000),
+    posts: intIn(formData, "posts", 0, 0, 1000),
+    engagements: intIn(formData, "engagements", 0, 0, 10000),
     notes: text(formData, "notes") || null,
   };
   await prisma.marketingDailyLog.upsert({
@@ -622,6 +656,73 @@ export async function askAiCoach(formData: FormData) {
   } catch (error) {
     await setCoachError(admin.id, error instanceof Error ? error.message : "The AI coach failed. Try again.");
   }
+  refresh();
+}
+
+/**
+ * Per-area AI suggestion (channels / activity / prospects / playbook).
+ * Failures are stored as status="error" rows so the message renders inline —
+ * production redacts thrown server-action errors.
+ */
+export async function askAiSuggestion(formData: FormData) {
+  await requireSuperAdmin();
+  const campaignId = text(formData, "campaignId");
+  const area = text(formData, "area") as SuggestArea;
+  if (!["channels", "activity", "prospects", "playbook"].includes(area)) throw new Error("Unknown area.");
+
+  const campaign = await getActiveCampaign();
+  if (!campaign) {
+    refresh();
+    return;
+  }
+  if (campaign.id !== campaignId) {
+    // Stale tab: store the message inline (production redacts thrown errors).
+    await prisma.marketingAiSuggestion.create({
+      data: {
+        campaignId: campaign.id,
+        area,
+        model: "-",
+        status: "error",
+        content: "The active campaign changed. This suggestion now targets the new active campaign; ask again.",
+      },
+    });
+    refresh();
+    return;
+  }
+
+  const keyRow = await prisma.adminSetting.findUnique({ where: { key: OPENROUTER_KEY_SETTING } });
+  const apiKey = keyRow?.value.trim();
+  const modelRow = await prisma.adminSetting.findUnique({ where: { key: OPENROUTER_MODEL_SETTING } });
+  const model = modelRow?.value.trim() || DEFAULT_COACH_MODEL;
+
+  let status = "ok";
+  let content = "";
+  if (!apiKey) {
+    status = "error";
+    content = "Paste your OpenRouter API key in the AI coach settings on the Command page first.";
+  } else {
+    try {
+      const metrics = await campaignMetrics(campaign);
+      const extras = await buildAreaExtras(area, metrics);
+      const { system, user } = buildSuggestContext(area, campaign, metrics, extras);
+      content = await callOpenRouter(apiKey, model, system, user);
+    } catch (error) {
+      status = "error";
+      content = error instanceof Error ? error.message : "The AI suggestion failed. Try again.";
+    }
+  }
+
+  await prisma.marketingAiSuggestion.create({ data: { campaignId, area, model, status, content } });
+  // Bounded history: keep the latest 10 per area.
+  const keep = await prisma.marketingAiSuggestion.findMany({
+    where: { campaignId, area },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+    select: { id: true },
+  });
+  await prisma.marketingAiSuggestion.deleteMany({
+    where: { campaignId, area, id: { notIn: keep.map((k) => k.id) } },
+  });
   refresh();
 }
 

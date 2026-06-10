@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { getActiveCampaign } from "@/lib/marketing/data";
 import { channelLabel } from "@/lib/marketing/constants";
 import { logDailyActivity } from "@/lib/actions/marketing";
+import { AiSuggestCard } from "@/components/admin/ai-suggest-card";
 
 function utcDay(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -44,9 +45,11 @@ export default async function MarketingActivityPage() {
       acc.messages += log.messages;
       acc.replies += log.replies;
       acc.calls += log.calls;
+      acc.posts += log.posts;
+      acc.engagements += log.engagements;
       return acc;
     },
-    { messages: 0, replies: 0, calls: 0 },
+    { messages: 0, replies: 0, calls: 0, posts: 0, engagements: 0 },
   );
 
   return (
@@ -59,6 +62,12 @@ export default async function MarketingActivityPage() {
         ← Back to Command
       </Link>
 
+      <AiSuggestCard
+        campaignId={campaign.id}
+        area="activity"
+        hint="Plans TODAY for you: which follow-ups (by name), how many new messages per channel within your caps, what to post, and one engagement block — ordered by impact, based on your real pace."
+      />
+
       <Card className="space-y-4">
         <h2 className="text-base font-semibold text-navy-900">Today ({today})</h2>
         <div className="grid gap-3">
@@ -68,18 +77,21 @@ export default async function MarketingActivityPage() {
               <form
                 key={channel.id}
                 action={logDailyActivity}
-                className="grid grid-cols-2 items-end gap-3 rounded-md border border-neutral-200 p-3 md:grid-cols-6"
+                className="space-y-3 rounded-md border border-neutral-200 p-3"
               >
                 <input type="hidden" name="campaignId" value={campaign.id} />
                 <input type="hidden" name="channel" value={channel.channel} />
                 <input type="hidden" name="date" value={today} />
                 <div>
-                  <p className="text-xs uppercase tracking-wide text-slate-400">Channel</p>
                   <p className="text-sm font-medium text-navy-900">{channelLabel(channel.channel)}</p>
                   <p className="text-[11px] text-slate-400">
-                    floor {channel.dailyMin} · cap {channel.dailyMax}/day, {channel.weeklyCap}/wk
+                    msgs {channel.dailyMin}-{channel.dailyMax}/day
+                    {channel.postsPerDay > 0 ? ` · ${channel.postsPerDay} post${channel.postsPerDay === 1 ? "" : "s"}` : ""}
+                    {channel.engagePerDay > 0 ? ` · ${channel.engagePerDay} engage` : ""}
+                    {channel.contentNote ? ` · ${channel.contentNote}` : ""}
                   </p>
                 </div>
+                <div className="grid grid-cols-3 items-end gap-3 md:grid-cols-7">
                 <HintField
                   label="Messages"
                   hint="Outbound messages you actually sent today on this channel: new openers AND follow-ups both count. The coach compares the total against your daily floors."
@@ -98,12 +110,27 @@ export default async function MarketingActivityPage() {
                 >
                   <Input name="calls" type="number" min={0} defaultValue={log?.calls ?? 0} />
                 </HintField>
-                <HintField label="Note" hint="Optional one-liner: what you tested today (e.g. 'new opener v2'), so trends make sense later.">
-                  <Input name="notes" defaultValue={log?.notes ?? ""} />
+                <HintField
+                  label="Posts"
+                  hint="Public posts you published on this channel today, against the channel's posts/day plan."
+                >
+                  <Input name="posts" type="number" min={0} defaultValue={log?.posts ?? 0} />
                 </HintField>
+                <HintField
+                  label="Engage"
+                  hint="Engagement actions today (comments/reactions on ICP posts), against the channel's engage/day plan."
+                >
+                  <Input name="engagements" type="number" min={0} defaultValue={log?.engagements ?? 0} />
+                </HintField>
+                <div className="col-span-2 md:col-span-1">
+                  <HintField label="Note" hint="Optional one-liner: what you tested today (e.g. 'new opener v2'), so trends make sense later.">
+                    <Input name="notes" defaultValue={log?.notes ?? ""} />
+                  </HintField>
+                </div>
                 <Button type="submit" variant="secondary">
                   Save
                 </Button>
+                </div>
               </form>
             );
           })}
@@ -123,7 +150,8 @@ export default async function MarketingActivityPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-semibold text-navy-900">Last 14 days</h2>
           <p className="text-xs text-slate-500">
-            Totals: {totals.messages} messages · {totals.replies} replies · {totals.calls} calls
+            Totals: {totals.messages} messages · {totals.replies} replies · {totals.calls} calls · {totals.posts} posts ·{" "}
+            {totals.engagements} engagements
           </p>
         </div>
         {logs.length ? (
@@ -135,6 +163,8 @@ export default async function MarketingActivityPage() {
                 <th className="px-3 py-2">Messages</th>
                 <th className="px-3 py-2">Replies</th>
                 <th className="px-3 py-2">Calls</th>
+                <th className="px-3 py-2">Posts</th>
+                <th className="px-3 py-2">Engage</th>
                 <th className="px-3 py-2">Note</th>
               </tr>
             </thead>
@@ -146,6 +176,8 @@ export default async function MarketingActivityPage() {
                   <td className="px-3 py-2">{log.messages}</td>
                   <td className="px-3 py-2">{log.replies}</td>
                   <td className="px-3 py-2">{log.calls}</td>
+                  <td className="px-3 py-2">{log.posts}</td>
+                  <td className="px-3 py-2">{log.engagements}</td>
                   <td className="px-3 py-2 text-xs text-slate-500">{log.notes ?? ""}</td>
                 </tr>
               ))}

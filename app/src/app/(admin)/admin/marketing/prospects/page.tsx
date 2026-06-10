@@ -28,6 +28,7 @@ import {
   setFollowupStatus,
   updateProspect,
 } from "@/lib/actions/marketing";
+import { AiSuggestCard } from "@/components/admin/ai-suggest-card";
 
 const STAGE_BADGE: Record<string, string> = {
   LIST: "SUBMITTED",
@@ -452,6 +453,12 @@ export default async function ProspectsPage({
           <Button type="submit">Add</Button>
         </form>
       </Card>
+
+      <AiSuggestCard
+        campaignId={campaign.id}
+        area="prospects"
+        hint="Reads your live pipeline (stages, scores, cadence state, notes) and names the 5 prospects to act on right now, with a suggested angle for each — plus who to stop chasing."
+      />
 
       {/* Pipeline bar */}
       <Card className="p-3">

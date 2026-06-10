@@ -1363,6 +1363,8 @@ model MarketingCampaign {
 
   coachAdvice MarketingCoachAdvice[]
 
+  aiSuggestions MarketingAiSuggestion[]
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -1383,6 +1385,14 @@ model MarketingChannel {
   dailyMax Int @default(15)
 
   weeklyCap Int @default(70)
+
+  // Content plan: public activity on this channel, separate from outreach.
+  postsPerDay Int @default(0)
+
+  engagePerDay Int @default(0)
+
+  // What to publish/do here (free text, e.g. "1 dossier-insight post, comment on 5 ICP posts").
+  contentNote String?
 
   enabled Boolean @default(true)
 
@@ -1528,6 +1538,10 @@ model MarketingDailyLog {
 
   calls Int @default(0)
 
+  posts Int @default(0)
+
+  engagements Int @default(0)
+
   notes String?
 
   @@unique([campaignId, date, channel])
@@ -1570,6 +1584,28 @@ model MarketingTemplateCategory {
 // AI coach advice history (OpenRouter). The API key/model live in AdminSetting
 // (keys: openrouter_api_key / openrouter_model), pasted by the super admin —
 // never stored in code or env files.
+// Per-area AI suggestions (channels / activity / prospects / playbook).
+// status "error" rows carry the failure message so it renders inline.
+model MarketingAiSuggestion {
+  id String @id @default(cuid())
+
+  campaignId String
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  area String
+
+  model String
+
+  status String @default("ok")
+
+  content String @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([campaignId, area, createdAt])
+}
+
 model MarketingCoachAdvice {
   id String @id @default(cuid())
 

@@ -19,6 +19,8 @@ import {
   updatePlaybookCategory,
   updateTemplate,
 } from "@/lib/actions/marketing";
+import { AiSuggestCard } from "@/components/admin/ai-suggest-card";
+import { getActiveCampaign } from "@/lib/marketing/data";
 
 // Original section set; seeds MarketingTemplateCategory on first use, after
 // which categories are fully managed in the UI.
@@ -96,9 +98,10 @@ export default async function PlaybookPage({
   if (session?.user?.role !== "ADMIN" || !isSuperAdmin(session.user.email)) notFound();
 
   await ensureSeeded();
-  const [categories, templates] = await Promise.all([
+  const [categories, templates, activeCampaign] = await Promise.all([
     prisma.marketingTemplateCategory.findMany({ orderBy: [{ sortOrder: "asc" }, { title: "asc" }] }),
     prisma.marketingTemplate.findMany({ orderBy: [{ sortOrder: "asc" }, { title: "asc" }] }),
+    getActiveCampaign(),
   ]);
 
   const rawQ = first(searchParams.q) ?? "";
@@ -142,6 +145,14 @@ export default async function PlaybookPage({
       <Link href="/admin/marketing" className="text-sm font-medium text-navy-600 hover:underline">
         ← Back to Command
       </Link>
+
+      {activeCampaign ? (
+        <AiSuggestCard
+          campaignId={activeCampaign.id}
+          area="playbook"
+          hint="Compares your real funnel numbers with these templates, diagnoses where the funnel leaks, and proposes first-line A/B variants plus concrete template improvements."
+        />
+      ) : null}
 
       {/* Search + category filter */}
       <Card className="space-y-3">

@@ -61,6 +61,8 @@ export function buildCoachContext(
       messages: l.messages,
       replies: l.replies,
       calls: l.calls,
+      posts: l.posts,
+      engagements: l.engagements,
     }));
 
   return JSON.stringify(
@@ -75,7 +77,14 @@ export function buildCoachContext(
           stretch: campaign.targetStretch,
           pipelineTarget: campaign.targetPipeline,
         },
-        channels: campaign.channels.map((c) => ({ channel: c.channel, dailyMin: c.dailyMin, dailyMax: c.dailyMax })),
+        channels: campaign.channels.map((c) => ({
+          channel: c.channel,
+          dailyMin: c.dailyMin,
+          dailyMax: c.dailyMax,
+          postsPerDay: c.postsPerDay,
+          engagePerDay: c.engagePerDay,
+          contentNote: c.contentNote,
+        })),
       },
       results: {
         paid: m.paidNow,
@@ -96,8 +105,13 @@ export function buildCoachContext(
   );
 }
 
-/** Calls OpenRouter chat completions. Throws a user-readable error on failure. */
-export async function requestCoachAdvice(apiKey: string, model: string, context: string): Promise<string> {
+/** Generic OpenRouter chat call. Throws a user-readable error on failure. */
+export async function callOpenRouter(
+  apiKey: string,
+  model: string,
+  system: string,
+  user: string,
+): Promise<string> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 90_000);
   try {
@@ -114,16 +128,18 @@ export async function requestCoachAdvice(apiKey: string, model: string, context:
         model,
         max_tokens: 1200,
         messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: `Live campaign data:\n${context}` },
+          { role: "system", content: system },
+          { role: "user", content: user },
         ],
       }),
     });
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
-      if (response.status === 401) throw new Error("OpenRouter rejected the API key (401). Re-paste the key in AI coach settings.");
+      if (response.status === 401) {
+        throw new Error("OpenRouter rejected the API key (401). Re-paste the key in the AI coach settings on the Command page.");
+      }
       if (response.status === 404 || response.status === 400) {
-        throw new Error(`OpenRouter rejected the request (${response.status}). Check the model id in AI coach settings. ${detail.slice(0, 200)}`);
+        throw new Error(`OpenRouter rejected the request (${response.status}). Check the model id in the AI coach settings on the Command page. ${detail.slice(0, 200)}`);
       }
       throw new Error(`OpenRouter error ${response.status}. ${detail.slice(0, 200)}`);
     }
@@ -139,4 +155,9 @@ export async function requestCoachAdvice(apiKey: string, model: string, context:
   } finally {
     clearTimeout(timer);
   }
+}
+
+/** The Command-page coach: campaign-wide verdict + next-24h plan. */
+export function requestCoachAdvice(apiKey: string, model: string, context: string): Promise<string> {
+  return callOpenRouter(apiKey, model, SYSTEM_PROMPT, `Live campaign data:\n${context}`);
 }

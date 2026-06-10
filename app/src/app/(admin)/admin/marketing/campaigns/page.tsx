@@ -16,6 +16,8 @@ import {
   saveChannel,
   updateCampaign,
 } from "@/lib/actions/marketing";
+import { AiSuggestCard } from "@/components/admin/ai-suggest-card";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 
 function dateValue(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -50,6 +52,12 @@ const TIPS = {
     "Soft ceiling per day to stay under platform spam/ban thresholds. Advisory (shown next to the daily log). Suggestion: LinkedIn 15-20, Email 20, WhatsApp 10.",
   weeklyCap:
     "Soft weekly ceiling for the same reason; new accounts should stay well below it. Advisory. Suggestion: LinkedIn 70, Email 100, WhatsApp 50.",
+  postsPerDay:
+    "Content plan: how many public posts you commit to publish on this channel each day. Suggestion: LinkedIn 1/day (founder insights, dossier excerpts); 0 is fine for pure-outreach channels.",
+  engagePerDay:
+    "Engagement plan: comments/reactions on your ICP's posts each day. Warms cold prospects before outreach. Suggestion: LinkedIn 5-10/day.",
+  contentNote:
+    "WHAT to publish or do on this channel, in one line, e.g. '1 dossier-insight post + comment on 5 ops-director posts'. The AI planner reads and refines this.",
   addChannel:
     "Add another platform you actually plan to work daily. Fewer channels done consistently beat many channels done sometimes.",
   makeActive:
@@ -74,6 +82,15 @@ export default async function MarketingCampaignsPage() {
       <Link href="/admin/marketing" className="text-sm font-medium text-navy-600 hover:underline">
         ← Back to Command
       </Link>
+
+      {campaigns.find((c) => c.isActive) ? (
+        <AiSuggestCard
+          campaignId={campaigns.find((c) => c.isActive)!.id}
+          area="channels"
+          subtitle={`for ${campaigns.find((c) => c.isActive)!.name}`}
+          hint="Reads your goals, current quotas, content plan, and 14 days of real activity, then proposes per-channel numbers (outreach, posts, engagement) and content themes you can copy into the fields of the ACTIVE campaign below."
+        />
+      ) : null}
 
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold text-navy-900">New campaign</h2>
@@ -185,30 +202,53 @@ export default async function MarketingCampaignsPage() {
             </p>
             <div className="grid gap-3">
               {campaign.channels.map((channel) => (
-                <form key={channel.id} action={saveChannel} className="grid grid-cols-2 items-end gap-3 rounded-md border border-neutral-200 p-3 md:grid-cols-6">
+                <form key={channel.id} action={saveChannel} className="space-y-3 rounded-md border border-neutral-200 p-3">
                   <input type="hidden" name="campaignId" value={campaign.id} />
                   <input type="hidden" name="channel" value={channel.channel} />
                   {/* carried by the form (not the button) so Remove receives it reliably */}
                   <input type="hidden" name="channelId" value={channel.id} />
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">Channel</p>
-                    <p className="text-sm font-medium text-navy-900">{channelLabel(channel.channel)}</p>
+                  <div className="grid grid-cols-2 items-end gap-3 md:grid-cols-6">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-slate-400">Channel</p>
+                      <p className="text-sm font-medium text-navy-900">{channelLabel(channel.channel)}</p>
+                    </div>
+                    <HintField label="Daily min" hint={TIPS.dailyMin}>
+                      <Input name="dailyMin" type="number" min={0} defaultValue={channel.dailyMin} />
+                    </HintField>
+                    <HintField label="Daily max" hint={TIPS.dailyMax}>
+                      <Input name="dailyMax" type="number" min={0} defaultValue={channel.dailyMax} />
+                    </HintField>
+                    <HintField label="Weekly cap" hint={TIPS.weeklyCap}>
+                      <Input name="weeklyCap" type="number" min={0} defaultValue={channel.weeklyCap} />
+                    </HintField>
+                    <HintField label="Posts / day" hint={TIPS.postsPerDay}>
+                      <Input name="postsPerDay" type="number" min={0} max={100} defaultValue={channel.postsPerDay} />
+                    </HintField>
+                    <HintField label="Engage / day" hint={TIPS.engagePerDay}>
+                      <Input name="engagePerDay" type="number" min={0} max={1000} defaultValue={channel.engagePerDay} />
+                    </HintField>
                   </div>
-                  <HintField label="Daily min" hint={TIPS.dailyMin}>
-                    <Input name="dailyMin" type="number" min={0} defaultValue={channel.dailyMin} />
-                  </HintField>
-                  <HintField label="Daily max" hint={TIPS.dailyMax}>
-                    <Input name="dailyMax" type="number" min={0} defaultValue={channel.dailyMax} />
-                  </HintField>
-                  <HintField label="Weekly cap" hint={TIPS.weeklyCap}>
-                    <Input name="weeklyCap" type="number" min={0} defaultValue={channel.weeklyCap} />
-                  </HintField>
-                  <Button type="submit" variant="secondary" className="text-xs">
-                    Save
-                  </Button>
-                  <Button type="submit" formAction={removeChannel} variant="danger" className="text-xs">
-                    Remove
-                  </Button>
+                  <div className="grid items-end gap-3 md:grid-cols-6">
+                    <div className="md:col-span-4">
+                      <HintField label="Content plan (what to post/do here)" hint={TIPS.contentNote}>
+                        <Input
+                          name="contentNote"
+                          defaultValue={channel.contentNote ?? ""}
+                          placeholder="1 dossier-insight post + comment on 5 ICP posts"
+                        />
+                      </HintField>
+                    </div>
+                    <Button type="submit" variant="secondary" className="text-xs">
+                      Save
+                    </Button>
+                    <ConfirmButton
+                      action={removeChannel}
+                      message={`Remove ${channelLabel(channel.channel)} from this campaign? Its quotas and content plan are kept in the audit log.`}
+                      className="rounded-md bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700"
+                    >
+                      Remove
+                    </ConfirmButton>
+                  </div>
                 </form>
               ))}
             </div>
