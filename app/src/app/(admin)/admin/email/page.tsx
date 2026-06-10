@@ -2,8 +2,13 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/form-field";
 import { PageHeader } from "@/components/shared/page-shell";
 import { emailCounts } from "@/lib/admin-metrics";
+
+// Next.js pages may only export route fields, so this stays module-local.
+const SENT_MEANING =
+  "Sent means the TenXPros mail server accepted the message for delivery. If a recipient address is invalid, the receiving provider can still bounce it afterwards; bounce notices arrive in the hello@tenxpros.com inbox.";
 
 export default async function EmailPage() {
   const [counts, recent] = await Promise.all([
@@ -20,7 +25,10 @@ export default async function EmailPage() {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Sent</p>
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+            Sent
+            <InfoTip id="email-sent-meaning" label="What sent means" text={SENT_MEANING} />
+          </p>
           <p className="text-3xl font-semibold text-navy-900">{counts.byKey["sent"] ?? 0}</p>
         </Card>
         <Card className="space-y-1">

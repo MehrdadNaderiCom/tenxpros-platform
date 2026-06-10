@@ -43,6 +43,12 @@ export default async function EmailLogPage({ searchParams }: { searchParams: { s
         ))}
       </div>
 
+      <p className="rounded-md bg-neutral-50 px-3 py-2 text-xs leading-5 text-slate-500">
+        “sent” means our mail server accepted the message for delivery. If a recipient address is invalid, the
+        receiving provider can still bounce it afterwards; bounce notices arrive in the hello@tenxpros.com inbox.
+        “error” means our own server rejected or failed the send.
+      </p>
+
       {emails.length ? (
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[820px] text-sm">
