@@ -2,12 +2,16 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/form-fields";
+import { HintField } from "@/components/ui/hint-field";
 import { InfoTip } from "@/components/ui/form-field";
 import { PageHeader } from "@/components/shared/page-shell";
+import { prisma } from "@/lib/prisma";
 import { getActiveCampaign, campaignMetrics } from "@/lib/marketing/data";
 import { coachNudges, coachVerdict, replyRate, closeRate } from "@/lib/marketing/coach";
+import { getCoachSettings } from "@/lib/marketing/ai-coach";
 import { PROSPECT_STAGES, stageLabel } from "@/lib/marketing/constants";
-import { markFollowupSent, syncProspectsWithFunnel } from "@/lib/actions/marketing";
+import { askAiCoach, markFollowupSent, saveCoachSettings, syncProspectsWithFunnel } from "@/lib/actions/marketing";
 import { nextFollowupLabel } from "@/lib/marketing/followup";
 
 function GoalTile({
@@ -66,6 +70,10 @@ export default async function MarketingCommandPage() {
   const nudges = coachNudges(m.coachInput);
   const reply = replyRate(m.messagesSent, m.repliesReceived);
   const close = closeRate(m.callsHeld, m.paidNow);
+  const [coachSettings, latestAdvice] = await Promise.all([
+    getCoachSettings(),
+    prisma.marketingCoachAdvice.findFirst({ where: { campaignId: campaign.id }, orderBy: { createdAt: "desc" } }),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -121,6 +129,78 @@ export default async function MarketingCommandPage() {
           ))}
         </ul>
         <p className="text-sm font-medium text-navy-900">Next move: {verdict.nextMove}</p>
+      </Card>
+
+      {/* AI coach (OpenRouter) */}
+      <Card className="space-y-3 border-l-4 border-l-violet-500">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="flex items-center gap-1.5 text-lg font-semibold text-navy-900">
+            AI coach
+            <InfoTip
+              label="About the AI coach"
+              text="Sends the live campaign picture (goals, funnel, activity, top prospects, due follow-ups) to a top LLM via OpenRouter and returns a prioritized plan for the next 24 hours. The last 20 advice entries are kept per campaign. Note: this data, including prospect names, is processed by OpenRouter and the selected model provider."
+            />
+          </h2>
+          <form action={askAiCoach}>
+            <input type="hidden" name="campaignId" value={campaign.id} />
+            <Button type="submit" disabled={!coachSettings.hasKey} className="h-9 px-4 text-sm">
+              {latestAdvice ? "Ask again" : "Ask the AI coach"}
+            </Button>
+          </form>
+        </div>
+
+        {coachSettings.lastError ? (
+          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            {coachSettings.lastError}
+          </p>
+        ) : null}
+
+        {latestAdvice ? (
+          <div className="space-y-1">
+            <pre className="whitespace-pre-wrap rounded-md bg-violet-50/60 p-4 font-sans text-sm leading-6 text-slate-800">
+              {latestAdvice.advice}
+            </pre>
+            <p className="text-[11px] text-slate-400">
+              {latestAdvice.model} · {latestAdvice.createdAt.toLocaleString()}
+            </p>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500">
+            {coachSettings.hasKey
+              ? "No advice yet. Press the button and the coach reads your live numbers and pipeline."
+              : "Set up once below: paste an OpenRouter API key, then ask for a data-driven plan whenever you want."}
+          </p>
+        )}
+
+        <details>
+          <summary className="cursor-pointer text-xs font-medium text-slate-500">
+            AI coach settings {coachSettings.hasKey ? "· key configured ✓" : "· key required"}
+          </summary>
+          <form action={saveCoachSettings} className="mt-3 grid items-end gap-3 md:grid-cols-3">
+            <HintField
+              label="OpenRouter API key"
+              hint="Create one at openrouter.ai → Keys. Stored privately in the admin settings, never shown again here. Leave empty to keep the current key."
+            >
+              <Input
+                name="apiKey"
+                type="password"
+                autoComplete="off"
+                placeholder={coachSettings.hasKey ? "•••••••• (configured)" : "sk-or-…"}
+              />
+            </HintField>
+            <HintField
+              label="Model"
+              hint="Any OpenRouter model id. Default anthropic/claude-sonnet-4.5 is a strong coach; you can switch anytime (e.g. to a newer Claude or GPT id)."
+            >
+              <Input name="model" defaultValue={coachSettings.model} />
+            </HintField>
+            <div>
+              <Button type="submit" variant="secondary">
+                Save settings
+              </Button>
+            </div>
+          </form>
+        </details>
       </Card>
 
       {/* Activity + funnel snapshot */}

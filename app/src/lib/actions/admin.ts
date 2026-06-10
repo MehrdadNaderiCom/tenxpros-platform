@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdminUser as requireAdmin } from "@/lib/authz";
+import { requireAdminUser as requireAdmin, isProtectedSettingKey } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { badgeCatalog } from "@/lib/program-data";
 import { parsePricingUpdate } from "@/lib/pricing";
@@ -322,6 +322,9 @@ export async function updatePricingTierPaymentTerms(formData: FormData) {
 export async function updateAdminSetting(formData: FormData) {
   const admin = await requireAdmin();
   const key = String(formData.get("key") ?? "");
+  // Secrets and marketing config are managed only through their dedicated,
+  // tighter-gated actions.
+  if (isProtectedSettingKey(key)) throw new Error("This setting is managed from its own settings panel.");
   await prisma.adminSetting.update({
     where: { key },
     data: { value: String(formData.get("value") ?? ""), updatedBy: admin.id },

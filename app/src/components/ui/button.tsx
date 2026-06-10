@@ -1,5 +1,9 @@
+"use client";
+
 import type { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const variants = {
@@ -20,17 +24,34 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: keyof typeof sizes;
 };
 
-export function Button({ className, variant = "primary", size = "md", ...props }: ButtonProps) {
+/**
+ * Shared button with built-in action feedback: a tactile press effect, and —
+ * for submit buttons inside a form action — an automatic spinner + disabled
+ * state while the action runs (via useFormStatus, no call-site changes needed).
+ */
+export function Button({ className, variant = "primary", size = "md", children, disabled, ...props }: ButtonProps) {
+  // Safe outside a <form>: pending is simply false there.
+  const { pending } = useFormStatus();
+  // Native default button type is "submit", so anything not explicitly
+  // type="button"/"reset" participates in form pending state.
+  const isSubmit = (props.type ?? "submit") === "submit";
+  const busy = pending && isSubmit;
+
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
+        "inline-flex items-center justify-center rounded-md font-medium transition active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
         variants[variant],
         sizes[size],
         className,
       )}
+      disabled={disabled || busy}
+      aria-busy={busy || undefined}
       {...props}
-    />
+    >
+      {busy ? <Loader2 className="mr-2 h-4 w-4 flex-none animate-spin" aria-hidden="true" /> : null}
+      {children}
+    </button>
   );
 }
 
@@ -53,7 +74,7 @@ export function ButtonLink({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2",
+        "inline-flex items-center justify-center rounded-md font-medium transition active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2",
         variants[variant],
         sizes[size],
         className,

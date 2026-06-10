@@ -5,6 +5,15 @@ import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/authz";
 import { advanceFollowup, nextFollowupDue } from "@/lib/marketing/followup";
 import { MARKETING_CHANNELS, PROSPECT_STAGES, WARMTH_OPTIONS } from "@/lib/marketing/constants";
+import {
+  buildCoachContext,
+  DEFAULT_COACH_MODEL,
+  OPENROUTER_ERROR_SETTING,
+  OPENROUTER_KEY_SETTING,
+  OPENROUTER_MODEL_SETTING,
+  requestCoachAdvice,
+} from "@/lib/marketing/ai-coach";
+import { campaignMetrics, getActiveCampaign } from "@/lib/marketing/data";
 
 const CHANNEL_VALUES = MARKETING_CHANNELS.map((c) => c.value) as string[];
 const STAGE_VALUES = PROSPECT_STAGES.map((s) => s.value) as string[];
@@ -168,6 +177,8 @@ export async function removeChannel(formData: FormData) {
 // Prospects
 // ---------------------------------------------------------------------------
 
+const CONTACT_FIELDS = ["email", "linkedin", "whatsapp", "phone", "telegram", "instagram", "twitter"] as const;
+
 function prospectData(formData: FormData) {
   const name = text(formData, "name");
   if (name.length < 2) throw new Error("Enter the prospect's name.");
@@ -176,6 +187,19 @@ function prospectData(formData: FormData) {
   const assets = formData
     .getAll("assetsSent")
     .filter((value): value is string => typeof value === "string" && value.length > 0);
+
+  const contacts = Object.fromEntries(
+    CONTACT_FIELDS.map((field) => [field, text(formData, field) || null]),
+  ) as Record<(typeof CONTACT_FIELDS)[number], string | null>;
+
+  // Quick-add support: a single channel + handle pair maps onto the matching
+  // contact field, so a new contact needs just name + warmth + one handle.
+  const quickChannel = text(formData, "quickChannel");
+  const quickHandle = text(formData, "quickHandle");
+  if (quickHandle && (CONTACT_FIELDS as readonly string[]).includes(quickChannel)) {
+    contacts[quickChannel as (typeof CONTACT_FIELDS)[number]] = quickHandle;
+  }
+
   return {
     assetsSent: assets.length > 0 ? assets.join(",") : null,
     name,
@@ -184,13 +208,7 @@ function prospectData(formData: FormData) {
     pain: intIn(formData, "pain", 3, 1, 5),
     authority: intIn(formData, "authority", 3, 1, 5),
     icpFit: intIn(formData, "icpFit", 3, 1, 5),
-    email: text(formData, "email") || null,
-    linkedin: text(formData, "linkedin") || null,
-    whatsapp: text(formData, "whatsapp") || null,
-    phone: text(formData, "phone") || null,
-    telegram: text(formData, "telegram") || null,
-    instagram: text(formData, "instagram") || null,
-    twitter: text(formData, "twitter") || null,
+    ...contacts,
     notes: text(formData, "notes") || null,
   };
 }
@@ -232,13 +250,18 @@ export async function changeProspectStage(formData: FormData) {
   const now = new Date();
 
   const data: Record<string, unknown> = { stage };
-  if (stage === "APPROACHED" && existing.stage === "LIST") {
-    data.followupStatus = "ACTIVE";
-    data.followupStep = 0;
-    data.followupNextDue = nextFollowupDue(0, now);
-    await prisma.prospectTouch.create({
-      data: { prospectId: id, type: "message", summary: "Initial approach sent" },
-    });
+  if (stage === "APPROACHED") {
+    // Entering APPROACHED (from LIST, a Move, or back from Lost) (re)schedules
+    // the cadence from the step already completed, so no prospect can sit in
+    // an "active but never due" dead end.
+    const nextDue = nextFollowupDue(existing.followupStep, now);
+    data.followupStatus = nextDue ? "ACTIVE" : "PARKED";
+    data.followupNextDue = nextDue;
+    if (existing.stage === "LIST") {
+      await prisma.prospectTouch.create({
+        data: { prospectId: id, type: "message", summary: "Initial approach sent" },
+      });
+    }
   }
   if (stage === "REPLIED") {
     // A reply pauses the automatic cadence; next touches are manual.
@@ -249,6 +272,11 @@ export async function changeProspectStage(formData: FormData) {
     // Terminal stages end the reminder cadence — never nag a won or closed prospect.
     data.followupNextDue = null;
     data.followupStatus = stage === "PAID" ? "PARKED" : "DROPPED";
+  }
+  if (["REPLIED", "CALL_BOOKED", "CALL_HELD", "APPLIED"].includes(stage) && existing.followupStatus === "DROPPED") {
+    // Reopening a previously-lost prospect puts them back in play (parked;
+    // press Resume follow-ups to restart reminders).
+    data.followupStatus = "PARKED";
   }
   if (stage === "LOST") data.lostReason = text(formData, "lostReason") || existing.lostReason || null;
 
@@ -502,6 +530,98 @@ export async function updatePlaybookCategory(formData: FormData) {
     before: { title: existing.title },
     after: { title },
   });
+  refresh();
+}
+
+// ---------------------------------------------------------------------------
+// AI coach (OpenRouter)
+// ---------------------------------------------------------------------------
+
+/** Save the OpenRouter key/model. The key is write-only: never read back into a form. */
+export async function saveCoachSettings(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const apiKey = text(formData, "apiKey");
+  const model = text(formData, "model") || DEFAULT_COACH_MODEL;
+
+  const upsert = (key: string, value: string, label: string) =>
+    prisma.adminSetting.upsert({
+      where: { key },
+      update: { value, updatedBy: admin.id },
+      create: { key, value, category: "FEATURE_FLAGS", label, updatedBy: admin.id },
+    });
+
+  await upsert(OPENROUTER_MODEL_SETTING, model, "AI coach model (OpenRouter id)");
+  // An empty key field means "keep the existing key" so saving the model alone is safe.
+  if (apiKey) await upsert(OPENROUTER_KEY_SETTING, apiKey, "OpenRouter API key (AI coach)");
+  await audit(admin.id, "MARKETING_COACH_SETTINGS", "AdminSetting", OPENROUTER_MODEL_SETTING, {
+    after: { model, keyUpdated: Boolean(apiKey) },
+  });
+  refresh();
+}
+
+async function setCoachError(adminId: string, message: string | null) {
+  if (message === null) {
+    await prisma.adminSetting.deleteMany({ where: { key: OPENROUTER_ERROR_SETTING } });
+    return;
+  }
+  await prisma.adminSetting.upsert({
+    where: { key: OPENROUTER_ERROR_SETTING },
+    update: { value: message, updatedBy: adminId },
+    create: {
+      key: OPENROUTER_ERROR_SETTING,
+      value: message,
+      category: "FEATURE_FLAGS",
+      label: "AI coach: last error",
+      updatedBy: adminId,
+    },
+  });
+}
+
+/**
+ * Ask the LLM coach: builds the live campaign context, calls OpenRouter, and
+ * stores the advice. Expected failures (bad key, bad model id, timeout,
+ * provider error) are persisted and shown inline on the Command page instead
+ * of throwing — production redacts server-action errors, so a throw would
+ * surface as an unreadable full-page error.
+ */
+export async function askAiCoach(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const campaignId = text(formData, "campaignId");
+  const campaign = await getActiveCampaign();
+  if (!campaign || campaign.id !== campaignId) {
+    await setCoachError(admin.id, "The active campaign changed. Reload the page and ask again.");
+    refresh();
+    return;
+  }
+
+  const keyRow = await prisma.adminSetting.findUnique({ where: { key: OPENROUTER_KEY_SETTING } });
+  const apiKey = keyRow?.value.trim();
+  if (!apiKey) {
+    await setCoachError(admin.id, "Paste your OpenRouter API key in the AI coach settings first.");
+    refresh();
+    return;
+  }
+  const modelRow = await prisma.adminSetting.findUnique({ where: { key: OPENROUTER_MODEL_SETTING } });
+  const model = modelRow?.value.trim() || DEFAULT_COACH_MODEL;
+
+  try {
+    const metrics = await campaignMetrics(campaign);
+    const advice = await requestCoachAdvice(apiKey, model, buildCoachContext(campaign, metrics));
+    await prisma.marketingCoachAdvice.create({ data: { campaignId, model, advice } });
+    // Keep a bounded history: the latest 20 advice entries per campaign.
+    const keep = await prisma.marketingCoachAdvice.findMany({
+      where: { campaignId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: { id: true },
+    });
+    await prisma.marketingCoachAdvice.deleteMany({
+      where: { campaignId, id: { notIn: keep.map((k) => k.id) } },
+    });
+    await setCoachError(admin.id, null);
+  } catch (error) {
+    await setCoachError(admin.id, error instanceof Error ? error.message : "The AI coach failed. Try again.");
+  }
   refresh();
 }
 

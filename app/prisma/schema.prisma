@@ -1361,6 +1361,8 @@ model MarketingCampaign {
 
   dailyLogs MarketingDailyLog[]
 
+  coachAdvice MarketingCoachAdvice[]
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -1563,4 +1565,23 @@ model MarketingTemplateCategory {
   sortOrder Int @default(0)
 
   updatedAt DateTime @updatedAt
+}
+
+// AI coach advice history (OpenRouter). The API key/model live in AdminSetting
+// (keys: openrouter_api_key / openrouter_model), pasted by the super admin —
+// never stored in code or env files.
+model MarketingCoachAdvice {
+  id String @id @default(cuid())
+
+  campaignId String
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  model String
+
+  advice String @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([campaignId, createdAt])
 }

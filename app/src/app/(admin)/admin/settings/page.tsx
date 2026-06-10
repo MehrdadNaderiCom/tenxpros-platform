@@ -1,4 +1,5 @@
 import { updateAdminSetting } from "@/lib/actions/admin";
+import { isProtectedSettingKey } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,7 +7,11 @@ import { Input } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function SettingsPage() {
-  const settings = await prisma.adminSetting.findMany({ orderBy: [{ category: "asc" }, { key: "asc" }] });
+  // Secrets and super-admin-only marketing config are managed in their own
+  // gated UIs and must never be listed here.
+  const settings = (
+    await prisma.adminSetting.findMany({ orderBy: [{ category: "asc" }, { key: "asc" }] })
+  ).filter((setting) => !isProtectedSettingKey(setting.key));
   return (
     <div className="space-y-8">
       <PageHeader title="Settings" description="Site-wide settings and feature flags." />

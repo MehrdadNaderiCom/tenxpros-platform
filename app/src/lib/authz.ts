@@ -30,6 +30,14 @@ export function superAdminEmail(): string {
   return process.env.SUPER_ADMIN_EMAIL ?? "mail@mehrdadnaderi.com";
 }
 
+/**
+ * AdminSetting keys that must never appear in (or be editable from) the
+ * generic /admin/settings UI: secrets and super-admin-only marketing config.
+ */
+export function isProtectedSettingKey(key: string): boolean {
+  return key.includes("api_key") || key.startsWith("openrouter_") || key.startsWith("marketing_");
+}
+
 export function isSuperAdmin(email?: string | null): boolean {
   return Boolean(email && email.toLowerCase() === superAdminEmail().toLowerCase());
 }

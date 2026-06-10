@@ -4,6 +4,7 @@ import {
   cloneElement,
   isValidElement,
   useId,
+  useRef,
   useState,
   type ReactElement,
   type ReactNode,
@@ -11,21 +12,34 @@ import {
 import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const TIP_WIDTH = 240; // matches w-60
+
 /**
  * Accessible info tooltip: a focusable button that reveals a short description on
- * hover, keyboard focus, and tap (works without a mouse). Used to keep the form
- * compact while giving precise per-field guidance.
+ * hover, keyboard focus, and tap (works without a mouse). The popover flips to
+ * open leftwards when the trigger sits near the right viewport edge, so the
+ * text never overflows off-screen.
  */
 export function InfoTip({ id, label, text }: { id?: string; label: string; text: string }) {
   const [open, setOpen] = useState(false);
+  const [alignRight, setAlignRight] = useState(false);
+  const wrapperRef = useRef<HTMLSpanElement>(null);
   const autoId = useId();
   const tipId = id ?? `tip-${autoId}`;
+
+  const show = () => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (rect) setAlignRight(rect.left + TIP_WIDTH + 16 > window.innerWidth);
+    setOpen(true);
+  };
+
   return (
     // Hover handlers live on the wrapper so moving the pointer from the button
     // onto the tooltip popover keeps it open (the popover is a child here).
     <span
+      ref={wrapperRef}
       className="relative inline-flex"
-      onMouseEnter={() => setOpen(true)}
+      onMouseEnter={show}
       onMouseLeave={() => setOpen(false)}
     >
       <button
@@ -34,8 +48,8 @@ export function InfoTip({ id, label, text }: { id?: string; label: string; text:
         aria-expanded={open}
         aria-controls={tipId}
         aria-describedby={open ? tipId : undefined}
-        onClick={() => setOpen((o) => !o)}
-        onFocus={() => setOpen(true)}
+        onClick={() => (open ? setOpen(false) : show())}
+        onFocus={show}
         onBlur={() => setOpen(false)}
         onKeyDown={(event) => {
           if (event.key === "Escape") setOpen(false);
@@ -45,12 +59,16 @@ export function InfoTip({ id, label, text }: { id?: string; label: string; text:
         <Info className="h-4 w-4" aria-hidden="true" />
       </button>
       {open ? (
-        <span
-          id={tipId}
-          role="tooltip"
-          className="absolute left-0 top-6 z-20 w-60 rounded-md border border-neutral-200 bg-white p-2.5 text-xs font-normal leading-5 text-slate-600 shadow-lg"
-        >
-          {text}
+        // pt-2 bridges the gap below the trigger so the pointer can travel
+        // onto the tooltip without leaving the hover area.
+        <span className={cn("absolute top-full z-20 w-60 pt-2", alignRight ? "right-0" : "left-0")}>
+          <span
+            id={tipId}
+            role="tooltip"
+            className="block rounded-md border border-neutral-200 bg-white p-2.5 text-xs font-normal leading-5 text-slate-600 shadow-lg"
+          >
+            {text}
+          </span>
         </span>
       ) : null}
     </span>
