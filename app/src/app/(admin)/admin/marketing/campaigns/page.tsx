@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Textarea } from "@/components/ui/form-fields";
 import { HintField } from "@/components/ui/hint-field";
 import { InfoTip } from "@/components/ui/form-field";
+import { CampaignDateRange } from "@/components/admin/campaign-date-range";
 import { PageHeader } from "@/components/shared/page-shell";
 import { MARKETING_CHANNELS, channelLabel } from "@/lib/marketing/constants";
 import {
@@ -80,12 +81,13 @@ export default async function MarketingCampaignsPage() {
           <HintField label="Name" hint={TIPS.name}>
             <Input name="name" placeholder="Founding Cohort outreach" required />
           </HintField>
-          <HintField label="Start date" hint={TIPS.startDate}>
-            <Input name="startDate" type="date" defaultValue={dateValue(today)} required />
-          </HintField>
-          <HintField label="End date" hint={TIPS.endDate}>
-            <Input name="endDate" type="date" defaultValue={dateValue(suggestedEnd)} required />
-          </HintField>
+          <CampaignDateRange
+            defaultStart={dateValue(today)}
+            defaultEnd={dateValue(suggestedEnd)}
+            startHint={TIPS.startDate}
+            endHint={TIPS.endDate}
+            required
+          />
           <HintField label="Break-even (paid)" hint={TIPS.targetBreakEven}>
             <Input name="targetBreakEven" type="number" min={0} defaultValue={2} />
           </HintField>
@@ -136,12 +138,12 @@ export default async function MarketingCampaignsPage() {
             <HintField label="Name" hint={TIPS.name}>
               <Input name="name" defaultValue={campaign.name} />
             </HintField>
-            <HintField label="Start date" hint={TIPS.startDate}>
-              <Input name="startDate" type="date" defaultValue={dateValue(campaign.startDate)} />
-            </HintField>
-            <HintField label="End date" hint={TIPS.endDate}>
-              <Input name="endDate" type="date" defaultValue={dateValue(campaign.endDate)} />
-            </HintField>
+            <CampaignDateRange
+              defaultStart={dateValue(campaign.startDate)}
+              defaultEnd={dateValue(campaign.endDate)}
+              startHint={TIPS.startDate}
+              endHint={TIPS.endDate}
+            />
             <HintField label="Off-platform paid" hint={TIPS.offPlatformPaid}>
               <Input name="offPlatformPaid" type="number" min={0} defaultValue={campaign.offPlatformPaid} />
             </HintField>
