@@ -390,17 +390,137 @@ export async function logDailyActivity(formData: FormData) {
   refresh();
 }
 
+async function assertCategoryExists(key: string) {
+  const found = await prisma.marketingTemplateCategory.findUnique({ where: { key } });
+  if (!found) throw new Error("That section no longer exists. Refresh the page and pick another.");
+}
+
 export async function updateTemplate(formData: FormData) {
   const admin = await requireSuperAdmin();
   const id = text(formData, "templateId");
   const title = text(formData, "title");
   const body = text(formData, "body");
+  const category = text(formData, "category");
   if (!title || !body) throw new Error("Title and body are required.");
   const existing = await prisma.marketingTemplate.findUniqueOrThrow({ where: { id } });
-  await prisma.marketingTemplate.update({ where: { id }, data: { title, body } });
+  const nextCategory = category || existing.category;
+  if (nextCategory !== existing.category) await assertCategoryExists(nextCategory);
+  await prisma.marketingTemplate.update({
+    where: { id },
+    data: {
+      title,
+      body,
+      category: nextCategory,
+      sortOrder: intIn(formData, "sortOrder", existing.sortOrder, 0, 1000),
+    },
+  });
+  // The previous body is kept in the audit log so an accidental overwrite of
+  // hand-crafted copy is always recoverable.
   await audit(admin.id, "MARKETING_TEMPLATE_UPDATE", "MarketingTemplate", id, {
+    before: { title: existing.title, category: existing.category, body: existing.body },
+    after: { title, category: nextCategory },
+  });
+  refresh();
+}
+
+export async function createTemplate(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const title = text(formData, "title");
+  const body = text(formData, "body");
+  const category = text(formData, "category");
+  if (!title || !body) throw new Error("Title and body are required.");
+  if (!category) throw new Error("Pick a category.");
+  await assertCategoryExists(category);
+  const created = await prisma.marketingTemplate.create({
+    data: {
+      key: `tpl_${crypto.randomUUID().slice(0, 12)}`,
+      category,
+      title,
+      body,
+      sortOrder: intIn(formData, "sortOrder", 100, 0, 1000),
+    },
+  });
+  await audit(admin.id, "MARKETING_TEMPLATE_CREATE", "MarketingTemplate", created.id, { after: { title, category } });
+  refresh();
+}
+
+export async function deleteTemplate(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "templateId");
+  const existing = await prisma.marketingTemplate.findUniqueOrThrow({ where: { id } });
+  await prisma.marketingTemplate.delete({ where: { id } });
+  // Full body recorded so deleted copy can be restored from the audit log.
+  await audit(admin.id, "MARKETING_TEMPLATE_DELETE", "MarketingTemplate", id, {
+    before: { title: existing.title, category: existing.category, body: existing.body },
+  });
+  refresh();
+}
+
+// ---------------------------------------------------------------------------
+// Playbook categories
+// ---------------------------------------------------------------------------
+
+function slugify(title: string): string {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40) || "category";
+}
+
+export async function createPlaybookCategory(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const title = text(formData, "title");
+  if (title.length < 2) throw new Error("Enter a category title.");
+  let key = slugify(title);
+  if (await prisma.marketingTemplateCategory.findUnique({ where: { key } })) {
+    key = `${key}_${crypto.randomUUID().slice(0, 4)}`;
+  }
+  const created = await prisma.marketingTemplateCategory.create({
+    data: {
+      key,
+      title,
+      note: text(formData, "note") || null,
+      sortOrder: intIn(formData, "sortOrder", 100, 0, 1000),
+    },
+  });
+  await audit(admin.id, "MARKETING_CATEGORY_CREATE", "MarketingTemplateCategory", created.id, { after: { title, key } });
+  refresh();
+}
+
+export async function updatePlaybookCategory(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "categoryId");
+  const title = text(formData, "title");
+  if (title.length < 2) throw new Error("Enter a category title.");
+  const existing = await prisma.marketingTemplateCategory.findUniqueOrThrow({ where: { id } });
+  await prisma.marketingTemplateCategory.update({
+    where: { id },
+    data: {
+      title,
+      note: text(formData, "note") || null,
+      sortOrder: intIn(formData, "sortOrder", existing.sortOrder, 0, 1000),
+    },
+  });
+  await audit(admin.id, "MARKETING_CATEGORY_UPDATE", "MarketingTemplateCategory", id, {
     before: { title: existing.title },
     after: { title },
+  });
+  refresh();
+}
+
+export async function deletePlaybookCategory(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "categoryId");
+  // Count + delete run in one transaction so a concurrent "move item into this
+  // section" cannot slip between the check and the delete.
+  const existing = await prisma.$transaction(async (tx) => {
+    const category = await tx.marketingTemplateCategory.findUniqueOrThrow({ where: { id } });
+    const inUse = await tx.marketingTemplate.count({ where: { category: category.key } });
+    if (inUse > 0) {
+      throw new Error(`Cannot delete "${category.title}": ${inUse} template(s) still use it. Move or delete them first.`);
+    }
+    await tx.marketingTemplateCategory.delete({ where: { id } });
+    return category;
+  });
+  await audit(admin.id, "MARKETING_CATEGORY_DELETE", "MarketingTemplateCategory", id, {
+    before: { title: existing.title, key: existing.key },
   });
   refresh();
 }

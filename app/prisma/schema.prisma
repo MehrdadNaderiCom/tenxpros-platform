@@ -1547,3 +1547,20 @@ model MarketingTemplate {
 
   updatedAt DateTime @updatedAt
 }
+
+// Editable playbook sections. Templates reference a category by its key
+// (string, no FK) so categories can be renamed freely; deletion is blocked
+// while templates still use the key.
+model MarketingTemplateCategory {
+  id String @id @default(cuid())
+
+  key String @unique
+
+  title String
+
+  note String?
+
+  sortOrder Int @default(0)
+
+  updatedAt DateTime @updatedAt
+}
