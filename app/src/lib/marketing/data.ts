@@ -1,8 +1,9 @@
 /**
  * Server-side data layer for TenXPros Command: loads the active campaign and
- * computes live metrics. Goal progress ("paid") comes from REAL paid
- * applications inside the campaign window plus the campaign's off-platform
- * count, so goals track money, not just pipeline labels.
+ * computes live metrics. Goal progress ("paid") counts applications SUBMITTED
+ * on or after the campaign start that are enrolled or have a successful
+ * payment (whenever the payment lands), plus the campaign's off-platform
+ * count — so goals track money, not just pipeline labels.
  */
 import { prisma } from "@/lib/prisma";
 import { LIVE_STAGES, prospectScore } from "@/lib/marketing/constants";
@@ -55,10 +56,11 @@ export async function campaignMetrics(campaign: CampaignWithChannels, now = new 
   const dailyFloor = campaign.channels.filter((c) => c.enabled).reduce((sum, c) => sum + c.dailyMin, 0);
   const messagesExpected = dailyFloor * clock.elapsedDays;
 
+  const NO_FOLLOWUP_STAGES = ["LIST", "PAID", "LOST", "DROPPED"];
   const followupsDue = prospects.filter(
     (p) =>
       p.followupStatus === "ACTIVE" &&
-      p.stage !== "LIST" &&
+      !NO_FOLLOWUP_STAGES.includes(p.stage) &&
       isFollowupDue(p.followupNextDue, now),
   );
 

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field, Input } from "@/components/ui/form-fields";
+import { Input } from "@/components/ui/form-fields";
+import { HintField } from "@/components/ui/hint-field";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 import { prisma } from "@/lib/prisma";
 import { getActiveCampaign } from "@/lib/marketing/data";
@@ -79,18 +80,27 @@ export default async function MarketingActivityPage() {
                     floor {channel.dailyMin} · cap {channel.dailyMax}/day, {channel.weeklyCap}/wk
                   </p>
                 </div>
-                <Field label="Messages">
+                <HintField
+                  label="Messages"
+                  hint="Outbound messages you actually sent today on this channel: new openers AND follow-ups both count. The coach compares the total against your daily floors."
+                >
                   <Input name="messages" type="number" min={0} defaultValue={log?.messages ?? 0} />
-                </Field>
-                <Field label="Replies">
+                </HintField>
+                <HintField
+                  label="Replies"
+                  hint="Replies received today (any human response, even a 'no'). Drives the reply-rate nudge: target 15-25%; under 10% means rewrite the first line."
+                >
                   <Input name="replies" type="number" min={0} defaultValue={log?.replies ?? 0} />
-                </Field>
-                <Field label="Calls">
+                </HintField>
+                <HintField
+                  label="Calls"
+                  hint="Calls or voice conversations actually HELD today (not just booked). The coach's pivot and close-rate logic read this number."
+                >
                   <Input name="calls" type="number" min={0} defaultValue={log?.calls ?? 0} />
-                </Field>
-                <Field label="Note">
+                </HintField>
+                <HintField label="Note" hint="Optional one-liner: what you tested today (e.g. 'new opener v2'), so trends make sense later.">
                   <Input name="notes" defaultValue={log?.notes ?? ""} />
-                </Field>
+                </HintField>
                 <Button type="submit" variant="secondary">
                   Save
                 </Button>

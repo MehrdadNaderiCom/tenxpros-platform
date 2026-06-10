@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { InfoTip } from "@/components/ui/form-field";
 import { PageHeader } from "@/components/shared/page-shell";
 import { getActiveCampaign, campaignMetrics } from "@/lib/marketing/data";
 import { coachNudges, coachVerdict, replyRate, closeRate } from "@/lib/marketing/coach";
@@ -9,10 +10,25 @@ import { PROSPECT_STAGES, stageLabel } from "@/lib/marketing/constants";
 import { markFollowupSent, syncProspectsWithFunnel } from "@/lib/actions/marketing";
 import { nextFollowupLabel } from "@/lib/marketing/followup";
 
-function GoalTile({ label, value, target, hit }: { label: string; value: number; target: number; hit: boolean }) {
+function GoalTile({
+  label,
+  value,
+  target,
+  hit,
+  hint,
+}: {
+  label: string;
+  value: number;
+  target: number;
+  hit: boolean;
+  hint: string;
+}) {
   return (
     <Card className={`space-y-1 ${hit ? "border-emerald-300" : ""}`}>
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-slate-500">
+        {label}
+        <InfoTip id={`goal-${label.toLowerCase().replace(/[^a-z]+/g, "-")}`} label={`About ${label}`} text={hint} />
+      </p>
       <p className="text-3xl font-semibold text-navy-900">
         {value}
         <span className="text-base font-normal text-slate-400"> / {target}</span>
@@ -60,13 +76,37 @@ export default async function MarketingCommandPage() {
 
       {/* Goals */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <GoalTile label="Break-even (paid)" value={m.paidNow} target={campaign.targetBreakEven} hit={m.paidNow >= campaign.targetBreakEven} />
-        <GoalTile label="Ideal (paid)" value={m.paidNow} target={campaign.targetIdeal} hit={m.paidNow >= campaign.targetIdeal} />
-        <GoalTile label="Stretch (paid)" value={m.paidNow} target={campaign.targetStretch} hit={m.paidNow >= campaign.targetStretch} />
-        <GoalTile label="Active pipeline" value={m.activePipeline} target={campaign.targetPipeline} hit={m.activePipeline >= campaign.targetPipeline} />
+        <GoalTile
+          label="Break-even (paid)"
+          value={m.paidNow}
+          target={campaign.targetBreakEven}
+          hit={m.paidNow >= campaign.targetBreakEven}
+          hint="Minimum acceptable outcome: paid customers covering the campaign's cost. Counted live from applications SUBMITTED on or after the campaign start that are enrolled or have a successful payment (whenever the payment lands), plus off-platform wins you record in Campaigns."
+        />
+        <GoalTile
+          label="Ideal (paid)"
+          value={m.paidNow}
+          target={campaign.targetIdeal}
+          hit={m.paidNow >= campaign.targetIdeal}
+          hint="The goal you're actually aiming for (the 'first 3 customers' number). Same live paid count, higher bar."
+        />
+        <GoalTile
+          label="Stretch (paid)"
+          value={m.paidNow}
+          target={campaign.targetStretch}
+          hit={m.paidNow >= campaign.targetStretch}
+          hint="The big-win bar. Hitting it means the offer works; plan a larger, higher-priced next cohort."
+        />
+        <GoalTile
+          label="Active pipeline"
+          value={m.activePipeline}
+          target={campaign.targetPipeline}
+          hit={m.activePipeline >= campaign.targetPipeline}
+          hint="Prospects currently in motion (Approached through Applied; not List, not lost/dropped). Keep this near the target: conversions need coverage, roughly 10x your ideal goal."
+        />
       </div>
       <p className="text-xs text-slate-500">
-        Paid = real paid/enrolled applications since the campaign start ({m.paidApplications}) plus off-platform wins ({campaign.offPlatformPaid}).
+        Paid = applications submitted since the campaign start that are enrolled or successfully paid ({m.paidApplications}) plus off-platform wins ({campaign.offPlatformPaid}).
       </p>
 
       {/* Coach verdict */}
@@ -111,7 +151,14 @@ export default async function MarketingCommandPage() {
         </Card>
 
         <Card className="space-y-3">
-          <h2 className="text-sm font-semibold text-navy-900">Follow-ups due today ({m.followupsDue.length})</h2>
+          <h2 className="flex items-center gap-1.5 text-sm font-semibold text-navy-900">
+            Follow-ups due today ({m.followupsDue.length})
+            <InfoTip
+              id="tip-followups-due"
+              label="About follow-ups due"
+              text="Prospects whose FU1/FU2/FU3 date has arrived. Send the follow-up (Playbook has the drafts), then press 'Mark sent' to schedule the next step. Clear these BEFORE new cold outreach, and remember to count them in today's Messages on the Activity page."
+            />
+          </h2>
           {m.followupsDue.length === 0 ? (
             <p className="text-sm text-slate-500">Nothing due. Send new outreach.</p>
           ) : (
@@ -125,13 +172,23 @@ export default async function MarketingCommandPage() {
                   <Button type="submit" variant="secondary" className="px-2 py-1 text-xs">Mark sent</Button>
                 </form>
               ))}
+              {m.followupsDue.length > 6 ? (
+                <Link href="/admin/marketing/prospects" className="block text-xs font-medium text-navy-600 hover:underline">
+                  View all {m.followupsDue.length} →
+                </Link>
+              ) : null}
             </div>
           )}
-          <form action={syncProspectsWithFunnel}>
+          <form action={syncProspectsWithFunnel} className="flex items-center gap-1.5">
             <input type="hidden" name="campaignId" value={campaign.id} />
             <Button type="submit" variant="secondary" className="w-full text-xs">
               Sync pipeline with real applications
             </Button>
+            <InfoTip
+              id="tip-funnel-sync"
+              label="About funnel sync"
+              text="Matches each prospect's email to real applications on the site, links them, and moves their stage forward to Applied or Paid (never backwards, never out of Lost/Dropped). Run it whenever someone you contacted applies. Note: pre-campaign applications link and move the stage, but the paid goals only count applications submitted after the campaign start."
+            />
           </form>
         </Card>
       </div>

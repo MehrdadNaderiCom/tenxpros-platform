@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field, Input, Textarea } from "@/components/ui/form-fields";
+import { Input, Textarea } from "@/components/ui/form-fields";
+import { HintField } from "@/components/ui/hint-field";
 import { PageHeader } from "@/components/shared/page-shell";
 import { prisma } from "@/lib/prisma";
 import { PLAYBOOK_SEED } from "@/lib/marketing/playbook-seed";
@@ -64,12 +65,15 @@ export default async function PlaybookPage() {
                     </summary>
                     <form action={updateTemplate} className="mt-3 space-y-3">
                       <input type="hidden" name="templateId" value={template.id} />
-                      <Field label="Title">
+                      <HintField label="Title" hint="Short label shown in this list. Keep the FU numbering / ranking visible so the order stays obvious.">
                         <Input name="title" defaultValue={template.title} />
-                      </Field>
-                      <Field label="Body">
+                      </HintField>
+                      <HintField
+                        label="Body"
+                        hint="The reusable draft. Keep {placeholders} like {first_name}; you replace them by hand when sending. Rule: the FIRST LINE must always be rewritten to be personal to the prospect. Edits are saved and audited; templates are yours to evolve."
+                      >
                         <Textarea name="body" className="min-h-40 font-mono text-xs" defaultValue={template.body} />
-                      </Field>
+                      </HintField>
                       <Button type="submit" variant="secondary">
                         Save template
                       </Button>

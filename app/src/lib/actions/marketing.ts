@@ -134,13 +134,17 @@ export async function saveChannel(formData: FormData) {
   const campaignId = text(formData, "campaignId");
   const channel = text(formData, "channel");
   if (!CHANNEL_VALUES.includes(channel)) throw new Error("Unknown channel.");
+  const existing = await prisma.marketingChannel.findUnique({
+    where: { campaignId_channel: { campaignId, channel } },
+  });
   await prisma.marketingChannel.upsert({
     where: { campaignId_channel: { campaignId, channel } },
+    // Invalid/cleared inputs fall back to the channel's current values, and
+    // saving quotas never flips the enabled flag.
     update: {
-      dailyMin: intIn(formData, "dailyMin", 5, 0, 1000),
-      dailyMax: intIn(formData, "dailyMax", 15, 0, 1000),
-      weeklyCap: intIn(formData, "weeklyCap", 70, 0, 10000),
-      enabled: text(formData, "enabled") !== "false",
+      dailyMin: intIn(formData, "dailyMin", existing?.dailyMin ?? 5, 0, 1000),
+      dailyMax: intIn(formData, "dailyMax", existing?.dailyMax ?? 15, 0, 1000),
+      weeklyCap: intIn(formData, "weeklyCap", existing?.weeklyCap ?? 70, 0, 10000),
     },
     create: {
       campaignId,
@@ -169,7 +173,11 @@ function prospectData(formData: FormData) {
   if (name.length < 2) throw new Error("Enter the prospect's name.");
   const warmth = text(formData, "warmth");
   if (!WARMTH_VALUES.includes(warmth)) throw new Error("Pick a warmth level.");
+  const assets = formData
+    .getAll("assetsSent")
+    .filter((value): value is string => typeof value === "string" && value.length > 0);
   return {
+    assetsSent: assets.length > 0 ? assets.join(",") : null,
     name,
     context: text(formData, "context") || null,
     warmth: warmth as "WARM" | "REFERRAL" | "COLD_ENGAGED" | "COLD",
@@ -237,6 +245,11 @@ export async function changeProspectStage(formData: FormData) {
     data.followupNextDue = null;
     await prisma.prospectTouch.create({ data: { prospectId: id, type: "reply", summary: "Reply received" } });
   }
+  if (stage === "PAID" || stage === "LOST" || stage === "DROPPED") {
+    // Terminal stages end the reminder cadence — never nag a won or closed prospect.
+    data.followupNextDue = null;
+    data.followupStatus = stage === "PAID" ? "PARKED" : "DROPPED";
+  }
   if (stage === "LOST") data.lostReason = text(formData, "lostReason") || existing.lostReason || null;
 
   await prisma.prospect.update({ where: { id }, data });
@@ -275,14 +288,28 @@ export async function setFollowupStatus(formData: FormData) {
   const id = text(formData, "prospectId");
   const status = text(formData, "status");
   if (!["ACTIVE", "PARKED", "DROPPED"].includes(status)) throw new Error("Unknown follow-up status.");
-  await prisma.prospect.update({
-    where: { id },
-    data: {
-      followupStatus: status as "ACTIVE" | "PARKED" | "DROPPED",
-      followupDropReason: status === "DROPPED" ? text(formData, "reason") || null : null,
-      ...(status !== "ACTIVE" ? { followupNextDue: null } : {}),
-    },
-  });
+  const existing = await prisma.prospect.findUniqueOrThrow({ where: { id } });
+
+  if (status === "ACTIVE") {
+    // Resume: reschedule the next follow-up from today, continuing from the
+    // step already completed. A finished cadence (3/3) stays parked.
+    const nextDue = nextFollowupDue(existing.followupStep, new Date());
+    await prisma.prospect.update({
+      where: { id },
+      data: nextDue
+        ? { followupStatus: "ACTIVE", followupNextDue: nextDue, followupDropReason: null }
+        : { followupStatus: "PARKED", followupNextDue: null },
+    });
+  } else {
+    await prisma.prospect.update({
+      where: { id },
+      data: {
+        followupStatus: status as "PARKED" | "DROPPED",
+        followupDropReason: status === "DROPPED" ? text(formData, "reason") || null : null,
+        followupNextDue: null,
+      },
+    });
+  }
   refresh();
 }
 
@@ -323,11 +350,14 @@ export async function syncProspectsWithFunnel(formData: FormData) {
     const paid = application.payments.length > 0 || application.status === "ENROLLED";
     const target = paid ? "PAID" : "APPLIED";
     const order = STAGE_VALUES.indexOf(target) > STAGE_VALUES.indexOf(prospect.stage);
+    const advancing = order && prospect.stage !== "LOST" && prospect.stage !== "DROPPED";
     await prisma.prospect.update({
       where: { id: prospect.id },
       data: {
         applicationId: application.id,
-        ...(order && prospect.stage !== "LOST" && prospect.stage !== "DROPPED" ? { stage: target as "APPLIED" | "PAID" } : {}),
+        ...(advancing ? { stage: target as "APPLIED" | "PAID" } : {}),
+        // A won prospect leaves the reminder cadence.
+        ...(advancing && target === "PAID" ? { followupStatus: "PARKED", followupNextDue: null } : {}),
       },
     });
     linked += 1;

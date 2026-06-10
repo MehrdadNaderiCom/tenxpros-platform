@@ -16,8 +16,10 @@ import { cn } from "@/lib/utils";
  * hover, keyboard focus, and tap (works without a mouse). Used to keep the form
  * compact while giving precise per-field guidance.
  */
-export function InfoTip({ id, label, text }: { id: string; label: string; text: string }) {
+export function InfoTip({ id, label, text }: { id?: string; label: string; text: string }) {
   const [open, setOpen] = useState(false);
+  const autoId = useId();
+  const tipId = id ?? `tip-${autoId}`;
   return (
     // Hover handlers live on the wrapper so moving the pointer from the button
     // onto the tooltip popover keeps it open (the popover is a child here).
@@ -30,8 +32,8 @@ export function InfoTip({ id, label, text }: { id: string; label: string; text: 
         type="button"
         aria-label={label}
         aria-expanded={open}
-        aria-controls={id}
-        aria-describedby={open ? id : undefined}
+        aria-controls={tipId}
+        aria-describedby={open ? tipId : undefined}
         onClick={() => setOpen((o) => !o)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
@@ -44,7 +46,7 @@ export function InfoTip({ id, label, text }: { id: string; label: string; text: 
       </button>
       {open ? (
         <span
-          id={id}
+          id={tipId}
           role="tooltip"
           className="absolute left-0 top-6 z-20 w-60 rounded-md border border-neutral-200 bg-white p-2.5 text-xs font-normal leading-5 text-slate-600 shadow-lg"
         >

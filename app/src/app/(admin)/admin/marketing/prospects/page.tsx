@@ -2,10 +2,13 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Field, Input, Select, Textarea } from "@/components/ui/form-fields";
+import { Input, Select, Textarea } from "@/components/ui/form-fields";
+import { HintField } from "@/components/ui/hint-field";
+import { InfoTip } from "@/components/ui/form-field";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 import { getActiveCampaign } from "@/lib/marketing/data";
 import {
+  ASSET_OPTIONS,
   PROSPECT_STAGES,
   WARMTH_OPTIONS,
   prospectScore,
@@ -34,6 +37,32 @@ const STAGE_BADGE: Record<string, string> = {
   PAID: "ACCEPTED",
   LOST: "NOT_COMPLETED",
   DROPPED: "CLOSED",
+};
+
+// What each field means + how to fill it well (shown as ⓘ tooltips).
+const TIPS = {
+  name: "First name is enough if that's all you have. You'll recognize them by name + context.",
+  context:
+    "Their role and industry WITHOUT confidential details, e.g. 'Ops director, logistics scale-up'. This is what makes the first line of your message personal.",
+  warmth:
+    "How they know you. Warm (knows you, x4) > Referral (intro'd, x3) > Cold engaged (reacted to content, x2) > Cold (x1). This multiplies the whole score, because trust is the scarcest asset.",
+  pain: "1-5: how badly do they have the AI-adoption problem TenXPros solves? 5 = actively struggling and says so.",
+  authority: "1-5: can they decide AND pay $997 themselves? 5 = owns the budget; 1 = must convince a boss.",
+  icp: "1-5: ideal-customer fit and case-study value. 5 = exactly the professional the program is built for.",
+  email:
+    "The key field for automation: if they later apply on the site with this email, 'Sync with real applications' links them and moves the stage to Applied/Paid automatically.",
+  contacts: "Fill only the channels you can actually reach them on. They show as chips on the card.",
+  assets:
+    "Which trust assets you've already shared. Lead with the Sample Dossier; it's the gateway asset (everything else is weaker without it).",
+  notes: "Call notes, objections heard, what to mention next time. Private to you.",
+  stageMove:
+    "Where this person is in the journey. Moving LIST → APPROACHED starts the follow-up cadence automatically (FU1 +3d, FU2 +7d, FU3 +7d). A reply pauses the cadence; Paid/Lost/Dropped end it. Applied/Paid usually arrive via the sync button on Command. When marking Lost, log the reason as a touch note.",
+  fuSent:
+    "Press after you actually send the due follow-up. It logs the touch and schedules the next one; after FU3 the prospect parks (kept, no more reminders). Remember to also count the message in today's Activity numbers.",
+  parkResume:
+    "Park = stop reminders but keep them in the list. Resume reactivates the prospect and schedules the next follow-up from today (a finished 3/3 cadence stays parked).",
+  touch:
+    "A quick journal of what happened (message, reply, call, asset, note). The last three touches show on the card so you never lose the thread.",
 };
 
 function ContactChips({ p }: { p: Record<string, string | null> }) {
@@ -79,9 +108,11 @@ function ProspectEditor({
     telegram: string | null;
     instagram: string | null;
     twitter: string | null;
+    assetsSent: string | null;
     notes: string | null;
   };
 }) {
+  const sentAssets = new Set((prospect?.assetsSent ?? "").split(",").filter(Boolean));
   return (
     <form action={prospect ? updateProspect : createProspect} className="grid gap-3 md:grid-cols-4">
       {prospect ? (
@@ -89,13 +120,13 @@ function ProspectEditor({
       ) : (
         <input type="hidden" name="campaignId" value={campaignId} />
       )}
-      <Field label="Name">
+      <HintField label="Name" hint={TIPS.name}>
         <Input name="name" defaultValue={prospect?.name ?? ""} required />
-      </Field>
-      <Field label="Context (industry/role, no names)">
+      </HintField>
+      <HintField label="Context (role/industry)" hint={TIPS.context}>
         <Input name="context" defaultValue={prospect?.context ?? ""} placeholder="Ops director, logistics" />
-      </Field>
-      <Field label="Warmth">
+      </HintField>
+      <HintField label="Warmth" hint={TIPS.warmth}>
         <Select name="warmth" defaultValue={prospect?.warmth ?? "COLD"}>
           {WARMTH_OPTIONS.map((w) => (
             <option key={w.value} value={w.value}>
@@ -103,43 +134,53 @@ function ProspectEditor({
             </option>
           ))}
         </Select>
-      </Field>
+      </HintField>
       <div className="grid grid-cols-3 gap-2">
-        <Field label="Pain 1-5">
+        <HintField label="Pain" hint={TIPS.pain}>
           <Input name="pain" type="number" min={1} max={5} defaultValue={prospect?.pain ?? 3} />
-        </Field>
-        <Field label="Authority">
+        </HintField>
+        <HintField label="Authority" hint={TIPS.authority}>
           <Input name="authority" type="number" min={1} max={5} defaultValue={prospect?.authority ?? 3} />
-        </Field>
-        <Field label="ICP fit">
+        </HintField>
+        <HintField label="ICP fit" hint={TIPS.icp}>
           <Input name="icpFit" type="number" min={1} max={5} defaultValue={prospect?.icpFit ?? 3} />
-        </Field>
+        </HintField>
       </div>
-      <Field label="Email">
+      <HintField label="Email" hint={TIPS.email}>
         <Input name="email" type="email" defaultValue={prospect?.email ?? ""} placeholder="links to real applications" />
-      </Field>
-      <Field label="LinkedIn">
+      </HintField>
+      <HintField label="LinkedIn" hint={TIPS.contacts}>
         <Input name="linkedin" defaultValue={prospect?.linkedin ?? ""} />
-      </Field>
-      <Field label="WhatsApp">
+      </HintField>
+      <HintField label="WhatsApp" hint={TIPS.contacts}>
         <Input name="whatsapp" defaultValue={prospect?.whatsapp ?? ""} />
-      </Field>
-      <Field label="Phone">
+      </HintField>
+      <HintField label="Phone" hint={TIPS.contacts}>
         <Input name="phone" defaultValue={prospect?.phone ?? ""} />
-      </Field>
-      <Field label="Telegram">
+      </HintField>
+      <HintField label="Telegram" hint={TIPS.contacts}>
         <Input name="telegram" defaultValue={prospect?.telegram ?? ""} />
-      </Field>
-      <Field label="Instagram">
+      </HintField>
+      <HintField label="Instagram" hint={TIPS.contacts}>
         <Input name="instagram" defaultValue={prospect?.instagram ?? ""} />
-      </Field>
-      <Field label="X (Twitter)">
+      </HintField>
+      <HintField label="X (Twitter)" hint={TIPS.contacts}>
         <Input name="twitter" defaultValue={prospect?.twitter ?? ""} />
-      </Field>
+      </HintField>
+      <HintField label="Assets shared" hint={TIPS.assets}>
+        <span className="flex h-11 flex-wrap items-center gap-3">
+          {ASSET_OPTIONS.map((asset) => (
+            <label key={asset.value} className="flex items-center gap-1.5 text-xs text-slate-700">
+              <input type="checkbox" name="assetsSent" value={asset.value} defaultChecked={sentAssets.has(asset.value)} />
+              {asset.label}
+            </label>
+          ))}
+        </span>
+      </HintField>
       <div className="md:col-span-3">
-        <Field label="Notes">
+        <HintField label="Notes" hint={TIPS.notes}>
           <Textarea name="notes" className="min-h-12" defaultValue={prospect?.notes ?? ""} />
-        </Field>
+        </HintField>
       </div>
       <div className="flex items-end">
         <Button type="submit" variant="secondary">
@@ -182,7 +223,7 @@ export default async function ProspectsPage({ searchParams }: { searchParams: { 
     <div className="space-y-8">
       <PageHeader
         title="Prospects"
-        description={`${campaign.name} · sorted by follow-up urgency, then score (warmth x (pain + authority + ICP)).`}
+        description={`${campaign.name} · sorted by follow-up urgency, then score = warmth x (pain + authority + ICP). Hover any ⓘ for guidance.`}
       />
       <Link href="/admin/marketing" className="text-sm font-medium text-navy-600 hover:underline">
         ← Back to Command
@@ -248,32 +289,36 @@ export default async function ProspectsPage({ searchParams }: { searchParams: { 
                   <Button type="submit" variant="secondary" className="px-2.5 py-1.5 text-xs">
                     Move
                   </Button>
+                  <InfoTip id={`tip-stage-${p.id}`} label="About stages" text={TIPS.stageMove} />
                 </form>
                 <div className="flex items-center gap-2 text-xs">
                   {p.followupStatus === "ACTIVE" && p.followupNextDue ? (
                     <span className={p.due ? "font-semibold text-amber-700" : "text-slate-500"}>
                       {nextFollowupLabel(p.followupStep) ?? "FU"} {p.due ? "due today" : `on ${p.followupNextDue.toISOString().slice(0, 10)}`}
                     </span>
+                  ) : p.followupStatus === "ACTIVE" ? (
+                    <span className="text-slate-400">follow-up: paused (replied) — next touches manual</span>
                   ) : (
                     <span className="text-slate-400">
-                      follow-up: {p.followupStatus.toLowerCase()}
-                      {p.followupStatus === "PARKED" ? " (3/3 done)" : ""}
+                      follow-up: {p.followupStatus.toLowerCase()} ({p.followupStep}/3 done)
                     </span>
                   )}
                   {p.followupStatus === "ACTIVE" && p.stage !== "LIST" ? (
-                    <form action={markFollowupSent}>
+                    <form action={markFollowupSent} className="flex items-center gap-1">
                       <input type="hidden" name="prospectId" value={p.id} />
                       <Button type="submit" variant="secondary" className="px-2 py-1 text-[11px]">
                         FU sent
                       </Button>
+                      <InfoTip id={`tip-fu-${p.id}`} label="About follow-ups" text={TIPS.fuSent} />
                     </form>
                   ) : null}
-                  <form action={setFollowupStatus}>
+                  <form action={setFollowupStatus} className="flex items-center gap-1">
                     <input type="hidden" name="prospectId" value={p.id} />
                     <input type="hidden" name="status" value={p.followupStatus === "ACTIVE" ? "PARKED" : "ACTIVE"} />
                     <Button type="submit" variant="secondary" className="px-2 py-1 text-[11px]">
                       {p.followupStatus === "ACTIVE" ? "Park" : "Resume"}
                     </Button>
+                    <InfoTip id={`tip-park-${p.id}`} label="About park/resume" text={TIPS.parkResume} />
                   </form>
                 </div>
               </div>
@@ -292,7 +337,7 @@ export default async function ProspectsPage({ searchParams }: { searchParams: { 
                 <ProspectEditor campaignId={campaign.id} prospect={p} />
                 <form action={recordTouch} className="flex flex-wrap items-end gap-3 border-t border-neutral-100 pt-3">
                   <input type="hidden" name="prospectId" value={p.id} />
-                  <Field label="Log a touch">
+                  <HintField label="Log a touch" hint={TIPS.touch}>
                     <Select name="type" defaultValue="note" className="w-40">
                       <option value="message">Message sent</option>
                       <option value="reply">Reply received</option>
@@ -300,10 +345,10 @@ export default async function ProspectsPage({ searchParams }: { searchParams: { 
                       <option value="asset">Asset shared</option>
                       <option value="note">Note</option>
                     </Select>
-                  </Field>
-                  <Field label="Summary">
+                  </HintField>
+                  <HintField label="Summary" hint="One line: what was said or what happened. Shows under the card.">
                     <Input name="summary" placeholder="What happened?" />
-                  </Field>
+                  </HintField>
                   <Button type="submit" variant="secondary">
                     Log
                   </Button>
