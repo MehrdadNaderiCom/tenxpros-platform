@@ -31,7 +31,7 @@ You receive the live campaign data as JSON. Respond with:
 1. A one-line verdict of where the campaign truly stands.
 2. The 3 highest-leverage moves for the NEXT 24 HOURS, concrete and specific to the data (name names from the pipeline when useful).
 3. One risk the founder is probably not seeing.
-Be direct, practical, and brief (under 300 words). No generic advice; tie every point to the numbers or prospects given. Plain text only (short lines, "-" bullets, no markdown headers).`;
+Be direct, practical, and brief (under 300 words). No generic advice; tie every point to the numbers or prospects given. Format: short **bold** section labels and "-" bullets only (no tables, no nested lists, no # headers).`;
 
 export function buildCoachContext(
   campaign: CampaignWithChannels,

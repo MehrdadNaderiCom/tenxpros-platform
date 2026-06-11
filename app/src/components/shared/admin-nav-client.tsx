@@ -68,6 +68,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/marketing/campaigns": Megaphone,
   "/admin/marketing/activity": CalendarClock,
   "/admin/marketing/playbook": NotebookPen,
+  "/admin/marketing/settings": Settings,
 };
 
 function isActiveHref(pathname: string, href: string): boolean {

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { InfoTip } from "@/components/ui/form-field";
 import { askAiSuggestion } from "@/lib/actions/marketing";
+import { AiText } from "@/components/admin/ai-text";
 import { latestSuggestion, SUGGEST_AREAS, type SuggestArea } from "@/lib/marketing/ai-suggest";
 
 /**
@@ -48,9 +49,9 @@ export async function AiSuggestCard({
           </p>
         ) : (
           <div className="space-y-1">
-            <pre className="whitespace-pre-wrap rounded-md bg-violet-50/60 p-3 font-sans text-sm leading-6 text-slate-800">
-              {latest.content}
-            </pre>
+            <div className="rounded-md bg-violet-50/60 p-3">
+              <AiText text={latest.content} />
+            </div>
             <p className="text-[11px] text-slate-400">
               {latest.model} · {latest.createdAt.toLocaleString()}
             </p>

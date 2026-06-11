@@ -62,15 +62,16 @@ const sections: NavSection[] = [
   },
 ];
 
-/** Visible only to the super admin (TenXPros Command). */
+/** Visible only to the super admin (TenXPros Command). Ordered by daily use. */
 const marketingSection: NavSection = {
   title: "Marketing",
   items: [
     { label: "Command", href: "/admin/marketing" },
+    { label: "Today", href: "/admin/marketing/activity" },
     { label: "Prospects", href: "/admin/marketing/prospects" },
-    { label: "Campaigns", href: "/admin/marketing/campaigns" },
-    { label: "Activity", href: "/admin/marketing/activity" },
     { label: "Playbook", href: "/admin/marketing/playbook" },
+    { label: "Campaigns", href: "/admin/marketing/campaigns" },
+    { label: "Settings", href: "/admin/marketing/settings" },
   ],
 };
 

@@ -2,16 +2,15 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/form-fields";
-import { HintField } from "@/components/ui/hint-field";
 import { InfoTip } from "@/components/ui/form-field";
+import { AiText } from "@/components/admin/ai-text";
 import { PageHeader } from "@/components/shared/page-shell";
 import { prisma } from "@/lib/prisma";
 import { getActiveCampaign, campaignMetrics } from "@/lib/marketing/data";
 import { coachNudges, coachVerdict, replyRate, closeRate } from "@/lib/marketing/coach";
 import { getCoachSettings } from "@/lib/marketing/ai-coach";
 import { PROSPECT_STAGES, stageLabel } from "@/lib/marketing/constants";
-import { askAiCoach, markFollowupSent, saveCoachSettings, syncProspectsWithFunnel } from "@/lib/actions/marketing";
+import { askAiCoach, markFollowupSent, syncProspectsWithFunnel } from "@/lib/actions/marketing";
 import { nextFollowupLabel } from "@/lib/marketing/followup";
 
 function GoalTile({
@@ -70,10 +69,23 @@ export default async function MarketingCommandPage() {
   const nudges = coachNudges(m.coachInput);
   const reply = replyRate(m.messagesSent, m.repliesReceived);
   const close = closeRate(m.callsHeld, m.paidNow);
-  const [coachSettings, latestAdvice] = await Promise.all([
+  const todayStart = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
+  const [coachSettings, latestAdvice, todayLogs] = await Promise.all([
     getCoachSettings(),
     prisma.marketingCoachAdvice.findFirst({ where: { campaignId: campaign.id }, orderBy: { createdAt: "desc" } }),
+    prisma.marketingDailyLog.findMany({ where: { campaignId: campaign.id, date: todayStart } }),
   ]);
+  const todayTotals = todayLogs.reduce(
+    (acc, log) => {
+      acc.messages += log.messages;
+      acc.posts += log.posts;
+      acc.engagements += log.engagements;
+      return acc;
+    },
+    { messages: 0, posts: 0, engagements: 0 },
+  );
+  const dailyPostsTarget = campaign.channels.filter((c) => c.enabled).reduce((sum, c) => sum + c.postsPerDay, 0);
+  const dailyEngageTarget = campaign.channels.filter((c) => c.enabled).reduce((sum, c) => sum + c.engagePerDay, 0);
 
   return (
     <div className="space-y-8">
@@ -157,50 +169,36 @@ export default async function MarketingCommandPage() {
 
         {latestAdvice ? (
           <div className="space-y-1">
-            <pre className="whitespace-pre-wrap rounded-md bg-violet-50/60 p-4 font-sans text-sm leading-6 text-slate-800">
-              {latestAdvice.advice}
-            </pre>
+            <div className="rounded-md bg-violet-50/60 p-4">
+              <AiText text={latestAdvice.advice} />
+            </div>
             <p className="text-[11px] text-slate-400">
               {latestAdvice.model} · {latestAdvice.createdAt.toLocaleString()}
             </p>
           </div>
         ) : (
           <p className="text-sm text-slate-500">
-            {coachSettings.hasKey
-              ? "No advice yet. Press the button and the coach reads your live numbers and pipeline."
-              : "Set up once below: paste an OpenRouter API key, then ask for a data-driven plan whenever you want."}
+            {coachSettings.hasKey ? (
+              "No advice yet. Press the button and the coach reads your live numbers and pipeline."
+            ) : (
+              <>
+                Connect OpenRouter once in{" "}
+                <Link href="/admin/marketing/settings" className="font-medium text-navy-600 hover:underline">
+                  Marketing settings
+                </Link>
+                , then ask for a data-driven plan whenever you want.
+              </>
+            )}
           </p>
         )}
 
-        <details>
-          <summary className="cursor-pointer text-xs font-medium text-slate-500">
-            AI coach settings {coachSettings.hasKey ? "· key configured ✓" : "· key required"}
-          </summary>
-          <form action={saveCoachSettings} className="mt-3 grid items-end gap-3 md:grid-cols-3">
-            <HintField
-              label="OpenRouter API key"
-              hint="Create one at openrouter.ai → Keys. Stored privately in the admin settings, never shown again here. Leave empty to keep the current key."
-            >
-              <Input
-                name="apiKey"
-                type="password"
-                autoComplete="off"
-                placeholder={coachSettings.hasKey ? "•••••••• (configured)" : "sk-or-…"}
-              />
-            </HintField>
-            <HintField
-              label="Model"
-              hint="Any OpenRouter model id. Default anthropic/claude-sonnet-4.5 is a strong coach; you can switch anytime (e.g. to a newer Claude or GPT id)."
-            >
-              <Input name="model" defaultValue={coachSettings.model} />
-            </HintField>
-            <div>
-              <Button type="submit" variant="secondary">
-                Save settings
-              </Button>
-            </div>
-          </form>
-        </details>
+        <p className="text-xs text-slate-400">
+          {coachSettings.hasKey ? "Connected ✓ · " : ""}
+          Model: {coachSettings.model} ·{" "}
+          <Link href="/admin/marketing/settings" className="font-medium text-navy-600 hover:underline">
+            AI settings →
+          </Link>
+        </p>
       </Card>
 
       {/* Activity + funnel snapshot */}
@@ -214,7 +212,12 @@ export default async function MarketingCommandPage() {
             <div className="flex justify-between"><dt className="text-slate-600">Close rate (calls→paid)</dt><dd className="font-semibold">{close.toFixed(0)}%</dd></div>
             <div className="flex justify-between"><dt className="text-slate-600">Daily floor (all channels)</dt><dd className="font-semibold">{m.dailyFloor} msgs/day</dd></div>
           </dl>
-          <Link href="/admin/marketing/activity" className="text-sm font-medium text-navy-600 hover:underline">Log today's activity →</Link>
+          <p className="rounded-md bg-neutral-50 px-2.5 py-1.5 text-xs text-slate-600">
+            Today so far: <span className={todayTotals.messages >= m.dailyFloor ? "font-semibold text-emerald-600" : "font-semibold"}>{todayTotals.messages}/{m.dailyFloor} msgs</span>
+            {dailyPostsTarget > 0 ? <> · {todayTotals.posts}/{dailyPostsTarget} posts</> : null}
+            {dailyEngageTarget > 0 ? <> · {todayTotals.engagements}/{dailyEngageTarget} engage</> : null}
+          </p>
+          <Link href="/admin/marketing/activity" className="text-sm font-medium text-navy-600 hover:underline">Open Today →</Link>
         </Card>
 
         <Card className="space-y-2">

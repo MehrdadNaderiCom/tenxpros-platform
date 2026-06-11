@@ -52,15 +52,63 @@ export default async function MarketingActivityPage() {
     { messages: 0, replies: 0, calls: 0, posts: 0, engagements: 0 },
   );
 
+  const todayProgress = channels.map((channel) => {
+    const log = todayLogs[channel.channel];
+    return {
+      channel,
+      bars: [
+        { label: "Messages", done: log?.messages ?? 0, target: channel.dailyMin },
+        { label: "Posts", done: log?.posts ?? 0, target: channel.postsPerDay },
+        { label: "Engage", done: log?.engagements ?? 0, target: channel.engagePerDay },
+      ].filter((bar) => bar.target > 0),
+    };
+  });
+
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Daily activity"
-        description={`${campaign.name} · log what actually went out, per channel. The coach reads these numbers.`}
+        title="Today"
+        description={`${campaign.name} · your daily home: see the plan, do the work, log the numbers. Everything else updates from here.`}
       />
       <Link href="/admin/marketing" className="text-sm font-medium text-navy-600 hover:underline">
         ← Back to Command
       </Link>
+
+      {/* The real-world event -> click mapping, so nothing is ever ambiguous */}
+      <Card>
+        <details>
+          <summary className="cursor-pointer text-sm font-semibold text-navy-900">
+            📌 What do I click when… (the daily routine)
+          </summary>
+          <div className="mt-3 space-y-3 text-sm leading-6 text-slate-700">
+            <p className="text-xs text-slate-500">
+              Morning: press <span className="font-medium">Plan my day</span> below → clear due follow-ups in{" "}
+              <Link href="/admin/marketing/prospects" className="font-medium text-navy-600 hover:underline">Prospects</Link>{" "}
+              → send new outreach → post content → log the numbers here. Then check{" "}
+              <Link href="/admin/marketing" className="font-medium text-navy-600 hover:underline">Command</Link> for progress.
+            </p>
+            <table className="w-full text-sm">
+              <tbody className="divide-y divide-neutral-100">
+                {[
+                  ["I messaged someone NEW", "Prospects → Quick add them (if not there) → press “Approached ✓”. Then +1 Messages here."],
+                  ["I sent a due follow-up", "Prospects (or Command) → press “FU sent ✓” on their row. Then +1 Messages here."],
+                  ["They replied (yes OR no)", "Prospects → press “They replied”. Then +1 Replies here."],
+                  ["We booked / held a call", "Prospects → “Call booked” / “Call held”. After a held call: +1 Calls here."],
+                  ["I published a post", "+1 Posts here on that channel. Nothing else."],
+                  ["I commented / reacted / followed someone (ICP)", "+1 Engage here on that channel. Nothing else."],
+                  ["They applied on the site", "Command → “Sync pipeline with real applications” links and advances them automatically."],
+                  ["They said no / went silent after FU3", "Prospects → “Lost” (confirmed) or let them park automatically after FU3."],
+                ].map(([event, action]) => (
+                  <tr key={event}>
+                    <td className="w-2/5 py-1.5 pr-3 font-medium text-navy-900">{event}</td>
+                    <td className="py-1.5 text-slate-600">{action}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </Card>
 
       <AiSuggestCard
         campaignId={campaign.id}
@@ -68,8 +116,41 @@ export default async function MarketingActivityPage() {
         hint="Plans TODAY for you: which follow-ups (by name), how many new messages per channel within your caps, what to post, and one engagement block — ordered by impact, based on your real pace."
       />
 
+      {/* Today's targets at a glance */}
+      {todayProgress.some((t) => t.bars.length > 0) ? (
+        <Card className="space-y-3">
+          <h2 className="text-sm font-semibold text-navy-900">Today's targets</h2>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {todayProgress.map(({ channel, bars }) =>
+              bars.length === 0 ? null : (
+                <div key={channel.id} className="space-y-2 rounded-md border border-neutral-200 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{channelLabel(channel.channel)}</p>
+                  {bars.map((bar) => {
+                    const pct = Math.min(100, Math.round((bar.done / bar.target) * 100));
+                    const hit = bar.done >= bar.target;
+                    return (
+                      <div key={bar.label}>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-600">{bar.label}</span>
+                          <span className={hit ? "font-semibold text-emerald-600" : "text-slate-500"}>
+                            {bar.done}/{bar.target} {hit ? "✓" : ""}
+                          </span>
+                        </div>
+                        <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+                          <div className={`h-full rounded-full ${hit ? "bg-emerald-500" : "bg-navy-600"}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ),
+            )}
+          </div>
+        </Card>
+      ) : null}
+
       <Card className="space-y-4">
-        <h2 className="text-base font-semibold text-navy-900">Today ({today})</h2>
+        <h2 className="text-base font-semibold text-navy-900">Log today's numbers ({today})</h2>
         <div className="grid gap-3">
           {channels.map((channel) => {
             const log = todayLogs[channel.channel];
