@@ -14,7 +14,7 @@ import {
   MARKETING_CHANNELS,
   SATISFACTION_OPTIONS,
 } from "@/lib/marketing/constants";
-import { createAttempt, deleteAttempt } from "@/lib/actions/marketing";
+import { createAttempt, deleteAttempt, updateAttempt } from "@/lib/actions/marketing";
 
 function utcDay(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -29,6 +29,164 @@ function RatingChip({ value }: { value: number }) {
         ? "bg-neutral-100 text-slate-600"
         : "bg-amber-50 text-amber-700";
   return <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${tone}`}>{value}/5</span>;
+}
+
+type ProspectOption = { id: string; name: string };
+
+type AttemptRow = {
+  id: string;
+  kind: string;
+  channel: string | null;
+  summary: string;
+  outcome: string | null;
+  minutes: number;
+  satisfaction: number;
+  learnings: string | null;
+  at: Date;
+  prospect: ProspectOption | null;
+};
+
+/**
+ * The shared field set for logging and editing an attempt. Without `attempt`
+ * it renders create defaults and hides the date behind a details toggle
+ * (backdating is the exception); with `attempt` everything is prefilled and
+ * the date is a normal field.
+ */
+function AttemptFields({
+  prospects,
+  attempt,
+  today,
+}: {
+  prospects: ProspectOption[];
+  attempt?: AttemptRow;
+  today: string;
+}) {
+  // An entry can stay linked to someone who has since been won or closed;
+  // keep that prospect selectable when editing.
+  const options =
+    attempt?.prospect && !prospects.some((p) => p.id === attempt.prospect!.id)
+      ? [attempt.prospect, ...prospects]
+      : prospects;
+  return (
+    <>
+      <div className="grid gap-3 md:grid-cols-3">
+        <HintField
+          label="What kind of attempt?"
+          hint="Pick the closest match; it decides which of the day's counters gets +1. 'Deep conversation' is a real back-and-forth thread (WhatsApp/DM) or a call."
+        >
+          <Select name="kind" defaultValue={attempt?.kind ?? "outreach"}>
+            {ATTEMPT_KINDS.map((kind) => (
+              <option key={kind.value} value={kind.value}>
+                {kind.label}
+              </option>
+            ))}
+          </Select>
+        </HintField>
+        <HintField
+          label="Channel"
+          hint="Where it happened. Needed for the +1 on the day's stats; pick 'No channel' only for off-channel work like research."
+        >
+          <Select name="channel" defaultValue={attempt ? (attempt.channel ?? "") : "linkedin"}>
+            <option value="">No channel</option>
+            {MARKETING_CHANNELS.map((channel) => (
+              <option key={channel.value} value={channel.value}>
+                {channel.label}
+              </option>
+            ))}
+          </Select>
+        </HintField>
+        <HintField
+          label="Prospect (optional)"
+          hint="Link the entry to a person and it lands on their history in Prospects too. Leave empty for posts, engagement blocks, or general work."
+        >
+          <Select name="prospectId" defaultValue={attempt?.prospect?.id ?? ""}>
+            <option value="">Nobody specific</option>
+            {options.map((prospect) => (
+              <option key={prospect.id} value={prospect.id}>
+                {prospect.name}
+              </option>
+            ))}
+          </Select>
+        </HintField>
+      </div>
+      <HintField
+        label="What did you do?"
+        hint="One or two sentences: to whom, how, with what message or content. Example: 'Commented on Sara's AI-adoption post, then sent a connection request referencing it.'"
+      >
+        <Input
+          name="summary"
+          required
+          minLength={3}
+          defaultValue={attempt?.summary ?? ""}
+          placeholder="e.g. Sent Ali a WhatsApp voice note about the Sample Dossier"
+        />
+      </HintField>
+      <div className="grid gap-3 md:grid-cols-3">
+        <HintField
+          label="What happened?"
+          hint="The result so far: 'no reply yet', 'they asked for the price', 'post got 6 comments'. Come back and edit when things change."
+        >
+          <Input
+            name="outcome"
+            defaultValue={attempt?.outcome ?? ""}
+            placeholder="e.g. Accepted the request, no reply yet"
+          />
+        </HintField>
+        <HintField label="Minutes spent" hint="Rough time it took, in minutes. Lets you see where your 2 daily hours really go.">
+          <Input name="minutes" type="number" min={0} max={600} defaultValue={attempt?.minutes ?? 10} />
+        </HintField>
+        <HintField
+          label="How did it go? (1-5)"
+          hint="Your gut rating of the attempt itself, not the outcome. The AI coach reads low ratings to find what to fix."
+        >
+          <Select name="satisfaction" defaultValue={String(attempt?.satisfaction ?? 3)}>
+            {SATISFACTION_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </Select>
+        </HintField>
+      </div>
+      <HintField
+        label="Weak points / lessons (optional)"
+        hint="What felt off and what you'd try differently: 'opener too long', 'should have led with their post, not my product'. Gold for the AI coach."
+      >
+        <Textarea
+          name="learnings"
+          className="min-h-20"
+          defaultValue={attempt?.learnings ?? ""}
+          placeholder="e.g. My first line was generic; next time reference their latest post"
+        />
+      </HintField>
+      {attempt ? (
+        <div className="max-w-52">
+          <HintField
+            label="Date"
+            hint="Moving the date also moves the entry's auto +1 to that day's numbers. The time of day is kept when the date is unchanged."
+          >
+            <Input name="at" type="date" defaultValue={utcDay(attempt.at)} max={today} />
+          </HintField>
+        </div>
+      ) : (
+        /* Backdating is the exception, so it stays folded away; an empty
+           date means the entry is stamped now. */
+        <details className="text-xs">
+          <summary className="cursor-pointer select-none text-slate-500 hover:text-slate-700">
+            Logging something from an earlier day? Set the date (otherwise it saves as now)
+          </summary>
+          <div className="mt-2 max-w-52">
+            <HintField
+              label="Date"
+              hint="Leave empty for today (the default). Pick a past date only when catching up; the auto +1 then lands on that day's numbers."
+            >
+              <Input name="at" type="date" max={today} />
+            </HintField>
+          </div>
+        </details>
+      )}
+    </>
+  );
 }
 
 export default async function MarketingJournalPage() {
@@ -92,7 +250,7 @@ export default async function MarketingJournalPage() {
         <div>
           <h2 className="text-base font-semibold text-navy-900">Log an attempt</h2>
           <p className="mt-1 text-xs text-slate-500">
-            Saving automatically adds +1 to today's numbers for that channel (a post bumps Posts, outreach bumps
+            Saving automatically adds +1 to the day's numbers for that channel (a post bumps Posts, outreach bumps
             Messages, …) and records a touch on the linked prospect. Stage moves still happen in{" "}
             <Link href="/admin/marketing/prospects" className="text-navy-600 hover:underline">
               Prospects
@@ -102,96 +260,7 @@ export default async function MarketingJournalPage() {
         </div>
         <form action={createAttempt} className="space-y-3">
           <input type="hidden" name="campaignId" value={campaign.id} />
-          <div className="grid gap-3 md:grid-cols-3">
-            <HintField
-              label="What kind of attempt?"
-              hint="Pick the closest match; it decides which of today's counters gets +1. 'Deep conversation' is a real back-and-forth thread (WhatsApp/DM) or a call."
-            >
-              <Select name="kind" defaultValue="outreach">
-                {ATTEMPT_KINDS.map((kind) => (
-                  <option key={kind.value} value={kind.value}>
-                    {kind.label}
-                  </option>
-                ))}
-              </Select>
-            </HintField>
-            <HintField
-              label="Channel"
-              hint="Where it happened. Needed for the +1 on today's stats; pick 'No channel' only for off-channel work like research."
-            >
-              <Select name="channel" defaultValue="linkedin">
-                <option value="">No channel</option>
-                {MARKETING_CHANNELS.map((channel) => (
-                  <option key={channel.value} value={channel.value}>
-                    {channel.label}
-                  </option>
-                ))}
-              </Select>
-            </HintField>
-            <HintField
-              label="Prospect (optional)"
-              hint="Link the entry to a person and it lands on their history in Prospects too. Leave empty for posts, engagement blocks, or general work."
-            >
-              <Select name="prospectId" defaultValue="">
-                <option value="">Nobody specific</option>
-                {prospects.map((prospect) => (
-                  <option key={prospect.id} value={prospect.id}>
-                    {prospect.name}
-                  </option>
-                ))}
-              </Select>
-            </HintField>
-          </div>
-          <HintField
-            label="What did you do?"
-            hint="One or two sentences: to whom, how, with what message or content. Example: 'Commented on Sara's AI-adoption post, then sent a connection request referencing it.'"
-          >
-            <Input name="summary" required minLength={3} placeholder="e.g. Sent Ali a WhatsApp voice note about the Sample Dossier" />
-          </HintField>
-          <div className="grid gap-3 md:grid-cols-3">
-            <HintField
-              label="What happened?"
-              hint="The result so far: 'no reply yet', 'they asked for the price', 'post got 6 comments'. Update by adding a new entry when things change."
-            >
-              <Input name="outcome" placeholder="e.g. Accepted the request, no reply yet" />
-            </HintField>
-            <HintField label="Minutes spent" hint="Rough time it took, in minutes. Lets you see where your 2 daily hours really go.">
-              <Input name="minutes" type="number" min={0} max={600} defaultValue={10} />
-            </HintField>
-            <HintField
-              label="How did it go? (1-5)"
-              hint="Your gut rating of the attempt itself, not the outcome. The AI coach reads low ratings to find what to fix."
-            >
-              <Select name="satisfaction" defaultValue="3">
-                {SATISFACTION_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </Select>
-            </HintField>
-          </div>
-          <HintField
-            label="Weak points / lessons (optional)"
-            hint="What felt off and what you'd try differently: 'opener too long', 'should have led with their post, not my product'. Gold for the AI coach."
-          >
-            <Textarea name="learnings" className="min-h-20" placeholder="e.g. My first line was generic; next time reference their latest post" />
-          </HintField>
-          {/* Backdating is the exception, so it stays folded away; an empty
-              date means the entry is stamped now. */}
-          <details className="text-xs">
-            <summary className="cursor-pointer select-none text-slate-500 hover:text-slate-700">
-              Logging something from an earlier day? Set the date (otherwise it saves as now)
-            </summary>
-            <div className="mt-2 max-w-52">
-              <HintField
-                label="Date"
-                hint="Leave empty for today (the default). Pick a past date only when catching up; the auto +1 then lands on that day's numbers."
-              >
-                <Input name="at" type="date" max={today} />
-              </HintField>
-            </div>
-          </details>
+          <AttemptFields prospects={prospects} today={today} />
           <Button type="submit">Save attempt</Button>
         </form>
       </Card>
@@ -243,16 +312,30 @@ export default async function MarketingJournalPage() {
                     {attempt.learnings ? (
                       <p className="text-xs italic text-slate-500">Lesson: {attempt.learnings}</p>
                     ) : null}
-                    <form className="pt-1">
-                      <input type="hidden" name="attemptId" value={attempt.id} />
-                      <ConfirmButton
-                        action={deleteAttempt}
-                        message="Delete this journal entry? Its auto-counted +1 on that day's numbers is removed too."
-                        className="rounded-md px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
-                      >
-                        Delete
-                      </ConfirmButton>
-                    </form>
+                    <div className="flex items-center gap-3 pt-1">
+                      <details className="min-w-0 grow">
+                        <summary className="inline cursor-pointer select-none text-xs font-medium text-navy-600 hover:underline">
+                          Edit
+                        </summary>
+                        <form action={updateAttempt} className="mt-3 space-y-3 rounded-md border border-neutral-200 bg-neutral-50/60 p-3">
+                          <input type="hidden" name="attemptId" value={attempt.id} />
+                          <AttemptFields prospects={prospects} attempt={attempt} today={today} />
+                          <Button type="submit" variant="secondary">
+                            Save changes
+                          </Button>
+                        </form>
+                      </details>
+                      <form>
+                        <input type="hidden" name="attemptId" value={attempt.id} />
+                        <ConfirmButton
+                          action={deleteAttempt}
+                          message="Delete this journal entry? Its auto-counted +1 on that day's numbers is removed too."
+                          className="rounded-md px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
+                        >
+                          Delete
+                        </ConfirmButton>
+                      </form>
+                    </div>
                   </div>
                 ))}
               </div>

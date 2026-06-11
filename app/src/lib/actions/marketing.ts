@@ -537,15 +537,7 @@ export async function createAttempt(formData: FormData) {
 
   // Auto-count: each kind maps to one daily-log counter (see ATTEMPT_KINDS),
   // bumped on the day the entry belongs to (today unless backdated).
-  const counter = ATTEMPT_KINDS.find((k) => k.value === kind)?.counter ?? null;
-  if (counter && channel) {
-    const day = new Date(`${(at ?? new Date()).toISOString().slice(0, 10)}T00:00:00.000Z`);
-    await prisma.marketingDailyLog.upsert({
-      where: { campaignId_date_channel: { campaignId, date: day, channel } },
-      update: { [counter]: { increment: 1 } },
-      create: { campaignId, date: day, channel, [counter]: 1 },
-    });
-  }
+  await incrementAttemptCounter(campaignId, kind, channel, at ?? new Date());
 
   if (prospectId) {
     // The prospect can vanish between the check above and this insert; the
@@ -567,6 +559,111 @@ export async function createAttempt(formData: FormData) {
   refresh();
 }
 
+/** UTC midnight of the day a timestamp belongs to (the daily-log row key). */
+function attemptDayKey(at: Date): Date {
+  return new Date(`${at.toISOString().slice(0, 10)}T00:00:00.000Z`);
+}
+
+/** Take the auto-counted +1 for an attempt back off its day's log (never below zero). */
+async function decrementAttemptCounter(campaignId: string, kind: string, channel: string | null, at: Date) {
+  const counter = ATTEMPT_KINDS.find((k) => k.value === kind)?.counter ?? null;
+  if (!counter || !channel) return;
+  const log = await prisma.marketingDailyLog.findUnique({
+    where: { campaignId_date_channel: { campaignId, date: attemptDayKey(at), channel } },
+  });
+  if (log && (log[counter as "messages"] ?? 0) > 0) {
+    await prisma.marketingDailyLog.update({ where: { id: log.id }, data: { [counter]: { decrement: 1 } } });
+  }
+}
+
+/** Add an attempt's auto-counted +1 onto its day's log. */
+async function incrementAttemptCounter(campaignId: string, kind: string, channel: string | null, at: Date) {
+  const counter = ATTEMPT_KINDS.find((k) => k.value === kind)?.counter ?? null;
+  if (!counter || !channel) return;
+  const day = attemptDayKey(at);
+  await prisma.marketingDailyLog.upsert({
+    where: { campaignId_date_channel: { campaignId, date: day, channel } },
+    update: { [counter]: { increment: 1 } },
+    create: { campaignId, date: day, channel, [counter]: 1 },
+  });
+}
+
+/**
+ * Edit a journal entry. When the edit moves the entry's auto-counted +1 (a
+ * different kind, channel, or day), the old day's counter is decremented and
+ * the new one incremented so the daily stats keep matching the journal.
+ * Touches recorded on prospects are history and are left untouched.
+ * Invalid input degrades to the existing values; nothing throws for states a
+ * stale form can produce (production redacts server-action errors).
+ */
+export async function updateAttempt(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "attemptId");
+  const existing = await prisma.marketingAttempt.findUnique({ where: { id } });
+  if (!existing) {
+    refresh();
+    return;
+  }
+
+  const kindRaw = text(formData, "kind");
+  const kind = ATTEMPT_KIND_VALUES.includes(kindRaw) ? kindRaw : existing.kind;
+  const channelRaw = text(formData, "channel");
+  const channel = CHANNEL_VALUES.includes(channelRaw) ? channelRaw : null;
+  const summary = text(formData, "summary") || existing.summary;
+  let prospectId = text(formData, "prospectId") || null;
+  if (prospectId && prospectId !== existing.prospectId) {
+    const prospect = await prisma.prospect.findUnique({ where: { id: prospectId }, select: { campaignId: true } });
+    if (!prospect || prospect.campaignId !== existing.campaignId) prospectId = existing.prospectId;
+  }
+
+  // Date edits keep the original time when the day is unchanged; a moved day
+  // lands at 12:00 UTC like backdated entries. Future/invalid input is ignored.
+  let at = existing.at;
+  const atRaw = text(formData, "at");
+  if (atRaw && atRaw !== existing.at.toISOString().slice(0, 10)) {
+    const picked = new Date(`${atRaw}T12:00:00.000Z`);
+    if (!Number.isNaN(picked.getTime()) && picked.getTime() <= Date.now()) at = picked;
+  }
+
+  const movedCount =
+    kind !== existing.kind ||
+    channel !== existing.channel ||
+    attemptDayKey(at).getTime() !== attemptDayKey(existing.at).getTime();
+  if (movedCount) {
+    await decrementAttemptCounter(existing.campaignId, existing.kind, existing.channel, existing.at);
+    await incrementAttemptCounter(existing.campaignId, kind, channel, at);
+  }
+
+  await prisma.marketingAttempt.update({
+    where: { id },
+    data: {
+      kind,
+      channel,
+      prospectId,
+      summary,
+      outcome: text(formData, "outcome") || null,
+      minutes: intIn(formData, "minutes", existing.minutes, 0, 600),
+      satisfaction: intIn(formData, "satisfaction", existing.satisfaction, 1, 5),
+      learnings: text(formData, "learnings") || null,
+      at,
+    },
+  });
+  // The previous text is kept in the audit log so an accidental overwrite of
+  // the founder's own notes is always recoverable.
+  await audit(admin.id, "MARKETING_ATTEMPT_UPDATE", "MarketingAttempt", id, {
+    before: {
+      kind: existing.kind,
+      channel: existing.channel,
+      summary: existing.summary,
+      outcome: existing.outcome,
+      learnings: existing.learnings,
+      at: existing.at.toISOString(),
+    },
+    after: { kind, channel, summary, at: at.toISOString() },
+  });
+  refresh();
+}
+
 /**
  * Delete a journal entry and remove its auto-counted +1 from the daily log of
  * the day the entry belongs to (never below zero).
@@ -580,19 +677,7 @@ export async function deleteAttempt(formData: FormData) {
     return;
   }
   await prisma.marketingAttempt.delete({ where: { id } });
-  const counter = ATTEMPT_KINDS.find((k) => k.value === existing.kind)?.counter ?? null;
-  const entryDay = new Date(`${existing.at.toISOString().slice(0, 10)}T00:00:00.000Z`);
-  if (counter && existing.channel) {
-    const log = await prisma.marketingDailyLog.findUnique({
-      where: { campaignId_date_channel: { campaignId: existing.campaignId, date: entryDay, channel: existing.channel } },
-    });
-    if (log && (log[counter as "messages"] ?? 0) > 0) {
-      await prisma.marketingDailyLog.update({
-        where: { id: log.id },
-        data: { [counter]: { decrement: 1 } },
-      });
-    }
-  }
+  await decrementAttemptCounter(existing.campaignId, existing.kind, existing.channel, existing.at);
   await audit(admin.id, "MARKETING_ATTEMPT_DELETE", "MarketingAttempt", id, {
     before: {
       kind: existing.kind,
