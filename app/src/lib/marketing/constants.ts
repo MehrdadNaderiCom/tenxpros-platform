@@ -157,12 +157,12 @@ export const ATTEMPT_METRICS: Partial<
     { key: "reactions", label: "Reactions", hint: "Total likes/reactions so far." },
     { key: "comments", label: "Comments", hint: "Total comments so far (excluding your own replies)." },
     { key: "mentions", label: "Mentions", hint: "People who mentioned or tagged you/the post elsewhere." },
-    { key: "connections", label: "New connections", hint: "Connection requests or follows you got because of this post." },
+    { key: "connections", label: "Connections", hint: "NEW connection requests or follows you got because of this post." },
     { key: "dms", label: "DMs started", hint: "Direct conversations this post started (people who wrote to you, or replied when you wrote referencing it)." },
   ],
   engagement: [
     { key: "responses", label: "Responses", hint: "Replies your comment/action received, including from the author." },
-    { key: "connections", label: "New connections", hint: "Connections or follows that came from this engagement." },
+    { key: "connections", label: "Connections", hint: "NEW connections or follows that came from this engagement." },
     { key: "dms", label: "DMs started", hint: "Direct conversations that started because of it." },
   ],
 };

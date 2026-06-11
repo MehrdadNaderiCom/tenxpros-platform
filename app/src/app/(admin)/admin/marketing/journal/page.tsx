@@ -401,7 +401,7 @@ export default async function MarketingJournalPage() {
                     <form action={addAttemptUpdate} className="max-w-3xl space-y-2 pt-1">
                       <input type="hidden" name="attemptId" value={attempt.id} />
                       {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).length > 0 ? (
-                        <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+                        <div className="grid grid-cols-3 items-end gap-2 md:grid-cols-6">
                           {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).map((metric) => (
                             <HintField key={metric.key} label={metric.label} hint={metric.hint}>
                               <Input name={`m_${metric.key}`} type="number" min={0} className="h-9 text-sm" />
