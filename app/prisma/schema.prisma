@@ -1565,6 +1565,11 @@ model MarketingAttempt {
   // outreach, follow_up, reply, conversation, post, engagement, other
   kind String
 
+  // Kind-specific flavor for analysis (see ATTEMPT_VARIANTS in constants):
+  // post -> content format (text/image/document/...), outreach -> approach,
+  // engagement -> action, reply -> their tone.
+  variant String?
+
   channel String?
 
   prospectId String?
@@ -1604,6 +1609,10 @@ model MarketingAttemptUpdate {
   attempt MarketingAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
   note String
+
+  // Kind-specific snapshot numbers (see ATTEMPT_METRICS in constants), e.g.
+  // a post's {"impressions":1200,"comments":14}. Only filled fields are kept.
+  metrics Json?
 
   at DateTime @default(now())
 

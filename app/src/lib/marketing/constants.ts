@@ -84,6 +84,89 @@ export function attemptKindLabel(value?: string | null): string {
   return ATTEMPT_KINDS.find((k) => k.value === value)?.label ?? value;
 }
 
+/**
+ * Kind-specific detail captured when logging an attempt, so results can be
+ * analyzed by flavor later (which content format earns comments, which
+ * approach earns replies). One select per kind; kinds not listed have none.
+ */
+export const ATTEMPT_VARIANTS: Partial<
+  Record<AttemptKindValue, { label: string; hint: string; options: ReadonlyArray<{ value: string; label: string }> }>
+> = {
+  post: {
+    label: "Content format",
+    hint: "What the post physically was. Later you can compare formats: do documents out-earn text posts in comments and DMs?",
+    options: [
+      { value: "text", label: "Text only" },
+      { value: "image", label: "Image / infographic" },
+      { value: "document", label: "Document / carousel" },
+      { value: "video", label: "Video" },
+      { value: "poll", label: "Poll" },
+      { value: "article", label: "Article / newsletter" },
+      { value: "repost", label: "Repost with comment" },
+    ],
+  },
+  outreach: {
+    label: "Approach",
+    hint: "How the first contact was made. Lets you compare reply rates per approach instead of guessing.",
+    options: [
+      { value: "connection_note", label: "Connection request + note" },
+      { value: "dm", label: "DM to existing connection" },
+      { value: "inmail", label: "InMail" },
+      { value: "comment_then_dm", label: "Comment first, then DM" },
+      { value: "intro", label: "Warm intro / referral" },
+      { value: "other", label: "Other" },
+    ],
+  },
+  engagement: {
+    label: "Action",
+    hint: "What kind of engagement it was, so you can see which actions actually start relationships.",
+    options: [
+      { value: "comment", label: "Comment" },
+      { value: "reaction", label: "Reaction" },
+      { value: "follow", label: "Follow / connect" },
+      { value: "share", label: "Share / repost" },
+    ],
+  },
+  reply: {
+    label: "Their tone",
+    hint: "How the reply felt. Trends here show whether your openers attract the right people.",
+    options: [
+      { value: "positive", label: "Positive / interested" },
+      { value: "neutral", label: "Neutral / questions" },
+      { value: "negative", label: "Negative / not now" },
+    ],
+  },
+};
+
+export function attemptVariantLabel(kind?: string | null, value?: string | null): string | null {
+  if (!kind || !value) return null;
+  const variant = ATTEMPT_VARIANTS[kind as AttemptKindValue];
+  return variant?.options.find((o) => o.value === value)?.label ?? value;
+}
+
+/**
+ * Kind-specific snapshot numbers for follow-up updates on an attempt. Each
+ * filled field is stored in the update's metrics JSON, stamped with the
+ * elapsed time since the attempt, so growth over time is analyzable.
+ */
+export const ATTEMPT_METRICS: Partial<
+  Record<AttemptKindValue, ReadonlyArray<{ key: string; label: string; hint: string }>>
+> = {
+  post: [
+    { key: "impressions", label: "Impressions", hint: "Views LinkedIn reports for the post at this moment (total so far, not the increase)." },
+    { key: "reactions", label: "Reactions", hint: "Total likes/reactions so far." },
+    { key: "comments", label: "Comments", hint: "Total comments so far (excluding your own replies)." },
+    { key: "mentions", label: "Mentions", hint: "People who mentioned or tagged you/the post elsewhere." },
+    { key: "connections", label: "New connections", hint: "Connection requests or follows you got because of this post." },
+    { key: "dms", label: "DMs started", hint: "Direct conversations this post started (people who wrote to you, or replied when you wrote referencing it)." },
+  ],
+  engagement: [
+    { key: "responses", label: "Responses", hint: "Replies your comment/action received, including from the author." },
+    { key: "connections", label: "New connections", hint: "Connections or follows that came from this engagement." },
+    { key: "dms", label: "DMs started", hint: "Direct conversations that started because of it." },
+  ],
+};
+
 /** 1-5 self-rating shown in the journal. */
 export const SATISFACTION_OPTIONS = [
   { value: 5, label: "5 - Great" },

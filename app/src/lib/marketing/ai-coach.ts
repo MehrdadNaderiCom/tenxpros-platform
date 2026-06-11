@@ -62,6 +62,7 @@ export async function recentAttemptSummaries(campaignId: string, take = 15) {
   return rows.map((a) => ({
     date: a.at.toISOString().slice(0, 10),
     kind: a.kind,
+    variant: a.variant ?? undefined,
     channel: a.channel ?? undefined,
     prospect: a.prospect?.name,
     what: a.summary.slice(0, 240),
@@ -69,9 +70,21 @@ export async function recentAttemptSummaries(campaignId: string, take = 15) {
     minutes: a.minutes || undefined,
     selfRating: `${a.satisfaction}/5`,
     learnings: a.learnings?.slice(0, 240) || undefined,
-    // How the attempt unfolded over time ("+2h: 14 comments, 3 DMs").
+    // How the attempt unfolded over time ("+2h: impressions 1200, comments 14 | note").
     ...(a.updates.length
-      ? { followUps: a.updates.slice(-5).map((u) => `+${elapsedShort(a.at, u.at)}: ${u.note.slice(0, 160)}`) }
+      ? {
+          followUps: a.updates.slice(-5).map((u) => {
+            const metrics =
+              u.metrics && typeof u.metrics === "object" && !Array.isArray(u.metrics)
+                ? Object.entries(u.metrics as Record<string, unknown>)
+                    .filter(([, value]) => typeof value === "number")
+                    .map(([key, value]) => `${key} ${value}`)
+                    .join(", ")
+                : "";
+            const body = [metrics, u.note.slice(0, 160)].filter(Boolean).join(" | ");
+            return `+${elapsedShort(a.at, u.at)}: ${body}`;
+          }),
+        }
       : {}),
   }));
 }

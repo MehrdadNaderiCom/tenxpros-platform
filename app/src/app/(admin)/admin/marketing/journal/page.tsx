@@ -9,11 +9,16 @@ import { prisma } from "@/lib/prisma";
 import { getActiveCampaign } from "@/lib/marketing/data";
 import {
   ATTEMPT_KINDS,
+  ATTEMPT_METRICS,
+  ATTEMPT_VARIANTS,
   attemptKindLabel,
+  attemptVariantLabel,
   channelLabel,
   MARKETING_CHANNELS,
   SATISFACTION_OPTIONS,
+  type AttemptKindValue,
 } from "@/lib/marketing/constants";
+import { AttemptKindFields } from "@/components/admin/attempt-kind-fields";
 import {
   addAttemptUpdate,
   createAttempt,
@@ -51,6 +56,7 @@ type ProspectOption = { id: string; name: string };
 type AttemptRow = {
   id: string;
   kind: string;
+  variant: string | null;
   channel: string | null;
   summary: string;
   outcome: string | null;
@@ -60,6 +66,36 @@ type AttemptRow = {
   at: Date;
   prospect: ProspectOption | null;
 };
+
+/** Plain serializable copies of the registries for the client island. */
+const KIND_OPTIONS = ATTEMPT_KINDS.map((k) => ({ value: k.value, label: k.label }));
+const VARIANT_OPTIONS = Object.fromEntries(
+  Object.entries(ATTEMPT_VARIANTS).map(([kind, v]) => [
+    kind,
+    { label: v.label, hint: v.hint, options: v.options.map((o) => ({ ...o })) },
+  ]),
+);
+const KIND_HINT =
+  "Pick the closest match; it decides which of the day's counters gets +1. 'Deep conversation' is a real back-and-forth thread (WhatsApp/DM) or a call.";
+
+/** Snapshot numbers stored on a follow-up, rendered as compact chips. */
+function MetricChips({ kind, metrics }: { kind: string; metrics: unknown }) {
+  if (!metrics || typeof metrics !== "object" || Array.isArray(metrics)) return null;
+  const defs = ATTEMPT_METRICS[kind as AttemptKindValue] ?? [];
+  const filled = defs
+    .map((def) => ({ def, value: (metrics as Record<string, unknown>)[def.key] }))
+    .filter((entry): entry is { def: (typeof defs)[number]; value: number } => typeof entry.value === "number");
+  if (!filled.length) return null;
+  return (
+    <span className="inline-flex flex-wrap gap-1 align-middle">
+      {filled.map(({ def, value }) => (
+        <span key={def.key} className="rounded bg-neutral-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-600">
+          {def.label} {value.toLocaleString("en-US")}
+        </span>
+      ))}
+    </span>
+  );
+}
 
 /**
  * The shared field set for logging and editing an attempt. Without `attempt`
@@ -85,18 +121,13 @@ function AttemptFields({
   return (
     <>
       <div className="grid gap-3 md:grid-cols-3">
-        <HintField
-          label="What kind of attempt?"
-          hint="Pick the closest match; it decides which of the day's counters gets +1. 'Deep conversation' is a real back-and-forth thread (WhatsApp/DM) or a call."
-        >
-          <Select name="kind" defaultValue={attempt?.kind ?? "outreach"}>
-            {ATTEMPT_KINDS.map((kind) => (
-              <option key={kind.value} value={kind.value}>
-                {kind.label}
-              </option>
-            ))}
-          </Select>
-        </HintField>
+        <AttemptKindFields
+          kinds={KIND_OPTIONS}
+          kindHint={KIND_HINT}
+          variants={VARIANT_OPTIONS}
+          defaultKind={attempt?.kind ?? "outreach"}
+          defaultVariant={attempt?.variant}
+        />
         <HintField
           label="Channel"
           hint="Where it happened. Needed for the +1 on the day's stats; pick 'No channel' only for off-channel work like research."
@@ -314,6 +345,11 @@ export default async function MarketingJournalPage() {
                       <span className="rounded-full bg-navy-50 px-2 py-0.5 font-semibold text-navy-700">
                         {attemptKindLabel(attempt.kind)}
                       </span>
+                      {attempt.variant ? (
+                        <span className="rounded-full border border-navy-100 px-2 py-0.5 font-medium text-navy-600">
+                          {attemptVariantLabel(attempt.kind, attempt.variant)}
+                        </span>
+                      ) : null}
                       {attempt.channel ? <span className="text-slate-500">{channelLabel(attempt.channel)}</span> : null}
                       {attempt.prospect ? (
                         <span className="font-medium text-navy-900">{attempt.prospect.name}</span>
@@ -344,7 +380,10 @@ export default async function MarketingJournalPage() {
                             >
                               {elapsedLabel(attempt.at, update.at)}
                             </span>
-                            <span className="min-w-0 text-slate-700">{update.note}</span>
+                            <span className="min-w-0 space-x-1.5 text-slate-700">
+                              <MetricChips kind={attempt.kind} metrics={update.metrics} />
+                              {update.note ? <span>{update.note}</span> : null}
+                            </span>
                             <form className="flex-none opacity-40 transition focus-within:opacity-100 hover:opacity-100 group-hover:opacity-100">
                               <input type="hidden" name="updateId" value={update.id} />
                               <ConfirmButton
@@ -359,25 +398,35 @@ export default async function MarketingJournalPage() {
                         ))}
                       </div>
                     ) : null}
-                    <form action={addAttemptUpdate} className="flex max-w-xl items-end gap-2 pt-1">
+                    <form action={addAttemptUpdate} className="max-w-3xl space-y-2 pt-1">
                       <input type="hidden" name="attemptId" value={attempt.id} />
-                      <div className="grow">
-                        <HintField
-                          label="Follow-up"
-                          hint="What happened after this attempt? Saved with a timestamp and shown as +time since the attempt; the AI coach reads the trend. The original entry stays untouched."
-                        >
-                          <Input
-                            name="note"
-                            required
-                            maxLength={500}
-                            placeholder="e.g. 14 GORILLA comments, 3 DMs started"
-                            className="h-9 text-sm"
-                          />
-                        </HintField>
+                      {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2 md:grid-cols-6">
+                          {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).map((metric) => (
+                            <HintField key={metric.key} label={metric.label} hint={metric.hint}>
+                              <Input name={`m_${metric.key}`} type="number" min={0} className="h-9 text-sm" />
+                            </HintField>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="flex items-end gap-2">
+                        <div className="grow">
+                          <HintField
+                            label="Follow-up"
+                            hint="What happened after this attempt? Saved with a timestamp and shown as +time since the attempt; the AI coach reads the trend. Numbers above are totals at this moment; fill any subset, the note is optional with them."
+                          >
+                            <Input
+                              name="note"
+                              maxLength={500}
+                              placeholder="e.g. 14 GORILLA comments, 3 DMs started"
+                              className="h-9 text-sm"
+                            />
+                          </HintField>
+                        </div>
+                        <Button type="submit" variant="secondary" className="h-9 flex-none px-3 text-xs">
+                          Add update
+                        </Button>
                       </div>
-                      <Button type="submit" variant="secondary" className="h-9 flex-none px-3 text-xs">
-                        Add update
-                      </Button>
                     </form>
 
                     <div className="flex items-center gap-3 pt-1">

@@ -4,7 +4,15 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/authz";
 import { advanceFollowup, nextFollowupDue } from "@/lib/marketing/followup";
-import { ATTEMPT_KINDS, MARKETING_CHANNELS, PROSPECT_STAGES, WARMTH_OPTIONS } from "@/lib/marketing/constants";
+import {
+  ATTEMPT_KINDS,
+  ATTEMPT_METRICS,
+  ATTEMPT_VARIANTS,
+  MARKETING_CHANNELS,
+  PROSPECT_STAGES,
+  WARMTH_OPTIONS,
+  type AttemptKindValue,
+} from "@/lib/marketing/constants";
 import {
   buildCoachContext,
   DEFAULT_COACH_MODEL,
@@ -479,6 +487,13 @@ export async function logDailyActivity(formData: FormData) {
 
 const ATTEMPT_KIND_VALUES = ATTEMPT_KINDS.map((k) => k.value) as string[];
 
+/** The submitted variant if it is one of the kind's defined options, else null. */
+function attemptVariant(formData: FormData, kind: string): string | null {
+  const raw = text(formData, "variant");
+  const options = ATTEMPT_VARIANTS[kind as AttemptKindValue]?.options ?? [];
+  return options.some((o) => o.value === raw) ? raw : null;
+}
+
 /** ProspectTouch type for each journal kind, so the prospect's history stays complete. */
 const ATTEMPT_TOUCH_TYPE: Record<string, string> = {
   outreach: "message",
@@ -524,6 +539,7 @@ export async function createAttempt(formData: FormData) {
     data: {
       campaignId,
       kind,
+      variant: attemptVariant(formData, kind),
       channel,
       prospectId,
       summary,
@@ -638,6 +654,7 @@ export async function updateAttempt(formData: FormData) {
     where: { id },
     data: {
       kind,
+      variant: attemptVariant(formData, kind),
       channel,
       prospectId,
       summary,
@@ -674,16 +691,29 @@ export async function addAttemptUpdate(formData: FormData) {
   await requireSuperAdmin();
   const attemptId = text(formData, "attemptId");
   const note = text(formData, "note").slice(0, 500);
-  if (!note) {
-    refresh();
-    return;
-  }
-  const attempt = await prisma.marketingAttempt.findUnique({ where: { id: attemptId }, select: { id: true } });
+  const attempt = await prisma.marketingAttempt.findUnique({
+    where: { id: attemptId },
+    select: { id: true, kind: true },
+  });
   if (!attempt) {
     refresh();
     return;
   }
-  await prisma.marketingAttemptUpdate.create({ data: { attemptId, note } });
+  // Kind-specific snapshot numbers (only the fields the founder filled in).
+  const metrics: Record<string, number> = {};
+  for (const def of ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []) {
+    const raw = text(formData, `m_${def.key}`);
+    if (raw === "") continue;
+    const value = Number(raw);
+    if (Number.isInteger(value) && value >= 0 && value <= 10_000_000) metrics[def.key] = value;
+  }
+  if (!note && Object.keys(metrics).length === 0) {
+    refresh();
+    return;
+  }
+  await prisma.marketingAttemptUpdate.create({
+    data: { attemptId, note, ...(Object.keys(metrics).length ? { metrics } : {}) },
+  });
   refresh();
 }
 
