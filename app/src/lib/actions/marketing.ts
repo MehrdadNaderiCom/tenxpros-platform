@@ -510,6 +510,16 @@ export async function createAttempt(formData: FormData) {
     if (!prospect || prospect.campaignId !== campaignId) prospectId = null;
   }
 
+  // Optional backdate (the form hides it behind a details toggle). Empty or
+  // invalid means "now". A picked past day lands at 12:00 UTC so it groups
+  // inside that UTC day everywhere; the auto +1 below follows the same day.
+  let at: Date | undefined;
+  const atRaw = text(formData, "at");
+  if (atRaw) {
+    const picked = new Date(`${atRaw}T12:00:00.000Z`);
+    if (!Number.isNaN(picked.getTime()) && picked.getTime() <= Date.now()) at = picked;
+  }
+
   await prisma.marketingAttempt.create({
     data: {
       campaignId,
@@ -521,17 +531,19 @@ export async function createAttempt(formData: FormData) {
       minutes: intIn(formData, "minutes", 0, 0, 600),
       satisfaction: intIn(formData, "satisfaction", 3, 1, 5),
       learnings: text(formData, "learnings") || null,
+      ...(at ? { at } : {}),
     },
   });
 
-  // Auto-count: each kind maps to one daily-log counter (see ATTEMPT_KINDS).
+  // Auto-count: each kind maps to one daily-log counter (see ATTEMPT_KINDS),
+  // bumped on the day the entry belongs to (today unless backdated).
   const counter = ATTEMPT_KINDS.find((k) => k.value === kind)?.counter ?? null;
   if (counter && channel) {
-    const today = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
+    const day = new Date(`${(at ?? new Date()).toISOString().slice(0, 10)}T00:00:00.000Z`);
     await prisma.marketingDailyLog.upsert({
-      where: { campaignId_date_channel: { campaignId, date: today, channel } },
+      where: { campaignId_date_channel: { campaignId, date: day, channel } },
       update: { [counter]: { increment: 1 } },
-      create: { campaignId, date: today, channel, [counter]: 1 },
+      create: { campaignId, date: day, channel, [counter]: 1 },
     });
   }
 
@@ -545,6 +557,7 @@ export async function createAttempt(formData: FormData) {
           type: ATTEMPT_TOUCH_TYPE[kind] ?? "note",
           channel,
           summary: summary.slice(0, 200),
+          ...(at ? { at } : {}),
         },
       });
     } catch {

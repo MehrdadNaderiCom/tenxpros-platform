@@ -48,6 +48,7 @@ export default async function MarketingJournalPage() {
     );
   }
 
+  const today = utcDay(new Date());
   const weekAgo = new Date(Date.now() - 7 * 86_400_000);
   const [attempts, prospects] = await Promise.all([
     prisma.marketingAttempt.findMany({
@@ -81,7 +82,7 @@ export default async function MarketingJournalPage() {
     <div className="space-y-8">
       <PageHeader
         title="Journal"
-        description={`${campaign.name} · one entry per real attempt: who, how, what happened, how long, and how it felt. Saving an entry also updates today's stats - no double entry.`}
+        description={`${campaign.name} · one entry per real attempt: who, how, what happened, how long, and how it felt. Saving an entry also updates that day's stats - no double entry.`}
       />
       <Link href="/admin/marketing" className="text-sm font-medium text-navy-600 hover:underline">
         ← Back to Command
@@ -176,6 +177,21 @@ export default async function MarketingJournalPage() {
           >
             <Textarea name="learnings" className="min-h-20" placeholder="e.g. My first line was generic; next time reference their latest post" />
           </HintField>
+          {/* Backdating is the exception, so it stays folded away; an empty
+              date means the entry is stamped now. */}
+          <details className="text-xs">
+            <summary className="cursor-pointer select-none text-slate-500 hover:text-slate-700">
+              Logging something from an earlier day? Set the date (otherwise it saves as now)
+            </summary>
+            <div className="mt-2 max-w-52">
+              <HintField
+                label="Date"
+                hint="Leave empty for today (the default). Pick a past date only when catching up; the auto +1 then lands on that day's numbers."
+              >
+                <Input name="at" type="date" max={today} />
+              </HintField>
+            </div>
+          </details>
           <Button type="submit">Save attempt</Button>
         </form>
       </Card>
