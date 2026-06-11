@@ -5,11 +5,16 @@ import { Input, Textarea } from "@/components/ui/form-fields";
 import { HintField } from "@/components/ui/hint-field";
 import { PageHeader } from "@/components/shared/page-shell";
 import { getCoachSettings, getOperatorProfile } from "@/lib/marketing/ai-coach";
-import { saveCoachSettings, saveOperatorProfile } from "@/lib/actions/marketing";
+import { getPostCadenceHours } from "@/lib/marketing/post-cadence";
+import { saveCoachSettings, saveOperatorProfile, savePostCadence } from "@/lib/actions/marketing";
 import { superAdminEmail } from "@/lib/authz";
 
 export default async function MarketingSettingsPage() {
-  const [coach, operator] = await Promise.all([getCoachSettings(), getOperatorProfile()]);
+  const [coach, operator, cadenceHours] = await Promise.all([
+    getCoachSettings(),
+    getOperatorProfile(),
+    getPostCadenceHours(),
+  ]);
 
   return (
     <div className="space-y-8">
@@ -89,6 +94,27 @@ export default async function MarketingSettingsPage() {
           </HintField>
           <Button type="submit" variant="secondary">
             Save profile
+          </Button>
+        </form>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-navy-900">LinkedIn posting rhythm</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            When this many hours pass since your latest journaled LinkedIn post, Command and the Journal show a
+            reminder with snooze and hide options. Each new post restarts the clock; only the latest post counts.
+          </p>
+        </div>
+        <form action={savePostCadence} className="flex items-end gap-3">
+          <HintField
+            label="Hours between posts"
+            hint="The rhythm you want to hold. 28 hours keeps a daily presence while slowly rotating the posting time across the day."
+          >
+            <Input name="hours" type="number" min={1} max={720} defaultValue={cadenceHours} className="w-32" />
+          </HintField>
+          <Button type="submit" variant="secondary">
+            Save rhythm
           </Button>
         </form>
       </Card>

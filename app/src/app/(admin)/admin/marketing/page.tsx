@@ -9,6 +9,8 @@ import { prisma } from "@/lib/prisma";
 import { getActiveCampaign, campaignMetrics } from "@/lib/marketing/data";
 import { coachNudges, coachVerdict, replyRate, closeRate } from "@/lib/marketing/coach";
 import { getCoachSettings } from "@/lib/marketing/ai-coach";
+import { getPostCadence } from "@/lib/marketing/post-cadence";
+import { PostCadenceBanner } from "@/components/admin/post-cadence-banner";
 import { PROSPECT_STAGES, stageLabel } from "@/lib/marketing/constants";
 import { askAiCoach, markFollowupSent, syncProspectsWithFunnel } from "@/lib/actions/marketing";
 import { nextFollowupLabel } from "@/lib/marketing/followup";
@@ -70,7 +72,7 @@ export default async function MarketingCommandPage() {
   const reply = replyRate(m.messagesSent, m.repliesReceived);
   const close = closeRate(m.callsHeld, m.paidNow);
   const todayStart = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
-  const [coachSettings, adviceHistory, todayLogs] = await Promise.all([
+  const [coachSettings, adviceHistory, todayLogs, postCadence] = await Promise.all([
     getCoachSettings(),
     prisma.marketingCoachAdvice.findMany({
       where: { campaignId: campaign.id },
@@ -78,6 +80,7 @@ export default async function MarketingCommandPage() {
       take: 20,
     }),
     prisma.marketingDailyLog.findMany({ where: { campaignId: campaign.id, date: todayStart } }),
+    getPostCadence(campaign.id),
   ]);
   // Day rollover: only advice asked TODAY counts as current; anything older
   // moves to the history below so each morning starts with a fresh ask.
@@ -102,6 +105,8 @@ export default async function MarketingCommandPage() {
         title="Marketing Command"
         description={`${campaign.name} · day ${m.clock.elapsedDays}/${m.clock.totalDays} · ${m.clock.remainingDays} days left`}
       />
+
+      <PostCadenceBanner cadence={postCadence} />
 
       {/* Goals */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

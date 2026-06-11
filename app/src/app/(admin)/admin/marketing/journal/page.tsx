@@ -27,6 +27,9 @@ import {
   updateAttempt,
   updateAttemptUpdate,
 } from "@/lib/actions/marketing";
+import { getPostCadence } from "@/lib/marketing/post-cadence";
+import { PostCadenceBanner } from "@/components/admin/post-cadence-banner";
+import { ElapsedHours } from "@/components/admin/elapsed-hours";
 
 function utcDay(date: Date): string {
   return date.toISOString().slice(0, 10);
@@ -255,10 +258,12 @@ export default async function MarketingJournalPage() {
 
   const today = utcDay(new Date());
   const weekAgo = new Date(Date.now() - 7 * 86_400_000);
-  const [attempts, prospects] = await Promise.all([
+  const [attempts, prospects, cadence] = await Promise.all([
     prisma.marketingAttempt.findMany({
       where: { campaignId: campaign.id },
-      orderBy: { at: "desc" },
+      // Same id tiebreaker as getPostCadence, so the "latest LinkedIn post"
+      // chip always sits on the row the reminder clock reads.
+      orderBy: [{ at: "desc" }, { id: "desc" }],
       take: 60,
       include: {
         prospect: { select: { id: true, name: true } },
@@ -271,6 +276,7 @@ export default async function MarketingJournalPage() {
       orderBy: { name: "asc" },
       select: { id: true, name: true },
     }),
+    getPostCadence(campaign.id),
   ]);
 
   const week = attempts.filter((a) => a.at >= weekAgo);
@@ -296,6 +302,25 @@ export default async function MarketingJournalPage() {
       <Link href="/admin/marketing" className="text-sm font-medium text-navy-600 hover:underline">
         ← Back to Command
       </Link>
+
+      <PostCadenceBanner cadence={cadence} showJournalLink={false} />
+
+      {cadence.lastPost ? (
+        <Card className="flex flex-wrap items-center justify-between gap-2 py-3">
+          <p className="text-sm text-slate-700">
+            🕑 LinkedIn rhythm: last post{" "}
+            <ElapsedHours atIso={cadence.lastPost.at.toISOString()} warnAfterHours={cadence.threshold} /> ago · aim:
+            a post every {cadence.threshold}h
+            {cadence.snoozedUntil ? (
+              <span className="text-xs text-slate-400">
+                {" "}
+                · reminder snoozed until {cadence.snoozedUntil.toISOString().slice(0, 16).replace("T", " ")} UTC
+              </span>
+            ) : null}
+          </p>
+          <p className="text-xs text-slate-400">Counted from the newest journal entry: "Published a post" on LinkedIn.</p>
+        </Card>
+      ) : null}
 
       <Card className="space-y-4">
         <div>
@@ -358,6 +383,12 @@ export default async function MarketingJournalPage() {
                       ) : null}
                       <RatingChip value={attempt.satisfaction} />
                       {attempt.minutes > 0 ? <span className="text-slate-400">{attempt.minutes} min</span> : null}
+                      {cadence.lastPost?.id === attempt.id ? (
+                        <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-slate-700">
+                          ⏱ latest LinkedIn post ·{" "}
+                          <ElapsedHours atIso={attempt.at.toISOString()} warnAfterHours={cadence.threshold} /> ago
+                        </span>
+                      ) : null}
                     </div>
                     <p className="text-sm text-slate-700">{attempt.summary}</p>
                     {attempt.outcome ? (

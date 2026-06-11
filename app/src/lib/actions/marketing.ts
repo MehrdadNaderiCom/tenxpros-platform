@@ -27,6 +27,12 @@ import {
 } from "@/lib/marketing/ai-coach";
 import { campaignMetrics, getActiveCampaign } from "@/lib/marketing/data";
 import {
+  DEFAULT_POST_CADENCE_HOURS,
+  POST_CADENCE_HOURS_SETTING,
+  POST_REMINDER_DISMISS_SETTING,
+  POST_REMINDER_SNOOZE_SETTING,
+} from "@/lib/marketing/post-cadence";
+import {
   buildAreaExtras,
   buildSuggestContext,
   type SuggestArea,
@@ -1004,6 +1010,90 @@ export async function saveOperatorProfile(formData: FormData) {
   }
   await audit(admin.id, "MARKETING_OPERATOR_PROFILE", "AdminSetting", OPERATOR_PROFILE_SETTING, {
     after: { reverted: !profile, length: profile.length },
+  });
+  refresh();
+}
+
+// ---------------------------------------------------------------------------
+// LinkedIn posting rhythm reminder
+// ---------------------------------------------------------------------------
+
+/** Upsert one marketing reminder setting (keys are marketing_-prefixed, so protected). */
+async function upsertReminderSetting(adminId: string, key: string, value: string, label: string) {
+  await prisma.adminSetting.upsert({
+    where: { key },
+    update: { value, updatedBy: adminId },
+    create: { key, value, category: "FEATURE_FLAGS", label, updatedBy: adminId },
+  });
+}
+
+/**
+ * A stale tab can submit the banner for an older post after a newer one was
+ * journaled; writing then would clobber a snooze/dismiss already pinned to
+ * the CURRENT post. Only the still-latest post may write reminder state.
+ */
+async function isLatestLinkedinPost(postId: string): Promise<boolean> {
+  const attempt = await prisma.marketingAttempt.findUnique({
+    where: { id: postId },
+    select: { campaignId: true, kind: true, channel: true },
+  });
+  if (!attempt || attempt.kind !== "post" || attempt.channel !== "linkedin") return false;
+  const latest = await prisma.marketingAttempt.findFirst({
+    where: { campaignId: attempt.campaignId, kind: "post", channel: "linkedin" },
+    orderBy: [{ at: "desc" }, { id: "desc" }],
+    select: { id: true },
+  });
+  return latest?.id === postId;
+}
+
+/** "Remind me again in N hours" on the posting-rhythm banner, pinned to the current post. */
+export async function snoozePostReminder(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const postId = text(formData, "postId");
+  if (!postId || !(await isLatestLinkedinPost(postId))) {
+    refresh();
+    return;
+  }
+  const hours = intIn(formData, "hours", 4, 1, 168);
+  const until = new Date(Date.now() + hours * 3_600_000).toISOString();
+  await upsertReminderSetting(
+    admin.id,
+    POST_REMINDER_SNOOZE_SETTING,
+    JSON.stringify({ postId, until }),
+    "Marketing: LinkedIn post reminder snooze",
+  );
+  refresh();
+}
+
+/** "Hide until the next post": dismisses the banner for the current post only. */
+export async function dismissPostReminder(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const postId = text(formData, "postId");
+  if (!postId || !(await isLatestLinkedinPost(postId))) {
+    refresh();
+    return;
+  }
+  await upsertReminderSetting(
+    admin.id,
+    POST_REMINDER_DISMISS_SETTING,
+    postId,
+    "Marketing: LinkedIn post reminder dismissed for post",
+  );
+  refresh();
+}
+
+/** The rhythm target itself (hours between LinkedIn posts), from Marketing settings. */
+export async function savePostCadence(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const hours = intIn(formData, "hours", DEFAULT_POST_CADENCE_HOURS, 1, 720);
+  await upsertReminderSetting(
+    admin.id,
+    POST_CADENCE_HOURS_SETTING,
+    String(hours),
+    "Marketing: hours between LinkedIn posts",
+  );
+  await audit(admin.id, "MARKETING_POST_CADENCE", "AdminSetting", POST_CADENCE_HOURS_SETTING, {
+    after: { hours },
   });
   refresh();
 }
