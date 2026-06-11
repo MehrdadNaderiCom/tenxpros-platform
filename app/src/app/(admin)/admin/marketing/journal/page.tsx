@@ -14,10 +14,25 @@ import {
   MARKETING_CHANNELS,
   SATISFACTION_OPTIONS,
 } from "@/lib/marketing/constants";
-import { createAttempt, deleteAttempt, updateAttempt } from "@/lib/actions/marketing";
+import {
+  addAttemptUpdate,
+  createAttempt,
+  deleteAttempt,
+  deleteAttemptUpdate,
+  updateAttempt,
+} from "@/lib/actions/marketing";
 
 function utcDay(date: Date): string {
   return date.toISOString().slice(0, 10);
+}
+
+/** "+45m", "+3h 20m", "+2d 5h": time between the attempt and a follow-up. */
+function elapsedLabel(from: Date, to: Date): string {
+  const mins = Math.max(0, Math.round((to.getTime() - from.getTime()) / 60_000));
+  if (mins < 60) return `+${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return mins % 60 ? `+${hours}h ${mins % 60}m` : `+${hours}h`;
+  return `+${Math.floor(hours / 24)}d ${hours % 24}h`;
 }
 
 /** 1-5 self-rating as a compact colored chip. */
@@ -213,7 +228,10 @@ export default async function MarketingJournalPage() {
       where: { campaignId: campaign.id },
       orderBy: { at: "desc" },
       take: 60,
-      include: { prospect: { select: { id: true, name: true } } },
+      include: {
+        prospect: { select: { id: true, name: true } },
+        updates: { orderBy: { at: "asc" } },
+      },
     }),
     prisma.prospect.findMany({
       where: { campaignId: campaign.id, stage: { notIn: ["PAID", "LOST", "DROPPED"] } },
@@ -312,6 +330,56 @@ export default async function MarketingJournalPage() {
                     {attempt.learnings ? (
                       <p className="text-xs italic text-slate-500">Lesson: {attempt.learnings}</p>
                     ) : null}
+
+                    {/* Follow-up thread: the original entry stays untouched;
+                        each update documents what happened, stamped with the
+                        time elapsed since the attempt. */}
+                    {attempt.updates.length > 0 ? (
+                      <div className="mt-1 space-y-1 border-l-2 border-navy-100 pl-3">
+                        {attempt.updates.map((update) => (
+                          <div key={update.id} className="group flex items-baseline gap-2 text-sm">
+                            <span
+                              className="flex-none rounded bg-navy-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-navy-700"
+                              title={update.at.toISOString().replace("T", " ").slice(0, 16) + " UTC"}
+                            >
+                              {elapsedLabel(attempt.at, update.at)}
+                            </span>
+                            <span className="min-w-0 text-slate-700">{update.note}</span>
+                            <form className="flex-none opacity-40 transition focus-within:opacity-100 hover:opacity-100 group-hover:opacity-100">
+                              <input type="hidden" name="updateId" value={update.id} />
+                              <ConfirmButton
+                                action={deleteAttemptUpdate}
+                                message="Remove this follow-up note from the thread?"
+                                className="rounded px-1 text-xs font-medium text-red-500 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
+                              >
+                                ×
+                              </ConfirmButton>
+                            </form>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    <form action={addAttemptUpdate} className="flex max-w-xl items-end gap-2 pt-1">
+                      <input type="hidden" name="attemptId" value={attempt.id} />
+                      <div className="grow">
+                        <HintField
+                          label="Follow-up"
+                          hint="What happened after this attempt? Saved with a timestamp and shown as +time since the attempt; the AI coach reads the trend. The original entry stays untouched."
+                        >
+                          <Input
+                            name="note"
+                            required
+                            maxLength={500}
+                            placeholder="e.g. 14 GORILLA comments, 3 DMs started"
+                            className="h-9 text-sm"
+                          />
+                        </HintField>
+                      </div>
+                      <Button type="submit" variant="secondary" className="h-9 flex-none px-3 text-xs">
+                        Add update
+                      </Button>
+                    </form>
+
                     <div className="flex items-center gap-3 pt-1">
                       <details className="min-w-0 grow">
                         <summary className="inline cursor-pointer select-none text-xs font-medium text-navy-600 hover:underline">

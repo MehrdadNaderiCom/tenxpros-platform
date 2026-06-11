@@ -1588,7 +1588,26 @@ model MarketingAttempt {
 
   at DateTime @default(now())
 
+  updates MarketingAttemptUpdate[]
+
   @@index([campaignId, at])
+}
+
+// Timestamped follow-ups on a journal attempt ("+2h: 14 comments, 3 DMs").
+// The original entry stays untouched; the thread documents how the attempt
+// played out over time, and the elapsed-since-attempt timing feeds the AI.
+model MarketingAttemptUpdate {
+  id String @id @default(cuid())
+
+  attemptId String
+
+  attempt MarketingAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  note String
+
+  at DateTime @default(now())
+
+  @@index([attemptId, at])
 }
 
 model MarketingTemplate {

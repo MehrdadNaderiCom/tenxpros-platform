@@ -39,13 +39,25 @@ export function operatorBlock(profile: string): string {
   return `\n\nOPERATOR PROFILE - how this founder actually works. These are HARD constraints; never suggest anything that violates them, and shape every plan around them:\n${profile.trim()}`;
 }
 
+/** Compact "2h" / "3d" elapsed marker for follow-up timelines. */
+function elapsedShort(from: Date, to: Date): string {
+  const mins = Math.max(0, Math.round((to.getTime() - from.getTime()) / 60_000));
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 48) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
 /** Recent journal entries (what was tried, outcome, self-rating) for AI context. */
 export async function recentAttemptSummaries(campaignId: string, take = 15) {
   const rows = await prisma.marketingAttempt.findMany({
     where: { campaignId },
     orderBy: { at: "desc" },
     take,
-    include: { prospect: { select: { name: true } } },
+    include: {
+      prospect: { select: { name: true } },
+      updates: { orderBy: { at: "asc" } },
+    },
   });
   return rows.map((a) => ({
     date: a.at.toISOString().slice(0, 10),
@@ -57,6 +69,10 @@ export async function recentAttemptSummaries(campaignId: string, take = 15) {
     minutes: a.minutes || undefined,
     selfRating: `${a.satisfaction}/5`,
     learnings: a.learnings?.slice(0, 240) || undefined,
+    // How the attempt unfolded over time ("+2h: 14 comments, 3 DMs").
+    ...(a.updates.length
+      ? { followUps: a.updates.slice(-5).map((u) => `+${elapsedShort(a.at, u.at)}: ${u.note.slice(0, 160)}`) }
+      : {}),
   }));
 }
 

@@ -665,6 +665,44 @@ export async function updateAttempt(formData: FormData) {
 }
 
 /**
+ * Append a timestamped follow-up to a journal entry ("+2h: 14 comments").
+ * The original entry is never touched; the thread is the history. Empty
+ * notes and vanished attempts are ignored instead of throwing (production
+ * redacts server-action errors).
+ */
+export async function addAttemptUpdate(formData: FormData) {
+  await requireSuperAdmin();
+  const attemptId = text(formData, "attemptId");
+  const note = text(formData, "note").slice(0, 500);
+  if (!note) {
+    refresh();
+    return;
+  }
+  const attempt = await prisma.marketingAttempt.findUnique({ where: { id: attemptId }, select: { id: true } });
+  if (!attempt) {
+    refresh();
+    return;
+  }
+  await prisma.marketingAttemptUpdate.create({ data: { attemptId, note } });
+  refresh();
+}
+
+export async function deleteAttemptUpdate(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "updateId");
+  const existing = await prisma.marketingAttemptUpdate.findUnique({ where: { id } });
+  if (!existing) {
+    refresh();
+    return;
+  }
+  await prisma.marketingAttemptUpdate.delete({ where: { id } });
+  await audit(admin.id, "MARKETING_ATTEMPT_UPDATE_DELETE", "MarketingAttemptUpdate", id, {
+    before: { attemptId: existing.attemptId, note: existing.note, at: existing.at.toISOString() },
+  });
+  refresh();
+}
+
+/**
  * Delete a journal entry and remove its auto-counted +1 from the daily log of
  * the day the entry belongs to (never below zero).
  */
