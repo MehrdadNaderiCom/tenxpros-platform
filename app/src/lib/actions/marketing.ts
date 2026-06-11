@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/authz";
 import { advanceFollowup, nextFollowupDue } from "@/lib/marketing/followup";
@@ -713,6 +714,84 @@ export async function addAttemptUpdate(formData: FormData) {
   }
   await prisma.marketingAttemptUpdate.create({
     data: { attemptId, note, ...(Object.keys(metrics).length ? { metrics } : {}) },
+  });
+  refresh();
+}
+
+/**
+ * Edit a follow-up note: every value can change (snapshot numbers, the note,
+ * and the timestamp the elapsed label is computed from). An emptied metric
+ * field removes that number; clearing everything is ignored rather than
+ * saving an empty update. Timestamps stay between the attempt and now.
+ */
+export async function updateAttemptUpdate(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "updateId");
+  const existing = await prisma.marketingAttemptUpdate.findUnique({
+    where: { id },
+    include: { attempt: { select: { kind: true, at: true } } },
+  });
+  if (!existing) {
+    refresh();
+    return;
+  }
+
+  const note = text(formData, "note").slice(0, 500);
+
+  // Merge onto the stored numbers instead of rebuilding: an emptied input
+  // removes its number, an out-of-range value keeps the stored one, and keys
+  // recorded under a previous kind of the attempt survive untouched.
+  const metrics: Record<string, number> = {};
+  if (existing.metrics && typeof existing.metrics === "object" && !Array.isArray(existing.metrics)) {
+    for (const [key, value] of Object.entries(existing.metrics as Record<string, unknown>)) {
+      if (typeof value === "number") metrics[key] = value;
+    }
+  }
+  for (const def of ATTEMPT_METRICS[existing.attempt.kind as AttemptKindValue] ?? []) {
+    const raw = text(formData, `m_${def.key}`);
+    if (raw === "") {
+      delete metrics[def.key];
+      continue;
+    }
+    const value = Number(raw);
+    if (Number.isInteger(value) && value >= 0 && value <= 10_000_000) metrics[def.key] = value;
+  }
+  const hasMetrics = Object.keys(metrics).length > 0;
+
+  // Minute-precision UTC timestamp. The prefill itself counts as "unchanged"
+  // so an untouched Save never truncates the stored seconds. The lower bound
+  // is the attempt's minute, exactly what the picker's min advertises.
+  let at = existing.at;
+  const atRaw = text(formData, "at");
+  if (atRaw && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(atRaw) && atRaw !== existing.at.toISOString().slice(0, 16)) {
+    const picked = new Date(`${atRaw}:00.000Z`);
+    const lowerBound = Math.floor(existing.attempt.at.getTime() / 60_000) * 60_000;
+    if (!Number.isNaN(picked.getTime()) && picked.getTime() <= Date.now() && picked.getTime() >= lowerBound) {
+      at = picked;
+    }
+  }
+
+  if (!note && !hasMetrics) {
+    // Never store an empty follow-up; the existing text stays. A pure
+    // timestamp correction still lands.
+    if (at.getTime() !== existing.at.getTime()) {
+      await prisma.marketingAttemptUpdate.update({ where: { id }, data: { at } });
+      await audit(admin.id, "MARKETING_ATTEMPT_UPDATE_EDIT", "MarketingAttemptUpdate", id, {
+        before: { at: existing.at.toISOString() },
+        after: { at: at.toISOString() },
+      });
+    }
+    refresh();
+    return;
+  }
+
+  await prisma.marketingAttemptUpdate.update({
+    where: { id },
+    data: { note, metrics: hasMetrics ? metrics : Prisma.DbNull, at },
+  });
+  await audit(admin.id, "MARKETING_ATTEMPT_UPDATE_EDIT", "MarketingAttemptUpdate", id, {
+    before: { note: existing.note, metrics: existing.metrics, at: existing.at.toISOString() },
+    after: { note, metrics: hasMetrics ? metrics : null, at: at.toISOString() },
   });
   refresh();
 }

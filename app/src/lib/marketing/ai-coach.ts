@@ -56,7 +56,7 @@ export async function recentAttemptSummaries(campaignId: string, take = 15) {
     take,
     include: {
       prospect: { select: { name: true } },
-      updates: { orderBy: { at: "asc" } },
+      updates: { orderBy: [{ at: "asc" }, { id: "asc" }] },
     },
   });
   return rows.map((a) => ({

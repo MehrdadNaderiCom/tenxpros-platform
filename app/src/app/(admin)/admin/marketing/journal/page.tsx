@@ -25,6 +25,7 @@ import {
   deleteAttempt,
   deleteAttemptUpdate,
   updateAttempt,
+  updateAttemptUpdate,
 } from "@/lib/actions/marketing";
 
 function utcDay(date: Date): string {
@@ -261,7 +262,8 @@ export default async function MarketingJournalPage() {
       take: 60,
       include: {
         prospect: { select: { id: true, name: true } },
-        updates: { orderBy: { at: "asc" } },
+        // id (cuid) as a tiebreaker keeps same-minute updates in entry order.
+        updates: { orderBy: [{ at: "asc" }, { id: "asc" }] },
       },
     }),
     prisma.prospect.findMany({
@@ -372,30 +374,93 @@ export default async function MarketingJournalPage() {
                         time elapsed since the attempt. */}
                     {attempt.updates.length > 0 ? (
                       <div className="mt-1 space-y-1 border-l-2 border-navy-100 pl-3">
-                        {attempt.updates.map((update) => (
-                          <div key={update.id} className="group flex items-baseline gap-2 text-sm">
-                            <span
-                              className="flex-none rounded bg-navy-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-navy-700"
-                              title={update.at.toISOString().replace("T", " ").slice(0, 16) + " UTC"}
-                            >
-                              {elapsedLabel(attempt.at, update.at)}
-                            </span>
-                            <span className="min-w-0 space-x-1.5 text-slate-700">
-                              <MetricChips kind={attempt.kind} metrics={update.metrics} />
-                              {update.note ? <span>{update.note}</span> : null}
-                            </span>
-                            <form className="flex-none opacity-40 transition focus-within:opacity-100 hover:opacity-100 group-hover:opacity-100">
-                              <input type="hidden" name="updateId" value={update.id} />
-                              <ConfirmButton
-                                action={deleteAttemptUpdate}
-                                message="Remove this follow-up note from the thread?"
-                                className="rounded px-1 text-xs font-medium text-red-500 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
-                              >
-                                ×
-                              </ConfirmButton>
-                            </form>
-                          </div>
-                        ))}
+                        {attempt.updates.map((update) => {
+                          const updateMetrics =
+                            update.metrics && typeof update.metrics === "object" && !Array.isArray(update.metrics)
+                              ? (update.metrics as Record<string, unknown>)
+                              : {};
+                          return (
+                            /* Click a follow-up line to open its editor: every
+                               value (numbers, note, timestamp) can be fixed. */
+                            <details key={update.id} className="text-sm">
+                              <summary className="flex cursor-pointer list-none items-baseline gap-2 rounded px-1 -mx-1 transition hover:bg-navy-50/60 [&::-webkit-details-marker]:hidden">
+                                <span
+                                  className="flex-none rounded bg-navy-50 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-navy-700"
+                                  title={update.at.toISOString().replace("T", " ").slice(0, 16) + " UTC"}
+                                >
+                                  {elapsedLabel(attempt.at, update.at)}
+                                </span>
+                                <span className="min-w-0 space-x-1.5 text-slate-700">
+                                  <MetricChips kind={attempt.kind} metrics={update.metrics} />
+                                  {update.note ? <span>{update.note}</span> : null}
+                                </span>
+                                <span className="flex-none text-xs font-medium text-navy-500">edit ✎</span>
+                              </summary>
+                              <div className="mt-2 flex flex-wrap items-start gap-3 rounded-md border border-neutral-200 bg-neutral-50/60 p-3">
+                                <form action={updateAttemptUpdate} className="min-w-0 grow space-y-2">
+                                  <input type="hidden" name="updateId" value={update.id} />
+                                  {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).length > 0 ? (
+                                    <div className="grid grid-cols-3 items-end gap-2 md:grid-cols-6">
+                                      {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).map((metric) => (
+                                        <HintField key={metric.key} label={metric.label} hint={metric.hint}>
+                                          <Input
+                                            name={`m_${metric.key}`}
+                                            type="number"
+                                            min={0}
+                                            max={10_000_000}
+                                            defaultValue={
+                                              typeof updateMetrics[metric.key] === "number"
+                                                ? (updateMetrics[metric.key] as number)
+                                                : ""
+                                            }
+                                            className="h-9 text-sm"
+                                          />
+                                        </HintField>
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                  <div className="grid items-end gap-2 md:grid-cols-[1fr_auto_auto]">
+                                    <HintField
+                                      label="Note"
+                                      hint={
+                                        (ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).length
+                                          ? "The free-text part of this follow-up. Emptying it is fine as long as at least one number stays filled."
+                                          : "The text of this follow-up. Clearing it and saving keeps the old text (only the time can change alone); use Delete to remove the entry."
+                                      }
+                                    >
+                                      <Input name="note" maxLength={500} defaultValue={update.note} className="h-9 text-sm" />
+                                    </HintField>
+                                    <HintField
+                                      label="When (UTC)"
+                                      hint="The moment this follow-up happened, in UTC. The +elapsed label is computed from it; it must stay between the attempt and now."
+                                    >
+                                      <Input
+                                        name="at"
+                                        type="datetime-local"
+                                        defaultValue={update.at.toISOString().slice(0, 16)}
+                                        min={attempt.at.toISOString().slice(0, 16)}
+                                        className="h-9 text-sm"
+                                      />
+                                    </HintField>
+                                    <Button type="submit" variant="secondary" className="h-9 px-3 text-xs">
+                                      Save
+                                    </Button>
+                                  </div>
+                                </form>
+                                <form className="pt-6">
+                                  <input type="hidden" name="updateId" value={update.id} />
+                                  <ConfirmButton
+                                    action={deleteAttemptUpdate}
+                                    message="Remove this follow-up note from the thread?"
+                                    className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40"
+                                  >
+                                    Delete
+                                  </ConfirmButton>
+                                </form>
+                              </div>
+                            </details>
+                          );
+                        })}
                       </div>
                     ) : null}
                     <form action={addAttemptUpdate} className="max-w-3xl space-y-2 pt-1">
@@ -404,7 +469,7 @@ export default async function MarketingJournalPage() {
                         <div className="grid grid-cols-3 items-end gap-2 md:grid-cols-6">
                           {(ATTEMPT_METRICS[attempt.kind as AttemptKindValue] ?? []).map((metric) => (
                             <HintField key={metric.key} label={metric.label} hint={metric.hint}>
-                              <Input name={`m_${metric.key}`} type="number" min={0} className="h-9 text-sm" />
+                              <Input name={`m_${metric.key}`} type="number" min={0} max={10_000_000} className="h-9 text-sm" />
                             </HintField>
                           ))}
                         </div>
