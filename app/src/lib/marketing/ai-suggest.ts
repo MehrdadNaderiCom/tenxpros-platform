@@ -6,7 +6,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { channelLabel, prospectScore, stageLabel } from "@/lib/marketing/constants";
-import { operatorBlock } from "@/lib/marketing/ai-coach";
+import { operatorBlock, reachableVia } from "@/lib/marketing/ai-coach";
 import type { CampaignWithChannels, campaignMetrics } from "@/lib/marketing/data";
 
 export type SuggestArea = "channels" | "activity" | "prospects" | "playbook";
@@ -48,6 +48,7 @@ export function buildSuggestContext(
       day: `${m.clock.elapsedDays}/${m.clock.totalDays}`,
       remainingDays: m.clock.remainingDays,
       goals: { breakEven: campaign.targetBreakEven, ideal: campaign.targetIdeal, stretch: campaign.targetStretch, pipelineTarget: campaign.targetPipeline },
+      offerNotes: campaign.notes?.slice(0, 300) || undefined,
     },
     channels: campaign.channels.map((c) => ({
       channel: channelLabel(c.channel),
@@ -78,6 +79,7 @@ export function buildSuggestContext(
         calls: l.calls,
         posts: l.posts,
         engagements: l.engagements,
+        note: l.notes?.slice(0, 200) || undefined,
       })),
     ...extra,
   };
@@ -106,6 +108,7 @@ export async function buildAreaExtras(
       followupStep: p.followupStep,
       followupStatus: p.followupStatus,
       daysSinceActivity: Math.floor((now - p.updatedAt.getTime()) / 86_400_000),
+      reachableVia: reachableVia(p),
       notes: p.notes?.slice(0, 160),
     });
     return {

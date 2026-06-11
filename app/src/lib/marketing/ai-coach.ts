@@ -109,12 +109,28 @@ You receive the live campaign data as JSON, including the founder's own journal 
 3. One risk the founder is probably not seeing.
 Be direct, practical, and brief (under 300 words). No generic advice; tie every point to the numbers, prospects, or journal entries given. Format: short **bold** section labels and "-" bullets only (no tables, no nested lists, no # headers).`;
 
+/** Contact channels actually on file for a prospect, so plans match reality. */
+export function reachableVia(p: {
+  linkedin: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  phone: string | null;
+  telegram: string | null;
+  instagram: string | null;
+  twitter: string | null;
+}): string[] {
+  return (["linkedin", "whatsapp", "email", "phone", "telegram", "instagram", "twitter"] as const).filter(
+    (key) => Boolean(p[key]),
+  );
+}
+
 export function buildCoachContext(
   campaign: CampaignWithChannels,
   m: Awaited<ReturnType<typeof campaignMetrics>>,
   journal: Awaited<ReturnType<typeof recentAttemptSummaries>> = [],
 ): string {
   const verdict = coachVerdict(m.coachInput);
+  const now = Date.now();
   // Same ranking the operator sees in the queues: warmth-weighted score.
   const topProspects = [...m.prospects]
     .filter((p) => !["PAID", "LOST", "DROPPED"].includes(p.stage))
@@ -128,8 +144,10 @@ export function buildCoachContext(
       context: p.context,
       followupStep: p.followupStep,
       followupStatus: p.followupStatus,
+      daysSinceActivity: Math.floor((now - p.updatedAt.getTime()) / 86_400_000),
+      reachableVia: reachableVia(p),
     }));
-  const cutoff = Date.now() - 14 * 86_400_000;
+  const cutoff = now - 14 * 86_400_000;
   const recentLogs = m.logs
     .filter((l) => l.date.getTime() >= cutoff)
     .map((l) => ({
@@ -140,10 +158,12 @@ export function buildCoachContext(
       calls: l.calls,
       posts: l.posts,
       engagements: l.engagements,
+      note: l.notes?.slice(0, 200) || undefined,
     }));
 
   return JSON.stringify(
     {
+      today: new Date().toISOString().slice(0, 10),
       campaign: {
         name: campaign.name,
         day: `${m.clock.elapsedDays}/${m.clock.totalDays}`,
@@ -154,10 +174,13 @@ export function buildCoachContext(
           stretch: campaign.targetStretch,
           pipelineTarget: campaign.targetPipeline,
         },
+        offerNotes: campaign.notes?.slice(0, 300) || undefined,
         channels: campaign.channels.map((c) => ({
           channel: c.channel,
+          enabled: c.enabled,
           dailyMin: c.dailyMin,
           dailyMax: c.dailyMax,
+          weeklyCap: c.weeklyCap,
           postsPerDay: c.postsPerDay,
           engagePerDay: c.engagePerDay,
           contentNote: c.contentNote,

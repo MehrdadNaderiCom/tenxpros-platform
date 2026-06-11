@@ -58,6 +58,7 @@ function dateOf(formData: FormData, name: string): Date {
 function refresh() {
   for (const path of [
     "/admin/marketing",
+    "/admin/marketing/insights",
     "/admin/marketing/prospects",
     "/admin/marketing/campaigns",
     "/admin/marketing/activity",

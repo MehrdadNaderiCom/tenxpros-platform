@@ -20,6 +20,10 @@ const config: Config = {
           50: "#EEF5FB",
           100: "#D8E8F5",
           500: "#2E75B6",
+          // 600 sits between 500 and 700. Many components already reference
+          // text/bg/fill-navy-600; without this shade Tailwind silently
+          // dropped those classes (SVG fills rendered black).
+          600: "#2A69A4",
           700: "#255D91",
           900: "#1F4E79",
         },

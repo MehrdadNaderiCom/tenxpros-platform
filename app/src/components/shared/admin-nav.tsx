@@ -67,6 +67,7 @@ const marketingSection: NavSection = {
   title: "Marketing",
   items: [
     { label: "Command", href: "/admin/marketing" },
+    { label: "Insights", href: "/admin/marketing/insights" },
     { label: "Today", href: "/admin/marketing/activity" },
     { label: "Journal", href: "/admin/marketing/journal" },
     { label: "Prospects", href: "/admin/marketing/prospects" },
