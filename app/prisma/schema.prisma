@@ -1365,6 +1365,8 @@ model MarketingCampaign {
 
   aiSuggestions MarketingAiSuggestion[]
 
+  attempts MarketingAttempt[]
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -1495,6 +1497,8 @@ model Prospect {
 
   touches ProspectTouch[]
 
+  attempts MarketingAttempt[]
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -1545,6 +1549,46 @@ model MarketingDailyLog {
   notes String?
 
   @@unique([campaignId, date, channel])
+}
+
+// Journal: one row per real-world effort (a message, a follow-up, a post, an
+// engagement block, a conversation) with outcome, time spent, and a 1-5
+// self-rating. Saving an attempt auto-increments the matching
+// MarketingDailyLog counters, so daily stats never need double entry.
+model MarketingAttempt {
+  id String @id @default(cuid())
+
+  campaignId String
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  // outreach, follow_up, reply, conversation, post, engagement, other
+  kind String
+
+  channel String?
+
+  prospectId String?
+
+  prospect Prospect? @relation(fields: [prospectId], references: [id], onDelete: SetNull)
+
+  // What I did and to whom (free text).
+  summary String
+
+  // What happened / the result so far.
+  outcome String?
+
+  // Time it took, in minutes.
+  minutes Int @default(0)
+
+  // 1-5 self-rating of how it went.
+  satisfaction Int @default(3)
+
+  // Weak points, lessons, what to try differently next time.
+  learnings String?
+
+  at DateTime @default(now())
+
+  @@index([campaignId, at])
 }
 
 model MarketingTemplate {

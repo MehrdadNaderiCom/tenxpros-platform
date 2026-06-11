@@ -11,7 +11,54 @@ import type { CampaignWithChannels, campaignMetrics } from "@/lib/marketing/data
 export const OPENROUTER_KEY_SETTING = "openrouter_api_key";
 export const OPENROUTER_MODEL_SETTING = "openrouter_model";
 export const OPENROUTER_ERROR_SETTING = "openrouter_last_error";
+export const OPERATOR_PROFILE_SETTING = "marketing_operator_profile";
 export const DEFAULT_COACH_MODEL = "anthropic/claude-sonnet-4.5";
+
+/**
+ * How the founder actually works. Sent with EVERY AI request (coach and all
+ * "suggest" buttons) as hard constraints, and editable in Marketing settings.
+ * Without this, models suggest cold email blasts and phone-call CTAs that the
+ * founder will never do.
+ */
+export const DEFAULT_OPERATOR_PROFILE = `- I work message-first. I am not a phone-call person: never propose call CTAs. A "conversation" for me is a real back-and-forth in WhatsApp or LinkedIn DMs.
+- My main channel is LinkedIn: reading posts, commenting, publishing posts, connection requests with a short note, and DMs to accepted connections. Respect LinkedIn limits (connection-request weekly caps, InMail is scarce - do not assume I can InMail everyone).
+- WhatsApp is my ideal place to deepen a relationship once someone shares a number or we already know each other.
+- No cold email for now: I have no email list and do not want to send cold emails. Only suggest email when a prospect has given me their address.
+- I am a solo founder doing this alongside running the company; plans must fit roughly 2 focused hours per day.`;
+
+/** Current operator profile (custom if saved, otherwise the default above). */
+export async function getOperatorProfile(): Promise<{ profile: string; isCustom: boolean }> {
+  const row = await prisma.adminSetting.findUnique({ where: { key: OPERATOR_PROFILE_SETTING } });
+  const custom = row?.value.trim();
+  return custom ? { profile: custom, isCustom: true } : { profile: DEFAULT_OPERATOR_PROFILE, isCustom: false };
+}
+
+/** Appended to every AI system prompt so suggestions fit how the founder really works. */
+export function operatorBlock(profile: string): string {
+  if (!profile.trim()) return "";
+  return `\n\nOPERATOR PROFILE - how this founder actually works. These are HARD constraints; never suggest anything that violates them, and shape every plan around them:\n${profile.trim()}`;
+}
+
+/** Recent journal entries (what was tried, outcome, self-rating) for AI context. */
+export async function recentAttemptSummaries(campaignId: string, take = 15) {
+  const rows = await prisma.marketingAttempt.findMany({
+    where: { campaignId },
+    orderBy: { at: "desc" },
+    take,
+    include: { prospect: { select: { name: true } } },
+  });
+  return rows.map((a) => ({
+    date: a.at.toISOString().slice(0, 10),
+    kind: a.kind,
+    channel: a.channel ?? undefined,
+    prospect: a.prospect?.name,
+    what: a.summary.slice(0, 240),
+    outcome: a.outcome?.slice(0, 240) || undefined,
+    minutes: a.minutes || undefined,
+    selfRating: `${a.satisfaction}/5`,
+    learnings: a.learnings?.slice(0, 240) || undefined,
+  }));
+}
 
 export async function getCoachSettings(): Promise<{ hasKey: boolean; model: string; lastError: string | null }> {
   const rows = await prisma.adminSetting.findMany({
@@ -25,17 +72,18 @@ export async function getCoachSettings(): Promise<{ hasKey: boolean; model: stri
 
 const SYSTEM_PROMPT = `You are the sales coach inside "TenXPros Command", the founder's operating system for landing the first paying customers of TenXPros (tenxpros.com) — a selective, reviewed 12-week program ($997 Founding tier) where non-technical professionals adopt AI in their real work and ship a defensible "Living AI Solution Dossier".
 
-The operator is a solo founder doing founder-led, trust-first outreach (LinkedIn / WhatsApp / email), guided by a playbook: personalize the first line of every message; follow-up cadence FU1 +3d, FU2 +7d, FU3 +7d; lead with the Sample Dossier and Founder Letter; the 150-messages/10-calls pivot rule; reply-rate target 15-25%.
+The operator is a solo founder doing founder-led, trust-first outreach, guided by a playbook: personalize the first line of every message; follow-up cadence FU1 +3d, FU2 +7d, FU3 +7d; lead with the Sample Dossier and Founder Letter; the 150-messages/10-conversations pivot rule; reply-rate target 15-25%. In the data, "calls" counts deep conversations (a real back-and-forth thread or a call).
 
-You receive the live campaign data as JSON. Respond with:
+You receive the live campaign data as JSON, including the founder's own journal of recent attempts (what was tried, the outcome, a 1-5 self-rating, lessons). Treat low ratings and repeated lessons as the strongest coaching signal. Respond with:
 1. A one-line verdict of where the campaign truly stands.
 2. The 3 highest-leverage moves for the NEXT 24 HOURS, concrete and specific to the data (name names from the pipeline when useful).
 3. One risk the founder is probably not seeing.
-Be direct, practical, and brief (under 300 words). No generic advice; tie every point to the numbers or prospects given. Format: short **bold** section labels and "-" bullets only (no tables, no nested lists, no # headers).`;
+Be direct, practical, and brief (under 300 words). No generic advice; tie every point to the numbers, prospects, or journal entries given. Format: short **bold** section labels and "-" bullets only (no tables, no nested lists, no # headers).`;
 
 export function buildCoachContext(
   campaign: CampaignWithChannels,
   m: Awaited<ReturnType<typeof campaignMetrics>>,
+  journal: Awaited<ReturnType<typeof recentAttemptSummaries>> = [],
 ): string {
   const verdict = coachVerdict(m.coachInput);
   // Same ranking the operator sees in the queues: warmth-weighted score.
@@ -99,6 +147,9 @@ export function buildCoachContext(
       ruleBasedVerdict: verdict,
       topProspects,
       recentDailyLogs: recentLogs,
+      // The founder's own journal: what was tried, the outcome, and their
+      // self-rating - the strongest signal for what to coach on next.
+      journal,
     },
     null,
     1,
@@ -158,6 +209,6 @@ export async function callOpenRouter(
 }
 
 /** The Command-page coach: campaign-wide verdict + next-24h plan. */
-export function requestCoachAdvice(apiKey: string, model: string, context: string): Promise<string> {
-  return callOpenRouter(apiKey, model, SYSTEM_PROMPT, `Live campaign data:\n${context}`);
+export function requestCoachAdvice(apiKey: string, model: string, context: string, profile = ""): Promise<string> {
+  return callOpenRouter(apiKey, model, SYSTEM_PROMPT + operatorBlock(profile), `Live campaign data:\n${context}`);
 }

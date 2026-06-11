@@ -208,8 +208,8 @@ export default async function MarketingCommandPage() {
           <dl className="space-y-1.5 text-sm">
             <div className="flex justify-between"><dt className="text-slate-600">Messages sent</dt><dd className="font-semibold">{m.messagesSent} / {m.messagesExpected} expected</dd></div>
             <div className="flex justify-between"><dt className="text-slate-600">Replies</dt><dd className="font-semibold">{m.repliesReceived} ({reply.toFixed(1)}%)</dd></div>
-            <div className="flex justify-between"><dt className="text-slate-600">Calls held</dt><dd className="font-semibold">{m.callsHeld}</dd></div>
-            <div className="flex justify-between"><dt className="text-slate-600">Close rate (calls→paid)</dt><dd className="font-semibold">{close.toFixed(0)}%</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-600">Convos held</dt><dd className="font-semibold">{m.callsHeld}</dd></div>
+            <div className="flex justify-between"><dt className="text-slate-600">Close rate (convo→paid)</dt><dd className="font-semibold">{close.toFixed(0)}%</dd></div>
             <div className="flex justify-between"><dt className="text-slate-600">Daily floor (all channels)</dt><dd className="font-semibold">{m.dailyFloor} msgs/day</dd></div>
           </dl>
           <p className="rounded-md bg-neutral-50 px-2.5 py-1.5 text-xs text-slate-600">
@@ -293,9 +293,10 @@ export default async function MarketingCommandPage() {
         )}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Link href="/admin/marketing/activity" className="rounded-md border border-neutral-200 px-4 py-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50">Today →</Link>
+        <Link href="/admin/marketing/journal" className="rounded-md border border-neutral-200 px-4 py-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50">Journal →</Link>
         <Link href="/admin/marketing/prospects" className="rounded-md border border-neutral-200 px-4 py-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50">Prospects →</Link>
-        <Link href="/admin/marketing/activity" className="rounded-md border border-neutral-200 px-4 py-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50">Daily activity →</Link>
         <Link href="/admin/marketing/playbook" className="rounded-md border border-neutral-200 px-4 py-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50">Playbook →</Link>
       </div>
     </div>

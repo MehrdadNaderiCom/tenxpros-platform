@@ -23,6 +23,7 @@ import {
   Megaphone,
   Menu,
   NotebookPen,
+  PenLine,
   Route,
   Search,
   Settings,
@@ -67,6 +68,7 @@ const ICONS: Record<string, LucideIcon> = {
   "/admin/marketing/prospects": Users,
   "/admin/marketing/campaigns": Megaphone,
   "/admin/marketing/activity": CalendarClock,
+  "/admin/marketing/journal": PenLine,
   "/admin/marketing/playbook": NotebookPen,
   "/admin/marketing/settings": Settings,
 };

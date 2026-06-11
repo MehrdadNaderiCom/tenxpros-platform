@@ -94,7 +94,7 @@ export function coachVerdict(c: CoachInput): CoachVerdict {
       verdict: "quit",
       headline: "Quit (or rebuild the offer entirely).",
       reasoning: [
-        `${c.messagesSent} messages and only ${c.callsHeld} calls held.`,
+        `${c.messagesSent} messages and only ${c.callsHeld} real conversations held.`,
         `${Math.round(c.progressPct)}% of the window is gone.`,
         "Past the pivot threshold by 1.5x with no conversion signal.",
       ],
@@ -106,7 +106,7 @@ export function coachVerdict(c: CoachInput): CoachVerdict {
       verdict: "pivot",
       headline: "Pivot the approach.",
       reasoning: [
-        `${c.messagesSent} messages sent but only ${c.callsHeld} calls held (threshold ${c.pivotCallsThreshold}).`,
+        `${c.messagesSent} messages sent but only ${c.callsHeld} real conversations (threshold ${c.pivotCallsThreshold}).`,
         "Volume is not the problem; the hook or the audience is.",
       ],
       nextMove: "Change ONE variable: the opener, the channel mix, or the segment. Then run the next 50 messages.",
@@ -117,7 +117,7 @@ export function coachVerdict(c: CoachInput): CoachVerdict {
       verdict: "on_track",
       headline: "In motion. Keep executing.",
       reasoning: [
-        `${c.messagesSent} messages, ${c.callsHeld} calls, ${c.paidNow} paid so far.`,
+        `${c.messagesSent} messages, ${c.callsHeld} conversations, ${c.paidNow} paid so far.`,
         `${c.remainingDays} days remain to reach break-even (${c.targetBreakEven}).`,
       ],
       nextMove: "Clear today's follow-ups first, then hit the daily floor on your strongest channel.",
@@ -159,7 +159,7 @@ export function coachNudges(c: CoachInput): CoachNudge[] {
     nudges.push({
       tone: "warn",
       title: "Conversation gap",
-      body: `Only ${c.callsHeld} calls against ${c.messagesSent} messages. Your hook may not be earning a conversation. Test a different opener with the next 20 messages.`,
+      body: `Only ${c.callsHeld} real conversations against ${c.messagesSent} messages. Your hook may not be earning one. Test a different opener with the next 20 messages.`,
     });
   }
   if (c.messagesSent >= 30 && reply < 10) {
@@ -178,14 +178,14 @@ export function coachNudges(c: CoachInput): CoachNudge[] {
   if (c.callsHeld >= 5 && close < 20) {
     nudges.push({
       tone: "warn",
-      title: "Calls aren't closing",
-      body: `${c.callsHeld} calls held, only ${c.paidNow} paid (${close.toFixed(1)}%). Tighten the offer or the price anchor. Lead with a real case study.`,
+      title: "Conversations aren't closing",
+      body: `${c.callsHeld} deep conversations, only ${c.paidNow} paid (${close.toFixed(1)}%). Tighten the offer or the price anchor. Lead with a real case study.`,
     });
   } else if (c.callsHeld >= 3 && close >= 40) {
     nudges.push({
       tone: "win",
-      title: "Offer converts on the call",
-      body: `${close.toFixed(0)}% close rate on calls held. Volume is your only remaining lever; push messaging.`,
+      title: "Offer converts in conversation",
+      body: `${close.toFixed(0)}% close rate on deep conversations. Volume is your only remaining lever; push messaging.`,
     });
   }
   if (c.staleHotProspects.length > 0) {

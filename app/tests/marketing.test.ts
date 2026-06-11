@@ -121,9 +121,9 @@ describe("coach nudges", () => {
 
   it("flags closing problems and wins", () => {
     const bad = coachNudges({ ...base, callsHeld: 6, paidNow: 0 });
-    expect(bad.some((n) => n.title === "Calls aren't closing")).toBe(true);
+    expect(bad.some((n) => n.title === "Conversations aren't closing")).toBe(true);
     const good = coachNudges({ ...base, callsHeld: 5, paidNow: 2, messagesExpected: 60 });
-    expect(good.some((n) => n.title === "Offer converts on the call")).toBe(true);
+    expect(good.some((n) => n.title === "Offer converts in conversation")).toBe(true);
   });
 
   it("surfaces due follow-ups first and thin pipeline", () => {

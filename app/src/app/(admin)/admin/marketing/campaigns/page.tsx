@@ -40,9 +40,9 @@ const TIPS = {
   targetPipeline:
     "How many LIVE prospects (approached up to applied, not lost/dropped) you want in motion at once. After the first week, the coach warns when coverage falls under half of this (days 1-7 are a grace period for list building). Suggestion: 30, roughly 10x your ideal target.",
   pivotMessages:
-    "Pivot trigger: after this many messages with too few calls, the coach tells you to change ONE variable (opener, channel, or segment). Suggestion: 150, from the playbook's 150/10 rule.",
+    "Pivot trigger: after this many messages with too few deep conversations, the coach tells you to change ONE variable (opener, channel, or segment). Suggestion: 150, from the playbook's 150/10 rule.",
   pivotCalls:
-    "The 'too few calls' side of the pivot rule: if calls held are below this when you cross the message threshold, the approach is not earning conversations. Suggestion: 10.",
+    "The 'too few conversations' side of the pivot rule: if deep conversations held are below this when you cross the message threshold, the approach is not earning real talks. Suggestion: 10.",
   offPlatformPaid:
     "Paid customers you closed OUTSIDE the website (bank transfer, in person). Added to the live paid count so goals reflect reality. Update it manually whenever it happens.",
   notes: "Anything future-you needs: the offer version, pricing experiments, what changed mid-campaign.",
@@ -179,7 +179,7 @@ export default async function MarketingCampaignsPage() {
             <HintField label="Pivot: messages" hint={TIPS.pivotMessages}>
               <Input name="pivotMessagesThreshold" type="number" min={1} defaultValue={campaign.pivotMessagesThreshold} />
             </HintField>
-            <HintField label="Pivot: calls" hint={TIPS.pivotCalls}>
+            <HintField label="Pivot: convos" hint={TIPS.pivotCalls}>
               <Input name="pivotCallsThreshold" type="number" min={1} defaultValue={campaign.pivotCallsThreshold} />
             </HintField>
             <div className="md:col-span-2">

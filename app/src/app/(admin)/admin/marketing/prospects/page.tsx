@@ -46,8 +46,8 @@ const STAGE_BADGE: Record<string, string> = {
 const NEXT_STEP: Record<string, { label: string; stage: string } | undefined> = {
   LIST: { label: "Approached ✓", stage: "APPROACHED" },
   APPROACHED: { label: "They replied", stage: "REPLIED" },
-  REPLIED: { label: "Call booked", stage: "CALL_BOOKED" },
-  CALL_BOOKED: { label: "Call held", stage: "CALL_HELD" },
+  REPLIED: { label: "Convo planned", stage: "CALL_BOOKED" },
+  CALL_BOOKED: { label: "Convo held", stage: "CALL_HELD" },
   CALL_HELD: { label: "Applied", stage: "APPLIED" },
   APPLIED: { label: "Paid 🎉", stage: "PAID" },
 };
@@ -77,14 +77,15 @@ const TIPS = {
   email: "The key for automation: if they apply with this email, funnel sync links them and advances the stage.",
   contacts: "Fill only the channels you can actually reach them on.",
   assets: "Which trust assets you've already shared. Lead with the Sample Dossier.",
-  notes: "Call notes, objections heard, what to mention next time.",
+  notes: "Conversation notes, objections heard, what to mention next time.",
   stageMove:
     "Free move to any stage. LIST → APPROACHED starts the follow-up cadence (FU1 +3d, FU2 +7d, FU3 +7d); a reply pauses it; Paid/Lost/Dropped end it. When marking Lost, log the reason as a touch note.",
   fuSent:
-    "Press after you actually send the due follow-up; schedules the next step. After FU3 the prospect parks. Also count the message in today's Activity numbers.",
+    "Press after you actually send the due follow-up; schedules the next step. After FU3 the prospect parks. Then write it in the Journal so today's numbers update.",
   parkResume:
     "Park = stop reminders but keep them. Resume reactivates and schedules the next follow-up from today (a finished 3/3 cadence stays parked).",
-  touch: "A quick journal entry (message, reply, call, asset, note). The last touches show on the row.",
+  touch:
+    "A quick note on this person's history. For the full story (time spent, outcome, self-rating) log it in the Journal page instead - linked entries land here automatically.",
 };
 
 type ProspectRow = Awaited<ReturnType<typeof loadProspects>>[number];
@@ -321,7 +322,7 @@ function ProspectRowCard({ p, campaignId }: { p: ProspectRow; campaignId: string
               <Select name="type" defaultValue="note" className="w-40">
                 <option value="message">Message sent</option>
                 <option value="reply">Reply received</option>
-                <option value="call">Call / voice</option>
+                <option value="call">Conversation / call</option>
                 <option value="asset">Asset shared</option>
                 <option value="note">Note</option>
               </Select>

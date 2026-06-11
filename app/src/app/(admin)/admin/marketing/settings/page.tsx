@@ -1,15 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/form-fields";
+import { Input, Textarea } from "@/components/ui/form-fields";
 import { HintField } from "@/components/ui/hint-field";
 import { PageHeader } from "@/components/shared/page-shell";
-import { getCoachSettings } from "@/lib/marketing/ai-coach";
-import { saveCoachSettings } from "@/lib/actions/marketing";
+import { getCoachSettings, getOperatorProfile } from "@/lib/marketing/ai-coach";
+import { saveCoachSettings, saveOperatorProfile } from "@/lib/actions/marketing";
 import { superAdminEmail } from "@/lib/authz";
 
 export default async function MarketingSettingsPage() {
-  const coach = await getCoachSettings();
+  const [coach, operator] = await Promise.all([getCoachSettings(), getOperatorProfile()]);
 
   return (
     <div className="space-y-8">
@@ -60,10 +60,37 @@ export default async function MarketingSettingsPage() {
           </div>
         </form>
         <p className="text-xs leading-5 text-slate-500">
-          What gets sent: live campaign numbers, channel plans, recent activity logs, and (for pipeline suggestions)
-          prospect names, context, and short notes — processed by OpenRouter and the model provider you select. No
-          applicant or payment data is ever included.
+          What gets sent: live campaign numbers, channel plans, recent activity logs, journal entries, your "how I
+          work" profile, and (for pipeline suggestions) prospect names, context, and short notes. It is processed by
+          OpenRouter and the model provider you select. No applicant or payment data is ever included.
         </p>
+      </Card>
+
+      <Card className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-navy-900">
+            How I work{" "}
+            <span className={`text-sm font-medium ${operator.isCustom ? "text-emerald-600" : "text-slate-400"}`}>
+              · {operator.isCustom ? "customized ✓" : "using the default"}
+            </span>
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Sent with every AI request (the coach and all "suggest" buttons) as hard rules, so plans fit how you
+            really work: which channels you use, what you refuse to do (cold email, phone calls…), and how much
+            time you have. Edit it like you'd brief a new assistant.
+          </p>
+        </div>
+        <form action={saveOperatorProfile} className="space-y-3">
+          <HintField
+            label="My constraints & style"
+            hint="Plain sentences or bullets, any language the model reads (English keeps it sharpest). Save EMPTY to go back to the built-in default."
+          >
+            <Textarea name="profile" defaultValue={operator.profile} className="min-h-48 font-mono text-xs leading-5" />
+          </HintField>
+          <Button type="submit" variant="secondary">
+            Save profile
+          </Button>
+        </form>
       </Card>
 
       <Card className="space-y-2">

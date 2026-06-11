@@ -7,8 +7,10 @@ export const PROSPECT_STAGES = [
   { value: "LIST", label: "List" },
   { value: "APPROACHED", label: "Approached" },
   { value: "REPLIED", label: "Replied" },
-  { value: "CALL_BOOKED", label: "Call booked" },
-  { value: "CALL_HELD", label: "Call held" },
+  // "Conversation" = a real back-and-forth (WhatsApp/DM thread or a call).
+  // The founder works message-first, so the labels avoid implying phone calls.
+  { value: "CALL_BOOKED", label: "Convo planned" },
+  { value: "CALL_HELD", label: "Convo held" },
   { value: "APPLIED", label: "Applied" },
   { value: "PAID", label: "Paid" },
   { value: "LOST", label: "Lost" },
@@ -55,9 +57,40 @@ export const TOUCH_TYPES = [
   { value: "message", label: "Message sent" },
   { value: "follow_up", label: "Follow-up sent" },
   { value: "reply", label: "Reply received" },
-  { value: "call", label: "Call / voice" },
+  { value: "call", label: "Conversation / call" },
   { value: "asset", label: "Asset shared" },
   { value: "note", label: "Note" },
+] as const;
+
+/**
+ * Journal entry kinds. Each kind maps to the daily-log counter it should
+ * bump (null = journal-only), so logging an attempt once updates the daily
+ * stats automatically — no double entry.
+ */
+export const ATTEMPT_KINDS = [
+  { value: "outreach", label: "New outreach message", counter: "messages" },
+  { value: "follow_up", label: "Follow-up sent", counter: "messages" },
+  { value: "reply", label: "Got / handled a reply", counter: "replies" },
+  { value: "conversation", label: "Deep conversation (DM thread / call)", counter: "calls" },
+  { value: "post", label: "Published a post", counter: "posts" },
+  { value: "engagement", label: "Engagement (comment / react / follow)", counter: "engagements" },
+  { value: "other", label: "Other (research, list building…)", counter: null },
+] as const;
+
+export type AttemptKindValue = (typeof ATTEMPT_KINDS)[number]["value"];
+
+export function attemptKindLabel(value?: string | null): string {
+  if (!value) return "—";
+  return ATTEMPT_KINDS.find((k) => k.value === value)?.label ?? value;
+}
+
+/** 1-5 self-rating shown in the journal. */
+export const SATISFACTION_OPTIONS = [
+  { value: 5, label: "5 - Great" },
+  { value: 4, label: "4 - Good" },
+  { value: 3, label: "3 - Okay" },
+  { value: 2, label: "2 - Weak" },
+  { value: 1, label: "1 - Poor" },
 ] as const;
 
 export function stageLabel(value?: string | null): string {

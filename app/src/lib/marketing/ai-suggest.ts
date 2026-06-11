@@ -6,6 +6,7 @@
  */
 import { prisma } from "@/lib/prisma";
 import { channelLabel, prospectScore, stageLabel } from "@/lib/marketing/constants";
+import { operatorBlock } from "@/lib/marketing/ai-coach";
 import type { CampaignWithChannels, campaignMetrics } from "@/lib/marketing/data";
 
 export type SuggestArea = "channels" | "activity" | "prospects" | "playbook";
@@ -17,8 +18,8 @@ export const SUGGEST_AREAS: Record<SuggestArea, { title: string; button: string 
   playbook: { title: "AI playbook review", button: "Improve my templates" },
 };
 
-const BASE_SYSTEM = `You are the marketing planner inside "TenXPros Command" for a solo founder selling TenXPros (tenxpros.com): a selective, reviewed 12-week program ($997 Founding tier) where non-technical professionals adopt AI in their real work and ship a defensible "Living AI Solution Dossier". Style: founder-led, trust-first; personalize the first line of every message; lead with the Sample Dossier; follow-up cadence FU1 +3d, FU2 +7d, FU3 +7d; reply-rate target 15-25%.
-Respond with short **bold** section labels and "-" bullets only (no tables, no nested lists, no # headers), under 280 words, concrete and tied to the data given. Numbers must be realistic for ONE person working alongside running the company.`;
+const BASE_SYSTEM = `You are the marketing planner inside "TenXPros Command" for a solo founder selling TenXPros (tenxpros.com): a selective, reviewed 12-week program ($997 Founding tier) where non-technical professionals adopt AI in their real work and ship a defensible "Living AI Solution Dossier". Style: founder-led, trust-first; personalize the first line of every message; lead with the Sample Dossier; follow-up cadence FU1 +3d, FU2 +7d, FU3 +7d; reply-rate target 15-25%. In the data, "calls" counts deep conversations (a real back-and-forth thread or a call).
+Respond with short **bold** section labels and "-" bullets only (no tables, no nested lists, no # headers), under 280 words, concrete and tied to the data given. Numbers must be realistic for ONE person working alongside running the company. If the journal entries show something working or failing, build on that.`;
 
 const AREA_PROMPTS: Record<SuggestArea, string> = {
   channels: `Design the channel & content plan. For EACH channel give one line: outreach floor/ceiling per day, posts per day (0 is fine), engagement actions per day (comments/reactions on ICP posts), weekly cap, and WHAT to post or do there (theme ideas tied to TenXPros proof assets). Stay under platform ban thresholds. Then one line on which channel to drop or add and why; additions may only come from the supported set: LinkedIn, WhatsApp, Email, Instagram, Telegram, X (Twitter), Phone/voice. Format each channel line so the numbers are easy to copy into the form fields.`,
@@ -32,6 +33,7 @@ export function buildSuggestContext(
   campaign: CampaignWithChannels,
   m: Awaited<ReturnType<typeof campaignMetrics>>,
   extra: Record<string, unknown> = {},
+  profile = "",
 ): { system: string; user: string } {
   const now = new Date();
   const cutoff = now.getTime() - 14 * 86_400_000;
@@ -80,7 +82,7 @@ export function buildSuggestContext(
     ...extra,
   };
   return {
-    system: `${BASE_SYSTEM}\n\nTask: ${AREA_PROMPTS[area]}`,
+    system: `${BASE_SYSTEM}${operatorBlock(profile)}\n\nTask: ${AREA_PROMPTS[area]}`,
     user: `Live data:\n${JSON.stringify(base, null, 1)}`,
   };
 }

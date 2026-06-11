@@ -4,13 +4,16 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/authz";
 import { advanceFollowup, nextFollowupDue } from "@/lib/marketing/followup";
-import { MARKETING_CHANNELS, PROSPECT_STAGES, WARMTH_OPTIONS } from "@/lib/marketing/constants";
+import { ATTEMPT_KINDS, MARKETING_CHANNELS, PROSPECT_STAGES, WARMTH_OPTIONS } from "@/lib/marketing/constants";
 import {
   buildCoachContext,
   DEFAULT_COACH_MODEL,
+  getOperatorProfile,
   OPENROUTER_ERROR_SETTING,
   OPENROUTER_KEY_SETTING,
   OPENROUTER_MODEL_SETTING,
+  OPERATOR_PROFILE_SETTING,
+  recentAttemptSummaries,
   requestCoachAdvice,
 } from "@/lib/marketing/ai-coach";
 import { campaignMetrics, getActiveCampaign } from "@/lib/marketing/data";
@@ -49,7 +52,9 @@ function refresh() {
     "/admin/marketing/prospects",
     "/admin/marketing/campaigns",
     "/admin/marketing/activity",
+    "/admin/marketing/journal",
     "/admin/marketing/playbook",
+    "/admin/marketing/settings",
   ]) {
     try {
       revalidatePath(path);
@@ -436,18 +441,153 @@ export async function logDailyActivity(formData: FormData) {
   const channel = text(formData, "channel");
   if (!CHANNEL_VALUES.includes(channel)) throw new Error("Unknown channel.");
   const date = dateOf(formData, "date");
-  const data = {
-    messages: intIn(formData, "messages", 0, 0, 10000),
-    replies: intIn(formData, "replies", 0, 0, 10000),
-    calls: intIn(formData, "calls", 0, 0, 10000),
-    posts: intIn(formData, "posts", 0, 0, 1000),
-    engagements: intIn(formData, "engagements", 0, 0, 10000),
-    notes: text(formData, "notes") || null,
-  };
+  const counters = ["messages", "replies", "calls", "posts", "engagements"] as const;
+  const limits: Record<(typeof counters)[number], number> = { messages: 10000, replies: 10000, calls: 10000, posts: 1000, engagements: 10000 };
+  const submitted = Object.fromEntries(counters.map((k) => [k, intIn(formData, k, 0, 0, limits[k])])) as Record<(typeof counters)[number], number>;
+  const notes = text(formData, "notes") || null;
+
+  // Journal entries bump these counters in the background, so a Today form
+  // rendered before the latest journal saves holds stale numbers. When the
+  // form targets the day it was rendered for, apply the founder's EDITS as
+  // deltas against what the form showed instead of overwriting blindly:
+  // untouched fields then keep any journal increments that happened since.
+  const baseDate = text(formData, "baseDate");
+  const hasBaseline = counters.every((k) => formData.has(`base_${k}`));
+  let data: Record<string, number | string | null> = { ...submitted, notes };
+  if (hasBaseline && baseDate && text(formData, "date") === baseDate) {
+    const existing = await prisma.marketingDailyLog.findUnique({
+      where: { campaignId_date_channel: { campaignId, date, channel } },
+    });
+    data = { notes };
+    for (const k of counters) {
+      const base = intIn(formData, `base_${k}`, 0, 0, limits[k]);
+      const delta = submitted[k] - base;
+      data[k] = Math.max(0, Math.min(limits[k], (existing?.[k] ?? 0) + delta));
+    }
+  }
   await prisma.marketingDailyLog.upsert({
     where: { campaignId_date_channel: { campaignId, date, channel } },
     update: data,
     create: { campaignId, date, channel, ...data },
+  });
+  refresh();
+}
+
+// ---------------------------------------------------------------------------
+// Journal (one row per real-world attempt)
+// ---------------------------------------------------------------------------
+
+const ATTEMPT_KIND_VALUES = ATTEMPT_KINDS.map((k) => k.value) as string[];
+
+/** ProspectTouch type for each journal kind, so the prospect's history stays complete. */
+const ATTEMPT_TOUCH_TYPE: Record<string, string> = {
+  outreach: "message",
+  follow_up: "follow_up",
+  reply: "reply",
+  conversation: "call",
+};
+
+/**
+ * Save one journal entry and fan it out: bump today's daily-log counter for
+ * that channel (so Today/Command stats update without double entry) and, when
+ * a prospect is linked, record a touch on their history.
+ */
+export async function createAttempt(formData: FormData) {
+  await requireSuperAdmin();
+  const campaignId = text(formData, "campaignId");
+  const kind = text(formData, "kind");
+  if (!ATTEMPT_KIND_VALUES.includes(kind)) throw new Error("Pick what kind of attempt this was.");
+  // Never throw for fixable input: production redacts server-action errors and
+  // the founder's typed entry would be lost with it.
+  const summary = text(formData, "summary") || "(no description)";
+  const channelRaw = text(formData, "channel");
+  const channel = CHANNEL_VALUES.includes(channelRaw) ? channelRaw : null;
+  // A prospect deleted in another tab degrades to an unlinked entry (matches
+  // the schema's onDelete: SetNull) instead of throwing the entry away.
+  let prospectId = text(formData, "prospectId") || null;
+  if (prospectId) {
+    const prospect = await prisma.prospect.findUnique({ where: { id: prospectId }, select: { campaignId: true } });
+    if (!prospect || prospect.campaignId !== campaignId) prospectId = null;
+  }
+
+  await prisma.marketingAttempt.create({
+    data: {
+      campaignId,
+      kind,
+      channel,
+      prospectId,
+      summary,
+      outcome: text(formData, "outcome") || null,
+      minutes: intIn(formData, "minutes", 0, 0, 600),
+      satisfaction: intIn(formData, "satisfaction", 3, 1, 5),
+      learnings: text(formData, "learnings") || null,
+    },
+  });
+
+  // Auto-count: each kind maps to one daily-log counter (see ATTEMPT_KINDS).
+  const counter = ATTEMPT_KINDS.find((k) => k.value === kind)?.counter ?? null;
+  if (counter && channel) {
+    const today = new Date(`${new Date().toISOString().slice(0, 10)}T00:00:00.000Z`);
+    await prisma.marketingDailyLog.upsert({
+      where: { campaignId_date_channel: { campaignId, date: today, channel } },
+      update: { [counter]: { increment: 1 } },
+      create: { campaignId, date: today, channel, [counter]: 1 },
+    });
+  }
+
+  if (prospectId) {
+    // The prospect can vanish between the check above and this insert; the
+    // attempt is already saved, so a missing touch is not worth an error page.
+    try {
+      await prisma.prospectTouch.create({
+        data: {
+          prospectId,
+          type: ATTEMPT_TOUCH_TYPE[kind] ?? "note",
+          channel,
+          summary: summary.slice(0, 200),
+        },
+      });
+    } catch {
+      // Prospect deleted concurrently: keep the journal entry, skip the touch.
+    }
+  }
+  refresh();
+}
+
+/**
+ * Delete a journal entry and remove its auto-counted +1 from the daily log of
+ * the day the entry belongs to (never below zero).
+ */
+export async function deleteAttempt(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = text(formData, "attemptId");
+  const existing = await prisma.marketingAttempt.findUnique({ where: { id } });
+  if (!existing) {
+    refresh();
+    return;
+  }
+  await prisma.marketingAttempt.delete({ where: { id } });
+  const counter = ATTEMPT_KINDS.find((k) => k.value === existing.kind)?.counter ?? null;
+  const entryDay = new Date(`${existing.at.toISOString().slice(0, 10)}T00:00:00.000Z`);
+  if (counter && existing.channel) {
+    const log = await prisma.marketingDailyLog.findUnique({
+      where: { campaignId_date_channel: { campaignId: existing.campaignId, date: entryDay, channel: existing.channel } },
+    });
+    if (log && (log[counter as "messages"] ?? 0) > 0) {
+      await prisma.marketingDailyLog.update({
+        where: { id: log.id },
+        data: { [counter]: { decrement: 1 } },
+      });
+    }
+  }
+  await audit(admin.id, "MARKETING_ATTEMPT_DELETE", "MarketingAttempt", id, {
+    before: {
+      kind: existing.kind,
+      channel: existing.channel,
+      summary: existing.summary,
+      outcome: existing.outcome,
+      at: existing.at.toISOString(),
+    },
   });
   refresh();
 }
@@ -593,6 +733,35 @@ export async function saveCoachSettings(formData: FormData) {
   refresh();
 }
 
+/**
+ * Save the operator profile (how the founder works: channels, no-calls,
+ * time budget). Sent with every AI request. Empty text reverts to the
+ * built-in default.
+ */
+export async function saveOperatorProfile(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const profile = text(formData, "profile").slice(0, 4000);
+  if (!profile) {
+    await prisma.adminSetting.deleteMany({ where: { key: OPERATOR_PROFILE_SETTING } });
+  } else {
+    await prisma.adminSetting.upsert({
+      where: { key: OPERATOR_PROFILE_SETTING },
+      update: { value: profile, updatedBy: admin.id },
+      create: {
+        key: OPERATOR_PROFILE_SETTING,
+        value: profile,
+        category: "FEATURE_FLAGS",
+        label: "Marketing: how I work (AI operator profile)",
+        updatedBy: admin.id,
+      },
+    });
+  }
+  await audit(admin.id, "MARKETING_OPERATOR_PROFILE", "AdminSetting", OPERATOR_PROFILE_SETTING, {
+    after: { reverted: !profile, length: profile.length },
+  });
+  refresh();
+}
+
 async function setCoachError(adminId: string, message: string | null) {
   if (message === null) {
     await prisma.adminSetting.deleteMany({ where: { key: OPENROUTER_ERROR_SETTING } });
@@ -640,7 +809,8 @@ export async function askAiCoach(formData: FormData) {
 
   try {
     const metrics = await campaignMetrics(campaign);
-    const advice = await requestCoachAdvice(apiKey, model, buildCoachContext(campaign, metrics));
+    const [{ profile }, journal] = await Promise.all([getOperatorProfile(), recentAttemptSummaries(campaign.id)]);
+    const advice = await requestCoachAdvice(apiKey, model, buildCoachContext(campaign, metrics, journal), profile);
     await prisma.marketingCoachAdvice.create({ data: { campaignId, model, advice } });
     // Keep a bounded history: the latest 20 advice entries per campaign.
     const keep = await prisma.marketingCoachAdvice.findMany({
@@ -703,8 +873,12 @@ export async function askAiSuggestion(formData: FormData) {
   } else {
     try {
       const metrics = await campaignMetrics(campaign);
-      const extras = await buildAreaExtras(area, metrics);
-      const { system, user } = buildSuggestContext(area, campaign, metrics, extras);
+      const [extras, { profile }, journal] = await Promise.all([
+        buildAreaExtras(area, metrics),
+        getOperatorProfile(),
+        recentAttemptSummaries(campaign.id),
+      ]);
+      const { system, user } = buildSuggestContext(area, campaign, metrics, { ...extras, journal }, profile);
       content = await callOpenRouter(apiKey, model, system, user);
     } catch (error) {
       status = "error";

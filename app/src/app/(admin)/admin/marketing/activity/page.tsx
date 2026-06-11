@@ -84,18 +84,20 @@ export default async function MarketingActivityPage() {
             <p className="text-xs text-slate-500">
               Morning: press <span className="font-medium">Plan my day</span> below → clear due follow-ups in{" "}
               <Link href="/admin/marketing/prospects" className="font-medium text-navy-600 hover:underline">Prospects</Link>{" "}
-              → send new outreach → post content → log the numbers here. Then check{" "}
+              → send new outreach → post content → write each attempt in the{" "}
+              <Link href="/admin/marketing/journal" className="font-medium text-navy-600 hover:underline">Journal</Link>{" "}
+              (it counts the numbers here for you). Then check{" "}
               <Link href="/admin/marketing" className="font-medium text-navy-600 hover:underline">Command</Link> for progress.
             </p>
             <table className="w-full text-sm">
               <tbody className="divide-y divide-neutral-100">
                 {[
-                  ["I messaged someone NEW", "Prospects → Quick add them (if not there) → press “Approached ✓”. Then +1 Messages here."],
-                  ["I sent a due follow-up", "Prospects (or Command) → press “FU sent ✓” on their row. Then +1 Messages here."],
-                  ["They replied (yes OR no)", "Prospects → press “They replied”. Then +1 Replies here."],
-                  ["We booked / held a call", "Prospects → “Call booked” / “Call held”. After a held call: +1 Calls here."],
-                  ["I published a post", "+1 Posts here on that channel. Nothing else."],
-                  ["I commented / reacted / followed someone (ICP)", "+1 Engage here on that channel. Nothing else."],
+                  ["I messaged someone NEW", "Prospects → Quick add them (if not there) → press “Approached ✓”. Then write it in Journal (auto +1 Messages)."],
+                  ["I sent a due follow-up", "Prospects (or Command) → press “FU sent ✓” on their row. Then Journal it as 'Follow-up sent'."],
+                  ["They replied (yes OR no)", "Prospects → press “They replied”. Then Journal it: what they said, your read on it."],
+                  ["We had a real back-and-forth (WhatsApp/DM thread or call)", "Prospects → “Convo planned” / “Convo held”. Journal it as 'Deep conversation' (auto +1 Convos)."],
+                  ["I published a post", "Journal it as 'Published a post' (auto +1 Posts). Nothing else."],
+                  ["I commented / reacted / followed someone (ICP)", "Journal it as 'Engagement' (auto +1 Engage). Nothing else."],
                   ["They applied on the site", "Command → “Sync pipeline with real applications” links and advances them automatically."],
                   ["They said no / went silent after FU3", "Prospects → “Lost” (confirmed) or let them park automatically after FU3."],
                 ].map(([event, action]) => (
@@ -150,7 +152,17 @@ export default async function MarketingActivityPage() {
       ) : null}
 
       <Card className="space-y-4">
-        <h2 className="text-base font-semibold text-navy-900">Log today's numbers ({today})</h2>
+        <div>
+          <h2 className="text-base font-semibold text-navy-900">Log today's numbers ({today})</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Easiest path: write each attempt in the{" "}
+            <Link href="/admin/marketing/journal" className="font-medium text-navy-600 hover:underline">
+              Journal
+            </Link>{" "}
+            and these counters fill themselves. Use the forms below only to correct today's totals, or pick an
+            earlier date to backfill that day.
+          </p>
+        </div>
         <div className="grid gap-3">
           {channels.map((channel) => {
             const log = todayLogs[channel.channel];
@@ -162,7 +174,15 @@ export default async function MarketingActivityPage() {
               >
                 <input type="hidden" name="campaignId" value={campaign.id} />
                 <input type="hidden" name="channel" value={channel.channel} />
-                <input type="hidden" name="date" value={today} />
+                {/* Baseline = what this form showed at render time. The action
+                    applies edits as deltas against it (same-day saves only),
+                    so journal auto-counts from another tab are never undone. */}
+                <input type="hidden" name="baseDate" value={today} />
+                <input type="hidden" name="base_messages" value={log?.messages ?? 0} />
+                <input type="hidden" name="base_replies" value={log?.replies ?? 0} />
+                <input type="hidden" name="base_calls" value={log?.calls ?? 0} />
+                <input type="hidden" name="base_posts" value={log?.posts ?? 0} />
+                <input type="hidden" name="base_engagements" value={log?.engagements ?? 0} />
                 <div>
                   <p className="text-sm font-medium text-navy-900">{channelLabel(channel.channel)}</p>
                   <p className="text-[11px] text-slate-400">
@@ -172,7 +192,13 @@ export default async function MarketingActivityPage() {
                     {channel.contentNote ? ` · ${channel.contentNote}` : ""}
                   </p>
                 </div>
-                <div className="grid grid-cols-3 items-end gap-3 md:grid-cols-7">
+                <div className="grid grid-cols-3 items-end gap-3 md:grid-cols-8">
+                <HintField
+                  label="Date"
+                  hint="Defaults to today. Pick an earlier date to backfill or fix that day's numbers (those saves overwrite the day exactly as entered)."
+                >
+                  <Input name="date" type="date" defaultValue={today} max={today} required />
+                </HintField>
                 <HintField
                   label="Messages"
                   hint="Outbound messages you actually sent today on this channel: new openers AND follow-ups both count. The coach compares the total against your daily floors."
@@ -186,8 +212,8 @@ export default async function MarketingActivityPage() {
                   <Input name="replies" type="number" min={0} defaultValue={log?.replies ?? 0} />
                 </HintField>
                 <HintField
-                  label="Calls"
-                  hint="Calls or voice conversations actually HELD today (not just booked). The coach's pivot and close-rate logic read this number."
+                  label="Convos"
+                  hint="Deep conversations actually HELD today: a real back-and-forth WhatsApp/DM thread or a call. The coach's pivot and close-rate logic read this number."
                 >
                   <Input name="calls" type="number" min={0} defaultValue={log?.calls ?? 0} />
                 </HintField>
@@ -231,7 +257,7 @@ export default async function MarketingActivityPage() {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-semibold text-navy-900">Last 14 days</h2>
           <p className="text-xs text-slate-500">
-            Totals: {totals.messages} messages · {totals.replies} replies · {totals.calls} calls · {totals.posts} posts ·{" "}
+            Totals: {totals.messages} messages · {totals.replies} replies · {totals.calls} convos · {totals.posts} posts ·{" "}
             {totals.engagements} engagements
           </p>
         </div>
@@ -243,7 +269,7 @@ export default async function MarketingActivityPage() {
                 <th className="px-3 py-2">Channel</th>
                 <th className="px-3 py-2">Messages</th>
                 <th className="px-3 py-2">Replies</th>
-                <th className="px-3 py-2">Calls</th>
+                <th className="px-3 py-2">Convos</th>
                 <th className="px-3 py-2">Posts</th>
                 <th className="px-3 py-2">Engage</th>
                 <th className="px-3 py-2">Note</th>
