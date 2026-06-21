@@ -8,9 +8,25 @@ export const metadata: Metadata = {
     "Contact TenXPros technical support for help with technical questions, payment issues, access problems, or questions about your account. We aim to respond within 1–2 business days.",
 };
 
-const contactDetails: Array<{ label: string; value: string; href?: string }> = [
-  { label: "Support email", value: "support@tenxpros.com", href: "mailto:support@tenxpros.com" },
-  { label: "Business contact", value: "mail@mehrdadnaderi.com", href: "mailto:mail@mehrdadnaderi.com" },
+const contactDetails: Array<{ label: string; value: string; href?: string; note?: string }> = [
+  {
+    label: "Support email",
+    value: "support@tenxpros.com",
+    href: "mailto:support@tenxpros.com",
+    note: "Technical questions, payment issues, and account or access problems.",
+  },
+  {
+    label: "General & admissions",
+    value: "hello@tenxpros.com",
+    href: "mailto:hello@tenxpros.com",
+    note: "Application, enrollment, and official acceptance or payment instructions.",
+  },
+  {
+    label: "Manager contact",
+    value: "mail@mehrdadnaderi.com",
+    href: "mailto:mail@mehrdadnaderi.com",
+    note: "Direct line to the program manager.",
+  },
   { label: "Website", value: "https://tenxpros.com", href: "https://tenxpros.com" },
   { label: "Expected response time", value: "Within 1–2 business days" },
 ];
@@ -33,7 +49,7 @@ export default function SupportPage() {
         </p>
 
         <dl className="mt-6 divide-y divide-neutral-200 border-t border-neutral-200">
-          {contactDetails.map(({ label, value, href }) => (
+          {contactDetails.map(({ label, value, href, note }) => (
             <div key={label} className="flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-6">
               <dt className="w-48 shrink-0 text-sm font-semibold text-navy-900">{label}</dt>
               <dd className="text-sm leading-6 text-slate-600">
@@ -44,6 +60,7 @@ export default function SupportPage() {
                 ) : (
                   value
                 )}
+                {note ? <span className="mt-0.5 block text-xs text-slate-500">{note}</span> : null}
               </dd>
             </div>
           ))}
