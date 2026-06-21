@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "A selective 12-week AI adoption program for professionals building a defensible Living AI Solution Dossier.",
   robots: { index: true, follow: true },
   other: {
-    cryptomus: "cd2e107d",
+    cryptomus: "e50d84e2",
   },
 };
 
