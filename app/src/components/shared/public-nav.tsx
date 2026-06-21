@@ -114,6 +114,13 @@ export function PublicNav() {
               How it works
             </Link>
             <Link
+              href="/support"
+              onClick={() => setOpen(false)}
+              className="border-b border-neutral-100 py-3.5 text-lg font-medium text-navy-900 transition hover:text-navy-700"
+            >
+              Support
+            </Link>
+            <Link
               href="/login"
               onClick={() => setOpen(false)}
               className="py-3.5 text-lg font-medium text-navy-900 transition hover:text-navy-700"

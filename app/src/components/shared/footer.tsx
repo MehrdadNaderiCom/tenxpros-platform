@@ -7,6 +7,7 @@ const links = [
   ["How it works", "/how-it-works"],
   ["Certification", "/certification"],
   ["Pricing", "/pricing"],
+  ["Support", "/support"],
   ["Terms", "/terms"],
   ["Privacy", "/privacy"],
   ["Refund", "/refund"],
@@ -20,6 +21,12 @@ export function Footer() {
           <Logo />
           <p className="max-w-xl text-sm text-slate-600">
             You bring the expertise. We bring the AI method. TenXPros helps serious professionals build reviewed AI adoption work they can defend.
+          </p>
+          <p className="text-sm text-slate-600">
+            Technical support:{" "}
+            <a href="mailto:support@tenxpros.com" className="font-medium text-navy-900 hover:underline">
+              support@tenxpros.com
+            </a>
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">

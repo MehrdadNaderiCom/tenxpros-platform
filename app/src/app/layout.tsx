@@ -10,6 +10,9 @@ export const metadata: Metadata = {
   description:
     "A selective 12-week AI adoption program for professionals building a defensible Living AI Solution Dossier.",
   robots: { index: true, follow: true },
+  other: {
+    cryptomus: "cd2e107d",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
