@@ -7,6 +7,13 @@
  * template also returns a clean plain-text fallback (real newlines).
  */
 
+import {
+  SAFETY_WARNING,
+  POST_APPLICATION_NOTICE,
+  SUPPORT_FALLBACK,
+  payeeNoticeForMethod,
+} from "../payment-disclosure";
+
 export type EmailContent = { subject: string; html: string; text: string };
 
 const NAVY = "#0B1F3A";
@@ -71,6 +78,16 @@ function noteBox(title: string, body: string): string {
   )}</p></td></tr></table>`;
 }
 
+/** Like noteBox, but red-accented for an explicit safety/fraud warning. */
+function warningBox(title: string, body: string): string {
+  const RED = "#B91C1C";
+  return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin:6px 0 16px;background:#FEF2F2;border:1px solid #FCA5A5;border-left:3px solid ${RED};border-radius:6px;"><tr><td style="padding:12px 16px;"><p style="margin:0 0 4px;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:${RED};">${esc(
+    title,
+  )}</p><p style="margin:0;font-size:14px;line-height:1.6;color:${TEXT};white-space:pre-wrap;">${esc(
+    body,
+  )}</p></td></tr></table>`;
+}
+
 function layout(opts: {
   preheader: string;
   eyebrow?: string;
@@ -126,7 +143,9 @@ export function applicationReceivedEmail(params: {
     paragraph(
       "Our review team reads every application personally and replies by email within 48 hours. No payment is requested before acceptance.",
     ) +
-    infoBox([{ label: "Application ID", value: applicationId }]);
+    infoBox([{ label: "Application ID", value: applicationId }]) +
+    noteBox("Payment safety", POST_APPLICATION_NOTICE) +
+    paragraph(SUPPORT_FALLBACK);
 
   const text = [
     `Hi ${fullName},`,
@@ -136,6 +155,10 @@ export function applicationReceivedEmail(params: {
     "Our review team reads every application personally and replies by email within 48 hours. No payment is requested before acceptance.",
     "",
     `Application ID: ${applicationId}`,
+    "",
+    POST_APPLICATION_NOTICE,
+    "",
+    SUPPORT_FALLBACK,
     "",
     "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
   ].join("\n");
@@ -214,12 +237,14 @@ export function paymentInstructionsEmail(params: {
   paymentLink?: string | null;
   paymentInstructions?: string | null;
   publicDiscountNote?: string | null;
+  method?: string | null;
   supportEmail: string;
 }): EmailContent {
-  const { fullName, amount, currency, dueAt, paymentLink, paymentInstructions, publicDiscountNote, supportEmail } =
+  const { fullName, amount, currency, dueAt, paymentLink, paymentInstructions, publicDiscountNote, method, supportEmail } =
     params;
 
   const hasLinkUrl = typeof paymentLink === "string" && /^https?:\/\//i.test(paymentLink);
+  const payeeNotice = payeeNoticeForMethod(method);
   const rows: Array<{ label: string; value: string }> = [
     { label: "Amount due", value: money(amount, currency) },
   ];
@@ -232,6 +257,8 @@ export function paymentInstructionsEmail(params: {
     (hasLinkUrl ? button(paymentLink as string, "Complete payment") : "") +
     (paymentInstructions ? noteBox("Payment instructions", paymentInstructions) : "") +
     (publicDiscountNote ? noteBox("Note", publicDiscountNote) : "") +
+    noteBox("Payment & payee", payeeNotice) +
+    warningBox("Before you pay", SAFETY_WARNING) +
     paragraph(
       `Once your payment is confirmed, we will activate your participant account and share onboarding next steps. Questions about payment? Contact <a href="mailto:${esc(
         supportEmail,
@@ -248,6 +275,10 @@ export function paymentInstructionsEmail(params: {
     ...(hasLinkUrl ? ["", `Complete payment: ${paymentLink}`] : []),
     ...(paymentInstructions ? ["", "Payment instructions:", paymentInstructions] : []),
     ...(publicDiscountNote ? ["", `Note: ${publicDiscountNote}`] : []),
+    "",
+    `Payment & payee: ${payeeNotice}`,
+    "",
+    `Before you pay: ${SAFETY_WARNING}`,
     "",
     `Once your payment is confirmed, we will activate your participant account and share onboarding next steps. Questions about payment? Contact ${supportEmail}.`,
     "",

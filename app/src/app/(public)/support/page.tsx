@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
+import {
+  OFFICIAL_PRODUCT,
+  OFFICIAL_PRICE_LABEL,
+  PAYMENT_PROCESSOR,
+  LEGAL_OPERATOR,
+  OFFICIAL_PAYMENT_DOMAIN,
+} from "@/lib/payment-disclosure";
 
 export const metadata: Metadata = {
   title: "Support & Contact",
@@ -65,6 +72,45 @@ export default function SupportPage() {
             </div>
           ))}
         </dl>
+      </Card>
+
+      <Card>
+        <h2 className="text-xl font-semibold text-navy-900">Payment verification</h2>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          TenXPros never asks for payment before acceptance. If you are accepted, the official payment
+          link is sent to you by email. Before paying any link, you can verify it against the official
+          details below — and if anything looks unexpected, contact us first.
+        </p>
+
+        <dl className="mt-6 divide-y divide-neutral-200 border-t border-neutral-200">
+          {[
+            { label: "Product / program", value: OFFICIAL_PRODUCT },
+            { label: "Price", value: OFFICIAL_PRICE_LABEL },
+            { label: "Payment processor", value: `${PAYMENT_PROCESSOR} (secure checkout)` },
+            { label: "Legal operator / payee", value: LEGAL_OPERATOR },
+            {
+              label: "Official payment link",
+              value: `A secure ${PAYMENT_PROCESSOR} page on ${OFFICIAL_PAYMENT_DOMAIN}, sent only in your acceptance email`,
+            },
+          ].map(({ label, value }) => (
+            <div key={label} className="flex flex-col gap-1 py-4 sm:flex-row sm:items-baseline sm:gap-6">
+              <dt className="w-48 shrink-0 text-sm font-semibold text-navy-900">{label}</dt>
+              <dd className="text-sm leading-6 text-slate-600">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <p className="mt-4 text-sm leading-6 text-slate-600">
+          TenXPros is operated by {LEGAL_OPERATOR}. Secure payments are processed by {PAYMENT_PROCESSOR},
+          so your {PAYMENT_PROCESSOR} checkout or card statement may show {LEGAL_OPERATOR} as the legal
+          payee — this is expected and legitimate. For your security, please do not pay any link unless it
+          is sent through an official TenXPros/{LEGAL_OPERATOR.split(" ")[0]} channel and matches these
+          details. To confirm whether a payment request is legitimate, email{" "}
+          <a href="mailto:support@tenxpros.com" className="font-medium text-indigo-600 hover:text-indigo-500">
+            support@tenxpros.com
+          </a>{" "}
+          before paying.
+        </p>
       </Card>
 
       <Card className="border-dashed bg-neutral-50">

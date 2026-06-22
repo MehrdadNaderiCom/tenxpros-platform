@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight, Check, FileText, Minus, ShieldCheck } from "l
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usd, usdPlain, LADDER_DESC, type PricingTierView } from "@/lib/pricing";
+import { PAYEE_NOTICE, SAFETY_WARNING } from "@/lib/payment-disclosure";
 
 /**
  * Pricing — "The Instrument" direction
@@ -599,6 +600,10 @@ export function PricingPayment() {
       <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B1120] p-5">
         <ShieldCheck className="h-5 w-5 flex-none text-indigo-300" aria-hidden="true" />
         <p className="text-sm leading-6 text-slate-200">No payment details are required to apply.</p>
+      </div>
+      <div className="mt-4 rounded-xl border border-white/10 bg-[#0B1120] p-5">
+        <p className="text-sm leading-6 text-slate-300">{PAYEE_NOTICE}</p>
+        <p className="mt-3 text-sm leading-6 text-slate-400">{SAFETY_WARNING}</p>
       </div>
     </SectionShell>
   );

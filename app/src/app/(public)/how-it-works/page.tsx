@@ -17,7 +17,7 @@ const APPLY_FLOW: Array<[string, string]> = [
   ["You apply", "Tell us about your expertise, your field, your goals, and the challenges you want to explore with AI. No payment details are required."],
   ["Fit review within 48 hours", "A human reads your application for fit and seriousness, and replies by email within 48 hours."],
   ["Acceptance email", "If it is a fit, you receive an acceptance email. Official acceptance and payment instructions come only from hello@tenxpros.com."],
-  ["Payment after acceptance", "Accepted applicants receive a secure payment link. Payment confirms your place; you only pay after you are accepted."],
+  ["Payment after acceptance", "Accepted applicants receive a secure Stripe payment link, sent only from hello@tenxpros.com. Payment confirms your place; you only pay after you are accepted. TenXPros is operated by Naprolity OÜ, so your Stripe checkout or card statement may show Naprolity OÜ as the payee."],
   ["Onboarding and password setup", "You set your password, complete the starter pack, and get oriented to how the work and reviews run."],
   ["Diagnostic", "A short diagnostic shapes a personalized path around your field, risk level, stakeholders, and goals."],
   ["Week 1 begins", "You start the guided 12-week path, building toward a reviewed Living AI Solution Dossier."],
@@ -119,8 +119,10 @@ export default function HowItWorksPage() {
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-2xl text-xs leading-5 text-slate-500">
-            For questions or support, contact support@tenxpros.com. A directory profile is published
-            only after certification and your opt-in.
+            For questions or support — or to verify whether a payment link is legitimate — contact
+            support@tenxpros.com. For your security, never pay a link unless it comes through an official
+            TenXPros/Naprolity channel and matches our official payment details. A directory profile is
+            published only after certification and your opt-in.
           </p>
         </div>
       </section>

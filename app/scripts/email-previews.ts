@@ -11,6 +11,8 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import nodemailer from "nodemailer";
 import { resolveSmtpConfig } from "../src/lib/services/email-smtp";
+import { paymentLinkForTier } from "../src/lib/services/payment-link";
+import { SUPPORT_EMAIL } from "../src/lib/payment-terms";
 import {
   applicationReceivedEmail,
   applicationStatusEmail,
@@ -18,7 +20,7 @@ import {
   paymentInstructionsEmail,
 } from "../src/lib/email/templates";
 
-const NAME = "Pegah Rostam";
+const NAME = "Sample Applicant";
 
 const samples = [
   { tag: "application_received", ...applicationReceivedEmail({ fullName: NAME, applicationId: "cmq6hhd710003e19slfx20o2w" }) },
@@ -33,16 +35,19 @@ const samples = [
   },
   {
     tag: "application_accepted_payment_link",
+    // Resolves the live link from env (PAYMENT_LINK_FOUNDING) exactly as production
+    // does, so the test email matches what an accepted applicant receives. The
+    // built-in payee/Stripe/safety copy lives in the template itself.
     ...paymentInstructionsEmail({
       fullName: NAME,
       amount: 997,
       currency: "USD",
       dueAt: new Date("2026-06-11T00:00:00Z"),
-      paymentLink: "Manual payment link pending",
-      paymentInstructions:
-        "The Founding Charter fee is USD 997. Our team will share manual invoice / payment details by reply. If you have any questions, contact support@tenxpros.com.",
+      paymentLink: paymentLinkForTier("FOUNDING"),
+      paymentInstructions: null,
       publicDiscountNote: null,
-      supportEmail: "support@tenxpros.com",
+      method: "STRIPE",
+      supportEmail: SUPPORT_EMAIL,
     }),
   },
   {

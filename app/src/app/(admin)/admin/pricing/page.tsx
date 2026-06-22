@@ -53,7 +53,9 @@ export default async function AdminPricingPage() {
               <p className="text-sm font-semibold text-navy-900">Default payment terms</p>
               <p className="text-xs text-slate-500">
                 Used for new acceptances at this tier. Per-application overrides take precedence; the payment link
-                also falls back to the configured env link.
+                also falls back to the configured env link (PAYMENT_LINK_&lt;TIER&gt;). Paste only the official
+                Stripe Payment Link (https://buy.stripe.com/…). TenXPros is operated by Naprolity OÜ, the Stripe
+                merchant of record; applicants will receive whatever link is set here.
               </p>
               <Field label="Method">
                 <Select name="paymentMethod" defaultValue={tier.paymentMethod ?? ""}>

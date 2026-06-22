@@ -377,6 +377,7 @@ async function sendPaymentInstructionsEmail(
     paymentLink: terms.paymentLink,
     paymentInstructions: terms.paymentInstructions,
     publicDiscountNote: terms.publicDiscountNote,
+    method: terms.method,
     supportEmail: terms.supportEmail,
   });
   await safeSendEmail({

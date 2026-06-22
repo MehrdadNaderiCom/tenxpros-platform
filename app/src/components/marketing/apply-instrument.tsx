@@ -1,6 +1,7 @@
 import { ArrowRight, Check, FileText, Minus, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PAYEE_NOTICE, SAFETY_WARNING } from "@/lib/payment-disclosure";
 
 /**
  * Apply — "The Instrument" direction
@@ -299,6 +300,9 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
               support@tenxpros.com
             </a>
             .
+          </p>
+          <p className="mt-3 rounded-lg border border-white/10 bg-[#0B1120] p-4 text-xs leading-5 text-slate-400">
+            {PAYEE_NOTICE} {SAFETY_WARNING}
           </p>
           <p className="mt-3 text-center text-xs leading-5 text-slate-500">
             If the form does not load, refresh and try again.

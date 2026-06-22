@@ -12,7 +12,7 @@ const sections = [
   ["Confidentiality and what not to submit", "TenXPros is designed around professional confidentiality. Do not submit confidential client, employer, patient, regulated, or other third-party data unless you have the right to use it. Use redacted or fictionalized examples in your application and dossier."],
   ["Public visibility", "Directory profiles and credential verification pages are public only when a participant or admin action makes the relevant record public."],
   ["Email and analytics", "Transactional emails are used for application, enrollment, review, support, and certification workflows. Analytics focus on product and operational decisions."],
-  ["Contact and official communication", "Acceptance and payment instructions are sent only from hello@tenxpros.com. For privacy questions, data requests, or support, contact support@tenxpros.com."],
+  ["Contact and official communication", "TenXPros is operated by Naprolity OÜ, the legal operating company responsible for this service. Acceptance and payment instructions are sent only from hello@tenxpros.com, and secure payments are processed by Stripe. For privacy questions, data requests, or support, contact support@tenxpros.com."],
 ];
 
 export default function PrivacyPage() {
