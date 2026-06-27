@@ -58,6 +58,9 @@ model User {
   earnedBadges ParticipantBadge[]
 
   auditEntries AuditLog[] @relation("AuditActor")
+
+  // Partner Program: a User may be linked to exactly one Partner record.
+  partner Partner?
 }
 
 enum UserRole {
@@ -68,6 +71,9 @@ enum UserRole {
   COACH
 
   ADMIN
+
+  // Partner Program: an approved partner with a Partner Panel login.
+  PARTNER
 }
 
 model Account {
@@ -1692,4 +1698,633 @@ model MarketingCoachAdvice {
   createdAt DateTime @default(now())
 
   @@index([campaignId, createdAt])
+}
+
+// ============================================================
+// PARTNER PROGRAM
+// ============================================================
+// The Partner Panel is the single source of truth: nothing is approved,
+// registered, promoted or confirmed except by a Company action recorded here,
+// audited via the existing AuditLog (action prefixed PANEL_*). Money fields are
+// integer CENTS; rates/caps are integer BASIS POINTS (1% = 100 bp) — no floats.
+// All commercial numbers resolve through ProgramConfig defaults + optional
+// per-partner PartnerConfig overrides (see src/lib/partner/config.ts).
+
+enum PartnerStatus {
+  APPLICANT
+  PILOT
+  TIER1
+  TIER2
+  TIER3
+  INACTIVE
+  TERMINATED
+}
+
+enum PartnerTier {
+  TIER1
+  TIER2
+  TIER3
+}
+
+enum PartnerApplicationStatus {
+  NEW
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum DealType {
+  B2C
+  B2B
+}
+
+enum OfferingType {
+  B2C_CHARTER
+  B2B_ENGAGEMENT
+  OTHER
+}
+
+enum DealProductLine {
+  TENXPROS
+  TENXOPS
+}
+
+enum DealRegStatus {
+  SUBMITTED
+  CONFIRMED
+  DECLINED
+  LAPSED
+  WITHDRAWN
+}
+
+enum PartnerFunction {
+  BASIC_INTRO
+  QUALIFIED_ORIGINATION
+  STRONG_ORIGINATION
+  CLOSING
+  DELIVERY
+  OVERRIDE
+  FOCUS_BONUS
+  GROWTH_BONUS
+}
+
+enum CommissionStatus {
+  ACCRUED
+  PAYABLE
+  PAID
+  REVERSED
+}
+
+enum SeatStatus {
+  PENDING
+  PAID_COLLECTED
+  REFUNDED
+  CANCELLED
+}
+
+enum EngagementStatus {
+  REQUESTED
+  CONFIRMED
+  DECLINED
+}
+
+enum FocusGrantStatus {
+  ACTIVE
+  LAPSED
+  WITHDRAWN
+}
+
+enum ScorecardDay {
+  DAY_14
+  DAY_30
+  DAY_60
+  DAY_90
+}
+
+enum DeliveryMode {
+  FIXED_FEE
+  PERCENTAGE
+}
+
+enum RefundEventType {
+  REFUND
+  CHARGEBACK
+  CANCELLATION
+  CREDIT
+  REVERSAL
+}
+
+/// A public application to join the Partner Program (pre-approval). Approval
+/// creates the Partner record + Panel Confirmation audit entry.
+model PartnerApplication {
+  id String @id @default(cuid())
+  fullName String
+  email String
+  phone String?
+  country String
+  region String?
+  linkedinUrl String?
+  background String @db.Text
+  audience String // B2C | B2B | BOTH
+  targetMarkets String @db.Text
+  accountJustification String @db.Text
+  heardFrom String?
+  consentNoEquity Boolean @default(false)
+  status PartnerApplicationStatus @default(NEW)
+  reviewerNotes String? @db.Text
+  reviewedAt DateTime?
+  reviewedBy String?
+  utmSource String?
+  utmMedium String?
+  utmCampaign String?
+  referrerUrl String?
+  landingPage String?
+  ipHash String?
+  partner Partner?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
+/// An approved partner. status drives the lifecycle; tier drives economics &
+/// limits (pilot runs at TIER1). A User link is created when the partner sets a
+/// password to access the Partner Panel.
+model Partner {
+  id String @id @default(cuid())
+  userId String? @unique
+  user User? @relation(fields: [userId], references: [id])
+  applicationId String? @unique
+  application PartnerApplication? @relation(fields: [applicationId], references: [id])
+
+  status PartnerStatus @default(APPLICANT)
+  tier PartnerTier @default(TIER1)
+
+  displayName String
+  contactEmail String
+  country String?
+
+  pilotStartDate DateTime?
+  activationGatePassedAt DateTime?
+  activeStatus Boolean @default(false)
+  lastActivityAt DateTime?
+  recognitionTitle String?
+  qualityFlagged Boolean @default(false)
+  terminatedAt DateTime?
+  terminationReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  config PartnerConfig?
+  activationItems ActivationGateItem[]
+  scorecard ScorecardCheckpoint[]
+  dealRegistrations DealRegistration[]
+  registeredAccounts RegisteredAccount[]
+  closedDeals ClosedDeal[]
+  commissions CommissionEntry[]
+  engagements TenXOpsEngagement[]
+  focusGrants FocusGrant[]
+  qualityFlags QualityFlag[]
+
+  @@index([status])
+}
+
+/// Singleton row holding every global program default (basis points / cents).
+/// Created by the migration (ON CONFLICT DO NOTHING) and self-healed by the
+/// resolver. Edited from /admin/partners/config; every change is audited.
+model ProgramConfig {
+  id String @id @default("singleton")
+
+  // Commission rates by function (basis points)
+  basicIntroductionBp Int @default(500)
+  qualifiedOriginationB2cBp Int @default(1000)
+  qualifiedOriginationB2bBp Int @default(800)
+  strongOriginationB2cBp Int @default(1500)
+  strongOriginationB2bBp Int @default(1200)
+  strongOriginationUnlockSeats Int @default(40)
+  closingB2cBp Int @default(500)
+  closingB2bBp Int @default(1000)
+  deliveryMode DeliveryMode @default(PERCENTAGE)
+  deliveryPercentMinBp Int @default(500)
+  deliveryPercentMaxBp Int @default(800)
+
+  // Caps (basis points)
+  capB2cBp Int @default(2500)
+  capB2bBp Int @default(3000)
+  tier3FocusHardCeilingBp Int @default(3500)
+
+  // Origination window & override
+  originationWindowMonths Int @default(12)
+  overrideShareBp Int @default(5000)
+  majorNewEngagementMinSeats Int @default(15)
+  trailPeriodMonths Int @default(12)
+
+  // Tier eligibility
+  tierQualifyingWindowMonths Int @default(12)
+  tier2SeatThreshold Int @default(40)
+  tier3FocusSeatThreshold Int @default(15)
+
+  // Tier 3 focus bonus
+  focusBonusStartBp Int @default(100)
+  focusBonusAnnualIncrementBp Int @default(100)
+  focusBonusCeilingBp Int @default(3500)
+
+  // Growth bonus
+  growthBonusOrgThreshold Int @default(3)
+  growthBonusBp Int @default(100)
+
+  // Pipeline & account limits (per tier)
+  maxOpenAccountsTier1 Int @default(3)
+  maxOpenAccountsTier2 Int @default(5)
+  maxOpenAccountsTier3 Int @default(10)
+  pilotFirst30DaysMaxAccountsTier1 Int @default(2)
+  pipelineProtectionDaysTier1 Int @default(120)
+  pipelineProtectionDaysTier2 Int @default(150)
+  pipelineProtectionDaysTier3 Int @default(180)
+  quietAccountLapseDaysTier1 Int @default(30)
+  quietAccountLapseDaysTier2 Int @default(45)
+  quietAccountLapseDaysTier3 Int @default(60)
+  firstRightHours Int @default(48)
+  dealConfirmationWindowBusinessDays Int @default(5)
+
+  // Active Status
+  activeStatusResponseBusinessDays Int @default(5)
+  activeStatusCureDaysTier1 Int @default(30)
+  activeStatusCureDaysTier2 Int @default(45)
+  activeStatusCureDaysTier3 Int @default(60)
+  transitionDays Int @default(30)
+
+  // Payment
+  currency String @default("USD")
+  paymentBusinessDays Int @default(30)
+  smallPayoutThresholdCents Int @default(2500)
+  smallPayoutCarryForward Boolean @default(true)
+
+  // Clawback
+  clawbackDays Int @default(120)
+
+  // Pilot & termination
+  pilotDays Int @default(90)
+  pilotTerminationNoticeDays Int @default(7)
+  postPilotTerminationNoticeDays Int @default(30)
+  materialBreachCureDays Int @default(15)
+  windDownDays Int @default(30)
+  programAmendmentNoticeDays Int @default(30)
+
+  // Post-termination restrictions
+  nonCircumventionMonths Int @default(24)
+  nonSolicitationMonths Int @default(12)
+  lateStageTailDays Int @default(90)
+
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+/// Per-partner overrides. Every field is nullable; null falls back to
+/// ProgramConfig. resolvePartnerConfig() merges the two.
+model PartnerConfig {
+  id String @id @default(cuid())
+  partnerId String @unique
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  basicIntroductionBp Int?
+  qualifiedOriginationB2cBp Int?
+  qualifiedOriginationB2bBp Int?
+  strongOriginationB2cBp Int?
+  strongOriginationB2bBp Int?
+  strongOriginationUnlockSeats Int?
+  closingB2cBp Int?
+  closingB2bBp Int?
+  deliveryMode DeliveryMode?
+  deliveryPercentMinBp Int?
+  deliveryPercentMaxBp Int?
+
+  capB2cBp Int?
+  capB2bBp Int?
+  tier3FocusHardCeilingBp Int?
+
+  originationWindowMonths Int?
+  overrideShareBp Int?
+  majorNewEngagementMinSeats Int?
+  trailPeriodMonths Int?
+
+  tierQualifyingWindowMonths Int?
+  tier2SeatThreshold Int?
+  tier3FocusSeatThreshold Int?
+
+  focusBonusStartBp Int?
+  focusBonusAnnualIncrementBp Int?
+  focusBonusCeilingBp Int?
+
+  growthBonusOrgThreshold Int?
+  growthBonusBp Int?
+
+  maxOpenAccountsTier1 Int?
+  maxOpenAccountsTier2 Int?
+  maxOpenAccountsTier3 Int?
+  pilotFirst30DaysMaxAccountsTier1 Int?
+  pipelineProtectionDaysTier1 Int?
+  pipelineProtectionDaysTier2 Int?
+  pipelineProtectionDaysTier3 Int?
+  quietAccountLapseDaysTier1 Int?
+  quietAccountLapseDaysTier2 Int?
+  quietAccountLapseDaysTier3 Int?
+  firstRightHours Int?
+  dealConfirmationWindowBusinessDays Int?
+
+  activeStatusResponseBusinessDays Int?
+  activeStatusCureDaysTier1 Int?
+  activeStatusCureDaysTier2 Int?
+  activeStatusCureDaysTier3 Int?
+  transitionDays Int?
+
+  currency String?
+  paymentBusinessDays Int?
+  smallPayoutThresholdCents Int?
+  smallPayoutCarryForward Boolean?
+
+  clawbackDays Int?
+
+  pilotDays Int?
+  pilotTerminationNoticeDays Int?
+  postPilotTerminationNoticeDays Int?
+  materialBreachCureDays Int?
+  windDownDays Int?
+  programAmendmentNoticeDays Int?
+
+  nonCircumventionMonths Int?
+  nonSolicitationMonths Int?
+  lateStageTailDays Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+/// Activation Gate checklist item (onboarding, approved messaging, no-equity
+/// acknowledgement, target list). Gate passes when all required items complete.
+model ActivationGateItem {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  key String
+  label String
+  completed Boolean @default(false)
+  completedAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@unique([partnerId, key])
+}
+
+/// 90-day pilot scorecard checkpoint (Schedule H).
+model ScorecardCheckpoint {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  day ScorecardDay
+  requiredEvidence String @db.Text
+  met Boolean @default(false)
+  reviewedAt DateTime?
+  reviewerNote String? @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([partnerId, day])
+}
+
+/// A deal/account registration (Schedule B / Attachment 1). Effective only on
+/// Panel Confirmation. The same form opens a TenXOps engagement case (clause 10A).
+model DealRegistration {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  productLine DealProductLine @default(TENXPROS)
+  offering OfferingType @default(B2B_ENGAGEMENT)
+  legalEntity String
+  country String
+  businessUnit String?
+  contactName String?
+  contactTitle String?
+  estSeats Int?
+  estValueCents Int?
+  functionsIntended String[] // origination / closing / delivery
+  justification String @db.Text
+  widerScopeRequested String?
+
+  status DealRegStatus @default(SUBMITTED)
+  confirmedScope String?
+  firstRightExpiresAt DateTime?
+  pipelineProtectionExpiresAt DateTime?
+  confirmedByUserId String?
+  declineReason String?
+  submittedAt DateTime @default(now())
+  decidedAt DateTime?
+
+  registeredAccount RegisteredAccount?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+  @@index([status, submittedAt])
+}
+
+/// A confirmed registration becomes a Registered Account, scoped per clause 7.
+model RegisteredAccount {
+  id String @id @default(cuid())
+  dealRegistrationId String @unique
+  dealRegistration DealRegistration @relation(fields: [dealRegistrationId], references: [id], onDelete: Cascade)
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  legalEntity String
+  country String
+  businessUnit String?
+  offering OfferingType
+  scope String
+  isHouseAccount Boolean @default(false)
+  isDirectRegistration Boolean @default(false)
+  managed Boolean @default(true)
+  protectionExpiresAt DateTime?
+  lastMeaningfulUpdateAt DateTime?
+  lapsedAt DateTime?
+
+  closedDeals ClosedDeal[]
+  engagements TenXOpsEngagement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId])
+}
+
+/// Entities off-limits to registration (Schedule A13). A confidential list.
+model HouseAccount {
+  id String @id @default(cuid())
+  entityName String
+  domain String?
+  note String?
+  createdByUserId String?
+  createdAt DateTime @default(now())
+
+  @@index([entityName])
+}
+
+/// A binding agreement with cleared payment (in whole or part). Commission base.
+model ClosedDeal {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  registeredAccountId String?
+  registeredAccount RegisteredAccount? @relation(fields: [registeredAccountId], references: [id])
+
+  dealType DealType
+  productLine DealProductLine @default(TENXPROS)
+  netReceiptsCents Int
+  currency String @default("USD")
+  deliveredAt DateTime?
+  paymentClearedAt DateTime?
+  signedAt DateTime?
+  originationRateBpAtOpen Int?
+  originationWindowStart DateTime?
+  trailPeriodEnd DateTime?
+  isMajorNewEngagement Boolean @default(false)
+  conversionRate Float?
+  conversionDate DateTime?
+  industryOrRegion String?
+
+  seats SeatRecord[]
+  commissions CommissionEntry[]
+  refundEvents RefundEvent[]
+  qualityFlags QualityFlag[]
+  tenXOpsEngagement TenXOpsEngagement?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId])
+}
+
+/// A group of seats on a closed deal. Only PAID_COLLECTED (and not quality-
+/// disregarded) seats count toward any target, tier or bonus.
+model SeatRecord {
+  id String @id @default(cuid())
+  closedDealId String
+  closedDeal ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
+  count Int @default(1)
+  status SeatStatus @default(PENDING)
+  industryOrRegion String?
+  sourcedByPartner Boolean @default(true)
+  note String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([closedDealId])
+  @@index([status])
+}
+
+/// A computed commission line for one function on one closed deal.
+model CommissionEntry {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  closedDealId String
+  closedDeal ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
+
+  function PartnerFunction
+  rateBp Int
+  baseAmountCents Int
+  amountCents Int
+  status CommissionStatus @default(ACCRUED)
+  payableOn DateTime?
+  paidOn DateTime?
+  currency String @default("USD")
+  conversionRate Float?
+  conversionDate DateTime?
+  queryFlag Boolean @default(false)
+  queryNote String?
+  note String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+  @@index([closedDealId])
+}
+
+/// A coaching partner may request to open a TenXOps engagement on an account
+/// (clause 10A). On confirmation it becomes a B2B ClosedDeal; its seats are NOT
+/// counted toward partner targets/tiers.
+model TenXOpsEngagement {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  registeredAccountId String?
+  registeredAccount RegisteredAccount? @relation(fields: [registeredAccountId], references: [id])
+  closedDealId String? @unique
+  closedDeal ClosedDeal? @relation(fields: [closedDealId], references: [id])
+
+  organisation String
+  justification String @db.Text
+  status EngagementStatus @default(REQUESTED)
+  confirmedByUserId String?
+  decidedAt DateTime?
+  declineReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+}
+
+/// A Tier 3 industry/region focus (Schedule C). Time-limited, re-earned yearly.
+model FocusGrant {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  industryOrRegion String
+  grantedAt DateTime @default(now())
+  expiresAt DateTime
+  continuouslyHeldSince DateTime @default(now())
+  currentBonusBp Int @default(100)
+  status FocusGrantStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([partnerId, status])
+}
+
+/// A refund / chargeback / cancellation that reverses commission (clause 15).
+model RefundEvent {
+  id String @id @default(cuid())
+  closedDealId String
+  closedDeal ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
+  type RefundEventType
+  amountCents Int
+  occurredAt DateTime @default(now())
+  withinWindow Boolean @default(true)
+  reversedCommissionCents Int @default(0)
+  note String?
+  createdAt DateTime @default(now())
+
+  @@index([closedDealId])
+}
+
+/// A quality/compliance flag; disregardForTargets removes affected sales from
+/// targets and bonuses (Schedule H4).
+model QualityFlag {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  closedDealId String?
+  closedDeal ClosedDeal? @relation(fields: [closedDealId], references: [id])
+  reason String @db.Text
+  disregardForTargets Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([partnerId])
 }
