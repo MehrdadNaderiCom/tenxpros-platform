@@ -14,6 +14,7 @@ const navItems: Array<[string, string]> = [
   ["The Dossier", "/dossier"],
   ["Certification", "/certification"],
   ["Pricing", "/pricing"],
+  ["Partners", "/partners"],
   ["About", "/about"],
 ];
 

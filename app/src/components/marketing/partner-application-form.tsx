@@ -1,0 +1,177 @@
+"use client";
+
+import { useEffect, useRef, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { submitPartnerApplication } from "@/lib/actions/partner-public";
+import { AUDIENCE_OPTIONS, partnerApplicationSchema, type PartnerApplicationInput } from "@/lib/validations/partner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input, Select, Textarea } from "@/components/ui/form-fields";
+import { Field } from "@/components/ui/form-field";
+import { COUNTRIES } from "@/lib/countries";
+
+const defaultValues: Partial<PartnerApplicationInput> = {
+  consentNoEquity: false as true,
+};
+
+export function PartnerApplicationForm() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const [serverError, setServerError] = useState<string | null>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<PartnerApplicationInput>({ resolver: zodResolver(partnerApplicationSchema), defaultValues });
+
+  useEffect(() => {
+    setValue("utmSource", searchParams.get("utm_source") ?? undefined);
+    setValue("utmMedium", searchParams.get("utm_medium") ?? undefined);
+    setValue("utmCampaign", searchParams.get("utm_campaign") ?? undefined);
+    setValue("landingPage", window.location.href);
+    setValue("referrerUrl", document.referrer || undefined);
+  }, [searchParams, setValue]);
+
+  const onSubmit = (data: PartnerApplicationInput) => {
+    setServerError(null);
+    startTransition(async () => {
+      const formData = new FormData();
+      for (const [key, value] of Object.entries(data)) {
+        if (value === undefined || value === null) continue;
+        formData.append(key, typeof value === "boolean" ? String(value) : String(value));
+      }
+      // Honeypot (not part of the validated schema): forward its value so the
+      // server-side spam guard can drop bot submissions that fill it.
+      formData.append("companyWebsite", honeypotRef.current?.value ?? "");
+      const result = await submitPartnerApplication(formData);
+      if (!result.ok) {
+        setServerError(result.message ?? "Application could not be submitted.");
+        return;
+      }
+      router.push(`/partners/apply/thank-you?id=${result.id ?? ""}`);
+    });
+  };
+
+  return (
+    <Card>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+        {/* Honeypot: hidden from users; bots that fill it are silently dropped. */}
+        <div aria-hidden="true" className="hidden">
+          <label>
+            Company website
+            <input ref={honeypotRef} type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" />
+          </label>
+        </div>
+
+        {serverError ? (
+          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+            {serverError}
+          </p>
+        ) : null}
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold text-navy-900">About you</h2>
+            <p className="mt-1 text-sm text-slate-600">Tell us who you are and how to reach you.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Full name" error={errors.fullName?.message}>
+              <Input {...register("fullName")} autoComplete="name" placeholder="Jordan Avery" />
+            </Field>
+            <Field label="Email" error={errors.email?.message}>
+              <Input {...register("email")} type="email" autoComplete="email" placeholder="you@example.com" />
+            </Field>
+            <Field label="Phone" optional error={errors.phone?.message}>
+              <Input {...register("phone")} type="tel" autoComplete="tel" placeholder="+44 7700 900123" />
+            </Field>
+            <Field label="Country" error={errors.country?.message}>
+              <Input {...register("country")} list="partner-country-options" placeholder="Start typing… e.g. United States" />
+            </Field>
+            <Field label="Region / city" optional error={errors.region?.message}>
+              <Input {...register("region")} placeholder="e.g. Dubai, UAE" />
+            </Field>
+            <Field label="LinkedIn or profile URL" optional error={errors.linkedinUrl?.message}>
+              <Input {...register("linkedinUrl")} type="url" placeholder="https://www.linkedin.com/in/..." />
+            </Field>
+          </div>
+          <datalist id="partner-country-options">
+            {COUNTRIES.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold text-navy-900">Your case</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              How you would sell, and why the organisations you have in mind are reasonable for you to pursue.
+            </p>
+          </div>
+          <Field label="Would you sell to" error={errors.audience?.message}>
+            <Select {...register("audience")} defaultValue="">
+              <option value="" disabled>
+                Select the closest option
+              </option>
+              {AUDIENCE_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field
+            label="Relevant background"
+            error={errors.background?.message}
+            description="A few sentences on your relevant experience: sales, delivery, coaching, the field you know."
+          >
+            <Textarea {...register("background")} placeholder="For example: 8 years selling training into healthcare; strong network of HR directors." />
+          </Field>
+          <Field
+            label="Target markets, industries or organisations"
+            error={errors.targetMarkets?.message}
+            description="The markets or specific organisations you would pursue for TenXPros."
+          >
+            <Textarea {...register("targetMarkets")} placeholder="For example: mid-size professional-services firms in the Gulf; two named banks where I have warm contacts." />
+          </Field>
+          <Field
+            label="Why are these reasonable for you to pursue?"
+            error={errors.accountJustification?.message}
+            description="Existing relationships, named warm contacts, sector experience, or a concrete route in. A bare list of names is not enough."
+          >
+            <Textarea {...register("accountJustification")} placeholder="For example: I ran the L&D function at one target for 3 years and still have the CHRO's trust; a referral into another." />
+          </Field>
+          <Field label="How did you hear about the program?" optional error={errors.heardFrom?.message}>
+            <Input {...register("heardFrom")} placeholder="e.g. LinkedIn, a colleague, the website" />
+          </Field>
+        </section>
+
+        <div className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+          <h2 className="text-xl font-semibold text-navy-900">Acknowledgement</h2>
+          <label className="flex gap-3 text-sm leading-6 text-slate-700">
+            <input className="mt-1 h-4 w-4 flex-none" type="checkbox" {...register("consentNoEquity")} />
+            <span>
+              I understand the Partner Program gives no equity, no country, no industry, no exclusivity and no long-term
+              commitment. My rights arise only from confirmed deal registrations, real work performed, cleared and
+              non-refunded payment, and defined time windows — all recorded on the TenXPros Partner Panel.
+            </span>
+          </label>
+          {errors.consentNoEquity ? (
+            <p role="alert" className="text-sm text-red-600">
+              {errors.consentNoEquity.message}
+            </p>
+          ) : null}
+        </div>
+
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Submitting..." : "Submit application"}
+        </Button>
+      </form>
+    </Card>
+  );
+}

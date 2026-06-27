@@ -7,6 +7,7 @@ const links = [
   ["How it works", "/how-it-works"],
   ["Certification", "/certification"],
   ["Pricing", "/pricing"],
+  ["Become a Partner", "/partners"],
   ["Support", "/support"],
   ["Terms", "/terms"],
   ["Privacy", "/privacy"],

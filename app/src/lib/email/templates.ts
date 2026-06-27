@@ -345,3 +345,228 @@ export function enrollmentWelcomeEmail(params: {
     text,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Partner Program emails
+// ---------------------------------------------------------------------------
+
+/** Acknowledge a received partner application. */
+export function partnerApplicationReceivedEmail(params: {
+  fullName: string;
+  applicationId: string;
+}): EmailContent {
+  const { fullName, applicationId } = params;
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("Thank you for applying to the TenXPros Partner Program. We have received your application.") +
+    paragraph(
+      "Every application is reviewed personally. If it is a fit, we will invite you onto the TenXPros Partner Panel to begin a 90-day, fully performance-based pilot.",
+    ) +
+    infoBox([{ label: "Application ID", value: applicationId }]) +
+    noteBox(
+      "What the program is",
+      "There is no equity, no country, no industry and no exclusivity. You earn defined commission only on confirmed deal registrations, real work performed, and cleared payment.",
+    );
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Thank you for applying to the TenXPros Partner Program. We have received your application.",
+    "",
+    "Every application is reviewed personally. If it is a fit, we will invite you onto the TenXPros Partner Panel to begin a 90-day, fully performance-based pilot.",
+    "",
+    `Application ID: ${applicationId}`,
+    "",
+    "There is no equity, no country, no industry and no exclusivity. You earn defined commission only on confirmed deal registrations, real work performed, and cleared payment.",
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "We have received your TenXPros Partner Program application",
+    html: layout({
+      preheader: "We have received your partner application. A decision follows by email.",
+      eyebrow: "Partner application received",
+      heading: "Thank you for applying to the Partner Program.",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+/** Notify the program owner that a new partner application arrived. */
+export function partnerApplicationNotifyAdminEmail(params: {
+  fullName: string;
+  email: string;
+  country: string;
+  audience: string;
+  applicationId: string;
+  adminUrl: string;
+}): EmailContent {
+  const { fullName, email, country, audience, applicationId, adminUrl } = params;
+  const bodyHtml =
+    paragraph("A new Partner Program application has been submitted.") +
+    infoBox([
+      { label: "Name", value: fullName },
+      { label: "Email", value: email },
+      { label: "Country", value: country },
+      { label: "Sells to", value: audience },
+      { label: "Application ID", value: applicationId },
+    ]) +
+    button(adminUrl, "Review in admin");
+
+  const text = [
+    "A new Partner Program application has been submitted.",
+    "",
+    `Name: ${fullName}`,
+    `Email: ${email}`,
+    `Country: ${country}`,
+    `Sells to: ${audience}`,
+    `Application ID: ${applicationId}`,
+    "",
+    `Review: ${adminUrl}`,
+  ].join("\n");
+
+  return {
+    subject: `New partner application: ${fullName}`,
+    html: layout({
+      preheader: "A new Partner Program application is waiting for review.",
+      eyebrow: "Partner application",
+      heading: "New partner application",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+/** Approve or reject a partner application. */
+export function partnerApplicationDecisionEmail(params: {
+  fullName: string;
+  approved: boolean;
+  notes?: string | null;
+  setPasswordUrl?: string | null;
+  panelUrl?: string | null;
+}): EmailContent {
+  const { fullName, approved, notes, setPasswordUrl, panelUrl } = params;
+
+  if (approved) {
+    const bodyHtml =
+      paragraph(`Hi ${esc(fullName)},`) +
+      paragraph(
+        "Congratulations — your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
+      ) +
+      (setPasswordUrl ? button(setPasswordUrl, "Set your password") : "") +
+      paragraph(
+        "On the panel you will complete onboarding (the Activation Gate), register opportunities, and track every confirmation, scorecard step and commission. Nothing is approved except on the panel.",
+      ) +
+      (notes ? noteBox("A note from the team", notes) : "") +
+      noteBox(
+        "Remember",
+        "No equity, no country, no industry, no exclusivity. Commission is earned only on confirmed registrations, real work and cleared payment.",
+      );
+
+    const text = [
+      `Hi ${fullName},`,
+      "",
+      "Congratulations — your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
+      ...(setPasswordUrl ? ["", `Set your password: ${setPasswordUrl}`] : []),
+      ...(panelUrl ? ["", `Your Partner Panel: ${panelUrl}`] : []),
+      "",
+      "On the panel you will complete onboarding (the Activation Gate), register opportunities, and track every confirmation, scorecard step and commission. Nothing is approved except on the panel.",
+      ...(notes ? ["", `Note: ${notes}`] : []),
+      "",
+      "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+    ].join("\n");
+
+    return {
+      subject: "Your TenXPros Partner Program application is approved",
+      html: layout({
+        preheader: "Approved. Set your password to access the Partner Panel.",
+        eyebrow: "Partner application approved",
+        heading: "Welcome to the Partner Program.",
+        bodyHtml,
+      }),
+      text,
+    };
+  }
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph(
+      "Thank you for your interest in the TenXPros Partner Program. After review, we are not able to move forward with your application at this time.",
+    ) +
+    (notes ? noteBox("Reviewer notes", notes) : "") +
+    paragraph("We appreciate the time you invested and you are welcome to apply again in future.");
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Thank you for your interest in the TenXPros Partner Program. After review, we are not able to move forward with your application at this time.",
+    ...(notes ? ["", `Reviewer notes: ${notes}`] : []),
+    "",
+    "We appreciate the time you invested and you are welcome to apply again in future.",
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "An update on your TenXPros Partner Program application",
+    html: layout({
+      preheader: "An update on your partner application.",
+      eyebrow: "Partner application update",
+      heading: "An update on your application",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+/** Confirm a deal registration on the panel. */
+export function partnerDealConfirmedEmail(params: {
+  fullName: string;
+  entity: string;
+  confirmedScope: string;
+  pipelineProtectionExpiresAt?: Date | null;
+  panelUrl: string;
+}): EmailContent {
+  const { fullName, entity, confirmedScope, pipelineProtectionExpiresAt, panelUrl } = params;
+  const rows = [
+    { label: "Account", value: entity },
+    { label: "Confirmed scope", value: confirmedScope },
+  ];
+  if (pipelineProtectionExpiresAt) {
+    rows.push({ label: "Protected until", value: pipelineProtectionExpiresAt.toDateString() });
+  }
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("Your deal registration has been confirmed on the TenXPros Partner Panel.") +
+    infoBox(rows) +
+    button(panelUrl, "Open the Partner Panel") +
+    paragraph("Keep the account moving with a meaningful update on the panel to maintain protection.");
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Your deal registration has been confirmed on the TenXPros Partner Panel.",
+    "",
+    `Account: ${entity}`,
+    `Confirmed scope: ${confirmedScope}`,
+    ...(pipelineProtectionExpiresAt ? [`Protected until: ${pipelineProtectionExpiresAt.toDateString()}`] : []),
+    "",
+    `Open the Partner Panel: ${panelUrl}`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: `Deal registration confirmed: ${entity}`,
+    html: layout({
+      preheader: "Your deal registration is confirmed on the Partner Panel.",
+      eyebrow: "Panel confirmation",
+      heading: "Your registration is confirmed",
+      bodyHtml,
+    }),
+    text,
+  };
+}
