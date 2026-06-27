@@ -46,18 +46,20 @@ test("home exposes Become a Partner and the partners page loads", async ({ page 
 
 test("a visitor can submit a partner application", async ({ page }) => {
   await page.goto("/partners/apply");
-  await page.getByLabel("Full name").fill("E2E Partner Applicant");
-  await page.getByLabel("Email").fill(applicantEmail);
-  await page.getByLabel("Country").fill("United States");
-  await page.getByLabel(/Would you sell to/i).selectOption("B2B");
-  await page.getByLabel(/Relevant background/i).fill(
+  // Name-based locators (matches the repo's existing e2e and is robust to the
+  // accessible-label wiring of the shared Field component).
+  await page.locator('input[name="fullName"]').fill("E2E Partner Applicant");
+  await page.locator('input[name="email"]').fill(applicantEmail);
+  await page.locator('input[name="country"]').fill("United States");
+  await page.locator('select[name="audience"]').selectOption("B2B");
+  await page.locator('textarea[name="background"]').fill(
     "Fifteen years selling enterprise training and AI enablement into financial services, with a strong network of HR and operations leaders.",
   );
-  await page.getByLabel(/Target markets/i).fill("Mid-size professional-services firms and two named banks where I have warm contacts.");
-  await page.getByLabel(/reasonable for you to pursue/i).fill(
+  await page.locator('textarea[name="targetMarkets"]').fill("Mid-size professional-services firms and two named banks where I have warm contacts.");
+  await page.locator('textarea[name="accountJustification"]').fill(
     "I led the learning function at one target for three years and still have the CHRO's trust; a board member referral into the second.",
   );
-  await page.getByRole("checkbox").check();
+  await page.locator('input[name="consentNoEquity"]').check();
   await page.getByRole("button", { name: /Submit application/i }).click();
 
   await expect(page).toHaveURL(/\/partners\/apply\/thank-you/);

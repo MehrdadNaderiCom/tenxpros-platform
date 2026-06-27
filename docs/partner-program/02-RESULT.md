@@ -157,4 +157,29 @@ findings; 8 were rejected as false positives by verification. Fixes applied:
   (before and after the review fixes).
 - A Playwright happy-path spec (`tests/e2e/partner-lifecycle.spec.ts`) is included following the
   repo's e2e convention (namespaced `*.test` disposable fixture, deleted in teardown).
-- **Live deploy + verification:** see the section below (appended after deploy).
+
+## 10. Live deploy + verification (production)
+
+Deployed via the repo's Docker pipeline: 6 logical commits pushed to
+`deployment/production-deployment-sprint-a` (no force-push); `docker compose build tenxpros-app`
+then `docker compose up -d --no-deps tenxpros-app` (only the app service; the shared `db` and the
+sibling apps on the host were untouched). The container's start command ran `prisma migrate deploy`
+→ **"No pending migrations to apply"** (the additive migration was already applied to the shared
+DB), then served the new build. Container reported **healthy**.
+
+Verified on the live host (direct to the new container on `:3003`) and through Caddy at
+**https://tenxpros.com**:
+
+| Check | Result |
+|---|---|
+| `GET /api/health` | 200 |
+| Homepage shows "Become a Partner" | yes (internal + via Caddy) |
+| `GET /partners` | 200 (internal + via Caddy), marketing hero present |
+| `GET /partners/apply` | 200 (internal + via Caddy), form present |
+| `GET /partners/apply/thank-you` | 200 |
+| `GET /admin/partners` (unauthenticated) | 307 → `/login?callbackUrl=%2Fadmin%2Fpartners` (gated) |
+| `GET /partner` (unauthenticated) | redirected to `/login`, **no partner content leaked** |
+| Live e2e (real browser, real form + server action) | **2/2 passed** — home → Become a Partner → submit application → thank-you → `PartnerApplication(NEW, B2B)` created; disposable `*.test` fixture deleted in teardown (0 left behind) |
+
+Production URL: **https://tenxpros.com** — `/partners`, `/partners/apply`, and the admin
+**Partner Program** section are live.
