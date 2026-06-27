@@ -1,0 +1,121 @@
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { PARTNER_STATUS_LABELS } from "@/lib/partner/constants";
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared/page-shell";
+
+export const dynamic = "force-dynamic";
+
+const BADGE: Record<string, string> = {
+  APPLICANT: "SUBMITTED",
+  PILOT: "IN_PROGRESS",
+  TIER1: "ACTIVE",
+  TIER2: "ACTIVE",
+  TIER3: "CERTIFIED",
+  INACTIVE: "CLOSED",
+  TERMINATED: "NOT_COMPLETED",
+};
+
+export default async function AdminPartnersPage() {
+  const partners = await prisma.partner.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { registeredAccounts: true, closedDeals: true, dealRegistrations: true } },
+    },
+  });
+
+  const [appCount, submittedDeals] = await Promise.all([
+    prisma.partnerApplication.count({ where: { status: { in: ["NEW", "UNDER_REVIEW"] } } }),
+    prisma.dealRegistration.count({ where: { status: "SUBMITTED" } }),
+  ]);
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Partners"
+        description="The roster of partners. Open a partner to manage tier, status, deals, commissions, and per-partner configuration overrides."
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-500">Pending applications</p>
+            <p className="mt-1 text-2xl font-semibold text-navy-900">{appCount}</p>
+          </div>
+          <ButtonLink href="/admin/partners/applications" size="sm" variant="secondary">
+            Review
+          </ButtonLink>
+        </Card>
+        <Card className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-500">Deal registrations to confirm</p>
+            <p className="mt-1 text-2xl font-semibold text-navy-900">{submittedDeals}</p>
+          </div>
+          <ButtonLink href="/admin/partners/deal-registrations" size="sm" variant="secondary">
+            Open queue
+          </ButtonLink>
+        </Card>
+        <Card className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-slate-500">Active partners</p>
+            <p className="mt-1 text-2xl font-semibold text-navy-900">
+              {partners.filter((p) => ["PILOT", "TIER1", "TIER2", "TIER3"].includes(p.status)).length}
+            </p>
+          </div>
+          <ButtonLink href="/admin/partners/config" size="sm" variant="secondary">
+            Configuration
+          </ButtonLink>
+        </Card>
+      </div>
+
+      <Card className="overflow-x-auto p-0">
+        <table className="w-full min-w-[860px] border-collapse text-sm">
+          <thead className="bg-navy-900 text-left text-white">
+            <tr>
+              <th className="px-4 py-3">Partner</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Tier</th>
+              <th className="px-4 py-3">Active</th>
+              <th className="px-4 py-3">Accounts</th>
+              <th className="px-4 py-3">Deals</th>
+              <th className="px-4 py-3 text-right">Manage</th>
+            </tr>
+          </thead>
+          <tbody>
+            {partners.map((p, i) => (
+              <tr key={p.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
+                <td className="px-4 py-3">
+                  <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-900 hover:underline">
+                    {p.displayName}
+                  </Link>
+                  <p className="text-xs text-slate-500">{p.contactEmail}</p>
+                </td>
+                <td className="px-4 py-3">
+                  <Badge status={BADGE[p.status]}>{PARTNER_STATUS_LABELS[p.status]}</Badge>
+                </td>
+                <td className="px-4 py-3">{p.tier}</td>
+                <td className="px-4 py-3">{p.activeStatus ? "Yes" : "No"}</td>
+                <td className="px-4 py-3">{p._count.registeredAccounts}</td>
+                <td className="px-4 py-3">{p._count.closedDeals}</td>
+                <td className="px-4 py-3 text-right">
+                  <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-600 hover:underline">
+                    Manage
+                  </Link>
+                </td>
+              </tr>
+            ))}
+            {partners.length === 0 ? (
+              <tr>
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
+                  No partners yet. Approve an application to create the first partner.
+                </td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </Card>
+    </div>
+  );
+}

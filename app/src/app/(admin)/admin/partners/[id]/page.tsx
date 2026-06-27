@@ -1,0 +1,323 @@
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { resolvePartnerConfig } from "@/lib/partner/config-server";
+import { pickConfigFields, type EffectiveConfig } from "@/lib/partner/config";
+import { countableSeats } from "@/lib/partner/commission";
+import {
+  COMMISSION_STATUS_LABELS,
+  OFFERING_LABELS,
+  PARTNER_FUNCTION_LABELS,
+  PARTNER_STATUS_LABELS,
+  PARTNER_TIER_LABELS,
+  SCORECARD_DAY_LABELS,
+  SEAT_STATUS_LABELS,
+  formatBp,
+  formatCents,
+} from "@/lib/partner/constants";
+import {
+  addCommissionLine,
+  addQualityFlag,
+  applyRefund,
+  confirmActivationGate,
+  grantFocus,
+  recomputeDealCommissions,
+  recordClosedDeal,
+  recordSeats,
+  setPartnerStatus,
+  setPartnerTier,
+  setScorecardCheckpoint,
+  upsertPartnerConfigOverride,
+} from "@/lib/actions/partner-admin";
+import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input, Select } from "@/components/ui/form-fields";
+import { PageHeader } from "@/components/shared/page-shell";
+
+export const dynamic = "force-dynamic";
+
+const FUNCTION_VALUES = [
+  "BASIC_INTRO",
+  "QUALIFIED_ORIGINATION",
+  "STRONG_ORIGINATION",
+  "CLOSING",
+  "DELIVERY",
+  "OVERRIDE",
+  "FOCUS_BONUS",
+  "GROWTH_BONUS",
+] as const;
+
+export default async function AdminPartnerDetailPage({ params }: { params: { id: string } }) {
+  const partner = await prisma.partner.findUnique({
+    where: { id: params.id },
+    include: {
+      application: true,
+      scorecard: { orderBy: { day: "asc" } },
+      registeredAccounts: { orderBy: { createdAt: "desc" } },
+      closedDeals: { orderBy: { createdAt: "desc" }, include: { seats: true, commissions: true, registeredAccount: true } },
+      commissions: true,
+      focusGrants: { orderBy: { grantedAt: "desc" } },
+      qualityFlags: { orderBy: { createdAt: "desc" } },
+    },
+  });
+  if (!partner) notFound();
+
+  const effective = await resolvePartnerConfig(partner.id);
+  const overrideRowRaw = await prisma.partnerConfig.findUnique({ where: { partnerId: partner.id } });
+  const overrideRow = overrideRowRaw ? pickConfigFields(overrideRowRaw as unknown as EffectiveConfig) : {};
+
+  const seats = partner.closedDeals.flatMap((d) => d.seats);
+  const paidSeats = countableSeats(seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged })));
+  const commTotal = (s: string) => partner.commissions.filter((c) => c.status === s).reduce((t, c) => t + c.amountCents, 0);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <PageHeader title={partner.displayName} description={partner.contactEmail} />
+        <div className="flex items-center gap-2">
+          <Badge status={partner.status === "TERMINATED" ? "NOT_COMPLETED" : "ACTIVE"}>{PARTNER_STATUS_LABELS[partner.status]}</Badge>
+          <Badge status="ENROLLED">{partner.tier}</Badge>
+        </div>
+      </div>
+
+      {/* Snapshot */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <Card><p className="text-sm text-slate-500">Active status</p><p className="mt-2 font-semibold text-navy-900">{partner.activeStatus ? "Active" : "Inactive"}</p></Card>
+        <Card><p className="text-sm text-slate-500">Activation gate</p><p className="mt-2 font-semibold text-navy-900">{partner.activationGatePassedAt ? "Confirmed" : "Not confirmed"}</p></Card>
+        <Card><p className="text-sm text-slate-500">Paid seats</p><p className="mt-2 text-xl font-semibold text-navy-900">{paidSeats}</p></Card>
+        <Card><p className="text-sm text-slate-500">Commission paid</p><p className="mt-2 text-xl font-semibold text-navy-900">{formatCents(commTotal("PAID"), effective.currency)}</p></Card>
+      </div>
+
+      {/* Lifecycle actions */}
+      <Card className="space-y-4">
+        <h2 className="text-lg font-semibold text-navy-900">Lifecycle &amp; Panel Confirmations</h2>
+        <p className="text-xs text-slate-500">
+          Eligibility (necessary, not sufficient — promotion is your Panel Confirmation): {paidSeats}/{effective.tier2SeatThreshold} paid seats toward Tier 2
+          {partner.tier !== "TIER1" ? ` · Tier 3 needs ${effective.tier3FocusSeatThreshold} paid focus seats in one industry/region` : ""}.
+        </p>
+        <div className="flex flex-wrap gap-3">
+          {!partner.activationGatePassedAt ? (
+            <form action={confirmActivationGate}>
+              <input type="hidden" name="partnerId" value={partner.id} />
+              <Button type="submit" size="sm">Confirm Activation Gate</Button>
+            </form>
+          ) : null}
+          <form action={setPartnerTier} className="flex items-end gap-2">
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <label className="space-y-1">
+              <span className="block text-xs font-medium text-slate-600">Set tier</span>
+              <Select name="tier" defaultValue={partner.tier}>
+                <option value="TIER1">Tier 1</option>
+                <option value="TIER2">Tier 2</option>
+                <option value="TIER3">Tier 3</option>
+              </Select>
+            </label>
+            <Button type="submit" size="sm" variant="secondary">Apply tier</Button>
+          </form>
+          <form action={setPartnerStatus}>
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <input type="hidden" name="action" value="ACTIVATE" />
+            <Button type="submit" size="sm" variant="secondary">Activate</Button>
+          </form>
+          <form action={setPartnerStatus}>
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <input type="hidden" name="action" value="DEACTIVATE" />
+            <Button type="submit" size="sm" variant="ghost">Mark inactive</Button>
+          </form>
+          <form action={setPartnerStatus} className="flex items-end gap-2">
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <input type="hidden" name="action" value="TERMINATE" />
+            <Input name="reason" placeholder="Termination reason" className="h-9 w-44" />
+            <Button type="submit" size="sm" variant="danger">Terminate</Button>
+          </form>
+        </div>
+      </Card>
+
+      {/* Scorecard */}
+      <Card>
+        <h2 className="text-lg font-semibold text-navy-900">Pilot scorecard</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {partner.scorecard.map((c) => (
+            <div key={c.id} className="rounded-md border border-neutral-200 p-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-navy-900">{SCORECARD_DAY_LABELS[c.day]}</p>
+                <Badge status={c.met ? "PASSED" : "PENDING"}>{c.met ? "Met" : "Pending"}</Badge>
+              </div>
+              <p className="mt-1 text-xs text-slate-600">{c.requiredEvidence}</p>
+              <form action={setScorecardCheckpoint} className="mt-2 flex items-center gap-2">
+                <input type="hidden" name="checkpointId" value={c.id} />
+                <input type="hidden" name="met" value={c.met ? "false" : "true"} />
+                <Input name="reviewerNote" placeholder="Note" className="h-8 text-xs" defaultValue={c.reviewerNote ?? ""} />
+                <Button type="submit" size="sm" variant="ghost">{c.met ? "Unset" : "Mark met"}</Button>
+              </form>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Record a closed deal */}
+      <Card>
+        <h2 className="text-lg font-semibold text-navy-900">Record a closed deal</h2>
+        <form action={recordClosedDeal} className="mt-4 grid gap-3 md:grid-cols-3">
+          <input type="hidden" name="partnerId" value={partner.id} />
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Deal type</span>
+            <Select name="dealType" defaultValue="B2B"><option value="B2B">B2B</option><option value="B2C">B2C</option></Select>
+          </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Product line</span>
+            <Select name="productLine" defaultValue="TENXPROS"><option value="TENXPROS">TenXPros</option><option value="TENXOPS">TenXOps</option></Select>
+          </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Net receipts (USD)</span>
+            <Input name="netReceiptsUsd" type="number" step="0.01" min={0} placeholder="20000" />
+          </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Registered account</span>
+            <Select name="registeredAccountId" defaultValue="">
+              <option value="">— none —</option>
+              {partner.registeredAccounts.map((a) => <option key={a.id} value={a.id}>{a.legalEntity}</option>)}
+            </Select>
+          </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Signed at</span><Input name="signedAt" type="date" /></label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Delivered at</span><Input name="deliveredAt" type="date" /></label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Payment cleared at</span><Input name="paymentClearedAt" type="date" /></label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Industry / region</span><Input name="industryOrRegion" placeholder="optional" /></label>
+          <label className="flex items-end gap-2 text-sm text-slate-700"><input type="checkbox" name="isMajorNewEngagement" className="h-4 w-4" /> Major new engagement</label>
+          <div className="md:col-span-3"><Button type="submit" size="sm">Record deal</Button></div>
+        </form>
+      </Card>
+
+      {/* Closed deals */}
+      <Card>
+        <h2 className="text-lg font-semibold text-navy-900">Closed deals &amp; commissions</h2>
+        <div className="mt-4 space-y-5">
+          {partner.closedDeals.map((deal) => (
+            <div key={deal.id} className="rounded-lg border border-neutral-200 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold text-navy-900">
+                  {deal.registeredAccount?.legalEntity ?? "Direct"} · {deal.dealType} · {formatCents(deal.netReceiptsCents, deal.currency)}
+                </p>
+                <span className="text-xs text-slate-500">
+                  {deal.deliveredAt ? "delivered" : "not delivered"} · {deal.paymentClearedAt ? "cleared" : "not cleared"}
+                </span>
+              </div>
+
+              {/* Seats */}
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Seats</p>
+              <div className="text-sm text-slate-600">
+                {deal.seats.map((s) => (
+                  <span key={s.id} className="mr-3">{s.count} × {SEAT_STATUS_LABELS[s.status]}</span>
+                ))}
+                {deal.seats.length === 0 ? <span>None recorded.</span> : null}
+              </div>
+              <form action={recordSeats} className="mt-2 flex flex-wrap items-end gap-2">
+                <input type="hidden" name="closedDealId" value={deal.id} />
+                <Input name="count" type="number" min={1} defaultValue={1} className="h-8 w-20" />
+                <Select name="status" defaultValue="PAID_COLLECTED" className="h-8 w-44">
+                  <option value="PAID_COLLECTED">Paid &amp; collected</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="REFUNDED">Refunded</option>
+                  <option value="CANCELLED">Cancelled</option>
+                </Select>
+                <Button type="submit" size="sm" variant="ghost">Add seats</Button>
+              </form>
+
+              {/* Commission lines */}
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Commission lines</p>
+              <table className="mt-1 w-full text-sm">
+                <tbody>
+                  {deal.commissions.map((c) => (
+                    <tr key={c.id} className="border-b border-neutral-100">
+                      <td className="py-1 pr-2">{PARTNER_FUNCTION_LABELS[c.function]}</td>
+                      <td className="py-1 pr-2 text-slate-500">{formatBp(c.rateBp)}</td>
+                      <td className="py-1 pr-2 font-medium text-navy-900">{formatCents(c.amountCents, c.currency)}</td>
+                      <td className="py-1"><Badge status={c.status === "PAID" ? "PAID" : c.status === "REVERSED" ? "NOT_COMPLETED" : "PENDING"}>{COMMISSION_STATUS_LABELS[c.status]}</Badge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-2 flex flex-wrap items-end gap-2">
+                <form action={addCommissionLine} className="flex items-end gap-2">
+                  <input type="hidden" name="closedDealId" value={deal.id} />
+                  <Select name="function" defaultValue="QUALIFIED_ORIGINATION" className="h-8 w-48">
+                    {FUNCTION_VALUES.map((f) => <option key={f} value={f}>{PARTNER_FUNCTION_LABELS[f]}</option>)}
+                  </Select>
+                  <Input name="rateBp" type="number" min={0} placeholder="rate bp" className="h-8 w-24" />
+                  <Button type="submit" size="sm" variant="ghost">Add line</Button>
+                </form>
+                <form action={recomputeDealCommissions}>
+                  <input type="hidden" name="closedDealId" value={deal.id} />
+                  <Button type="submit" size="sm" variant="secondary">Recompute (apply cap + payable)</Button>
+                </form>
+                <form action={applyRefund} className="flex items-end gap-2">
+                  <input type="hidden" name="closedDealId" value={deal.id} />
+                  <Select name="type" defaultValue="REFUND" className="h-8 w-32">
+                    <option value="REFUND">Refund</option>
+                    <option value="CHARGEBACK">Chargeback</option>
+                    <option value="CANCELLATION">Cancellation</option>
+                    <option value="CREDIT">Credit</option>
+                    <option value="REVERSAL">Reversal</option>
+                  </Select>
+                  <Input name="amountUsd" type="number" step="0.01" min={0} placeholder="USD" className="h-8 w-24" />
+                  <Button type="submit" size="sm" variant="danger">Apply</Button>
+                </form>
+              </div>
+            </div>
+          ))}
+          {partner.closedDeals.length === 0 ? <p className="text-sm text-slate-500">No closed deals recorded.</p> : null}
+        </div>
+      </Card>
+
+      {/* Focus + quality */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <h2 className="text-lg font-semibold text-navy-900">Tier 3 focus</h2>
+          {partner.focusGrants.length ? (
+            <ul className="mt-2 space-y-1 text-sm text-slate-600">
+              {partner.focusGrants.map((g) => (
+                <li key={g.id}>{g.industryOrRegion} — {g.status}, {formatBp(g.currentBonusBp)} bonus, expires {g.expiresAt.toLocaleDateString()}</li>
+              ))}
+            </ul>
+          ) : <p className="mt-2 text-sm text-slate-500">No focus granted.</p>}
+          <form action={grantFocus} className="mt-3 flex items-end gap-2">
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <Input name="industryOrRegion" placeholder="Industry or region" className="h-9" />
+            <Button type="submit" size="sm" variant="secondary" disabled={partner.tier !== "TIER3"}>Grant focus</Button>
+          </form>
+          {partner.tier !== "TIER3" ? <p className="mt-1 text-xs text-slate-400">Partner must be Tier 3 to hold a focus.</p> : null}
+        </Card>
+
+        <Card>
+          <h2 className="text-lg font-semibold text-navy-900">Quality flags</h2>
+          {partner.qualityFlags.length ? (
+            <ul className="mt-2 space-y-1 text-sm text-slate-600">
+              {partner.qualityFlags.map((q) => (
+                <li key={q.id}>{q.reason}{q.disregardForTargets ? " — disregarded for targets" : ""}</li>
+              ))}
+            </ul>
+          ) : <p className="mt-2 text-sm text-slate-500">No flags.</p>}
+          <form action={addQualityFlag} className="mt-3 space-y-2">
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <Input name="reason" placeholder="Reason" className="h-9" />
+            <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" name="disregardForTargets" className="h-4 w-4" /> Disregard affected sales for targets/bonuses</label>
+            <Button type="submit" size="sm" variant="ghost">Add flag</Button>
+          </form>
+        </Card>
+      </div>
+
+      {/* Per-partner config override editor */}
+      <Card>
+        <h2 className="text-lg font-semibold text-navy-900">Per-partner configuration overrides</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          Leave a field blank to inherit the global default (shown as the placeholder). Any value here overrides the
+          default for this partner only.
+        </p>
+        <form action={upsertPartnerConfigOverride} className="mt-5 space-y-8">
+          <input type="hidden" name="partnerId" value={partner.id} />
+          <PartnerConfigFields mode="override" effective={effective} overrideRow={overrideRow} />
+          <div className="border-t border-neutral-200 pt-6">
+            <Button type="submit">Save overrides</Button>
+          </div>
+        </form>
+      </Card>
+    </div>
+  );
+}

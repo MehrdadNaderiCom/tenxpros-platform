@@ -30,6 +30,18 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: "Partner Program",
+    items: [
+      { label: "Partners", href: "/admin/partners" },
+      { label: "Applications", href: "/admin/partners/applications" },
+      { label: "Deal Registrations", href: "/admin/partners/deal-registrations" },
+      { label: "Commissions", href: "/admin/partners/commissions" },
+      { label: "Configuration", href: "/admin/partners/config" },
+      { label: "House Accounts", href: "/admin/partners/house-accounts" },
+      { label: "Audit Log", href: "/admin/partners/audit" },
+    ],
+  },
+  {
     title: "Credentials",
     items: [
       { label: "Certifications", href: "/admin/certifications" },
