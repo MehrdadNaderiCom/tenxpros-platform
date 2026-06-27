@@ -1,0 +1,253 @@
+import { describe, expect, it } from "vitest";
+import { PROGRAM_CONFIG_DEFAULTS, mergeConfig, type EffectiveConfig } from "../src/lib/partner/config";
+import {
+  bpToCents,
+  capBpForDeal,
+  centsToBp,
+  closingRateBp,
+  computeDealCommission,
+  convertCents,
+  countableSeats,
+  deliveryRateBp,
+  focusBonusBp,
+  growthBonusBp,
+  originationOverrideBp,
+  originationRateBp,
+  proportionalReversalCents,
+} from "../src/lib/partner/commission";
+
+const cfg: EffectiveConfig = PROGRAM_CONFIG_DEFAULTS;
+const USD_20K = 2_000_000; // $20,000 in cents
+
+describe("bp <-> cents", () => {
+  it("applies basis points to a cents base, rounded", () => {
+    expect(bpToCents(USD_20K, 800)).toBe(160_000); // 8% of $20,000 = $1,600
+    expect(bpToCents(USD_20K, 1200)).toBe(240_000); // 12% = $2,400
+    expect(bpToCents(120_000, 833)).toBe(Math.round((120_000 * 833) / 10_000));
+  });
+  it("derives implied bp for a flat amount", () => {
+    expect(centsToBp(160_000, USD_20K)).toBe(800);
+    expect(centsToBp(100, 0)).toBe(0);
+  });
+});
+
+describe("origination rate (incl. B2C strong seat gate)", () => {
+  it("B2B uses the B2B rates, strong always available", () => {
+    expect(originationRateBp({ strength: "QUALIFIED", dealKind: "B2B" }, cfg)).toBe(800);
+    expect(originationRateBp({ strength: "STRONG", dealKind: "B2B" }, cfg)).toBe(1200);
+  });
+  it("B2C strong unlocks only after the seat threshold or by panel", () => {
+    // below threshold, no panel -> falls back to qualified B2C (10%)
+    expect(
+      originationRateBp({ strength: "STRONG", dealKind: "B2C", seatsTowardStrongUnlock: 10 }, cfg),
+    ).toBe(1000);
+    // at/above threshold -> strong B2C (15%)
+    expect(
+      originationRateBp({ strength: "STRONG", dealKind: "B2C", seatsTowardStrongUnlock: 40 }, cfg),
+    ).toBe(1500);
+    // panel unlock overrides the seat gate
+    expect(
+      originationRateBp({ strength: "STRONG", dealKind: "B2C", seatsTowardStrongUnlock: 0, strongUnlockedByPanel: true }, cfg),
+    ).toBe(1500);
+    // qualified B2C is always 10%
+    expect(originationRateBp({ strength: "QUALIFIED", dealKind: "B2C" }, cfg)).toBe(1000);
+  });
+});
+
+describe("closing / delivery rates", () => {
+  it("closing differs by deal kind", () => {
+    expect(closingRateBp("B2C", cfg)).toBe(500);
+    expect(closingRateBp("B2B", cfg)).toBe(1000);
+  });
+  it("delivery percent clamps to the configured band; fixed-fee mode yields 0 percent", () => {
+    expect(deliveryRateBp(cfg, 600)).toBe(600);
+    expect(deliveryRateBp(cfg, 200)).toBe(500); // clamp up to min
+    expect(deliveryRateBp(cfg, 9999)).toBe(800); // clamp down to max
+    const fixed = mergeConfig(cfg, { deliveryMode: "FIXED_FEE" });
+    expect(deliveryRateBp(fixed, 700)).toBe(0);
+  });
+});
+
+describe("computeDealCommission — the Schedule F worked example", () => {
+  it("strong origination 12% + closing 10% on a $20k B2B deal = $4,400, under the 30% cap", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: 1200 },
+        { function: "CLOSING", rateBp: 1000 },
+      ],
+    });
+    expect(r.totalCents).toBe(440_000); // $4,400
+    expect(r.capped).toBe(false);
+    expect(r.capCents).toBe(600_000); // 30% cap
+    expect(r.entries.map((e) => e.amountCents)).toEqual([240_000, 200_000]);
+  });
+});
+
+describe("computeDealCommission — cap is an absolute ceiling", () => {
+  it("a full function stack exactly at 30% is not clamped", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: 1200 },
+        { function: "CLOSING", rateBp: 1000 },
+        { function: "DELIVERY", rateBp: 800 },
+      ],
+    });
+    expect(r.rawTotalCents).toBe(600_000);
+    expect(r.totalCents).toBe(600_000);
+    expect(r.capped).toBe(false);
+  });
+
+  it("anything above the cap is scaled down to exactly the cap (cents-exact)", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: 1200 },
+        { function: "CLOSING", rateBp: 1000 },
+        { function: "DELIVERY", rateBp: 800 },
+        { function: "OVERRIDE", rateBp: 600 },
+      ],
+    });
+    expect(r.rawTotalCents).toBe(720_000);
+    expect(r.capped).toBe(true);
+    expect(r.totalCents).toBe(600_000);
+    // entries sum to the cap exactly
+    expect(r.entries.reduce((s, e) => s + e.amountCents, 0)).toBe(600_000);
+  });
+
+  it("Tier-3 focus accounts may exceed the base cap up to the 35% ceiling, never higher", () => {
+    expect(capBpForDeal({ dealKind: "B2B" }, cfg)).toBe(3000);
+    expect(capBpForDeal({ dealKind: "B2B", focusActive: true }, cfg)).toBe(3500);
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      focusActive: true,
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: 1200 },
+        { function: "CLOSING", rateBp: 1000 },
+        { function: "DELIVERY", rateBp: 800 },
+        { function: "FOCUS_BONUS", rateBp: 700 }, // 37% raw -> clamps to 35%
+      ],
+    });
+    expect(r.capCents).toBe(700_000); // 35%
+    expect(r.totalCents).toBe(700_000);
+    expect(r.capped).toBe(true);
+  });
+});
+
+describe("computeDealCommission — multi-partner stacking", () => {
+  it("the cap applies across all partners on one deal", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: 1200, partnerId: "A" },
+        { function: "CLOSING", rateBp: 1000, partnerId: "B" },
+        { function: "DELIVERY", rateBp: 800, partnerId: "C" },
+        { function: "GROWTH_BONUS", rateBp: 100, partnerId: "A" },
+      ],
+    });
+    // raw 3100bp > 3000 cap -> clamp; each partner's share scaled
+    expect(r.capped).toBe(true);
+    expect(r.totalCents).toBe(600_000);
+    expect(r.entries.reduce((s, e) => s + e.amountCents, 0)).toBe(600_000);
+  });
+
+  it("supports a fixed delivery fee that still counts toward the cap", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: 1200 },
+        { function: "DELIVERY", flatCents: 50_000 }, // fixed $500 fee
+      ],
+    });
+    expect(r.entries[1].amountCents).toBe(50_000);
+    expect(r.entries[1].rateBp).toBe(centsToBp(50_000, USD_20K));
+    expect(r.totalCents).toBe(290_000);
+    expect(r.capped).toBe(false);
+  });
+});
+
+describe("origination override (renewal tail)", () => {
+  it("is 50% of the opening rate inside the window with active status", () => {
+    expect(originationOverrideBp({ openRateBp: 1200, withinWindow: true, activeStatus: true }, cfg)).toBe(600);
+    expect(originationOverrideBp({ openRateBp: 800, withinWindow: true, activeStatus: true }, cfg)).toBe(400);
+  });
+  it("is zero after the window OR when the partner is not active (vested trail still stays elsewhere)", () => {
+    expect(originationOverrideBp({ openRateBp: 1200, withinWindow: false, activeStatus: true }, cfg)).toBe(0);
+    expect(originationOverrideBp({ openRateBp: 1200, withinWindow: true, activeStatus: false }, cfg)).toBe(0);
+  });
+});
+
+describe("tier-3 focus bonus stepping & ceiling", () => {
+  it("starts at 1% and steps up 1% per continuously-held year", () => {
+    expect(focusBonusBp(0, cfg)).toBe(0); // no active focus
+    expect(focusBonusBp(1, cfg)).toBe(100);
+    expect(focusBonusBp(2, cfg)).toBe(200);
+    expect(focusBonusBp(3, cfg)).toBe(300);
+  });
+  it("never exceeds the configured ceiling", () => {
+    expect(focusBonusBp(50, cfg)).toBe(cfg.focusBonusCeilingBp);
+  });
+  it("resets to the start value after a lapse (caller passes yearsHeld=1)", () => {
+    expect(focusBonusBp(1, cfg)).toBe(100);
+  });
+});
+
+describe("growth bonus", () => {
+  it("applies to Tier 2/3 at/above the org threshold only", () => {
+    expect(growthBonusBp(3, "TIER2", cfg)).toBe(100);
+    expect(growthBonusBp(2, "TIER2", cfg)).toBe(0);
+    expect(growthBonusBp(5, "TIER3", cfg)).toBe(100);
+    expect(growthBonusBp(5, "TIER1", cfg)).toBe(0);
+  });
+});
+
+describe("clawback reversal & FX & seats", () => {
+  it("reverses commission in proportion to the refunded amount", () => {
+    expect(proportionalReversalCents(160_000, 2_000_000, 2_000_000)).toBe(160_000); // full refund
+    expect(proportionalReversalCents(160_000, 1_000_000, 2_000_000)).toBe(80_000); // half
+    expect(proportionalReversalCents(160_000, 0, 2_000_000)).toBe(0);
+    expect(proportionalReversalCents(160_000, 5_000_000, 2_000_000)).toBe(160_000); // clamps to base
+  });
+  it("converts cents at the cleared-date FX rate", () => {
+    expect(convertCents(100_000, 0.9)).toBe(90_000);
+    expect(convertCents(100_000, 1.27)).toBe(127_000);
+  });
+  it("counts only paid, collected, non-disregarded seats", () => {
+    expect(
+      countableSeats([
+        { count: 10, status: "PAID_COLLECTED" },
+        { count: 5, status: "PENDING" },
+        { count: 3, status: "REFUNDED" },
+        { count: 2, status: "CANCELLED" },
+        { count: 4, status: "PAID_COLLECTED", disregardForTargets: true },
+      ]),
+    ).toBe(10);
+  });
+});
+
+describe("per-partner config override flows through the engine", () => {
+  it("an override changes the computed commission", () => {
+    const overridden = mergeConfig(cfg, { qualifiedOriginationB2bBp: 1500 });
+    expect(originationRateBp({ strength: "QUALIFIED", dealKind: "B2B" }, overridden)).toBe(1500);
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: overridden,
+      functions: [{ function: "QUALIFIED_ORIGINATION", rateBp: 1500 }],
+    });
+    expect(r.totalCents).toBe(300_000); // 15% of $20k
+  });
+});

@@ -1,0 +1,228 @@
+import type { PartnerFunction, PartnerTier, SeatStatus } from "@prisma/client";
+import type { EffectiveConfig } from "./config";
+
+/**
+ * The commission engine — pure functions only. No database, no I/O, no clock.
+ * Every commercial number comes from the resolved {@link EffectiveConfig}, never
+ * a hard-coded constant. Money is integer CENTS; rates/caps are integer BASIS
+ * POINTS (1% = 100 bp). All rounding is explicit and deterministic.
+ */
+
+export type DealKind = "B2C" | "B2B";
+export type OriginationStrength = "QUALIFIED" | "STRONG";
+
+/** Apply a basis-points rate to a cents base, rounded to the nearest cent. */
+export function bpToCents(baseCents: number, bp: number): number {
+  return Math.round((baseCents * bp) / 10000);
+}
+
+/** Implied basis points for a flat cents amount against a cents base. */
+export function centsToBp(amountCents: number, baseCents: number): number {
+  if (baseCents <= 0) return 0;
+  return Math.round((amountCents * 10000) / baseCents);
+}
+
+// ---------------------------------------------------------------------------
+// Per-function rates
+// ---------------------------------------------------------------------------
+
+export function basicIntroRateBp(cfg: EffectiveConfig): number {
+  return cfg.basicIntroductionBp;
+}
+
+/**
+ * Origination rate. B2B strong is always available; B2C strong only unlocks
+ * after `strongOriginationUnlockSeats` paid seats OR an explicit Panel
+ * Confirmation — otherwise B2C strong falls back to the qualified B2C rate.
+ */
+export function originationRateBp(
+  args: {
+    strength: OriginationStrength;
+    dealKind: DealKind;
+    seatsTowardStrongUnlock?: number;
+    strongUnlockedByPanel?: boolean;
+  },
+  cfg: EffectiveConfig,
+): number {
+  if (args.dealKind === "B2B") {
+    return args.strength === "STRONG" ? cfg.strongOriginationB2bBp : cfg.qualifiedOriginationB2bBp;
+  }
+  if (args.strength === "STRONG") {
+    const unlocked =
+      (args.seatsTowardStrongUnlock ?? 0) >= cfg.strongOriginationUnlockSeats ||
+      Boolean(args.strongUnlockedByPanel);
+    return unlocked ? cfg.strongOriginationB2cBp : cfg.qualifiedOriginationB2cBp;
+  }
+  return cfg.qualifiedOriginationB2cBp;
+}
+
+export function closingRateBp(dealKind: DealKind, cfg: EffectiveConfig): number {
+  return dealKind === "B2C" ? cfg.closingB2cBp : cfg.closingB2bBp;
+}
+
+/**
+ * Delivery/coaching percentage rate. Zero when delivery is paid by a fixed fee
+ * (the fixed fee is supplied as `flatCents` on the function input instead). When
+ * PERCENTAGE, an approved rate is clamped to the configured [min, max] band.
+ */
+export function deliveryRateBp(cfg: EffectiveConfig, approvedBp?: number | null): number {
+  if (cfg.deliveryMode === "FIXED_FEE") return 0;
+  const bp = approvedBp ?? cfg.deliveryPercentMinBp;
+  return Math.min(Math.max(bp, cfg.deliveryPercentMinBp), cfg.deliveryPercentMaxBp);
+}
+
+/**
+ * Origination Override on a renewal: a share of the rate the account was opened
+ * at, payable only inside the Origination Window AND while the partner holds
+ * Active Status. Zero otherwise.
+ */
+export function originationOverrideBp(
+  args: { openRateBp: number; withinWindow: boolean; activeStatus: boolean },
+  cfg: EffectiveConfig,
+): number {
+  if (!args.withinWindow || !args.activeStatus) return 0;
+  return Math.round((args.openRateBp * cfg.overrideShareBp) / 10000);
+}
+
+/**
+ * Tier-3 focus bonus: starts at `focusBonusStartBp`, +increment per additional
+ * full continuously-held year, clamped to the ceiling. `yearsHeld < 1` (no
+ * active focus, or a lapse that reset the clock) yields zero.
+ */
+export function focusBonusBp(yearsHeld: number, cfg: EffectiveConfig): number {
+  if (yearsHeld < 1) return 0;
+  const bp = cfg.focusBonusStartBp + cfg.focusBonusAnnualIncrementBp * (Math.floor(yearsHeld) - 1);
+  return Math.min(bp, cfg.focusBonusCeilingBp);
+}
+
+/** Growth bonus (Tier 2/3 only) when ≥ threshold new B2B orgs in a rolling year. */
+export function growthBonusBp(orgCountRolling12: number, tier: PartnerTier, cfg: EffectiveConfig): number {
+  if (tier === "TIER1") return 0;
+  return orgCountRolling12 >= cfg.growthBonusOrgThreshold ? cfg.growthBonusBp : 0;
+}
+
+/** The hard cap (bp) for a deal. Tier-3 focus accounts use the focus ceiling. */
+export function capBpForDeal(args: { dealKind: DealKind; focusActive?: boolean }, cfg: EffectiveConfig): number {
+  if (args.focusActive) return cfg.tier3FocusHardCeilingBp;
+  return args.dealKind === "B2C" ? cfg.capB2cBp : cfg.capB2bBp;
+}
+
+// ---------------------------------------------------------------------------
+// Deal-level computation with cap clamp
+// ---------------------------------------------------------------------------
+
+export interface FunctionInput {
+  function: PartnerFunction;
+  /** Percent of net receipts (basis points). Ignored when `flatCents` is set. */
+  rateBp?: number;
+  /** Fixed fee in cents (e.g. fixed delivery fee). Overrides `rateBp`. */
+  flatCents?: number;
+  /** Which partner earns this line (deals may stack functions across partners). */
+  partnerId?: string;
+}
+
+export interface ComputedEntry {
+  function: PartnerFunction;
+  partnerId?: string;
+  rateBp: number;
+  baseAmountCents: number;
+  amountCents: number;
+}
+
+export interface DealCommissionResult {
+  entries: ComputedEntry[];
+  capBp: number;
+  capCents: number;
+  rawTotalCents: number;
+  totalCents: number;
+  capped: boolean;
+}
+
+/**
+ * Compute every commission line for a deal and clamp the total partner
+ * compensation (across all partners and functions, including override and
+ * bonuses) to the deal cap. The cap is an absolute ceiling — when the raw total
+ * exceeds it, all lines are scaled down proportionally so the total equals the
+ * cap exactly (integer-cent safe), and `capped` is set.
+ */
+export function computeDealCommission(args: {
+  netReceiptsCents: number;
+  dealKind: DealKind;
+  functions: FunctionInput[];
+  config: EffectiveConfig;
+  focusActive?: boolean;
+}): DealCommissionResult {
+  const { netReceiptsCents, dealKind, functions, config } = args;
+  const capBp = capBpForDeal({ dealKind, focusActive: args.focusActive }, config);
+  const capCents = bpToCents(netReceiptsCents, capBp);
+
+  const raw: ComputedEntry[] = functions.map((f) => {
+    const amount = f.flatCents != null ? f.flatCents : bpToCents(netReceiptsCents, f.rateBp ?? 0);
+    const rateBp = f.flatCents != null ? centsToBp(f.flatCents, netReceiptsCents) : (f.rateBp ?? 0);
+    return {
+      function: f.function,
+      partnerId: f.partnerId,
+      rateBp,
+      baseAmountCents: netReceiptsCents,
+      amountCents: amount,
+    };
+  });
+
+  const rawTotalCents = raw.reduce((s, e) => s + e.amountCents, 0);
+
+  if (rawTotalCents <= capCents || rawTotalCents === 0) {
+    return { entries: raw, capBp, capCents, rawTotalCents, totalCents: rawTotalCents, capped: false };
+  }
+
+  // Scale proportionally to fit the cap exactly; distribute the rounding
+  // remainder to the largest lines first so the total lands on capCents.
+  const scaled = raw.map((e) => ({ ...e, amountCents: Math.floor((e.amountCents * capCents) / rawTotalCents) }));
+  let remainder = capCents - scaled.reduce((s, e) => s + e.amountCents, 0);
+  const order = raw
+    .map((e, i) => [e.amountCents, i] as const)
+    .sort((a, b) => b[0] - a[0])
+    .map(([, i]) => i);
+  for (let k = 0; remainder > 0 && k < order.length; k++) {
+    scaled[order[k]].amountCents += 1;
+    remainder -= 1;
+  }
+
+  return { entries: scaled, capBp, capCents, rawTotalCents, totalCents: capCents, capped: true };
+}
+
+// ---------------------------------------------------------------------------
+// Clawback / FX / seats
+// ---------------------------------------------------------------------------
+
+/**
+ * The commission to reverse when `refundedCents` of a deal's `baseCents` net
+ * receipts is refunded/charged back/cancelled — proportional to the refund.
+ */
+export function proportionalReversalCents(
+  commissionCents: number,
+  refundedCents: number,
+  baseCents: number,
+): number {
+  if (baseCents <= 0) return 0;
+  const refunded = Math.min(Math.max(refundedCents, 0), baseCents);
+  return Math.round((commissionCents * refunded) / baseCents);
+}
+
+/** Convert a cents amount at an FX rate (rate applied at the cleared date). */
+export function convertCents(cents: number, rate: number): number {
+  return Math.round(cents * rate);
+}
+
+export interface SeatLike {
+  count: number;
+  status: SeatStatus;
+  disregardForTargets?: boolean;
+}
+
+/** Only paid, collected, non-refunded, non-disregarded seats count anywhere. */
+export function countableSeats(seats: SeatLike[]): number {
+  return seats.reduce(
+    (sum, s) => sum + (s.status === "PAID_COLLECTED" && !s.disregardForTargets ? s.count : 0),
+    0,
+  );
+}
