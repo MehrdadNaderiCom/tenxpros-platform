@@ -1941,6 +1941,7 @@ model ProgramConfig {
   maxOpenAccountsTier2 Int @default(5)
   maxOpenAccountsTier3 Int @default(10)
   pilotFirst30DaysMaxAccountsTier1 Int @default(2)
+  pilotFirst30DaysWindowDays Int @default(30)
   pipelineProtectionDaysTier1 Int @default(120)
   pipelineProtectionDaysTier2 Int @default(150)
   pipelineProtectionDaysTier3 Int @default(180)
@@ -2026,6 +2027,7 @@ model PartnerConfig {
   maxOpenAccountsTier2 Int?
   maxOpenAccountsTier3 Int?
   pilotFirst30DaysMaxAccountsTier1 Int?
+  pilotFirst30DaysWindowDays Int?
   pipelineProtectionDaysTier1 Int?
   pipelineProtectionDaysTier2 Int?
   pipelineProtectionDaysTier3 Int?
@@ -2177,7 +2179,8 @@ model HouseAccount {
 model ClosedDeal {
   id String @id @default(cuid())
   partnerId String
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  // Restrict: a partner with recorded financial history can never be hard-deleted.
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   registeredAccountId String?
   registeredAccount RegisteredAccount? @relation(fields: [registeredAccountId], references: [id])
 
@@ -2230,7 +2233,8 @@ model SeatRecord {
 model CommissionEntry {
   id String @id @default(cuid())
   partnerId String
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  // Restrict: commission history is never lost via a partner hard-delete.
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   closedDealId String
   closedDeal ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
 
@@ -2238,6 +2242,10 @@ model CommissionEntry {
   rateBp Int
   baseAmountCents Int
   amountCents Int
+  // Idempotent partial/cumulative refund reversal: net payable = amountCents - reversedCents.
+  reversedCents Int @default(0)
+  // A fixed-fee line keeps its exact amount through recompute (not re-derived from rateBp).
+  isFlat Boolean @default(false)
   status CommissionStatus @default(ACCRUED)
   payableOn DateTime?
   paidOn DateTime?
