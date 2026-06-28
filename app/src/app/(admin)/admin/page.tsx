@@ -237,7 +237,7 @@ export default async function AdminDashboardPage() {
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold text-navy-900">Action center</h2>
           <p className="text-sm text-slate-500">
-            {active.length > 0 ? `${active.length} queue${active.length > 1 ? "s" : ""} need you · ${totalWaiting} item${totalWaiting > 1 ? "s" : ""} waiting` : "All queues clear"}
+            {active.length > 0 ? `${active.length} queue${active.length === 1 ? " needs" : "s need"} you · ${totalWaiting} item${totalWaiting === 1 ? "" : "s"} waiting` : "All queues clear"}
           </p>
         </div>
         {active.length === 0 ? (
