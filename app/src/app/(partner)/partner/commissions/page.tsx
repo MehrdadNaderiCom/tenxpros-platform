@@ -4,6 +4,7 @@ import { getCurrentPartner } from "@/lib/partner/auth";
 import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import { flagCommissionQuery } from "@/lib/actions/partner-portal";
 import { COMMISSION_STATUS_LABELS, PARTNER_FUNCTION_LABELS, formatBp, formatCents } from "@/lib/partner/constants";
+import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -29,8 +30,12 @@ export default async function PartnerCommissionsPage() {
     include: { closedDeal: { include: { registeredAccount: true } } },
   });
 
+  const payoutCurrency = cfg.currency;
+  // Net payable, converted to the partner's payout currency.
   const total = (status: string) =>
-    entries.filter((e) => e.status === status).reduce((t, e) => t + e.amountCents, 0);
+    entries
+      .filter((e) => e.status === status)
+      .reduce((t, e) => t + entryPayoutMinor(e, e.closedDeal, payoutCurrency), 0);
 
   return (
     <div className="space-y-8">
@@ -43,7 +48,7 @@ export default async function PartnerCommissionsPage() {
         {(["ACCRUED", "PAYABLE", "PAID", "REVERSED"] as const).map((s) => (
           <Card key={s}>
             <p className="text-sm capitalize text-slate-500">{s.toLowerCase()}</p>
-            <p className="mt-2 text-xl font-semibold text-navy-900">{formatCents(total(s), cfg.currency)}</p>
+            <p className="mt-2 text-xl font-semibold text-navy-900">{formatMoney(total(s), payoutCurrency)}</p>
           </Card>
         ))}
       </div>
@@ -65,9 +70,13 @@ export default async function PartnerCommissionsPage() {
             {entries.map((e, i) => (
               <tr key={e.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
                 <td className="px-4 py-3 text-slate-700">{e.closedDeal.registeredAccount?.legalEntity ?? "—"}</td>
-                <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}</td>
-                <td className="px-4 py-3">{formatBp(e.rateBp)}</td>
-                <td className="px-4 py-3 font-medium text-navy-900">{formatCents(e.amountCents, e.currency)}</td>
+                <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
+                <td className="px-4 py-3">{e.isFlat ? "—" : formatBp(e.rateBp)}</td>
+                <td className="px-4 py-3 font-medium text-navy-900">
+                  {formatCents(e.amountCents - e.reversedCents, e.currency)}
+                  {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}
+                  {e.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(e.reversedCents, e.currency)})</span> : null}
+                </td>
                 <td className="px-4 py-3">
                   <Badge status={STATUS_BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge>
                 </td>

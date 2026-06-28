@@ -19,6 +19,7 @@ import {
   addQualityFlag,
   applyRefund,
   confirmActivationGate,
+  endFocus,
   grantFocus,
   recomputeDealCommissions,
   recordClosedDeal,
@@ -28,6 +29,7 @@ import {
   setScorecardCheckpoint,
   upsertPartnerConfigOverride,
 } from "@/lib/actions/partner-admin";
+import { COMMON_CURRENCIES, convertMinor, entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -69,7 +71,13 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
 
   const seats = partner.closedDeals.flatMap((d) => d.seats);
   const paidSeats = countableSeats(seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged })));
-  const commTotal = (s: string) => partner.commissions.filter((c) => c.status === s).reduce((t, c) => t + c.amountCents, 0);
+  const payoutCurrency = effective.currency;
+  // Net payable, converted to the payout currency, summed by status.
+  const lines = partner.closedDeals.flatMap((d) => d.commissions.map((c) => ({ c, d })));
+  const payoutTotal = (status: string) =>
+    lines
+      .filter(({ c }) => c.status === status)
+      .reduce((t, { c, d }) => t + entryPayoutMinor(c, d, payoutCurrency), 0);
 
   return (
     <div className="space-y-8">
@@ -86,7 +94,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
         <Card><p className="text-sm text-slate-500">Active status</p><p className="mt-2 font-semibold text-navy-900">{partner.activeStatus ? "Active" : "Inactive"}</p></Card>
         <Card><p className="text-sm text-slate-500">Activation gate</p><p className="mt-2 font-semibold text-navy-900">{partner.activationGatePassedAt ? "Confirmed" : "Not confirmed"}</p></Card>
         <Card><p className="text-sm text-slate-500">Paid seats</p><p className="mt-2 text-xl font-semibold text-navy-900">{paidSeats}</p></Card>
-        <Card><p className="text-sm text-slate-500">Commission paid</p><p className="mt-2 text-xl font-semibold text-navy-900">{formatCents(commTotal("PAID"), effective.currency)}</p></Card>
+        <Card><p className="text-sm text-slate-500">Commission paid (net)</p><p className="mt-2 text-xl font-semibold text-navy-900">{formatMoney(payoutTotal("PAID"), payoutCurrency)}</p></Card>
       </div>
 
       {/* Lifecycle actions */}
@@ -167,9 +175,16 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Product line</span>
             <Select name="productLine" defaultValue="TENXPROS"><option value="TENXPROS">TenXPros</option><option value="TENXOPS">TenXOps</option></Select>
           </label>
-          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Net receipts (USD)</span>
-            <Input name="netReceiptsUsd" type="number" step="0.01" min={0} placeholder="20000" />
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Net receipts (customer currency)</span>
+            <Input name="netReceipts" type="number" step="0.01" min={0} placeholder="20000" />
           </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Currency</span>
+            <Input name="currency" list="currency-options" defaultValue={payoutCurrency} placeholder="USD" />
+          </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Rate → payout ({payoutCurrency})</span>
+            <Input name="conversionRate" type="number" step="0.000001" min={0} defaultValue={1} placeholder="1 if same currency" />
+          </label>
+          <datalist id="currency-options">{COMMON_CURRENCIES.map((c) => <option key={c} value={c} />)}</datalist>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Registered account</span>
             <Select name="registeredAccountId" defaultValue="">
               <option value="">— none —</option>
@@ -194,6 +209,11 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-semibold text-navy-900">
                   {deal.registeredAccount?.legalEntity ?? "Direct"} · {deal.dealType} · {formatCents(deal.netReceiptsCents, deal.currency)}
+                  {deal.currency !== payoutCurrency ? (
+                    <span className="ml-1 text-xs font-normal text-slate-500">
+                      (≈ {formatMoney(convertMinor(deal.netReceiptsCents, deal.conversionRate ?? 1, deal.currency, payoutCurrency), payoutCurrency)} @ {deal.conversionRate ?? 1})
+                    </span>
+                  ) : null}
                 </p>
                 <span className="text-xs text-slate-500">
                   {deal.deliveredAt ? "delivered" : "not delivered"} · {deal.paymentClearedAt ? "cleared" : "not cleared"}
@@ -226,9 +246,12 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                 <tbody>
                   {deal.commissions.map((c) => (
                     <tr key={c.id} className="border-b border-neutral-100">
-                      <td className="py-1 pr-2">{PARTNER_FUNCTION_LABELS[c.function]}</td>
-                      <td className="py-1 pr-2 text-slate-500">{formatBp(c.rateBp)}</td>
-                      <td className="py-1 pr-2 font-medium text-navy-900">{formatCents(c.amountCents, c.currency)}</td>
+                      <td className="py-1 pr-2">{PARTNER_FUNCTION_LABELS[c.function]}{c.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
+                      <td className="py-1 pr-2 text-slate-500">{c.isFlat ? "—" : formatBp(c.rateBp)}</td>
+                      <td className="py-1 pr-2 font-medium text-navy-900">
+                        {formatCents(c.amountCents - c.reversedCents, c.currency)}
+                        {c.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(c.reversedCents, c.currency)})</span> : null}
+                      </td>
                       <td className="py-1"><Badge status={c.status === "PAID" ? "PAID" : c.status === "REVERSED" ? "NOT_COMPLETED" : "PENDING"}>{COMMISSION_STATUS_LABELS[c.status]}</Badge></td>
                     </tr>
                   ))}
@@ -237,10 +260,11 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
               <div className="mt-2 flex flex-wrap items-end gap-2">
                 <form action={addCommissionLine} className="flex items-end gap-2">
                   <input type="hidden" name="closedDealId" value={deal.id} />
-                  <Select name="function" defaultValue="QUALIFIED_ORIGINATION" className="h-8 w-48">
+                  <Select name="function" defaultValue="QUALIFIED_ORIGINATION" className="h-8 w-44">
                     {FUNCTION_VALUES.map((f) => <option key={f} value={f}>{PARTNER_FUNCTION_LABELS[f]}</option>)}
                   </Select>
-                  <Input name="rateBp" type="number" min={0} placeholder="rate bp" className="h-8 w-24" />
+                  <Input name="rateBp" type="number" min={0} placeholder="rate bp" className="h-8 w-20" />
+                  <Input name="flatFee" type="number" step="0.01" min={0} placeholder={`or fee ${deal.currency}`} className="h-8 w-28" />
                   <Button type="submit" size="sm" variant="ghost">Add line</Button>
                 </form>
                 <form action={recomputeDealCommissions}>
@@ -249,14 +273,15 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                 </form>
                 <form action={applyRefund} className="flex items-end gap-2">
                   <input type="hidden" name="closedDealId" value={deal.id} />
-                  <Select name="type" defaultValue="REFUND" className="h-8 w-32">
+                  <Select name="type" defaultValue="REFUND" className="h-8 w-28">
                     <option value="REFUND">Refund</option>
                     <option value="CHARGEBACK">Chargeback</option>
                     <option value="CANCELLATION">Cancellation</option>
                     <option value="CREDIT">Credit</option>
                     <option value="REVERSAL">Reversal</option>
                   </Select>
-                  <Input name="amountUsd" type="number" step="0.01" min={0} placeholder="USD" className="h-8 w-24" />
+                  <Input name="amount" type="number" step="0.01" min={0} placeholder={deal.currency} className="h-8 w-24" />
+                  <Input name="seatsRefunded" type="number" min={0} placeholder="seats" className="h-8 w-16" />
                   <Button type="submit" size="sm" variant="danger">Apply</Button>
                 </form>
               </div>
@@ -273,7 +298,16 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           {partner.focusGrants.length ? (
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {partner.focusGrants.map((g) => (
-                <li key={g.id}>{g.industryOrRegion} — {g.status}, {formatBp(g.currentBonusBp)} bonus, expires {g.expiresAt.toLocaleDateString()}</li>
+                <li key={g.id} className="flex items-center justify-between gap-2">
+                  <span>{g.industryOrRegion} — {g.status}, {formatBp(g.currentBonusBp)} bonus, expires {g.expiresAt.toLocaleDateString()}</span>
+                  {g.status === "ACTIVE" ? (
+                    <form action={endFocus}>
+                      <input type="hidden" name="focusGrantId" value={g.id} />
+                      <input type="hidden" name="status" value="LAPSED" />
+                      <Button type="submit" size="sm" variant="ghost">End</Button>
+                    </form>
+                  ) : null}
+                </li>
               ))}
             </ul>
           ) : <p className="mt-2 text-sm text-slate-500">No focus granted.</p>}

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { setCommissionStatus } from "@/lib/actions/partner-admin";
+import { resolveGlobalConfig } from "@/lib/partner/config-server";
 import { COMMISSION_STATUS_LABELS, PARTNER_FUNCTION_LABELS, formatBp, formatCents } from "@/lib/partner/constants";
+import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,17 +14,19 @@ export const dynamic = "force-dynamic";
 const BADGE: Record<string, string> = { ACCRUED: "PENDING", PAYABLE: "WAITING_RESPONSE", PAID: "PAID", REVERSED: "NOT_COMPLETED" };
 
 export default async function AdminCommissionsPage() {
-  const entries = await prisma.commissionEntry.findMany({
+  const config = await resolveGlobalConfig();
+  const payoutCurrency = config.currency;
+
+  // Load all lines (with the deal's currency + captured rate) so multi-currency
+  // totals convert to the single payout currency; show the most recent 200.
+  const all = await prisma.commissionEntry.findMany({
     orderBy: { createdAt: "desc" },
-    take: 200,
     include: { partner: { select: { id: true, displayName: true } }, closedDeal: { include: { registeredAccount: true } } },
   });
+  const entries = all.slice(0, 200);
 
-  const totalsByStatus = await prisma.commissionEntry.groupBy({
-    by: ["status"],
-    _sum: { amountCents: true },
-  });
-  const totalFor = (s: string) => totalsByStatus.find((t) => t.status === s)?._sum.amountCents ?? 0;
+  const totalFor = (s: string) =>
+    all.filter((e) => e.status === s).reduce((t, e) => t + entryPayoutMinor(e, e.closedDeal, payoutCurrency), 0);
 
   return (
     <div className="space-y-8">
@@ -40,7 +44,7 @@ export default async function AdminCommissionsPage() {
         {(["ACCRUED", "PAYABLE", "PAID", "REVERSED"] as const).map((s) => (
           <Card key={s}>
             <p className="text-sm capitalize text-slate-500">{s.toLowerCase()}</p>
-            <p className="mt-2 text-xl font-semibold text-navy-900">{formatCents(totalFor(s))}</p>
+            <p className="mt-2 text-xl font-semibold text-navy-900">{formatMoney(totalFor(s), payoutCurrency)}</p>
           </Card>
         ))}
       </div>
@@ -65,9 +69,12 @@ export default async function AdminCommissionsPage() {
                   <Link href={`/admin/partners/${e.partner.id}`} className="text-navy-700 hover:underline">{e.partner.displayName}</Link>
                 </td>
                 <td className="px-4 py-3 text-slate-600">{e.closedDeal.registeredAccount?.legalEntity ?? "—"}</td>
-                <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</td>
-                <td className="px-4 py-3">{formatBp(e.rateBp)}</td>
-                <td className="px-4 py-3 font-medium text-navy-900">{formatCents(e.amountCents, e.currency)}</td>
+                <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</td>
+                <td className="px-4 py-3">{e.isFlat ? "—" : formatBp(e.rateBp)}</td>
+                <td className="px-4 py-3 font-medium text-navy-900">
+                  {formatCents(e.amountCents - e.reversedCents, e.currency)}
+                  {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}
+                </td>
                 <td className="px-4 py-3"><Badge status={BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge></td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2">

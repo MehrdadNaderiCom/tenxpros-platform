@@ -4,7 +4,8 @@ import { getCurrentPartner } from "@/lib/partner/auth";
 import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import { countableSeats } from "@/lib/partner/commission";
 import { pilotDayNumber, pilotEndDate } from "@/lib/partner/rules";
-import { PARTNER_STATUS_LABELS, SCORECARD_DAY_LABELS, formatCents } from "@/lib/partner/constants";
+import { PARTNER_STATUS_LABELS, SCORECARD_DAY_LABELS } from "@/lib/partner/constants";
+import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,18 +22,20 @@ export default async function PartnerDashboardPage() {
     include: {
       activationItems: true,
       scorecard: { orderBy: { day: "asc" } },
-      commissions: true,
+      commissions: { include: { closedDeal: true } },
       closedDeals: { include: { seats: true } },
       registeredAccounts: true,
     },
   });
   const cfg = await resolvePartnerConfig(partner.id);
+  const payoutCurrency = cfg.currency;
   const now = new Date();
 
   const seats = partner.closedDeals.flatMap((d) => d.seats);
   const paidSeats = countableSeats(seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged })));
+  // Net payable, converted to the payout currency.
   const sum = (status: "ACCRUED" | "PAYABLE" | "PAID" | "REVERSED") =>
-    partner.commissions.filter((c) => c.status === status).reduce((t, c) => t + c.amountCents, 0);
+    partner.commissions.filter((c) => c.status === status).reduce((t, c) => t + entryPayoutMinor(c, c.closedDeal, payoutCurrency), 0);
 
   const gatePassed = Boolean(partner.activationGatePassedAt);
   const itemsDone = partner.activationItems.filter((i) => i.completed).length;
@@ -100,7 +103,7 @@ export default async function PartnerDashboardPage() {
         {(["ACCRUED", "PAYABLE", "PAID", "REVERSED"] as const).map((status) => (
           <Card key={status}>
             <p className="text-sm text-slate-500 capitalize">{status.toLowerCase()}</p>
-            <p className="mt-2 text-xl font-semibold text-navy-900">{formatCents(sum(status), cfg.currency)}</p>
+            <p className="mt-2 text-xl font-semibold text-navy-900">{formatMoney(sum(status), payoutCurrency)}</p>
           </Card>
         ))}
       </div>

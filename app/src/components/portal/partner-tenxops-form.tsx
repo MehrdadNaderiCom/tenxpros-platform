@@ -13,6 +13,10 @@ export function PartnerTenXOpsForm({ accounts }: { accounts: { id: string; legal
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  // Controlled so a server validation error preserves what the partner typed.
+  const [accountId, setAccountId] = useState("");
+  const [organisation, setOrganisation] = useState("");
+  const [justification, setJustification] = useState("");
 
   if (accounts.length === 0) {
     return (
@@ -34,6 +38,9 @@ export function PartnerTenXOpsForm({ accounts }: { accounts: { id: string; legal
         return;
       }
       setDone(true);
+      setAccountId("");
+      setOrganisation("");
+      setJustification("");
       router.refresh();
     });
   };
@@ -49,7 +56,7 @@ export function PartnerTenXOpsForm({ accounts }: { accounts: { id: string; legal
         {error ? <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
         {done ? <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Request submitted — pending Panel Confirmation.</p> : null}
         <Field label="Account you coach">
-          <Select name="registeredAccountId" defaultValue="">
+          <Select name="registeredAccountId" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
             <option value="" disabled>
               Select an account
             </option>
@@ -61,10 +68,10 @@ export function PartnerTenXOpsForm({ accounts }: { accounts: { id: string; legal
           </Select>
         </Field>
         <Field label="Organisation">
-          <Input name="organisation" placeholder="e.g. Global Bank Ltd" />
+          <Input name="organisation" value={organisation} onChange={(e) => setOrganisation(e.target.value)} placeholder="e.g. Global Bank Ltd" />
         </Field>
         <Field label="The case for an engagement" description="Describe the coaching relationship and why a full organisational engagement is the right next step.">
-          <Textarea name="justification" placeholder="For example: I have coached three of their teams; the COO wants a structured org-wide AI adoption programme." />
+          <Textarea name="justification" value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="For example: I have coached three of their teams; the COO wants a structured org-wide AI adoption programme." />
         </Field>
         <Button type="submit" disabled={isPending}>
           {isPending ? "Submitting…" : "Request engagement"}
