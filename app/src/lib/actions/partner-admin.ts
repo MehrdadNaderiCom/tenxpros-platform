@@ -23,17 +23,21 @@ import {
 import { CONFIG_FIELD_META } from "@/lib/partner/constants";
 import { parseConfigField } from "@/lib/partner/config-parse";
 import { resolvePartnerConfig } from "@/lib/partner/config-server";
-import { computeDealCommission, proportionalReversalCents } from "@/lib/partner/commission";
-import { clawbackWindowEnd, commissionPayableOn, firstRightExpiry, pipelineProtectionExpiry, trailPeriodEnd } from "@/lib/partner/rules";
+import { computeDealCommission, focusBonusBp, proportionalReversalCents } from "@/lib/partner/commission";
+import {
+  addMonths,
+  clawbackWindowEnd,
+  commissionPayableOn,
+  firstRightExpiry,
+  focusTenureYear,
+  pipelineProtectionExpiry,
+  trailPeriodEnd,
+} from "@/lib/partner/rules";
+import { normalizeCurrencyCode, toMinorUnits } from "@/lib/partner/currency";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
 
 type Admin = Awaited<ReturnType<typeof requireAdminUser>>;
-
-function usdToCents(usd: number | null | undefined): number | null {
-  if (usd == null || !Number.isFinite(usd)) return null;
-  return Math.round(usd * 100);
-}
 
 // ===========================================================================
 // Applications
@@ -172,7 +176,7 @@ export async function confirmActivationGate(formData: FormData) {
   const partnerId = String(formData.get("partnerId") ?? "");
   const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
   await prisma.partner.update({ where: { id: partnerId }, data: { activationGatePassedAt: new Date() } });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "PANEL_CONFIRM_ACTIVATION_GATE", entity: "Partner", entityId: partnerId, before: { activationGatePassedAt: partner.activationGatePassedAt }, after: { activationGatePassedAt: new Date().toISOString() } });
+  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "PANEL_CONFIRM_ACTIVATION_GATE", entity: "Partner", entityId: partnerId, before: { activationGatePassedAt: partner.activationGatePassedAt?.toISOString() ?? null }, after: { activationGatePassedAt: new Date().toISOString() } });
   safeRevalidatePath(`/admin/partners/${partnerId}`);
   safeRevalidatePath("/partner");
 }
@@ -184,6 +188,10 @@ export async function setPartnerTier(formData: FormData) {
   const tier = String(formData.get("tier") ?? "") as "TIER1" | "TIER2" | "TIER3";
   if (!["TIER1", "TIER2", "TIER3"].includes(tier)) throw new Error("Invalid tier.");
   const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
+  // Schedule C: Tier 3 requires the partner to already hold Tier 2.
+  if (tier === "TIER3" && partner.tier !== "TIER2" && partner.tier !== "TIER3") {
+    throw new Error("Tier 3 requires the partner to already hold Tier 2 (Schedule C).");
+  }
 
   await prisma.partner.update({
     where: { id: partnerId },
@@ -395,12 +403,21 @@ export async function upsertPartnerConfigOverride(formData: FormData) {
 export async function recordClosedDeal(formData: FormData) {
   const admin = await requireAdminUser();
   const partnerId = String(formData.get("partnerId") ?? "");
-  const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
+  await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
   const cfg = await resolvePartnerConfig(partnerId);
+  const payoutCurrency = normalizeCurrencyCode(cfg.currency);
 
   const dealType = String(formData.get("dealType") ?? "B2B") as "B2C" | "B2B";
   const productLine = String(formData.get("productLine") ?? "TENXPROS") as "TENXPROS" | "TENXOPS";
-  const netReceiptsCents = usdToCents(Number(formData.get("netReceiptsUsd") ?? 0)) ?? 0;
+
+  // Multi-currency: net receipts are entered in the CUSTOMER's currency (major
+  // units), stored as that currency's minor units. The conversion rate to the
+  // payout currency is captured at the cleared date (clause 14.2A).
+  const dealCurrency = normalizeCurrencyCode(String(formData.get("currency") ?? payoutCurrency), payoutCurrency);
+  const netReceiptsCents = toMinorUnits(Number(formData.get("netReceipts") ?? 0), dealCurrency);
+  const sameCurrency = dealCurrency === payoutCurrency;
+  const conversionRate = sameCurrency ? 1 : Math.max(0, Number(formData.get("conversionRate") ?? 0)) || 1;
+
   const registeredAccountId = String(formData.get("registeredAccountId") ?? "") || null;
   const signedAt = formData.get("signedAt") ? new Date(String(formData.get("signedAt"))) : new Date();
   const deliveredAt = formData.get("deliveredAt") ? new Date(String(formData.get("deliveredAt"))) : null;
@@ -415,7 +432,9 @@ export async function recordClosedDeal(formData: FormData) {
       dealType,
       productLine,
       netReceiptsCents,
-      currency: cfg.currency,
+      currency: dealCurrency,
+      conversionRate,
+      conversionDate: paymentClearedAt,
       signedAt,
       deliveredAt,
       paymentClearedAt,
@@ -425,8 +444,14 @@ export async function recordClosedDeal(formData: FormData) {
       industryOrRegion,
     },
   });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "CLOSED_DEAL_RECORDED", entity: "ClosedDeal", entityId: deal.id, after: { partnerId, dealType, netReceiptsCents } });
-  void partner;
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "CLOSED_DEAL_RECORDED",
+    entity: "ClosedDeal",
+    entityId: deal.id,
+    after: { partnerId, dealType, netReceiptsCents, currency: dealCurrency, conversionRate, payoutCurrency },
+  });
   safeRevalidatePath(`/admin/partners/${partnerId}`);
   safeRevalidatePath("/admin/partners/commissions");
 }
@@ -453,41 +478,51 @@ export async function updateSeatStatus(formData: FormData) {
   safeRevalidatePath(`/admin/partners/${seat.closedDeal.partnerId}`);
 }
 
-/** Add a raw commission line (function + rate or flat fee). Cap applied on recompute. */
+/**
+ * Add a raw commission line (a percentage function OR a fixed fee). Amounts are
+ * in the deal's currency minor units. The cap is applied on recompute; a fixed
+ * fee keeps its exact amount through recompute (isFlat).
+ */
 export async function addCommissionLine(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
   const fn = String(formData.get("function") ?? "") as PartnerFunction;
   const rateBp = Math.max(0, Math.round(Number(formData.get("rateBp") ?? 0)));
-  const flatCentsRaw = formData.get("flatCents");
-  const flatCents = flatCentsRaw != null && String(flatCentsRaw) !== "" ? Math.max(0, Math.round(Number(flatCentsRaw))) : null;
-  const amountCents = flatCents != null ? flatCents : Math.round((deal.netReceiptsCents * rateBp) / 10000);
+  // A fixed fee is entered in the deal's currency (major units).
+  const flatRaw = formData.get("flatFee");
+  const isFlat = flatRaw != null && String(flatRaw).trim() !== "";
+  const flatCents = isFlat ? toMinorUnits(Math.max(0, Number(flatRaw)), deal.currency) : null;
+  const amountCents = isFlat ? (flatCents as number) : Math.round((deal.netReceiptsCents * rateBp) / 10000);
 
   const entry = await prisma.commissionEntry.create({
     data: {
       partnerId: deal.partnerId,
       closedDealId: deal.id,
       function: fn,
-      rateBp: flatCents != null ? Math.round((flatCents * 10000) / Math.max(1, deal.netReceiptsCents)) : rateBp,
+      rateBp: isFlat ? Math.round(((flatCents as number) * 10000) / Math.max(1, deal.netReceiptsCents)) : rateBp,
       baseAmountCents: deal.netReceiptsCents,
       amountCents,
+      isFlat,
       currency: deal.currency,
     },
   });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_LINE_ADDED", entity: "CommissionEntry", entityId: entry.id, after: { function: fn, rateBp, amountCents } });
+  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_LINE_ADDED", entity: "CommissionEntry", entityId: entry.id, after: { function: fn, rateBp, amountCents, isFlat } });
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
 }
 
-/** Recompute commission amounts for a deal: apply the cap clamp and payable timing. */
+/**
+ * Recompute a deal's commission lines: auto-apply the Tier-3 focus bonus at the
+ * grant's continuously-held tenure rate, then clamp to the cap and set payable
+ * timing. Idempotent. Refused once a refund exists (refunds are final and must
+ * not be re-derived). All amounts stay in the deal's currency.
+ */
 export async function recomputeDealCommissions(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
   const cfg = await resolvePartnerConfig(deal.partnerId);
 
-  // Do not recompute a deal that has already had a refund/clawback applied — that
-  // would re-derive amounts from rate and silently undo the reversal.
   const refundCount = await prisma.refundEvent.count({ where: { closedDealId } });
   if (refundCount > 0) {
     safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
@@ -496,11 +531,32 @@ export async function recomputeDealCommissions(formData: FormData) {
 
   // The Tier-3 focus 35% ceiling applies ONLY to a deal in the partner's active
   // focus industry/region — never to ordinary deals (which keep the 25%/30% cap).
-  const focusActive = deal.industryOrRegion
-    ? (await prisma.focusGrant.count({
+  const grant = deal.industryOrRegion
+    ? await prisma.focusGrant.findFirst({
         where: { partnerId: deal.partnerId, status: "ACTIVE", industryOrRegion: { equals: deal.industryOrRegion, mode: "insensitive" } },
-      })) > 0
-    : false;
+        orderBy: { grantedAt: "desc" },
+      })
+    : null;
+  const focusActive = Boolean(grant);
+
+  // Auto-apply the focus bonus at the grant's continuously-held tenure rate.
+  if (grant) {
+    const atDate = deal.paymentClearedAt ?? deal.signedAt ?? new Date();
+    const bonusBp = focusBonusBp(focusTenureYear(grant.continuouslyHeldSince, atDate), cfg);
+    const existing = await prisma.commissionEntry.findFirst({
+      where: { closedDealId, function: "FOCUS_BONUS", status: { in: ["ACCRUED", "PAYABLE"] } },
+    });
+    if (bonusBp > 0) {
+      const amount = Math.round((deal.netReceiptsCents * bonusBp) / 10000);
+      if (existing) {
+        await prisma.commissionEntry.update({ where: { id: existing.id }, data: { rateBp: bonusBp, amountCents: amount } });
+      } else {
+        await prisma.commissionEntry.create({
+          data: { partnerId: deal.partnerId, closedDealId, function: "FOCUS_BONUS", rateBp: bonusBp, baseAmountCents: deal.netReceiptsCents, amountCents: amount, currency: deal.currency },
+        });
+      }
+    }
+  }
 
   const entries = await prisma.commissionEntry.findMany({
     where: { closedDealId, status: { in: ["ACCRUED", "PAYABLE"] } },
@@ -516,19 +572,23 @@ export async function recomputeDealCommissions(formData: FormData) {
     dealKind: deal.dealType as "B2C" | "B2B",
     focusActive,
     config: cfg,
-    functions: entries.map((e) => ({ function: e.function, rateBp: e.rateBp })),
+    functions: entries.map((e) => (e.isFlat ? { function: e.function, flatCents: e.amountCents } : { function: e.function, rateBp: e.rateBp })),
   });
   const payableOn = commissionPayableOn(deal.deliveredAt, deal.paymentClearedAt, cfg);
 
   await prisma.$transaction(
     entries.map((e, i) =>
-      prisma.commissionEntry.update({
-        where: { id: e.id },
-        data: { amountCents: result.entries[i].amountCents, payableOn },
-      }),
+      prisma.commissionEntry.update({ where: { id: e.id }, data: { amountCents: result.entries[i].amountCents, payableOn } }),
     ),
   );
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSIONS_RECOMPUTED", entity: "ClosedDeal", entityId: closedDealId, after: { totalCents: result.totalCents, capped: result.capped, payableOn: payableOn?.toISOString() ?? null } });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "COMMISSIONS_RECOMPUTED",
+    entity: "ClosedDeal",
+    entityId: closedDealId,
+    after: { totalCents: result.totalCents, capped: result.capped, overCap: result.overCap, focusActive, payableOn: payableOn?.toISOString() ?? null },
+  });
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
   safeRevalidatePath("/admin/partners/commissions");
 }
@@ -548,39 +608,77 @@ export async function setCommissionStatus(formData: FormData) {
   safeRevalidatePath(`/admin/partners/${entry.partnerId}`);
 }
 
-/** Record a refund/chargeback/cancellation and reverse commission proportionally. */
+/**
+ * Record a refund/chargeback/cancellation and reverse commission. The reversal is
+ * CUMULATIVE and IDEMPOTENT: each line's reversedCents is recomputed as its
+ * proportional share of the total refunded-to-date, so successive partial refunds
+ * never under- or over-reverse and re-applying the same refund is a no-op. Net
+ * payable on a line = amountCents - reversedCents; fully-reversed lines flip to
+ * REVERSED. The clawback window is computed from signing; refunded seats stop
+ * counting toward targets/tiers/bonuses. Amounts are in the deal's currency.
+ */
 export async function applyRefund(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const type = String(formData.get("type") ?? "REFUND") as "REFUND" | "CHARGEBACK" | "CANCELLATION" | "CREDIT" | "REVERSAL";
-  const refundCents = usdToCents(Number(formData.get("amountUsd") ?? 0)) ?? 0;
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId }, include: { commissions: true } });
   const cfg = await resolvePartnerConfig(deal.partnerId);
+  const refundCents = toMinorUnits(Math.max(0, Number(formData.get("amount") ?? 0)), deal.currency);
+  const seatsRefunded = Math.max(0, Math.round(Number(formData.get("seatsRefunded") ?? 0)));
+
+  const priorAgg = await prisma.refundEvent.aggregate({ where: { closedDealId }, _sum: { amountCents: true } });
+  const priorRefunded = priorAgg._sum.amountCents ?? 0;
+  const cumulativeRefunded = Math.min(priorRefunded + refundCents, deal.netReceiptsCents);
+  const fullRefund = cumulativeRefunded >= deal.netReceiptsCents && deal.netReceiptsCents > 0;
   const now = new Date();
   const withinWindow = now.getTime() <= clawbackWindowEnd(deal.signedAt ?? deal.createdAt, cfg).getTime();
-  const fullRefund = refundCents >= deal.netReceiptsCents;
 
-  const affected = deal.commissions.filter((c) => c.status !== "REVERSED");
-  let reversedTotal = 0;
+  let incrementalReversed = 0;
 
   await prisma.$transaction(async (tx) => {
-    for (const c of affected) {
-      const reversal = proportionalReversalCents(c.amountCents, refundCents, deal.netReceiptsCents);
-      if (reversal <= 0) continue;
-      reversedTotal += reversal;
-      if (fullRefund || reversal >= c.amountCents) {
-        await tx.commissionEntry.update({ where: { id: c.id }, data: { status: "REVERSED", note: `Reversed by ${type}` } });
-      } else {
-        await tx.commissionEntry.update({ where: { id: c.id }, data: { amountCents: c.amountCents - reversal, note: `Partially reversed by ${type}` } });
-      }
+    for (const c of deal.commissions) {
+      const target = proportionalReversalCents(c.amountCents, cumulativeRefunded, deal.netReceiptsCents);
+      if (target === c.reversedCents) continue;
+      incrementalReversed += target - c.reversedCents;
+      await tx.commissionEntry.update({
+        where: { id: c.id },
+        data: {
+          reversedCents: target,
+          status: target >= c.amountCents ? "REVERSED" : c.status === "REVERSED" ? "ACCRUED" : c.status,
+          note: `Reversed ${target}/${c.amountCents} (${type})`,
+        },
+      });
     }
+
     // A refunded/cancelled seat does not count toward any target, tier or bonus.
     if (fullRefund) {
       await tx.seatRecord.updateMany({ where: { closedDealId, status: "PAID_COLLECTED" }, data: { status: "REFUNDED" } });
+    } else if (seatsRefunded > 0) {
+      let remaining = seatsRefunded;
+      const paidSeats = await tx.seatRecord.findMany({ where: { closedDealId, status: "PAID_COLLECTED" }, orderBy: { createdAt: "asc" } });
+      for (const s of paidSeats) {
+        if (remaining <= 0) break;
+        if (remaining >= s.count) {
+          await tx.seatRecord.update({ where: { id: s.id }, data: { status: "REFUNDED" } });
+          remaining -= s.count;
+        } else {
+          await tx.seatRecord.update({ where: { id: s.id }, data: { count: s.count - remaining } });
+          await tx.seatRecord.create({ data: { closedDealId, count: remaining, status: "REFUNDED", industryOrRegion: s.industryOrRegion, sourcedByPartner: s.sourcedByPartner } });
+          remaining = 0;
+        }
+      }
     }
-    await tx.refundEvent.create({ data: { closedDealId, type, amountCents: refundCents, reversedCommissionCents: reversedTotal, withinWindow } });
+
+    await tx.refundEvent.create({ data: { closedDealId, type, amountCents: refundCents, reversedCommissionCents: incrementalReversed, withinWindow } });
     await tx.auditLog.create({
-      data: { actorId: admin.id, actorRole: admin.role, action: "REFUND_APPLIED", entity: "ClosedDeal", entityId: closedDealId, changes: { after: { type, refundCents, reversedTotal, withinWindow, fullRefund } } },
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "REFUND_APPLIED",
+        entity: "ClosedDeal",
+        entityId: closedDealId,
+        changes: { after: { type, refundCents, cumulativeRefunded, incrementalReversed, withinWindow, fullRefund, seatsRefunded } },
+      },
     });
   });
 
@@ -628,7 +726,12 @@ export async function addQualityFlag(formData: FormData) {
   safeRevalidatePath(`/admin/partners/${partnerId}`);
 }
 
-/** Grant or re-earn a Tier-3 industry/region focus (Schedule C). */
+/**
+ * Grant or re-earn a Tier-3 industry/region focus (Schedule C). Re-earning the
+ * SAME focus keeps continuous tenure (the bonus steps up 1%/year toward the 35%
+ * ceiling); a fresh grant after a lapse resets tenure to year 1. Expiry is 12
+ * months (UTC). The applied per-deal bonus is computed from tenure at recompute.
+ */
 export async function grantFocus(formData: FormData) {
   const admin = await requireAdminUser();
   const partnerId = String(formData.get("partnerId") ?? "");
@@ -638,13 +741,39 @@ export async function grantFocus(formData: FormData) {
   if (partner.tier !== "TIER3") throw new Error("Only Tier 3 partners can hold a focus.");
   const cfg = await resolvePartnerConfig(partnerId);
   const now = new Date();
-  const expiresAt = new Date(now.getTime());
-  expiresAt.setMonth(expiresAt.getMonth() + 12);
-  const grant = await prisma.focusGrant.create({
-    data: { partnerId, industryOrRegion, grantedAt: now, expiresAt, continuouslyHeldSince: now, currentBonusBp: cfg.focusBonusStartBp, status: "ACTIVE" },
+  const expiresAt = addMonths(now, 12);
+
+  const existingActive = await prisma.focusGrant.findFirst({
+    where: { partnerId, status: "ACTIVE", industryOrRegion: { equals: industryOrRegion, mode: "insensitive" } },
+    orderBy: { grantedAt: "desc" },
   });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "PANEL_CONFIRM_FOCUS_GRANT", entity: "FocusGrant", entityId: grant.id, after: { industryOrRegion } });
+  const heldSince = existingActive ? existingActive.continuouslyHeldSince : now;
+  const bonusBp = focusBonusBp(focusTenureYear(heldSince, now), cfg);
+
+  const grant = existingActive
+    ? await prisma.focusGrant.update({ where: { id: existingActive.id }, data: { grantedAt: now, expiresAt, currentBonusBp: bonusBp } })
+    : await prisma.focusGrant.create({
+        data: { partnerId, industryOrRegion, grantedAt: now, expiresAt, continuouslyHeldSince: now, currentBonusBp: bonusBp, status: "ACTIVE" },
+      });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "PANEL_CONFIRM_FOCUS_GRANT",
+    entity: "FocusGrant",
+    entityId: grant.id,
+    after: { industryOrRegion, reEarned: Boolean(existingActive), currentBonusBp: bonusBp },
+  });
   safeRevalidatePath(`/admin/partners/${partnerId}`);
+}
+
+/** Lapse or withdraw a focus (resets tenure: a future re-grant restarts at year 1). */
+export async function endFocus(formData: FormData) {
+  const admin = await requireAdminUser();
+  const id = String(formData.get("focusGrantId") ?? "");
+  const status = String(formData.get("status") ?? "LAPSED") === "WITHDRAWN" ? "WITHDRAWN" : "LAPSED";
+  const grant = await prisma.focusGrant.update({ where: { id }, data: { status } });
+  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "FOCUS_ENDED", entity: "FocusGrant", entityId: id, after: { status } });
+  safeRevalidatePath(`/admin/partners/${grant.partnerId}`);
 }
 
 /** Confirm or decline a partner's TenXOps engagement request. */
