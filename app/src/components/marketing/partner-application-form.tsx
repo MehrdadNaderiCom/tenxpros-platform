@@ -180,8 +180,7 @@ export function PartnerApplicationForm() {
           <div>
             <h2 className="text-xl font-semibold text-navy-900">Resume and cover letter</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Optional. If you have them, a resume and a short cover letter give us more to go on. PDF only, up to 5 MB
-              each.
+              If you have them, a resume and a short cover letter give us more to go on. PDF only, up to 5 MB each.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-2">
