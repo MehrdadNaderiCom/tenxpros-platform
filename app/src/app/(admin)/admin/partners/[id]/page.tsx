@@ -149,23 +149,10 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             </label>
             <Button type="submit" size="sm" variant="secondary">Apply tier</Button>
           </form>
-          <form action={setPartnerStatus}>
-            <input type="hidden" name="partnerId" value={partner.id} />
-            <input type="hidden" name="action" value="ACTIVATE" />
-            <Button type="submit" size="sm" variant="secondary">Activate</Button>
-          </form>
-          <form action={setPartnerStatus}>
-            <input type="hidden" name="partnerId" value={partner.id} />
-            <input type="hidden" name="action" value="DEACTIVATE" />
-            <Button type="submit" size="sm" variant="ghost">Mark inactive</Button>
-          </form>
-          <form action={setPartnerStatus} className="flex items-end gap-2">
-            <input type="hidden" name="partnerId" value={partner.id} />
-            <input type="hidden" name="action" value="TERMINATE" />
-            <Input name="reason" placeholder="Termination reason" className="h-9 w-44" />
-            <Button type="submit" size="sm" variant="danger">Terminate</Button>
-          </form>
         </div>
+        <p className="text-xs text-slate-500">
+          To pause, end, or delete this partnership, see “Pause, end, or delete this partner” at the bottom of the page.
+        </p>
       </Card>
 
       {/* Scorecard */}
@@ -379,26 +366,83 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
         </form>
       </Card>
 
-      {/* Danger zone */}
-      <Card className="border-red-200">
-        <h2 className="text-lg font-semibold text-red-700">Danger zone</h2>
-        {partner.closedDeals.length > 0 || partner.commissions.length > 0 ? (
-          <p className="mt-2 text-sm text-slate-600">
-            This partner has recorded financial history (closed deals or commissions) and cannot be deleted. Deactivate
-            or terminate the partner instead.
+      {/* Pause, end, or delete */}
+      <Card className="space-y-0 border-amber-200">
+        <div className="pb-1">
+          <h2 className="text-lg font-semibold text-navy-900">Pause, end, or delete this partner</h2>
+          <p className="mt-1 text-sm text-slate-600">
+            Current status: <span className="font-medium text-navy-900">{PARTNER_STATUS_LABELS[partner.status]}</span>
+            {partner.activeStatus ? " · active" : " · not active"}.
           </p>
-        ) : (
-          <form className="mt-3">
-            <input type="hidden" name="partnerId" value={partner.id} />
-            <p className="mb-3 text-sm text-slate-600">
-              Permanently delete this partner and its pilot, scorecard, registrations and config. The linked sign-in
-              account is reset. This cannot be undone.
+        </div>
+
+        {/* Pause / reactivate (temporary archive) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 py-4">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-navy-900">Pause collaboration</p>
+            <p className="text-xs text-slate-500">
+              Temporarily stop the partnership. All records are kept and you can reactivate at any time.
             </p>
-            <ConfirmButton action={deletePartner} message={`Permanently delete partner "${partner.displayName}"? This cannot be undone.`}>
-              Delete partner
-            </ConfirmButton>
-          </form>
-        )}
+          </div>
+          {partner.activeStatus ? (
+            <form action={setPartnerStatus}>
+              <input type="hidden" name="partnerId" value={partner.id} />
+              <input type="hidden" name="action" value="DEACTIVATE" />
+              <Button type="submit" size="sm" variant="secondary">Pause (archive)</Button>
+            </form>
+          ) : (
+            <form action={setPartnerStatus}>
+              <input type="hidden" name="partnerId" value={partner.id} />
+              <input type="hidden" name="action" value="ACTIVATE" />
+              <Button type="submit" size="sm" variant="secondary">Reactivate</Button>
+            </form>
+          )}
+        </div>
+
+        {/* End collaboration (permanent archive / terminate) */}
+        <div className="flex flex-wrap items-end justify-between gap-3 border-t border-neutral-200 py-4">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-navy-900">End collaboration</p>
+            <p className="text-xs text-slate-500">
+              Permanently end the partnership. All deals, commissions and history are kept for the audit trail. You can
+              still reactivate later if needed.
+            </p>
+          </div>
+          {partner.status === "TERMINATED" ? (
+            <span className="text-xs font-medium text-slate-500">Already ended.</span>
+          ) : (
+            <form action={setPartnerStatus} className="flex items-end gap-2">
+              <input type="hidden" name="partnerId" value={partner.id} />
+              <input type="hidden" name="action" value="TERMINATE" />
+              <Input name="reason" placeholder="Reason (optional)" className="h-9 w-48" />
+              <Button type="submit" size="sm" variant="danger">End collaboration</Button>
+            </form>
+          )}
+        </div>
+
+        {/* Delete permanently */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-200 pt-4">
+          <div className="max-w-md">
+            <p className="text-sm font-medium text-red-700">Delete permanently</p>
+            <p className="text-xs text-slate-500">
+              Remove the partner and its pilot, scorecard, registrations and config. The linked sign-in account is reset.
+              This cannot be undone.
+            </p>
+          </div>
+          {partner.closedDeals.length > 0 || partner.commissions.length > 0 ? (
+            <span className="max-w-xs text-xs text-slate-500">
+              Has financial history (closed deals or commissions), so it cannot be deleted. Use “End collaboration” above,
+              which keeps the records.
+            </span>
+          ) : (
+            <form>
+              <input type="hidden" name="partnerId" value={partner.id} />
+              <ConfirmButton action={deletePartner} message={`Permanently delete partner "${partner.displayName}"? This cannot be undone.`}>
+                Delete partner
+              </ConfirmButton>
+            </form>
+          )}
+        </div>
       </Card>
     </div>
   );

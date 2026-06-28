@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { setPartnerStatus } from "@/lib/actions/partner-admin";
 import { PARTNER_STATUS_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
 
@@ -80,7 +81,7 @@ export default async function AdminPartnersPage() {
               <th className="px-4 py-3">Active</th>
               <th className="px-4 py-3">Accounts</th>
               <th className="px-4 py-3">Deals</th>
-              <th className="px-4 py-3 text-right">Manage</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -99,10 +100,25 @@ export default async function AdminPartnersPage() {
                 <td className="px-4 py-3">{p.activeStatus ? "Yes" : "No"}</td>
                 <td className="px-4 py-3">{p._count.registeredAccounts}</td>
                 <td className="px-4 py-3">{p._count.closedDeals}</td>
-                <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-600 hover:underline">
-                    Manage
-                  </Link>
+                <td className="px-4 py-3">
+                  <div className="flex items-center justify-end gap-3">
+                    {p.activeStatus ? (
+                      <form action={setPartnerStatus}>
+                        <input type="hidden" name="partnerId" value={p.id} />
+                        <input type="hidden" name="action" value="DEACTIVATE" />
+                        <Button type="submit" size="sm" variant="ghost">Pause</Button>
+                      </form>
+                    ) : (
+                      <form action={setPartnerStatus}>
+                        <input type="hidden" name="partnerId" value={p.id} />
+                        <input type="hidden" name="action" value="ACTIVATE" />
+                        <Button type="submit" size="sm" variant="ghost">Reactivate</Button>
+                      </form>
+                    )}
+                    <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-600 hover:underline">
+                      Manage
+                    </Link>
+                  </div>
                 </td>
               </tr>
             ))}
