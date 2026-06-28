@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { deletePartnerApplication, reviewPartnerApplication } from "@/lib/actions/partner-admin";
+import { deletePartnerApplication, reviewPartnerApplication, updatePartnerApplication } from "@/lib/actions/partner-admin";
 import { PARTNER_APPLICATION_STATUS_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/admin/confirm-button";
-import { Textarea } from "@/components/ui/form-fields";
+import { Input, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -55,6 +55,40 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
         <Detail label="Sells to" value={a.audience} />
         <Detail label="Heard from" value={a.heardFrom} />
         <Detail label="Agreed to Partner Program Terms" value={a.consentNoEquity ? "Yes" : "No"} />
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-navy-900">Edit applicant details</h2>
+        <form action={updatePartnerApplication} className="mt-4 grid gap-3 md:grid-cols-2">
+          <input type="hidden" name="applicationId" value={a.id} />
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Full name</span>
+            <Input name="fullName" defaultValue={a.fullName} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Email</span>
+            <Input name="email" type="email" defaultValue={a.email} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Phone</span>
+            <Input name="phone" defaultValue={a.phone ?? ""} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Country</span>
+            <Input name="country" defaultValue={a.country} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Region / city</span>
+            <Input name="region" defaultValue={a.region ?? ""} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">LinkedIn / profile URL</span>
+            <Input name="linkedinUrl" type="url" defaultValue={a.linkedinUrl ?? ""} />
+          </label>
+          <div className="md:col-span-2">
+            <Button type="submit" size="sm">Save applicant details</Button>
+          </div>
+        </form>
       </Card>
 
       <Card className="space-y-5">

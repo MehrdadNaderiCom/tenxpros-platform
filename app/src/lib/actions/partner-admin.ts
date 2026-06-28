@@ -877,6 +877,41 @@ export async function deletePartner(formData: FormData) {
   redirect("/admin/partners");
 }
 
+/** Admin edit of a partner application's applicant contact details. Validated + audited. */
+export async function updatePartnerApplication(formData: FormData) {
+  const admin = await requireAdminUser();
+  const applicationId = String(formData.get("applicationId") ?? "");
+  const existing = await prisma.partnerApplication.findUniqueOrThrow({ where: { id: applicationId } });
+
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const country = String(formData.get("country") ?? "").trim();
+  const region = String(formData.get("region") ?? "").trim();
+  const linkedinUrl = String(formData.get("linkedinUrl") ?? "").trim();
+
+  if (fullName.length < 2) throw new Error("Full name is required.");
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error("A valid email is required.");
+  if (country.length < 2) throw new Error("Country is required.");
+  if (linkedinUrl && !/^https?:\/\//i.test(linkedinUrl)) throw new Error("LinkedIn must be a valid URL.");
+
+  await prisma.partnerApplication.update({
+    where: { id: applicationId },
+    data: { fullName, email, phone: phone || null, country, region: region || null, linkedinUrl: linkedinUrl || null },
+  });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "PARTNER_APPLICATION_UPDATED",
+    entity: "PartnerApplication",
+    entityId: applicationId,
+    before: { fullName: existing.fullName, email: existing.email, phone: existing.phone, country: existing.country, region: existing.region, linkedinUrl: existing.linkedinUrl },
+    after: { fullName, email, phone, country, region, linkedinUrl },
+  });
+  safeRevalidatePath(`/admin/partners/applications/${applicationId}`);
+  safeRevalidatePath("/admin/partners/applications");
+}
+
 /**
  * Permanently delete a partner application (cascade-removes its uploaded resume /
  * cover letter). Blocked once the application has been approved into a partner;

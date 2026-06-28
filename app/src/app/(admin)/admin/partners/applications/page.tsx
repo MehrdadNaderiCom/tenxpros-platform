@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import { deletePartnerApplication } from "@/lib/actions/partner-admin";
 import { PARTNER_APPLICATION_STATUS_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -35,7 +37,8 @@ export default async function PartnerApplicationsPage() {
               <th className="px-4 py-3">Sells to</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Submitted</th>
-              <th className="px-4 py-3 text-right">Review</th>
+              <th className="px-4 py-3 text-right">Review / edit</th>
+              <th className="px-4 py-3 text-right">Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -58,11 +61,27 @@ export default async function PartnerApplicationsPage() {
                     {a.partner ? "View" : "Review"}
                   </Link>
                 </td>
+                <td className="px-4 py-3 text-right">
+                  {a.partner ? (
+                    <span className="text-xs text-slate-400">Approved</span>
+                  ) : (
+                    <form>
+                      <input type="hidden" name="applicationId" value={a.id} />
+                      <ConfirmButton
+                        action={deletePartnerApplication}
+                        message={`Permanently delete the application from "${a.fullName}"? This also removes any uploaded resume or cover letter and cannot be undone.`}
+                        className="rounded-md border border-red-200 px-2 py-1 text-xs font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        Delete
+                      </ConfirmButton>
+                    </form>
+                  )}
+                </td>
               </tr>
             ))}
             {applications.length === 0 ? (
               <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
+                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
                   No partner applications yet.
                 </td>
               </tr>
