@@ -29,6 +29,7 @@ describe("config defaults", () => {
     expect(base.currency).toBe("USD");
     expect(base.nonCircumventionMonths).toBe(24);
     expect(base.nonSolicitationMonths).toBe(12);
+    expect(base.pilotFirst30DaysWindowDays).toBe(30);
   });
 
   it("CONFIG_FIELD_KEYS and CONFIG_FIELD_META cover exactly the same fields", () => {

@@ -39,3 +39,21 @@ describe("commission engine purity", () => {
     expect(commission).toMatch(/cfg\.tier3FocusHardCeilingBp/);
   });
 });
+
+describe("rules date math is UTC-only (DST-immune for global partners)", () => {
+  it("never uses local-time Date accessors/mutators", () => {
+    // Local-time methods would make windows depend on server TZ / DST.
+    expect(rules).not.toMatch(/\.getDate\(/);
+    expect(rules).not.toMatch(/\.setDate\(/);
+    expect(rules).not.toMatch(/\.getDay\(/);
+    expect(rules).not.toMatch(/\.getMonth\(/);
+    expect(rules).not.toMatch(/\.setMonth\(/);
+    expect(rules).not.toMatch(/\.getFullYear\(/);
+  });
+  it("uses the UTC accessors/mutators", () => {
+    expect(rules).toMatch(/\.getUTCDate\(/);
+    expect(rules).toMatch(/\.setUTCDate\(/);
+    expect(rules).toMatch(/\.getUTCDay\(/);
+    expect(rules).toMatch(/Date\.UTC\(/);
+  });
+});

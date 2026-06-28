@@ -251,3 +251,55 @@ describe("per-partner config override flows through the engine", () => {
     expect(r.totalCents).toBe(300_000); // 15% of $20k
   });
 });
+
+describe("fixed-fee lines are committed and idempotent under the cap clamp", () => {
+  it("scales only the percentage lines to the headroom left by a fixed fee", () => {
+    // B2B net $20k, cap 30% = $6,000. Fixed delivery fee $5,000 + strong origination 12% ($2,400) = $7,400 raw.
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "DELIVERY", flatCents: 500_000 },
+        { function: "STRONG_ORIGINATION", rateBp: 1200 },
+      ],
+    });
+    expect(r.capCents).toBe(600_000);
+    expect(r.capped).toBe(true);
+    const fee = r.entries.find((e) => e.function === "DELIVERY")!;
+    const orig = r.entries.find((e) => e.function === "STRONG_ORIGINATION")!;
+    expect(fee.amountCents).toBe(500_000); // fixed fee untouched
+    expect(fee.isFlat).toBe(true);
+    expect(orig.amountCents).toBe(100_000); // scaled to the remaining headroom
+    expect(r.totalCents).toBe(600_000);
+  });
+
+  it("re-running the engine on its own output is stable (recompute idempotency)", () => {
+    const inputs = {
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B" as const,
+      config: cfg,
+      functions: [
+        { function: "DELIVERY" as const, flatCents: 500_000 },
+        { function: "STRONG_ORIGINATION" as const, rateBp: 1200 },
+      ],
+    };
+    const a = computeDealCommission(inputs);
+    const b = computeDealCommission({
+      ...inputs,
+      functions: a.entries.map((e) => (e.isFlat ? { function: e.function, flatCents: e.amountCents } : { function: e.function, rateBp: e.rateBp })),
+    });
+    expect(b.entries.map((e) => e.amountCents)).toEqual(a.entries.map((e) => e.amountCents));
+  });
+
+  it("flags overCap when fixed fees alone exceed the cap", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [{ function: "DELIVERY", flatCents: 700_000 }],
+    });
+    expect(r.overCap).toBe(true);
+    expect(r.capped).toBe(true);
+  });
+});

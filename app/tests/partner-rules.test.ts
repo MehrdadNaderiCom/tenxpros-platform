@@ -6,8 +6,12 @@ import {
   addDays,
   addHours,
   addMonths,
+  clawbackWindowEnd,
   commissionPayableOn,
+  daysBetween,
   firstRightExpiry,
+  fullYearsBetween,
+  focusTenureYear,
   isMajorNewEngagement,
   maxOpenAccountsNow,
   originationWindowEnd,
@@ -120,5 +124,45 @@ describe("major new engagement & tier eligibility", () => {
     expect(
       tierEligibility({ currentTier: "TIER1", paidSeatsInWindow: 39, focusSeatsInWindow: 20, holdsTier2: false }, cfg),
     ).toEqual({ eligibleForTier2: false, eligibleForTier3: false });
+  });
+});
+
+describe("UTC determinism (DST-immune, global partners)", () => {
+  it("date math lands on the correct UTC calendar day across a DST boundary", () => {
+    // 2026-03-08 is US spring-forward. UTC math must be unaffected.
+    expect(addDays(new Date("2026-03-08T00:00:00Z"), 1).toISOString()).toBe("2026-03-09T00:00:00.000Z");
+    expect(addMonths(new Date("2026-03-08T12:00:00Z"), 1).toISOString().slice(0, 10)).toBe("2026-04-08");
+    // Friday 2026-03-06 + 1 business day -> Monday 2026-03-09 (UTC)
+    expect(addBusinessDays(new Date("2026-03-06T00:00:00Z"), 1).toISOString().slice(0, 10)).toBe("2026-03-09");
+    expect(daysBetween(new Date("2026-03-07T23:00:00Z"), new Date("2026-03-09T01:00:00Z"))).toBe(2);
+  });
+});
+
+describe("focus tenure (continuously-held years, UTC)", () => {
+  it("counts full years and the 1-based tenure year", () => {
+    const start = new Date("2026-01-15T00:00:00Z");
+    expect(fullYearsBetween(start, new Date("2026-12-31T00:00:00Z"))).toBe(0);
+    expect(fullYearsBetween(start, new Date("2027-01-15T00:00:00Z"))).toBe(1);
+    expect(fullYearsBetween(start, new Date("2029-06-01T00:00:00Z"))).toBe(3);
+    expect(focusTenureYear(start, start)).toBe(1);
+    expect(focusTenureYear(start, new Date("2027-01-15T00:00:00Z"))).toBe(2);
+  });
+});
+
+describe("clawback window", () => {
+  it("ends clawbackDays after signing", () => {
+    const signed = new Date("2026-04-01T00:00:00Z");
+    expect(clawbackWindowEnd(signed, cfg).toISOString().slice(0, 10)).toBe(addDays(signed, 120).toISOString().slice(0, 10));
+  });
+});
+
+describe("pilot first-window is config-driven", () => {
+  it("respects an overridden window length", () => {
+    const pilotStart = new Date("2026-06-01T00:00:00Z");
+    const wide = { ...cfg, pilotFirst30DaysWindowDays: 7 };
+    // day 10 is now PAST the (shortened) 7-day window -> full Tier-1 cap
+    expect(maxOpenAccountsNow({ tier: "TIER1", pilotStart, now: addDays(pilotStart, 10), cfg: wide })).toBe(3);
+    // within the 7-day window -> reduced cap
+    expect(maxOpenAccountsNow({ tier: "TIER1", pilotStart, now: addDays(pilotStart, 3), cfg: wide })).toBe(2);
   });
 });
