@@ -4,18 +4,32 @@ import { PageHeader } from "@/components/shared/page-shell";
 import { ButtonLink } from "@/components/ui/button";
 
 export default async function AdminDashboardPage() {
-  const [applications, participants, openTickets, submittedModules, submittedDossierSections, certifications, events] =
-    await Promise.all([
-      prisma.application.count(),
-      prisma.participantProfile.count(),
-      prisma.ticket.count({ where: { status: { in: ["OPEN", "WAITING_RESPONSE"] } } }),
-      prisma.participantModule.count({ where: { status: "SUBMITTED" } }),
-      prisma.dossierSection.count({ where: { status: "SUBMITTED" } }),
-      prisma.certificationReview.count(),
-      prisma.siteEvent.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
-    ]);
+  const [
+    applications,
+    participants,
+    openTickets,
+    submittedModules,
+    submittedDossierSections,
+    certifications,
+    partnerApplicationsToReview,
+    dealRegistrationsToReview,
+    activePartners,
+    events,
+  ] = await Promise.all([
+    prisma.application.count(),
+    prisma.participantProfile.count(),
+    prisma.ticket.count({ where: { status: { in: ["OPEN", "WAITING_RESPONSE"] } } }),
+    prisma.participantModule.count({ where: { status: "SUBMITTED" } }),
+    prisma.dossierSection.count({ where: { status: "SUBMITTED" } }),
+    prisma.certificationReview.count(),
+    prisma.partnerApplication.count({ where: { status: { in: ["NEW", "UNDER_REVIEW"] } } }),
+    prisma.dealRegistration.count({ where: { status: "SUBMITTED" } }),
+    prisma.partner.count({ where: { status: { in: ["PILOT", "TIER1", "TIER2", "TIER3"] } } }),
+    prisma.siteEvent.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+  ]);
   const todayActions = [
     ["Review applications", applications, "/admin/applications"],
+    ["Partner applications", partnerApplicationsToReview, "/admin/partners/applications"],
     ["Check tickets", openTickets, "/admin/tickets"],
     ["Review modules", submittedModules, "/admin/modules"],
     ["Review dossier sections", submittedDossierSections, "/admin/dossiers"],
@@ -37,7 +51,7 @@ export default async function AdminDashboardPage() {
             Open applications
           </ButtonLink>
         </div>
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
+        <div className="mt-6 grid gap-3 md:grid-cols-3 lg:grid-cols-5">
           {todayActions.map(([label, value, href]) => (
             <a key={label} href={href as string} className="rounded-md border border-white/15 bg-white/10 p-4 transition hover:bg-white/15">
               <p className="text-2xl font-semibold">{value}</p>
@@ -46,7 +60,7 @@ export default async function AdminDashboardPage() {
           ))}
         </div>
       </Card>
-      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
         {[
           ["Applications", applications],
           ["Participants", participants],
@@ -54,6 +68,9 @@ export default async function AdminDashboardPage() {
           ["Module submissions", submittedModules],
           ["Dossier reviews", submittedDossierSections],
           ["Certifications", certifications],
+          ["Partner apps to review", partnerApplicationsToReview],
+          ["Deal regs to review", dealRegistrationsToReview],
+          ["Active partners", activePartners],
         ].map(([label, value]) => (
           <Card key={label}>
             <p className="text-sm text-slate-500">{label}</p>
