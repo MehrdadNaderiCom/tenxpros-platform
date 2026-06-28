@@ -11,6 +11,7 @@ import type {
   SeatStatus,
 } from "@prisma/client";
 import type { EffectiveConfig } from "./config";
+import { formatMoney } from "./currency";
 
 // ---------------------------------------------------------------------------
 // Display labels for enums (stringly-typed labels, per repo convention)
@@ -204,7 +205,8 @@ export const CONFIG_FIELD_META: ConfigFieldMeta[] = [
   { key: "maxOpenAccountsTier1", label: "Max open accounts — Tier 1", unit: "count", group: "Pipeline & limits" },
   { key: "maxOpenAccountsTier2", label: "Max open accounts — Tier 2", unit: "count", group: "Pipeline & limits" },
   { key: "maxOpenAccountsTier3", label: "Max open accounts — Tier 3", unit: "count", group: "Pipeline & limits" },
-  { key: "pilotFirst30DaysMaxAccountsTier1", label: "Tier 1 pilot first-30-days max accounts", unit: "count", group: "Pipeline & limits" },
+  { key: "pilotFirst30DaysMaxAccountsTier1", label: "Tier 1 pilot first-window max accounts", unit: "count", group: "Pipeline & limits" },
+  { key: "pilotFirst30DaysWindowDays", label: "Tier 1 pilot first-window length", unit: "days", group: "Pipeline & limits" },
   { key: "pipelineProtectionDaysTier1", label: "Pipeline protection — Tier 1", unit: "days", group: "Pipeline & limits" },
   { key: "pipelineProtectionDaysTier2", label: "Pipeline protection — Tier 2", unit: "days", group: "Pipeline & limits" },
   { key: "pipelineProtectionDaysTier3", label: "Pipeline protection — Tier 3", unit: "days", group: "Pipeline & limits" },
@@ -268,10 +270,13 @@ export function formatConfigValue(value: number | string | boolean | null | unde
   }
 }
 
-/** Format integer cents as a currency string (the new money convention). */
-export function formatCents(cents: number | null | undefined, currency = "USD"): string {
-  const value = (cents ?? 0) / 100;
-  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(value);
+/**
+ * Format integer minor units as a currency string. Delegates to the currency-
+ * aware formatter so non-2-decimal currencies (JPY=0, BHD=3) render correctly.
+ * (Named formatCents for continuity; it handles any currency's minor units.)
+ */
+export function formatCents(minor: number | null | undefined, currency = "USD"): string {
+  return formatMoney(minor, currency);
 }
 
 /** Format basis points as a percent string. */

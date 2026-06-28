@@ -127,6 +127,7 @@ export interface ComputedEntry {
   rateBp: number;
   baseAmountCents: number;
   amountCents: number;
+  isFlat: boolean;
 }
 
 export interface DealCommissionResult {
@@ -136,14 +137,32 @@ export interface DealCommissionResult {
   rawTotalCents: number;
   totalCents: number;
   capped: boolean;
+  /** True when fixed fees alone already exceed the cap (operator must adjust). */
+  overCap: boolean;
+}
+
+/** Scale a list of integer amounts down to sum exactly to `target` (cents-exact). */
+function scaleToTarget(amounts: number[], target: number): number[] {
+  const total = amounts.reduce((s, a) => s + a, 0);
+  if (total <= target || total === 0) return amounts.slice();
+  const scaled = amounts.map((a) => Math.floor((a * target) / total));
+  let remainder = target - scaled.reduce((s, a) => s + a, 0);
+  const order = amounts.map((a, i) => [a, i] as const).sort((a, b) => b[0] - a[0]).map(([, i]) => i);
+  for (let k = 0; remainder > 0 && k < order.length; k++) {
+    scaled[order[k]] += 1;
+    remainder -= 1;
+  }
+  return scaled;
 }
 
 /**
- * Compute every commission line for a deal and clamp the total partner
- * compensation (across all partners and functions, including override and
- * bonuses) to the deal cap. The cap is an absolute ceiling — when the raw total
- * exceeds it, all lines are scaled down proportionally so the total equals the
- * cap exactly (integer-cent safe), and `capped` is set.
+ * Compute every commission line for a deal and clamp total partner compensation
+ * (across all partners and functions, including override and bonuses) to the
+ * deal cap — an ABSOLUTE ceiling (25% B2C / 30% B2B; a Tier-3 focus account may
+ * reach 35%). Fixed-fee lines are treated as committed (counted toward the cap
+ * but never scaled, so recompute is idempotent); only percentage lines are
+ * scaled down — cents-exact — to fit the remaining headroom under the cap.
+ * Amounts are in the DEAL's currency minor units (the engine is scale-agnostic).
  */
 export function computeDealCommission(args: {
   netReceiptsCents: number;
@@ -157,37 +176,30 @@ export function computeDealCommission(args: {
   const capCents = bpToCents(netReceiptsCents, capBp);
 
   const raw: ComputedEntry[] = functions.map((f) => {
-    const amount = f.flatCents != null ? f.flatCents : bpToCents(netReceiptsCents, f.rateBp ?? 0);
-    const rateBp = f.flatCents != null ? centsToBp(f.flatCents, netReceiptsCents) : (f.rateBp ?? 0);
-    return {
-      function: f.function,
-      partnerId: f.partnerId,
-      rateBp,
-      baseAmountCents: netReceiptsCents,
-      amountCents: amount,
-    };
+    const isFlat = f.flatCents != null;
+    const amount = isFlat ? (f.flatCents as number) : bpToCents(netReceiptsCents, f.rateBp ?? 0);
+    const rateBp = isFlat ? centsToBp(f.flatCents as number, netReceiptsCents) : (f.rateBp ?? 0);
+    return { function: f.function, partnerId: f.partnerId, rateBp, baseAmountCents: netReceiptsCents, amountCents: amount, isFlat };
   });
 
-  const rawTotalCents = raw.reduce((s, e) => s + e.amountCents, 0);
+  const flatTotal = raw.filter((e) => e.isFlat).reduce((s, e) => s + e.amountCents, 0);
+  const rateAmounts = raw.filter((e) => !e.isFlat).map((e) => e.amountCents);
+  const rateRaw = rateAmounts.reduce((s, a) => s + a, 0);
+  const rawTotalCents = flatTotal + rateRaw;
+  const capForRate = Math.max(0, capCents - flatTotal);
+  const overCap = flatTotal > capCents;
 
-  if (rawTotalCents <= capCents || rawTotalCents === 0) {
-    return { entries: raw, capBp, capCents, rawTotalCents, totalCents: rawTotalCents, capped: false };
+  if (rateRaw <= capForRate) {
+    const totalCents = flatTotal + rateRaw;
+    return { entries: raw, capBp, capCents, rawTotalCents, totalCents, capped: totalCents > capCents, overCap };
   }
 
-  // Scale proportionally to fit the cap exactly; distribute the rounding
-  // remainder to the largest lines first so the total lands on capCents.
-  const scaled = raw.map((e) => ({ ...e, amountCents: Math.floor((e.amountCents * capCents) / rawTotalCents) }));
-  let remainder = capCents - scaled.reduce((s, e) => s + e.amountCents, 0);
-  const order = raw
-    .map((e, i) => [e.amountCents, i] as const)
-    .sort((a, b) => b[0] - a[0])
-    .map(([, i]) => i);
-  for (let k = 0; remainder > 0 && k < order.length; k++) {
-    scaled[order[k]].amountCents += 1;
-    remainder -= 1;
-  }
-
-  return { entries: scaled, capBp, capCents, rawTotalCents, totalCents: capCents, capped: true };
+  // Scale only the percentage lines to fit the headroom left by the fixed fees.
+  const scaledRate = scaleToTarget(rateAmounts, capForRate);
+  let ri = 0;
+  const entries = raw.map((e) => (e.isFlat ? e : { ...e, amountCents: scaledRate[ri++] }));
+  const totalCents = flatTotal + capForRate;
+  return { entries, capBp, capCents, rawTotalCents, totalCents, capped: true, overCap };
 }
 
 // ---------------------------------------------------------------------------

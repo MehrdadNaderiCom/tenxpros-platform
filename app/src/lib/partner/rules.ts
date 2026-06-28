@@ -9,15 +9,15 @@ import { pipelineProtectionDaysForTier, quietAccountLapseDaysForTier } from "./c
  */
 
 // ---------------------------------------------------------------------------
-// Date math
+// Date math — ALL in UTC so windows compute identically regardless of server
+// timezone or DST. Partners are global; dates must be unambiguous. Every
+// function uses the getUTC*/setUTC* family (never local-time setDate/getDay),
+// so a deal in São Paulo, Tehran or Tokyo is treated identically.
 // ---------------------------------------------------------------------------
-
-/** The spec-fixed first window of a Tier-1 pilot (see maxOpenAccountsNow). */
-export const PILOT_FIRST_WINDOW_DAYS = 30;
 
 export function addDays(date: Date, days: number): Date {
   const d = new Date(date.getTime());
-  d.setDate(d.getDate() + days);
+  d.setUTCDate(d.getUTCDate() + days);
   return d;
 }
 
@@ -25,31 +25,50 @@ export function addHours(date: Date, hours: number): Date {
   return new Date(date.getTime() + hours * 3600 * 1000);
 }
 
-/** Add months, clamping the day to the target month's length (Jan 31 + 1mo → Feb 28/29). */
+/** Add months, clamping the day to the target month's length (Jan 31 + 1mo → Feb 28/29), in UTC. */
 export function addMonths(date: Date, months: number): Date {
   const d = new Date(date.getTime());
-  const day = d.getDate();
-  d.setDate(1);
-  d.setMonth(d.getMonth() + months);
-  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-  d.setDate(Math.min(day, daysInMonth));
+  const day = d.getUTCDate();
+  d.setUTCDate(1);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  const daysInMonth = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).getUTCDate();
+  d.setUTCDate(Math.min(day, daysInMonth));
   return d;
 }
 
-/** Add N business days (skipping Saturday and Sunday). */
+/** Add N business days (skipping Saturday and Sunday), in UTC. */
 export function addBusinessDays(date: Date, days: number): Date {
   const d = new Date(date.getTime());
   let added = 0;
   while (added < days) {
-    d.setDate(d.getDate() + 1);
-    const dow = d.getDay();
+    d.setUTCDate(d.getUTCDate() + 1);
+    const dow = d.getUTCDay();
     if (dow !== 0 && dow !== 6) added += 1;
   }
   return d;
 }
 
+/** Whole UTC calendar days between two instants (DST-immune). */
 export function daysBetween(from: Date, to: Date): number {
-  return Math.floor((to.getTime() - from.getTime()) / (24 * 3600 * 1000));
+  const a = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
+  const b = Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate());
+  return Math.round((b - a) / (24 * 3600 * 1000));
+}
+
+/** Number of FULL years elapsed from `from` to `to`, in UTC. */
+export function fullYearsBetween(from: Date, to: Date): number {
+  let years = to.getUTCFullYear() - from.getUTCFullYear();
+  const monthDelta = to.getUTCMonth() - from.getUTCMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && to.getUTCDate() < from.getUTCDate())) years -= 1;
+  return Math.max(0, years);
+}
+
+/**
+ * The continuously-held focus tenure year (1-based): year 1 in the first 12
+ * months, year 2 thereafter, etc. Feed into focusBonusBp for the current bonus.
+ */
+export function focusTenureYear(continuouslyHeldSince: Date, at: Date): number {
+  return fullYearsBetween(continuouslyHeldSince, at) + 1;
 }
 
 // ---------------------------------------------------------------------------
@@ -134,9 +153,8 @@ export function maxOpenAccountsNow(args: {
         ? cfg.maxOpenAccountsTier2
         : cfg.maxOpenAccountsTier1;
   if (tier === "TIER1" && pilotStart && !meaningfulProgress) {
-    // The 30-day window is fixed by the program spec (the config field itself is
-    // named pilotFirst30DaysMaxAccountsTier1); only the cap is tunable/overridable.
-    if (daysBetween(pilotStart, now) < PILOT_FIRST_WINDOW_DAYS) {
+    // Both the cap AND the window length are config-driven and per-partner overridable.
+    if (daysBetween(pilotStart, now) < cfg.pilotFirst30DaysWindowDays) {
       return Math.min(base, cfg.pilotFirst30DaysMaxAccountsTier1);
     }
   }

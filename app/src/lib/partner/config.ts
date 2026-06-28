@@ -61,6 +61,7 @@ export const PROGRAM_CONFIG_DEFAULTS: EffectiveConfig = {
   maxOpenAccountsTier2: 5,
   maxOpenAccountsTier3: 10,
   pilotFirst30DaysMaxAccountsTier1: 2,
+  pilotFirst30DaysWindowDays: 30,
   pipelineProtectionDaysTier1: 120,
   pipelineProtectionDaysTier2: 150,
   pipelineProtectionDaysTier3: 180,
