@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/shared/logo";
+import { FooterTermsLink } from "@/components/shared/footer-terms-link";
 
 const links = [
   ["The Method", "/program"],
@@ -31,11 +32,15 @@ export function Footer() {
           </p>
         </div>
         <nav className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-600">
-          {links.map(([label, href]) => (
-            <Link key={href} href={href} className="hover:text-navy-900">
-              {label}
-            </Link>
-          ))}
+          {links.map(([label, href]) =>
+            label === "Terms" ? (
+              <FooterTermsLink key="terms" className="hover:text-navy-900" />
+            ) : (
+              <Link key={href} href={href} className="hover:text-navy-900">
+                {label}
+              </Link>
+            ),
+          )}
         </nav>
       </div>
     </footer>

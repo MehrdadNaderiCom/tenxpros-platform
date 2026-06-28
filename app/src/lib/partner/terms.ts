@@ -25,6 +25,13 @@ export const PARTNER_TERMS_SECTIONS: TermsSection[] = [
     ],
   },
   {
+    title: "Who you contract with",
+    body: [
+      "The TenXPros Partner Program is operated by Naprolity OÜ, the company that operates TenXPros and is the payee for the program. Your partner agreement is entered into with Naprolity OÜ.",
+      "If you are accepted and sign, the 90-Day Partner Pilot Letter and the full Partner Program Agreement are the governing documents, under the laws of England and Wales.",
+    ],
+  },
+  {
     title: "Everything runs on the Partner Panel",
     body: [
       "The TenXPros Partner Panel is the single source of truth. Nothing is approved, registered, promoted or confirmed unless the company confirms it on the panel (a Panel Confirmation).",
@@ -155,7 +162,7 @@ export const PARTNER_TERMS_SECTIONS: TermsSection[] = [
   {
     title: "Governing law and language",
     body: [
-      "The agreement is governed by the laws of England and Wales. The parties first negotiate in good faith for 30 days, and any unresolved dispute is finally settled by arbitration under the LCIA Rules, by one arbitrator, in London, conducted in English. The English language version of the agreement is the governing and authoritative version.",
+      "The partner agreement, between you and Naprolity OÜ, is governed by the laws of England and Wales. The parties first negotiate in good faith for 30 days, and any unresolved dispute is finally settled by arbitration under the LCIA Rules, by one arbitrator, in London, conducted in English. The English language version of the agreement is the governing and authoritative version.",
     ],
   },
   {
