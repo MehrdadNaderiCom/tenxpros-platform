@@ -877,6 +877,51 @@ export async function deletePartner(formData: FormData) {
   redirect("/admin/partners");
 }
 
+/**
+ * FORCE delete a partner INCLUDING its financial history (closed deals,
+ * commissions, seats, refunds). This destroys the audit trail and is
+ * irreversible; the UI requires a checkbox acknowledgement plus two confirmation
+ * dialogs, and the server re-checks the acknowledgement. Super-admin only.
+ */
+export async function forceDeletePartner(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const partnerId = String(formData.get("partnerId") ?? "");
+  if (String(formData.get("acknowledge") ?? "") !== "on") {
+    throw new Error("You must acknowledge that this also permanently deletes all financial history.");
+  }
+  const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
+  await prisma.$transaction(async (tx) => {
+    // Clear the RESTRICT-protected financial records first, then quality flags
+    // (which may reference closed deals), then the deals (cascading their seats +
+    // refunds), then the partner (cascading the remaining children).
+    await tx.commissionEntry.deleteMany({ where: { partnerId } });
+    await tx.qualityFlag.deleteMany({ where: { partnerId } });
+    await tx.closedDeal.deleteMany({ where: { partnerId } });
+    if (partner.userId) {
+      const user = await tx.user.findUnique({ where: { id: partner.userId }, select: { role: true } });
+      if (user?.role === "PARTNER") {
+        await tx.user.update({ where: { id: partner.userId }, data: { role: "APPLICANT" } });
+      }
+    }
+    await tx.partner.delete({ where: { id: partnerId } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "PARTNER_FORCE_DELETED",
+        entity: "Partner",
+        entityId: partnerId,
+        changes: {
+          before: { displayName: partner.displayName, contactEmail: partner.contactEmail, status: partner.status },
+          after: { forcedDeletionWithFinancialHistory: true },
+        },
+      },
+    });
+  });
+  safeRevalidatePath("/admin/partners");
+  redirect("/admin/partners");
+}
+
 /** Admin edit of a partner application's applicant contact details. Validated + audited. */
 export async function updatePartnerApplication(formData: FormData) {
   const admin = await requireAdminUser();
