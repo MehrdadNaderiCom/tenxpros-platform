@@ -62,20 +62,22 @@ export default async function AdminDashboardPage() {
       </Card>
       <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
         {[
-          ["Applications", applications],
-          ["Participants", participants],
-          ["Open tickets", openTickets],
-          ["Module submissions", submittedModules],
-          ["Dossier reviews", submittedDossierSections],
-          ["Certifications", certifications],
-          ["Partner apps to review", partnerApplicationsToReview],
-          ["Deal regs to review", dealRegistrationsToReview],
-          ["Active partners", activePartners],
-        ].map(([label, value]) => (
-          <Card key={label}>
-            <p className="text-sm text-slate-500">{label}</p>
-            <p className="mt-3 text-3xl font-semibold text-navy-900">{value}</p>
-          </Card>
+          ["Applications", applications, "/admin/applications"],
+          ["Participants", participants, "/admin/participants"],
+          ["Open tickets", openTickets, "/admin/tickets"],
+          ["Module submissions", submittedModules, "/admin/modules"],
+          ["Dossier reviews", submittedDossierSections, "/admin/dossiers"],
+          ["Certifications", certifications, "/admin/certifications"],
+          ["Partner apps to review", partnerApplicationsToReview, "/admin/partners/applications"],
+          ["Deal regs to review", dealRegistrationsToReview, "/admin/partners/deal-registrations"],
+          ["Active partners", activePartners, "/admin/partners"],
+        ].map(([label, value, href]) => (
+          <a key={label as string} href={href as string} className="group block">
+            <Card className="h-full transition group-hover:border-navy-300 group-hover:shadow-md">
+              <p className="text-sm text-slate-500 group-hover:text-navy-700">{label}</p>
+              <p className="mt-3 text-3xl font-semibold text-navy-900">{value}</p>
+            </Card>
+          </a>
         ))}
       </div>
       <Card>
