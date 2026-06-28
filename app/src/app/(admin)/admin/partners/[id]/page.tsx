@@ -19,6 +19,7 @@ import {
   addQualityFlag,
   applyRefund,
   confirmActivationGate,
+  deletePartner,
   endFocus,
   grantFocus,
   recomputeDealCommissions,
@@ -27,10 +28,12 @@ import {
   setPartnerStatus,
   setPartnerTier,
   setScorecardCheckpoint,
+  updatePartnerProfileAdmin,
   upsertPartnerConfigOverride,
 } from "@/lib/actions/partner-admin";
 import { COMMON_CURRENCIES, convertMinor, entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
+import { ConfirmButton } from "@/components/admin/confirm-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -96,6 +99,29 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
         <Card><p className="text-sm text-slate-500">Paid seats</p><p className="mt-2 text-xl font-semibold text-navy-900">{paidSeats}</p></Card>
         <Card><p className="text-sm text-slate-500">Commission paid (net)</p><p className="mt-2 text-xl font-semibold text-navy-900">{formatMoney(payoutTotal("PAID"), payoutCurrency)}</p></Card>
       </div>
+
+      {/* Edit profile */}
+      <Card>
+        <h2 className="text-lg font-semibold text-navy-900">Edit profile</h2>
+        <form action={updatePartnerProfileAdmin} className="mt-4 grid gap-3 md:grid-cols-3">
+          <input type="hidden" name="partnerId" value={partner.id} />
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Display name</span>
+            <Input name="displayName" defaultValue={partner.displayName} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Contact email</span>
+            <Input name="contactEmail" type="email" defaultValue={partner.contactEmail} />
+          </label>
+          <label className="space-y-1">
+            <span className="text-xs font-medium text-slate-600">Country</span>
+            <Input name="country" defaultValue={partner.country ?? ""} />
+          </label>
+          <div className="md:col-span-3">
+            <Button type="submit" size="sm">Save profile</Button>
+          </div>
+        </form>
+      </Card>
 
       {/* Lifecycle actions */}
       <Card className="space-y-4">
@@ -351,6 +377,28 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             <Button type="submit">Save overrides</Button>
           </div>
         </form>
+      </Card>
+
+      {/* Danger zone */}
+      <Card className="border-red-200">
+        <h2 className="text-lg font-semibold text-red-700">Danger zone</h2>
+        {partner.closedDeals.length > 0 || partner.commissions.length > 0 ? (
+          <p className="mt-2 text-sm text-slate-600">
+            This partner has recorded financial history (closed deals or commissions) and cannot be deleted. Deactivate
+            or terminate the partner instead.
+          </p>
+        ) : (
+          <form className="mt-3">
+            <input type="hidden" name="partnerId" value={partner.id} />
+            <p className="mb-3 text-sm text-slate-600">
+              Permanently delete this partner and its pilot, scorecard, registrations and config. The linked sign-in
+              account is reset. This cannot be undone.
+            </p>
+            <ConfirmButton action={deletePartner} message={`Permanently delete partner "${partner.displayName}"? This cannot be undone.`}>
+              Delete partner
+            </ConfirmButton>
+          </form>
+        )}
       </Card>
     </div>
   );

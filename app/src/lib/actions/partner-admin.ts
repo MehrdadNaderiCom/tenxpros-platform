@@ -1,9 +1,10 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
+import { redirect } from "next/navigation";
 import type { PartnerFunction, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdminUser } from "@/lib/authz";
+import { requireAdminUser, requireSuperAdmin } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
 import { safeSendEmail } from "@/lib/services/email";
 import {
@@ -13,6 +14,7 @@ import {
 import {
   confirmDealSchema,
   declineDealSchema,
+  partnerProfileSchema,
   reviewApplicationSchema,
 } from "@/lib/validations/partner";
 import {
@@ -795,4 +797,112 @@ export async function decideTenXOpsEngagement(formData: FormData) {
   }
   safeRevalidatePath("/admin/partners/deal-registrations");
   safeRevalidatePath(`/admin/partners/${engagement.partnerId}`);
+}
+
+// ===========================================================================
+// Admin edit / delete
+// ===========================================================================
+
+/** Admin edit of a partner's core profile (display name, contact email, country). */
+export async function updatePartnerProfileAdmin(formData: FormData) {
+  const admin = await requireAdminUser();
+  const partnerId = String(formData.get("partnerId") ?? "");
+  const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
+  const parsed = partnerProfileSchema.safeParse({
+    displayName: formData.get("displayName"),
+    contactEmail: formData.get("contactEmail"),
+    country: formData.get("country") || undefined,
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Please check the form.");
+  await prisma.partner.update({
+    where: { id: partnerId },
+    data: {
+      displayName: parsed.data.displayName,
+      contactEmail: parsed.data.contactEmail,
+      country: parsed.data.country || null,
+    },
+  });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "PARTNER_PROFILE_UPDATED",
+    entity: "Partner",
+    entityId: partnerId,
+    before: { displayName: partner.displayName, contactEmail: partner.contactEmail, country: partner.country },
+    after: parsed.data,
+  });
+  safeRevalidatePath(`/admin/partners/${partnerId}`);
+  safeRevalidatePath("/admin/partners");
+}
+
+/**
+ * Permanently delete a partner. Blocked when the partner has recorded financial
+ * history (closed deals or commission entries are RESTRICT-protected for the
+ * audit trail); deactivate or terminate such a partner instead. Otherwise
+ * cascade-removes the pilot/scorecard/config/registrations and demotes the
+ * linked user back to APPLICANT. Super-admin only.
+ */
+export async function deletePartner(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const partnerId = String(formData.get("partnerId") ?? "");
+  const partner = await prisma.partner.findUniqueOrThrow({
+    where: { id: partnerId },
+    include: { _count: { select: { closedDeals: true, commissions: true } } },
+  });
+  if (partner._count.closedDeals > 0 || partner._count.commissions > 0) {
+    throw new Error(
+      "This partner has recorded financial history (closed deals or commissions) and cannot be deleted. Deactivate or terminate instead.",
+    );
+  }
+  await prisma.$transaction(async (tx) => {
+    if (partner.userId) {
+      const user = await tx.user.findUnique({ where: { id: partner.userId }, select: { role: true } });
+      if (user?.role === "PARTNER") {
+        await tx.user.update({ where: { id: partner.userId }, data: { role: "APPLICANT" } });
+      }
+    }
+    await tx.partner.delete({ where: { id: partnerId } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "PARTNER_DELETED",
+        entity: "Partner",
+        entityId: partnerId,
+        changes: { before: { displayName: partner.displayName, contactEmail: partner.contactEmail, status: partner.status } },
+      },
+    });
+  });
+  safeRevalidatePath("/admin/partners");
+  redirect("/admin/partners");
+}
+
+/**
+ * Permanently delete a partner application (cascade-removes its uploaded resume /
+ * cover letter). Blocked once the application has been approved into a partner;
+ * delete that partner record first. Super-admin only.
+ */
+export async function deletePartnerApplication(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const applicationId = String(formData.get("applicationId") ?? "");
+  const application = await prisma.partnerApplication.findUniqueOrThrow({
+    where: { id: applicationId },
+    include: { partner: { select: { id: true } } },
+  });
+  if (application.partner) {
+    throw new Error("This application was approved into a partner. Delete the partner record first.");
+  }
+  await prisma.partnerApplication.delete({ where: { id: applicationId } });
+  await prisma.auditLog.create({
+    data: {
+      actorId: admin.id,
+      actorRole: admin.role,
+      action: "PARTNER_APPLICATION_DELETED",
+      entity: "PartnerApplication",
+      entityId: applicationId,
+      changes: { before: { fullName: application.fullName, email: application.email, status: application.status } },
+    },
+  });
+  safeRevalidatePath("/admin/partners/applications");
+  redirect("/admin/partners/applications");
 }
