@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function TicketsPage() {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const tickets = await prisma.ticket.findMany({
-    where: { userId: session?.user.id ?? "" },
+    where: { userId: viewUserId ?? "" },
     include: { messages: true },
     orderBy: { updatedAt: "desc" },
   });

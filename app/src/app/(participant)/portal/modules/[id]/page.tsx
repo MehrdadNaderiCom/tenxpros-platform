@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { startModule, submitModuleArtifact } from "@/lib/actions/participant";
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,8 @@ import { Field, Input, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function ModulePage({ params }: { params: { id: string } }) {
-  const session = await auth();
-  const profile = await prisma.participantProfile.findUnique({ where: { userId: session?.user.id ?? "" } });
+  const viewUserId = await resolvePortalUserId();
+  const profile = await prisma.participantProfile.findUnique({ where: { userId: viewUserId ?? "" } });
   const item = await prisma.participantModule.findFirst({
     where: { id: params.id, participantId: profile?.id },
     include: { module: true },

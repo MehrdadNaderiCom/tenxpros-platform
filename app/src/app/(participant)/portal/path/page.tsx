@@ -1,13 +1,13 @@
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function PathPage() {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const profile = await prisma.participantProfile.findUnique({
-    where: { userId: session?.user.id ?? "" },
+    where: { userId: viewUserId ?? "" },
     include: {
       path: true,
       diagnostic: true,

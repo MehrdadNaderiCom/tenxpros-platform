@@ -21,6 +21,7 @@ export default async function ParticipantsPage() {
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Modules</th>
               <th className="px-4 py-3">Enrolled</th>
+              <th className="px-4 py-3 text-right">Portal</th>
             </tr>
           </thead>
           <tbody>
@@ -36,6 +37,16 @@ export default async function ParticipantsPage() {
                 <td className="px-4 py-3"><Badge status={participant.status}>{participant.status}</Badge></td>
                 <td className="px-4 py-3">{participant.participantModules.filter((m) => m.status === "PASSED").length}/11 passed</td>
                 <td className="px-4 py-3">{participant.enrolledAt.toLocaleDateString()}</td>
+                <td className="px-4 py-3 text-right">
+                  <a
+                    href={`/admin/impersonate/participant/${participant.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
+                  >
+                    Open portal
+                  </a>
+                </td>
               </tr>
             ))}
           </tbody>

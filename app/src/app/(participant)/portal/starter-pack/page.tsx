@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { completeStarterPack } from "@/lib/actions/participant";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function StarterPackPage() {
-  const session = await auth();
-  const profile = await prisma.participantProfile.findUnique({ where: { userId: session?.user.id ?? "" } });
+  const viewUserId = await resolvePortalUserId();
+  const profile = await prisma.participantProfile.findUnique({ where: { userId: viewUserId ?? "" } });
   const completed = Boolean(profile?.starterPackCompletedAt);
 
   return (

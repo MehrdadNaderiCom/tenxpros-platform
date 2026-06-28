@@ -31,6 +31,14 @@ export default async function ParticipantDetailPage({ params }: { params: { id: 
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <a
+            href={`/admin/impersonate/participant/${participant.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-9 items-center rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50"
+          >
+            Open portal (read-only)
+          </a>
           {participant.dossier ? (
             <ButtonLink href={`/admin/dossiers/${participant.dossier.id}`} variant="secondary" size="sm">
               Dossier

@@ -20,6 +20,7 @@ import {
   applyRefund,
   confirmActivationGate,
   deletePartner,
+  forceDeletePartner,
   endFocus,
   grantFocus,
   recomputeDealCommissions,
@@ -34,6 +35,7 @@ import {
 import { COMMON_CURRENCIES, convertMinor, entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { ForceDeleteButton } from "@/components/admin/force-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,6 +89,14 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PageHeader title={partner.displayName} description={partner.contactEmail} />
         <div className="flex items-center gap-2">
+          <a
+            href={`/admin/impersonate/partner/${partner.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-9 items-center rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50"
+          >
+            Open panel (read-only)
+          </a>
           <Badge status={partner.status === "TERMINATED" ? "NOT_COMPLETED" : "ACTIVE"}>{PARTNER_STATUS_LABELS[partner.status]}</Badge>
           <Badge status="ENROLLED">{partner.tier}</Badge>
         </div>
@@ -430,10 +440,17 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             </p>
           </div>
           {partner.closedDeals.length > 0 || partner.commissions.length > 0 ? (
-            <span className="max-w-xs text-xs text-slate-500">
-              Has financial history (closed deals or commissions), so it cannot be deleted. Use “End collaboration” above,
-              which keeps the records.
-            </span>
+            <div className="max-w-sm space-y-3">
+              <p className="text-xs text-slate-500">
+                Normal delete is blocked because there is financial history (closed deals or commissions). Prefer
+                “End collaboration” above, which keeps the records. If you must remove everything, force delete will also
+                erase the financial history.
+              </p>
+              <form>
+                <input type="hidden" name="partnerId" value={partner.id} />
+                <ForceDeleteButton action={forceDeletePartner} partnerName={partner.displayName} />
+              </form>
+            </div>
           ) : (
             <form>
               <input type="hidden" name="partnerId" value={partner.id} />

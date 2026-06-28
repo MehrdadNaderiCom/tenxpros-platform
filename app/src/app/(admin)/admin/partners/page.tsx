@@ -115,6 +115,14 @@ export default async function AdminPartnersPage() {
                         <Button type="submit" size="sm" variant="ghost">Reactivate</Button>
                       </form>
                     )}
+                    <a
+                      href={`/admin/impersonate/partner/${p.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
+                    >
+                      Panel
+                    </a>
                     <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-600 hover:underline">
                       Manage
                     </Link>

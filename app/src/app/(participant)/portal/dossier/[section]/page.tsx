@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { DossierSectionEditor } from "@/components/participant/dossier-section-editor";
 import { Badge } from "@/components/ui/badge";
@@ -7,9 +7,9 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function DossierSectionPage({ params }: { params: { section: string } }) {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const section = await prisma.dossierSection.findFirst({
-    where: { id: params.section, dossier: { participant: { userId: session?.user.id ?? "" } } },
+    where: { id: params.section, dossier: { participant: { userId: viewUserId ?? "" } } },
     include: { feedback: { orderBy: { createdAt: "desc" } } },
   });
   if (!section) notFound();

@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function DossierPage() {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const dossier = await prisma.dossier.findFirst({
-    where: { participant: { userId: session?.user.id ?? "" } },
+    where: { participant: { userId: viewUserId ?? "" } },
     include: { sections: { orderBy: { order: "asc" } } },
   });
   if (!dossier) throw new Error("Dossier not found.");

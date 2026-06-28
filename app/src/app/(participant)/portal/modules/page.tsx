@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function ModulesPage() {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const profile = await prisma.participantProfile.findUnique({
-    where: { userId: session?.user.id ?? "" },
+    where: { userId: viewUserId ?? "" },
     include: { participantModules: { include: { module: true }, orderBy: { module: { number: "asc" } } } },
   });
   if (!profile) throw new Error("Participant profile not found.");

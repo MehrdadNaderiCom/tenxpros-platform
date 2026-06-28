@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { updateDirectoryProfile } from "@/lib/actions/participant";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,9 @@ import { Field, Input, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function ProfilePage() {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const profile = await prisma.participantProfile.findUnique({
-    where: { userId: session?.user.id ?? "" },
+    where: { userId: viewUserId ?? "" },
     include: { user: { include: { directoryProfile: true, earnedBadges: { include: { badge: true } } } } },
   });
   if (!profile) throw new Error("Participant profile not found.");

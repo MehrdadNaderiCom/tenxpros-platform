@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { PrintButton } from "@/components/shared/print-button";
 import { Badge } from "@/components/ui/badge";
@@ -6,9 +6,9 @@ import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function DossierPreviewPage() {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const dossier = await prisma.dossier.findFirst({
-    where: { participant: { userId: session?.user.id ?? "" } },
+    where: { participant: { userId: viewUserId ?? "" } },
     include: {
       participant: { include: { user: true, certification: true } },
       sections: { orderBy: { order: "asc" } },

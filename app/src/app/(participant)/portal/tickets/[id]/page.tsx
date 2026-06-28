@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { addTicketMessage } from "@/lib/actions/participant";
-import { auth } from "@/lib/auth";
+import { resolvePortalUserId } from "@/lib/participant/view";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function TicketPage({ params }: { params: { id: string } }) {
-  const session = await auth();
+  const viewUserId = await resolvePortalUserId();
   const ticket = await prisma.ticket.findFirst({
-    where: { id: params.id, userId: session?.user.id ?? "" },
+    where: { id: params.id, userId: viewUserId ?? "" },
     include: { messages: { include: { user: true }, orderBy: { createdAt: "asc" } } },
   });
   if (!ticket) notFound();
