@@ -5,7 +5,8 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/utils";
 import { superAdminEmail } from "@/lib/authz";
-import { partnerApplicationSchema } from "@/lib/validations/partner";
+import { partnerApplicationSchema, partnerDocumentFileError } from "@/lib/validations/partner";
+import { isPdfMagic } from "@/lib/validations/application";
 import { safeSendEmail } from "@/lib/services/email";
 import {
   partnerApplicationNotifyAdminEmail,
@@ -97,27 +98,66 @@ export async function submitPartnerApplication(formData: FormData): Promise<Resu
     };
   }
 
-  const application = await prisma.partnerApplication.create({
-    data: {
-      fullName: data.fullName,
-      email: data.email,
-      phone: data.phone || null,
-      country: data.country,
-      region: data.region || null,
-      linkedinUrl: data.linkedinUrl || null,
-      background: data.background,
-      audience: data.audience,
-      targetMarkets: data.targetMarkets,
-      accountJustification: data.accountJustification,
-      heardFrom: data.heardFrom || null,
-      consentNoEquity: data.consentNoEquity,
-      utmSource: data.utmSource || null,
-      utmMedium: data.utmMedium || null,
-      utmCampaign: data.utmCampaign || null,
-      referrerUrl: data.referrerUrl || null,
-      landingPage: data.landingPage || null,
-      ipHash,
-    },
+  // Optional resume / cover letter: PDF only, validated by type, size and the
+  // "%PDF-" magic bytes. Buffers are built before the write so the create and
+  // its documents happen together in one transaction.
+  const docInputs = [
+    { kind: "RESUME" as const, field: "resume", label: "Resume" },
+    { kind: "COVER_LETTER" as const, field: "coverLetter", label: "Cover letter" },
+  ];
+  const documents: Array<{
+    kind: "RESUME" | "COVER_LETTER";
+    filename: string;
+    mimeType: string;
+    size: number;
+    data: Buffer;
+  }> = [];
+  for (const d of docInputs) {
+    const entry = formData.get(d.field);
+    const file = entry instanceof File && entry.size > 0 ? entry : null;
+    if (!file) continue;
+    const fileError = partnerDocumentFileError({ type: file.type, size: file.size }, d.label);
+    if (fileError) return { ok: false, message: fileError };
+    const buffer = Buffer.from(await file.arrayBuffer());
+    if (!isPdfMagic(new Uint8Array(buffer.subarray(0, 8)))) {
+      return { ok: false, message: `${d.label} must be a valid PDF file.` };
+    }
+    documents.push({
+      kind: d.kind,
+      filename: file.name || `${d.field}.pdf`,
+      mimeType: "application/pdf",
+      size: buffer.length,
+      data: buffer,
+    });
+  }
+
+  const application = await prisma.$transaction(async (tx) => {
+    const created = await tx.partnerApplication.create({
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone || null,
+        country: data.country,
+        region: data.region || null,
+        linkedinUrl: data.linkedinUrl || null,
+        background: data.background,
+        audience: data.audience,
+        targetMarkets: data.targetMarkets,
+        accountJustification: data.accountJustification,
+        heardFrom: data.heardFrom || null,
+        consentNoEquity: data.consentNoEquity,
+        utmSource: data.utmSource || null,
+        utmMedium: data.utmMedium || null,
+        utmCampaign: data.utmCampaign || null,
+        referrerUrl: data.referrerUrl || null,
+        landingPage: data.landingPage || null,
+        ipHash,
+      },
+    });
+    for (const doc of documents) {
+      await tx.partnerApplicationDocument.create({ data: { applicationId: created.id, ...doc } });
+    }
+    return created;
   });
 
   await prisma.siteEvent.create({
@@ -148,6 +188,7 @@ export async function submitPartnerApplication(formData: FormData): Promise<Resu
     audience: application.audience,
     applicationId: application.id,
     adminUrl: absoluteUrl(`/admin/partners/applications/${application.id}`),
+    attachments: documents.map((doc) => (doc.kind === "RESUME" ? "Resume" : "Cover letter")),
   });
   await safeSendEmail({ to: superAdminEmail(), subject: notify.subject, template: "partner_application_notify", text: notify.text, html: notify.html });
 

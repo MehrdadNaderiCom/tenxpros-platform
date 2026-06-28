@@ -5,7 +5,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submitPartnerApplication } from "@/lib/actions/partner-public";
-import { AUDIENCE_OPTIONS, partnerApplicationSchema, type PartnerApplicationInput } from "@/lib/validations/partner";
+import {
+  AUDIENCE_OPTIONS,
+  partnerApplicationSchema,
+  partnerDocumentFileError,
+  type PartnerApplicationInput,
+} from "@/lib/validations/partner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
@@ -22,7 +27,10 @@ export function PartnerApplicationForm() {
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const honeypotRef = useRef<HTMLInputElement>(null);
+  const resumeRef = useRef<HTMLInputElement>(null);
+  const coverLetterRef = useRef<HTMLInputElement>(null);
   const {
     register,
     handleSubmit,
@@ -40,12 +48,28 @@ export function PartnerApplicationForm() {
 
   const onSubmit = (data: PartnerApplicationInput) => {
     setServerError(null);
+    setFileError(null);
+
+    // Optional resume / cover letter: validate type and size on the client for a
+    // fast error; the server re-validates (and checks the PDF magic bytes).
+    const resumeFile = resumeRef.current?.files?.[0] ?? null;
+    const coverFile = coverLetterRef.current?.files?.[0] ?? null;
+    const docError =
+      (resumeFile ? partnerDocumentFileError({ type: resumeFile.type, size: resumeFile.size }, "Resume") : null) ??
+      (coverFile ? partnerDocumentFileError({ type: coverFile.type, size: coverFile.size }, "Cover letter") : null);
+    if (docError) {
+      setFileError(docError);
+      return;
+    }
+
     startTransition(async () => {
       const formData = new FormData();
       for (const [key, value] of Object.entries(data)) {
         if (value === undefined || value === null) continue;
         formData.append(key, typeof value === "boolean" ? String(value) : String(value));
       }
+      if (resumeFile) formData.append("resume", resumeFile);
+      if (coverFile) formData.append("coverLetter", coverFile);
       // Honeypot (not part of the validated schema): forward its value so the
       // server-side spam guard can drop bot submissions that fill it.
       formData.append("companyWebsite", honeypotRef.current?.value ?? "");
@@ -150,6 +174,43 @@ export function PartnerApplicationForm() {
           <Field label="How did you hear about the program?" optional error={errors.heardFrom?.message}>
             <Input {...register("heardFrom")} placeholder="e.g. LinkedIn, a colleague, the website" />
           </Field>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold text-navy-900">Resume and cover letter</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              Optional. If you have them, a resume and a short cover letter give us more to go on. PDF only, up to 5 MB
+              each.
+            </p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field label="Resume (PDF)" optional>
+              <input
+                ref={resumeRef}
+                type="file"
+                name="resume"
+                accept="application/pdf"
+                onChange={() => setFileError(null)}
+                className="block h-11 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition file:mr-3 file:rounded file:border-0 file:bg-navy-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-navy-700 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20"
+              />
+            </Field>
+            <Field label="Cover letter (PDF)" optional>
+              <input
+                ref={coverLetterRef}
+                type="file"
+                name="coverLetter"
+                accept="application/pdf"
+                onChange={() => setFileError(null)}
+                className="block h-11 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition file:mr-3 file:rounded file:border-0 file:bg-navy-50 file:px-3 file:py-1 file:text-sm file:font-medium file:text-navy-700 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20"
+              />
+            </Field>
+          </div>
+          {fileError ? (
+            <p role="alert" className="text-sm text-red-600">
+              {fileError}
+            </p>
+          ) : null}
         </section>
 
         <div className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">

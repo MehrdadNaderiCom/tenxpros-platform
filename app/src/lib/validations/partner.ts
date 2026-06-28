@@ -43,6 +43,25 @@ export const partnerApplicationSchema = z.object({
 
 export type PartnerApplicationInput = z.infer<typeof partnerApplicationSchema>;
 
+// ---------------------------------------------------------------------------
+// Optional application documents (resume / cover letter). PDF only, shared by
+// the client form and the server action so the rule stays in one place.
+// ---------------------------------------------------------------------------
+
+export const PARTNER_DOC_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+
+/** Validate an optional uploaded partner document. Returns a user-facing message or null. */
+export function partnerDocumentFileError(
+  file: { type: string; size: number } | null | undefined,
+  label: string,
+): string | null {
+  if (!file) return null;
+  if (file.type !== "application/pdf") return `${label} must be a PDF file.`;
+  if (file.size <= 0) return `${label} file is empty.`;
+  if (file.size > PARTNER_DOC_MAX_BYTES) return `${label} must be 5 MB or smaller.`;
+  return null;
+}
+
 export const AUDIENCE_OPTIONS = [
   ["B2C", "Individual professionals (B2C)"],
   ["B2B", "Organisations / teams (B2B)"],

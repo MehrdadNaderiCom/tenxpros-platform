@@ -23,9 +23,16 @@ function Detail({ label, value }: { label: string; value?: string | null }) {
 export default async function PartnerApplicationDetailPage({ params }: { params: { id: string } }) {
   const a = await prisma.partnerApplication.findUnique({
     where: { id: params.id },
-    include: { partner: true },
+    include: {
+      partner: true,
+      // Metadata only — never load the file bytes into the page.
+      documents: { select: { kind: true, filename: true, size: true } },
+    },
   });
   if (!a) notFound();
+
+  const DOC_LABELS: Record<string, string> = { RESUME: "Resume", COVER_LETTER: "Cover letter" };
+  const DOC_SLUGS: Record<string, string> = { RESUME: "resume", COVER_LETTER: "cover-letter" };
 
   const decided = a.status === "APPROVED" || a.status === "REJECTED";
 
@@ -46,7 +53,7 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
         <Detail label="LinkedIn / profile" value={a.linkedinUrl} />
         <Detail label="Sells to" value={a.audience} />
         <Detail label="Heard from" value={a.heardFrom} />
-        <Detail label="Acknowledged no-equity terms" value={a.consentNoEquity ? "Yes" : "No"} />
+        <Detail label="Agreed to Partner Program Terms" value={a.consentNoEquity ? "Yes" : "No"} />
       </Card>
 
       <Card className="space-y-5">
@@ -54,6 +61,28 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
         <Detail label="Target markets / organisations" value={a.targetMarkets} />
         <Detail label="Case for these accounts" value={a.accountJustification} />
       </Card>
+
+      {a.documents.length > 0 ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold text-navy-900">Attached documents</h2>
+          <div className="flex flex-wrap gap-3">
+            {a.documents.map((doc) => (
+              <a
+                key={doc.kind}
+                href={`/admin/partners/applications/${a.id}/document/${DOC_SLUGS[doc.kind]}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-navy-700 transition hover:bg-navy-50"
+              >
+                {DOC_LABELS[doc.kind]}
+                <span className="text-xs font-normal text-slate-500">
+                  {Math.max(1, Math.round(doc.size / 1024))} KB · PDF
+                </span>
+              </a>
+            ))}
+          </div>
+        </Card>
+      ) : null}
 
       {a.partner ? (
         <Card className="border-emerald-200 bg-emerald-50">

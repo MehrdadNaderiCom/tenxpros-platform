@@ -402,8 +402,10 @@ export function partnerApplicationNotifyAdminEmail(params: {
   audience: string;
   applicationId: string;
   adminUrl: string;
+  attachments?: string[];
 }): EmailContent {
-  const { fullName, email, country, audience, applicationId, adminUrl } = params;
+  const { fullName, email, country, audience, applicationId, adminUrl, attachments } = params;
+  const attached = attachments && attachments.length > 0 ? attachments.join(", ") : "None";
   const bodyHtml =
     paragraph("A new Partner Program application has been submitted.") +
     infoBox([
@@ -411,6 +413,7 @@ export function partnerApplicationNotifyAdminEmail(params: {
       { label: "Email", value: email },
       { label: "Country", value: country },
       { label: "Sells to", value: audience },
+      { label: "Attachments", value: attached },
       { label: "Application ID", value: applicationId },
     ]) +
     button(adminUrl, "Review in admin");
@@ -422,6 +425,7 @@ export function partnerApplicationNotifyAdminEmail(params: {
     `Email: ${email}`,
     `Country: ${country}`,
     `Sells to: ${audience}`,
+    `Attachments: ${attached}`,
     `Application ID: ${applicationId}`,
     "",
     `Review: ${adminUrl}`,
