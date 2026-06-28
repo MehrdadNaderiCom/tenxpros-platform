@@ -17,7 +17,7 @@ export default function DirectoryPage() {
         eyebrow="Coming soon"
         title="No Certified TenXPro profiles are public yet."
         description="Profiles become eligible only after certification and explicit opt-in. Until then, the directory stays closed rather than padded with placeholders."
-        actionLabel="Apply for Founding Charter"
+        actionLabel="Apply for Certification"
         actionHref="/apply"
       />
     </main>

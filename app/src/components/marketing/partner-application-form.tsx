@@ -173,7 +173,7 @@ export function PartnerApplicationForm() {
         </div>
 
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Submitting..." : "Submit application"}
+          {isPending ? "Submitting..." : "Submit partner application"}
         </Button>
       </form>
     </Card>

@@ -57,7 +57,7 @@ export default function HowItWorksPage() {
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
-                Apply for Founding Charter
+                Apply for Certification
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </ButtonLink>
               <ButtonLink href="/dossier" size="lg" variant="secondary" className={SECONDARY_CTA}>
@@ -111,7 +111,7 @@ export default function HowItWorksPage() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
-              Apply for Founding Charter
+              Apply for Certification
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </ButtonLink>
             <ButtonLink href="/certification" size="lg" variant="secondary" className={SECONDARY_CTA}>

@@ -82,7 +82,7 @@ export function ProgramHero() {
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
-              Apply for Founding Charter
+              Apply for Certification
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </ButtonLink>
             <ButtonLink
@@ -570,7 +570,7 @@ export function ProgramFinalCta() {
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
-              Apply for Founding Charter
+              Apply for Certification
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </ButtonLink>
             <ButtonLink

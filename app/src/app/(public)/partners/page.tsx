@@ -24,7 +24,7 @@ const STAGES: Array<[string, string]> = [
   ],
   [
     "Lead a focus",
-    "A proven Tier 3 partner can earn a focus on one industry or region, with a growth bonus and public recognition as its lead partner.",
+    "A proven Tier 3 partner can earn a focus on one industry or region, with a focus bonus and public recognition as its lead partner.",
   ],
 ];
 
@@ -97,7 +97,7 @@ export default function PartnersPage() {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href="/partners/apply" size="lg" className="bg-indigo-500 text-white hover:bg-indigo-400">
-              Apply now
+              Apply to become a partner
             </ButtonLink>
             <ButtonLink href="#how" size="lg" variant="secondary">
               How it works
@@ -241,7 +241,7 @@ export default function PartnersPage() {
             </p>
           </div>
           <ButtonLink href="/partners/apply" size="lg" className="bg-gold-500 text-navy-900 hover:bg-gold-400">
-            Apply now
+            Apply to become a partner
           </ButtonLink>
         </Card>
       </Section>
