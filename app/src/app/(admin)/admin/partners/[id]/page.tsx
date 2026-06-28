@@ -448,7 +448,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
               </p>
               <form>
                 <input type="hidden" name="partnerId" value={partner.id} />
-                <ForceDeleteButton action={forceDeletePartner} partnerName={partner.displayName} />
+                <ForceDeleteButton action={forceDeletePartner} name={partner.displayName} />
               </form>
             </div>
           ) : (

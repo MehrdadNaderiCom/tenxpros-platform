@@ -103,3 +103,81 @@ export async function deleteUser(formData: FormData) {
   safeRevalidatePath("/admin/users");
   redirect("/admin/users");
 }
+
+/**
+ * FORCE delete a user AND everything they own: any partner record (deals,
+ * commissions, seats, refunds), participant record (dossier, modules, path,
+ * diagnostic, certification review, payments), and certification application
+ * (resume, payments), plus tickets and directory entry. Destroys all of that
+ * history and is irreversible; the UI requires a checkbox acknowledgement plus
+ * two confirmation dialogs, and the server re-checks the acknowledgement.
+ * Super-admin only. A super-admin account and your own account are protected.
+ */
+export async function forceDeleteUser(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const userId = String(formData.get("userId") ?? "");
+  if (String(formData.get("acknowledge") ?? "") !== "on") {
+    throw new Error("You must acknowledge that this permanently deletes the user and all of their records.");
+  }
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    include: {
+      application: { select: { id: true } },
+      participantProfile: { select: { id: true } },
+      partner: { select: { id: true } },
+    },
+  });
+  if (isSuperAdmin(user.email)) throw new Error("A super-admin account cannot be deleted here.");
+  if (user.id === admin.id) throw new Error("You cannot delete your own account.");
+
+  await prisma.$transaction(async (tx) => {
+    // Partner side (RESTRICT financial records first, then the partner cascade).
+    if (user.partner) {
+      const partnerId = user.partner.id;
+      await tx.commissionEntry.deleteMany({ where: { partnerId } });
+      await tx.qualityFlag.deleteMany({ where: { partnerId } });
+      await tx.closedDeal.deleteMany({ where: { partnerId } });
+      await tx.partner.delete({ where: { id: partnerId } });
+    }
+    // Participant side (every RESTRICT child, then the profile).
+    if (user.participantProfile) {
+      const participantId = user.participantProfile.id;
+      await tx.dossierSection.deleteMany({ where: { dossier: { participantId } } });
+      await tx.dossier.deleteMany({ where: { participantId } });
+      await tx.diagnosticIntake.deleteMany({ where: { participantId } });
+      await tx.programPath.deleteMany({ where: { participantId } });
+      await tx.participantModule.deleteMany({ where: { participantId } });
+      await tx.certificationReview.deleteMany({ where: { participantId } });
+      await tx.paymentRecord.deleteMany({ where: { participantId } });
+      await tx.participantProfile.delete({ where: { id: participantId } });
+    }
+    // Certification application side (payments, then the application cascade).
+    if (user.application) {
+      const applicationId = user.application.id;
+      await tx.paymentRecord.deleteMany({ where: { applicationId } });
+      await tx.application.delete({ where: { id: applicationId } });
+    }
+    // User-owned light rows, then the user (cascades sessions/accounts/badges).
+    await tx.ticketMessage.deleteMany({ where: { userId } });
+    await tx.ticket.deleteMany({ where: { userId } });
+    await tx.directoryProfile.deleteMany({ where: { userId } });
+    await tx.user.delete({ where: { id: userId } });
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "USER_FORCE_DELETED",
+        entity: "User",
+        entityId: userId,
+        changes: {
+          before: { email: user.email, role: user.role, name: user.name },
+          after: { hadPartner: Boolean(user.partner), hadParticipant: Boolean(user.participantProfile), hadApplication: Boolean(user.application) },
+        },
+      },
+    });
+  });
+
+  safeRevalidatePath("/admin/users");
+  redirect("/admin/users");
+}

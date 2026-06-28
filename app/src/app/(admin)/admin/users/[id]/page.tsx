@@ -2,10 +2,11 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/authz";
-import { updateUser, deleteUser } from "@/lib/actions/users";
+import { updateUser, deleteUser, forceDeleteUser } from "@/lib/actions/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/admin/confirm-button";
+import { ForceDeleteButton } from "@/components/admin/force-delete-button";
 import { Input, Select } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
@@ -111,10 +112,23 @@ export default async function UserDetailPage({ params }: { params: { id: string 
             {isSuper ? (
               <p className="mt-2 text-sm text-slate-600">A super-admin account cannot be deleted here.</p>
             ) : hasLinkedEntity ? (
-              <p className="mt-2 text-sm text-slate-600">
-                This user owns an application, participant profile, or partner record. Delete that record first
-                (Applications / Participants / Partners), then delete the user.
-              </p>
+              <div className="mt-3 max-w-lg space-y-3">
+                <p className="text-sm text-slate-600">
+                  This user owns an application, participant profile, or partner record. Prefer deleting that record
+                  from its own page (Applications / Participants / Partners). If you must remove everything for this
+                  person, force delete will also erase those records and their history.
+                </p>
+                <form>
+                  <input type="hidden" name="userId" value={user.id} />
+                  <ForceDeleteButton
+                    action={forceDeleteUser}
+                    name={user.name ?? user.email}
+                    label="Force delete user (everything)"
+                    acknowledgeText="I understand this permanently deletes this user AND everything they own: any application, participant record (dossier, modules, certification), partner record (deals, commissions), payments and history. This cannot be undone."
+                    confirm1={`Force delete "${user.name ?? user.email}" and EVERYTHING they own (application, participant, partner, payments, history)? This cannot be undone.`}
+                  />
+                </form>
+              </div>
             ) : (
               <form className="mt-3">
                 <input type="hidden" name="userId" value={user.id} />
