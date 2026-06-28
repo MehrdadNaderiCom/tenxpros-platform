@@ -25,17 +25,24 @@ export default function LoginPage({
     const password = String(formData.get("password") ?? "");
     const requested = String(formData.get("callbackUrl") ?? "");
 
-    // Honor an explicit in-app callbackUrl; otherwise send admins to /admin and
-    // everyone else to /portal.
-    let destination =
+    // Route by role: ADMIN -> /admin, PARTNER -> /partner (the Partner Panel),
+    // everyone else -> /portal. An explicit in-app callbackUrl is honored only
+    // when it suits the user's role, so an approved partner is never bounced into
+    // /portal (which middleware blocks for the PARTNER role) and loops at /login.
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+      select: { role: true },
+    });
+    const role = user?.role;
+    const home = role === "ADMIN" ? "/admin" : role === "PARTNER" ? "/partner" : "/portal";
+
+    const wanted =
       requested.startsWith("/") && !requested.startsWith("/login") ? requested : "";
-    if (!destination) {
-      const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() },
-        select: { role: true },
-      });
-      destination = user?.role === "ADMIN" ? "/admin" : "/portal";
-    }
+    const inArea = (path: string, area: string) => path === area || path.startsWith(`${area}/`);
+    let destination = wanted || home;
+    if (role === "PARTNER" && !inArea(destination, "/partner")) destination = "/partner";
+    if (role !== "ADMIN" && inArea(destination, "/admin")) destination = home;
+    if (role !== "PARTNER" && inArea(destination, "/partner")) destination = home;
 
     try {
       await signIn("credentials", { email, password, redirectTo: destination });
