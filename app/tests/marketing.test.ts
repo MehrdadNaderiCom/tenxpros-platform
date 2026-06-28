@@ -154,6 +154,9 @@ describe("marketing security gating (source regression)", () => {
   });
 
   it("super admin defaults to the founder account", () => {
-    expect(authz).toContain('process.env.SUPER_ADMIN_EMAIL ?? "mail@mehrdadnaderi.com"');
+    // The founder account is always a default super admin (listed first, so it is
+    // also the primary notification recipient); SUPER_ADMIN_EMAILS overrides the set.
+    expect(authz).toContain('process.env.SUPER_ADMIN_EMAILS ?? "mail@mehrdadnaderi.com,pegah.rostam@gmail.com"');
+    expect(authz).toContain("superAdminEmails()[0]");
   });
 });

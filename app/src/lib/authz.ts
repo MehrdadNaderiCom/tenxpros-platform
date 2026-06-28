@@ -25,9 +25,22 @@ export async function requireAdminUser(): Promise<AuthorizedAdminUser> {
   };
 }
 
-/** The single account allowed into Marketing (TenXPros Command). */
+/**
+ * Every account with super-admin powers (Marketing/Command, destructive partner
+ * operations, and read-only panel preview). Override with the SUPER_ADMIN_EMAILS
+ * env var (comma-separated); defaults to the two program owners.
+ */
+export function superAdminEmails(): string[] {
+  const raw = process.env.SUPER_ADMIN_EMAILS ?? "mail@mehrdadnaderi.com,pegah.rostam@gmail.com";
+  return raw
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+/** The primary super admin — the recipient for owner notifications. */
 export function superAdminEmail(): string {
-  return process.env.SUPER_ADMIN_EMAIL ?? "mail@mehrdadnaderi.com";
+  return superAdminEmails()[0] ?? "mail@mehrdadnaderi.com";
 }
 
 /**
@@ -39,7 +52,7 @@ export function isProtectedSettingKey(key: string): boolean {
 }
 
 export function isSuperAdmin(email?: string | null): boolean {
-  return Boolean(email && email.toLowerCase() === superAdminEmail().toLowerCase());
+  return Boolean(email && superAdminEmails().includes(email.toLowerCase()));
 }
 
 /**
