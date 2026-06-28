@@ -443,6 +443,54 @@ export function partnerApplicationNotifyAdminEmail(params: {
   };
 }
 
+/** Notify the program owner that a new certification application arrived. */
+export function applicationNotifyAdminEmail(params: {
+  fullName: string;
+  email: string;
+  country: string;
+  professionalRole: string;
+  domain: string;
+  applicationId: string;
+  adminUrl: string;
+}): EmailContent {
+  const { fullName, email, country, professionalRole, domain, applicationId, adminUrl } = params;
+  const bodyHtml =
+    paragraph("A new certification application has been submitted.") +
+    infoBox([
+      { label: "Name", value: fullName },
+      { label: "Email", value: email },
+      { label: "Country", value: country },
+      { label: "Role", value: professionalRole },
+      { label: "Field", value: domain },
+      { label: "Application ID", value: applicationId },
+    ]) +
+    button(adminUrl, "Review in admin");
+
+  const text = [
+    "A new certification application has been submitted.",
+    "",
+    `Name: ${fullName}`,
+    `Email: ${email}`,
+    `Country: ${country}`,
+    `Role: ${professionalRole}`,
+    `Field: ${domain}`,
+    `Application ID: ${applicationId}`,
+    "",
+    `Review: ${adminUrl}`,
+  ].join("\n");
+
+  return {
+    subject: `New application: ${fullName}`,
+    html: layout({
+      preheader: "A new certification application is waiting for review.",
+      eyebrow: "Application",
+      heading: "New certification application",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
 /** Approve or reject a partner application. */
 export function partnerApplicationDecisionEmail(params: {
   fullName: string;

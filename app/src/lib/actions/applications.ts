@@ -4,7 +4,7 @@ import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { requireAdminUser } from "@/lib/authz";
+import { requireAdminUser, superAdminEmail } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
 import {
   applicationSchema,
@@ -16,6 +16,7 @@ import {
 import { setPasswordSchema } from "@/lib/validations/auth";
 import { safeSendEmail } from "@/lib/services/email";
 import {
+  applicationNotifyAdminEmail,
   applicationReceivedEmail,
   applicationStatusEmail,
   enrollmentWelcomeEmail,
@@ -176,6 +177,24 @@ export async function submitApplication(formData: FormData) {
     template: "application_received",
     text: receivedEmail.text,
     html: receivedEmail.html,
+  });
+
+  // Notify the program owner of every new application (never block on email).
+  const adminNotify = applicationNotifyAdminEmail({
+    fullName: application.fullName,
+    email: application.email,
+    country: application.country,
+    professionalRole: application.professionalRole,
+    domain: application.domain,
+    applicationId: application.id,
+    adminUrl: absoluteUrl(`/admin/applications/${application.id}`),
+  });
+  await safeSendEmail({
+    to: superAdminEmail(),
+    subject: adminNotify.subject,
+    template: "application_notify",
+    text: adminNotify.text,
+    html: adminNotify.html,
   });
 
   safeRevalidatePath("/admin/applications");
