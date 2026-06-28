@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
 import { COUNTRIES } from "@/lib/countries";
+import { PartnerTermsDialog } from "@/components/marketing/partner-terms-modal";
 
 const defaultValues: Partial<PartnerApplicationInput> = {
   consentNoEquity: false as true,
@@ -140,9 +141,9 @@ export function PartnerApplicationForm() {
             <Textarea {...register("targetMarkets")} placeholder="For example: mid-size professional-services firms in the Gulf; two named banks where I have warm contacts." />
           </Field>
           <Field
-            label="Why are these reasonable for you to pursue?"
+            label="Why are you well placed to pursue them?"
             error={errors.accountJustification?.message}
-            description="Existing relationships, named warm contacts, sector experience, or a concrete route in. A bare list of names is not enough."
+            description="Existing relationships, named warm contacts, sector experience, or a concrete route in. The more specific you are, the stronger your application."
           >
             <Textarea {...register("accountJustification")} placeholder="For example: I ran the L&D function at one target for 3 years and still have the CHRO's trust; a referral into another." />
           </Field>
@@ -152,13 +153,16 @@ export function PartnerApplicationForm() {
         </section>
 
         <div className="space-y-3 rounded-md border border-neutral-200 bg-neutral-50 p-4">
-          <h2 className="text-xl font-semibold text-navy-900">Acknowledgement</h2>
+          <h2 className="text-xl font-semibold text-navy-900">Partner terms</h2>
+          <p className="text-sm leading-6 text-slate-600">
+            Please read the Partner Program Terms before you apply. They explain in full how you register opportunities,
+            how commission is earned and paid, the three-tier ladder, and how everything works on the Partner Panel.
+          </p>
           <label className="flex gap-3 text-sm leading-6 text-slate-700">
             <input className="mt-1 h-4 w-4 flex-none" type="checkbox" {...register("consentNoEquity")} />
             <span>
-              I understand the Partner Program gives no equity, no country, no industry, no exclusivity and no long-term
-              commitment. My rights arise only from confirmed deal registrations, real work performed, cleared and
-              non-refunded payment, and defined time windows — all recorded on the TenXPros Partner Panel.
+              I confirm that I have read and agree to the{" "}
+              <PartnerTermsDialog>Partner Program Terms</PartnerTermsDialog>.
             </span>
           </label>
           {errors.consentNoEquity ? (

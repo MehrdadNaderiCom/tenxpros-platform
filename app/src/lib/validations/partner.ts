@@ -32,7 +32,7 @@ export const partnerApplicationSchema = z.object({
   heardFrom: z.string().trim().max(200).optional(),
   consentNoEquity: z
     .boolean()
-    .refine((v) => v, "You must acknowledge that there is no equity, country, industry or exclusivity."),
+    .refine((v) => v, "Please confirm you have read and agree to the Partner Program Terms."),
   // Marketing attribution (captured silently)
   utmSource: z.string().optional(),
   utmMedium: z.string().optional(),

@@ -18,10 +18,11 @@ export default function PartnerThankYouPage({ searchParams }: { searchParams?: {
         </p>
         {searchParams?.id ? <p className="text-sm text-slate-500">Application ID: {searchParams.id}</p> : null}
         <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5 text-left">
-          <p className="text-sm font-semibold text-navy-900">A reminder of how the program works</p>
+          <p className="text-sm font-semibold text-navy-900">What happens next</p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            There is no equity, no country, no industry and no exclusivity. You earn defined commission only on confirmed
-            deal registrations, real work performed, and cleared payment — all recorded on the Partner Panel.
+            Once you are confirmed on the panel, you complete a short Activation Gate and can begin registering
+            opportunities. You earn a defined commission on every confirmed deal, paid on cleared receipts, and each step
+            is recorded on the Partner Panel.
           </p>
         </div>
         <ButtonLink href="/" variant="secondary">
