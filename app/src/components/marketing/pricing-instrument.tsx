@@ -76,7 +76,7 @@ export function PricingHero({ founding, standard }: { founding: number; standard
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
-              Apply for Certification
+              Apply for Founding Charter
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </ButtonLink>
             <ButtonLink
@@ -213,7 +213,7 @@ export function PricingCard({ founding, standard }: { founding: number; standard
 
           <div className="relative mt-9">
             <ButtonLink href="/apply" size="lg" className={cn("w-full", PRIMARY_CTA)}>
-              Apply for Certification
+              Apply for Founding Charter
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </ButtonLink>
             <p className="mt-4 text-center font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">
@@ -672,7 +672,7 @@ export function PricingFinalCta() {
           </p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
-              Apply for Certification
+              Apply for Founding Charter
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
             </ButtonLink>
             <ButtonLink

@@ -25,7 +25,7 @@ export function MarketingHero() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg">
-              Apply for Certification
+              Apply for Founding Charter
               <ArrowRight className="ml-2 h-4 w-4" />
             </ButtonLink>
             <ButtonLink href="/program" variant="secondary" size="lg">
@@ -175,7 +175,7 @@ export function PricingGrid() {
             </ul>
             {tier.isActive ? (
               <ButtonLink href="/apply" className="w-full">
-                Apply for Certification
+                Apply for Founding Charter
               </ButtonLink>
             ) : (
               <button

@@ -60,12 +60,12 @@ export function PublicNav() {
 
           {/* Desktop CTA (full label) */}
           <ButtonLink href="/apply" size="sm" className={cn("hidden lg:inline-flex", CTA_ACCENT)}>
-            Apply for Certification
+            Apply for Founding Charter
           </ButtonLink>
 
           {/* Mobile CTA (compact) + hamburger */}
           <ButtonLink href="/apply" size="sm" className={cn("lg:hidden", CTA_ACCENT)}>
-            Get certified
+            Apply
           </ButtonLink>
           <button
             type="button"
@@ -137,7 +137,7 @@ export function PublicNav() {
               onClick={() => setOpen(false)}
               className={cn("w-full", CTA_ACCENT)}
             >
-              Apply for Certification
+              Apply for Founding Charter
             </ButtonLink>
           </div>
         </div>
