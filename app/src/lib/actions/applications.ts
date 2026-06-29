@@ -379,7 +379,7 @@ function loadTierForApplication(tierName: string) {
 }
 
 /**
- * Build and send the "accepted — here's how to pay" email from resolved terms.
+ * Build and send the "accepted, here is how to pay" email from resolved terms.
  * Sender is hello@ (email service default); support copy is support@ (from the
  * resolver). The discount note is included ONLY when the admin marked it visible
  * to the applicant (`publicDiscountNote`). Uses safeSendEmail (never throws).
@@ -446,7 +446,7 @@ export async function markPaymentReceivedAndEnroll(formData: FormData) {
 /**
  * Enroll an ACCEPTED application: create the participant profile, path, dossier,
  * modules, and set-password token; flip any PENDING payment to PAID; and send the
- * welcome email. Shared by "mark paid & enroll" and "waive & enroll" — a WAIVED
+ * welcome email. Shared by "mark paid & enroll" and "waive & enroll": a WAIVED
  * record is left untouched (only PENDING records flip to PAID).
  */
 async function enrollAcceptedApplication(
@@ -691,12 +691,20 @@ async function transitionPaymentStatus(
 
 /** Mark instructions sent and (re)send the resolved payment-instructions email. */
 export async function markPaymentInstructionsSent(formData: FormData) {
+  const now = new Date();
   const { record } = await transitionPaymentStatus(formData, "INSTRUCTIONS_SENT", {
-    instructionsSentAt: new Date(),
+    instructionsSentAt: now,
   });
   if (record.application) {
     const tierRecord = await loadTierForApplication(record.application.pricingTierAtApply ?? "FOUNDING");
-    const terms = resolvePaymentTerms({ record, tier: tierRecord, now: new Date() });
+    const terms = resolvePaymentTerms({ record, tier: tierRecord, now });
+    // Lock in a concrete payment deadline, so the applicant's email, the admin
+    // views, and the automated reminders all use the exact same date. Without
+    // this, a deadline derived from the tier's paymentDueDays would live only in
+    // the email and the deadline-passed reminder would never fire.
+    if (!record.dueAt && terms.dueAt) {
+      await prisma.paymentRecord.update({ where: { id: record.id }, data: { dueAt: terms.dueAt } });
+    }
     await sendPaymentInstructionsEmail(record.application, terms);
   }
 }

@@ -64,6 +64,7 @@ const COMMISSION_COLOR: Record<string, string> = {
 const METHOD_COLOR = ["bg-indigo-500", "bg-navy-600", "bg-emerald-500", "bg-amber-500", "bg-slate-400", "bg-neutral-400"];
 
 export default async function AdminDashboardPage() {
+  const now = new Date();
   const [
     appCounts,
     partCounts,
@@ -85,6 +86,10 @@ export default async function AdminDashboardPage() {
     payByMethod,
     commissionRows,
     events,
+    qFuAwaiting,
+    qFuReminded,
+    qFuOverdue,
+    qFuNotified,
   ] = await Promise.all([
     applicationCounts(),
     participantCounts(),
@@ -114,6 +119,11 @@ export default async function AdminDashboardPage() {
       },
     }),
     prisma.siteEvent.findMany({ orderBy: { createdAt: "desc" }, take: 18 }),
+    // Payment follow-up report buckets (INSTRUCTIONS_SENT and still unpaid).
+    prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null } }),
+    prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null, reminderSentAt: { not: null } } }),
+    prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null, dueAt: { lt: now } } }),
+    prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null, expiryNoticeSentAt: { not: null } } }),
   ]);
 
   // ---- Pulse KPIs ----
@@ -151,7 +161,6 @@ export default async function AdminDashboardPage() {
     { label: "Applications to review", count: qAppReview, href: "/admin/applications", weight: 80, sev: "amber" },
     { label: "Deal registrations", count: qDeals, href: "/admin/partners/deal-registrations", weight: 70, sev: "blue" },
     { label: "TenXOps decisions", count: qTenxops, href: "/admin/partners/deal-registrations", weight: 65, sev: "blue" },
-    { label: "Payment follow-up", count: qPayPending, href: "/admin/payments?status=PENDING", weight: 60, sev: "amber" },
     { label: "Module feedback", count: qModules, href: "/admin/modules", weight: 50, sev: "amber" },
     { label: "Dossier review", count: qDossiers, href: "/admin/dossiers", weight: 45, sev: "amber" },
     { label: "Partner vetting", count: qPartnerApps, href: "/admin/partners/applications", weight: 40, sev: "blue" },
@@ -207,7 +216,7 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       <PageHeader title="Mission Control" description="The whole of TenXPros at a glance: what needs you, the money, the pipeline, and the partner channel." />
 
-      {/* 1 — Pulse strip */}
+      {/* 1. Pulse strip */}
       <Card className="bg-navy-900 text-white">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-200">Platform pulse</p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -232,7 +241,7 @@ export default async function AdminDashboardPage() {
         </div>
       </Card>
 
-      {/* 2 — Action center */}
+      {/* 2. Action center */}
       <section>
         <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-lg font-semibold text-navy-900">Action center</h2>
@@ -261,7 +270,7 @@ export default async function AdminDashboardPage() {
         )}
       </section>
 
-      {/* 3 — All-clear strip */}
+      {/* 3. All-clear strip */}
       <Card className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-wrap gap-2">
           {cleared.length > 0 ? (
@@ -271,7 +280,7 @@ export default async function AdminDashboardPage() {
               </span>
             ))
           ) : (
-            <span className="text-sm text-slate-500">Every queue has work — start at the top.</span>
+            <span className="text-sm text-slate-500">Every queue has work, start at the top.</span>
           )}
         </div>
         <div className="text-right">
@@ -281,7 +290,7 @@ export default async function AdminDashboardPage() {
         </div>
       </Card>
 
-      {/* 4 — Money rail */}
+      {/* 4. Money rail */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-navy-900">Money</h2>
         <div className="grid gap-4 md:grid-cols-4">
@@ -342,9 +351,35 @@ export default async function AdminDashboardPage() {
             </div>
           </Card>
         ) : null}
+
+        {/* Payment follow-up: a read-only report. Reminders run automatically. */}
+        <Card>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-medium text-navy-900">Payment follow-up</p>
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">Automated</span>
+          </div>
+          <p className="mt-1 text-xs text-slate-500">
+            Accepted applicants are reminded automatically (a reminder after 24 hours, a deadline notice at the due date).
+            This is a report, not a queue. Select any number to see exactly who is in it.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {[
+              { label: "Awaiting instructions", count: qPayPending, href: "/admin/payments?status=PENDING", tone: "text-navy-900" },
+              { label: "Awaiting payment", count: qFuAwaiting, href: "/admin/payments?follow=awaiting", tone: "text-amber-700" },
+              { label: "Reminded (24h)", count: qFuReminded, href: "/admin/payments?follow=reminded", tone: "text-amber-700" },
+              { label: "Past deadline", count: qFuOverdue, href: "/admin/payments?follow=overdue", tone: "text-red-700" },
+              { label: "Deadline notice sent", count: qFuNotified, href: "/admin/payments?follow=notified", tone: "text-slate-600" },
+            ].map((m) => (
+              <a key={m.label} href={m.href} className="rounded-md border border-neutral-200 bg-white p-3 transition hover:border-navy-300 hover:shadow-sm">
+                <p className={`text-2xl font-semibold ${m.tone}`}>{m.count}</p>
+                <p className="mt-1 text-xs text-slate-500">{m.label}</p>
+              </a>
+            ))}
+          </div>
+        </Card>
       </section>
 
-      {/* 5 — Funnel + participant journey */}
+      {/* 5. Funnel + participant journey */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-navy-900">Admissions to certified</h2>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -407,7 +442,7 @@ export default async function AdminDashboardPage() {
         ) : null}
       </section>
 
-      {/* 6 — Partner program health */}
+      {/* 6. Partner program health */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-navy-900">Partner program</h2>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -463,7 +498,7 @@ export default async function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* 7 — Activity + delivery health */}
+      {/* 7. Activity + delivery health */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-navy-900">Live activity</h2>
         <div className="grid gap-4 lg:grid-cols-3">
@@ -505,7 +540,7 @@ export default async function AdminDashboardPage() {
             </div>
             {emailFailed > 0 ? (
               <a href="/admin/audit" className="mt-3 block rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-100">
-                {emailFailed} email{emailFailed === 1 ? "" : "s"} failed to send — investigate
+                {emailFailed} email{emailFailed === 1 ? "" : "s"} failed to send, investigate
               </a>
             ) : (
               <p className="mt-3 text-xs text-slate-500">All recent sends delivered.</p>

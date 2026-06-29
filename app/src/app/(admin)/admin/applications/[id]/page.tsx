@@ -376,6 +376,29 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
               </p>
             )}
 
+            {primaryPayment ? (
+              <div className="space-y-2 border-t border-neutral-200 pt-3">
+                <p className="text-sm font-semibold text-navy-900">Follow-up status</p>
+                <ul className="space-y-1.5 text-sm">
+                  {[
+                    { label: "Payment instructions", done: Boolean(primaryPayment.instructionsSentAt), detail: primaryPayment.instructionsSentAt ? `sent ${primaryPayment.instructionsSentAt.toLocaleDateString()}` : "not sent yet" },
+                    { label: "Payment deadline", done: Boolean(primaryPayment.dueAt), detail: primaryPayment.dueAt ? `${primaryPayment.dueAt.toLocaleDateString()}${primaryPayment.dueAt < new Date() && !primaryPayment.paidAt ? " (passed)" : ""}` : "not set" },
+                    { label: "24 hour reminder", done: Boolean(primaryPayment.reminderSentAt), detail: primaryPayment.reminderSentAt ? `sent ${primaryPayment.reminderSentAt.toLocaleDateString()}` : "not sent" },
+                    { label: "Deadline-passed notice", done: Boolean(primaryPayment.expiryNoticeSentAt), detail: primaryPayment.expiryNoticeSentAt ? `sent ${primaryPayment.expiryNoticeSentAt.toLocaleDateString()}` : "not sent" },
+                    { label: "Payment received", done: Boolean(primaryPayment.paidAt), detail: primaryPayment.paidAt ? primaryPayment.paidAt.toLocaleDateString() : "not yet" },
+                  ].map((row) => (
+                    <li key={row.label} className="flex items-center gap-2">
+                      <span className={`inline-flex h-4 w-4 flex-none items-center justify-center rounded-full text-[10px] font-bold ${row.done ? "bg-emerald-100 text-emerald-700" : "bg-neutral-100 text-slate-400"}`}>
+                        {row.done ? "✓" : ""}
+                      </span>
+                      <span className="text-slate-600"><span className="font-medium text-navy-900">{row.label}:</span> {row.detail}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs text-slate-400">Reminders are sent automatically while the record is unpaid. No manual chasing needed.</p>
+              </div>
+            ) : null}
+
             {application.payments.length > 0 ? (
               <div className="space-y-1 border-t border-neutral-200 pt-3 text-sm text-slate-600">
                 <p className="font-semibold text-navy-900">History</p>
