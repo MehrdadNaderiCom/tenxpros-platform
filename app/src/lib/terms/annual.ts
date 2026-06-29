@@ -40,6 +40,7 @@ export const ANNUAL_VALIDITY: string[] = [
   "The commission structure, the tier thresholds, and the program policies are set for the current calendar year and can change at the start of each new calendar year, for partners and for students alike.",
   "Every change is announced through the website, which is the official channel of notice. Continuing in the new year means accepting that year's published terms, and renewal happens through the site.",
   "The annual reset changes the commercial terms going forward. It does not erase the survival obligations you already carry from prior years.",
+  "TenXPros is offered for defined periods and is not a perpetual service. After the company has met its outstanding obligations, the founder may, at the founder's sole discretion, conclude, pause, or change the direction or purpose of the service, and that decision is final and not subject to objection. Commitments already owed to participants and partners, and the survival obligations, are honored regardless.",
 ];
 
 export function currentTermsYear(now: Date = new Date()): number {

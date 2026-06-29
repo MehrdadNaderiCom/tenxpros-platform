@@ -160,6 +160,14 @@ export const PARTNER_TERMS_SECTIONS: TermsSection[] = [
     ],
   },
   {
+    title: "Completion of commitments and continuity of the program",
+    body: [
+      "TenXPros takes its commitments to partners seriously and stands behind every confirmed Deal Registration, Panel Confirmation, and commission earned on a collected, non-refunded deal, along with the survival obligations described above. Those are honored in full.",
+      "At the same time, the Partner Program is offered for defined periods and is not a perpetual commitment. Once the company has met its outstanding obligations to you, the founder may, at the founder's sole discretion, decide to conclude, pause, or change the direction or purpose of the Partner Program and of the wider TenXPros service. Such a decision is final, is made in the ordinary course of running the business, and is not subject to objection or challenge.",
+      "This continuity provision does not reduce anything already owed to you. Commission already earned on a confirmed and collected deal remains payable under these terms, and the confidentiality, non-circumvention, non-solicitation, clawback, and ownership clauses continue to apply. Where practical, reasonable notice of any material change will be given through the site, which is the official channel of notice.",
+    ],
+  },
+  {
     title: "Governing law and language",
     body: [
       "The partner agreement, between you and Naprolity OÜ, is governed by the laws of England and Wales. The parties first negotiate in good faith for 30 days, and any unresolved dispute is finally settled by arbitration under the LCIA Rules, by one arbitrator, in London, conducted in English. The English language version of the agreement is the governing and authoritative version.",
