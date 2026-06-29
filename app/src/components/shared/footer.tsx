@@ -43,6 +43,17 @@ export function Footer() {
           )}
         </nav>
       </div>
+      <div className="border-t border-neutral-200 bg-neutral-50">
+        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-6 py-5 text-sm text-slate-600 md:flex-row md:items-center md:justify-between md:px-8">
+          <p>
+            <span className="font-medium text-navy-900">Terms and rules updates.</span>{" "}
+            Our terms and rules are reviewed each calendar year and any changes are announced on the site.
+          </p>
+          <Link href="/terms/updates" className="font-medium text-navy-900 hover:underline">
+            See what changed and the archive
+          </Link>
+        </div>
+      </div>
     </footer>
   );
 }

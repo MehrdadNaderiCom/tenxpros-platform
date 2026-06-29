@@ -227,7 +227,7 @@ export function applicationStatusEmail(params: {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Accepted — payment instructions
+// 3. Accepted, payment instructions
 // ---------------------------------------------------------------------------
 export function paymentInstructionsEmail(params: {
   fullName: string;
@@ -505,7 +505,7 @@ export function partnerApplicationDecisionEmail(params: {
     const bodyHtml =
       paragraph(`Hi ${esc(fullName)},`) +
       paragraph(
-        "Congratulations — your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
+        "Congratulations. Your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
       ) +
       (setPasswordUrl ? button(setPasswordUrl, "Set your password") : "") +
       paragraph(
@@ -520,7 +520,7 @@ export function partnerApplicationDecisionEmail(params: {
     const text = [
       `Hi ${fullName},`,
       "",
-      "Congratulations — your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
+      "Congratulations. Your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
       ...(setPasswordUrl ? ["", `Set your password: ${setPasswordUrl}`] : []),
       ...(panelUrl ? ["", `Your Partner Panel: ${panelUrl}`] : []),
       "",
@@ -619,6 +619,41 @@ export function partnerDealConfirmedEmail(params: {
       heading: "Your registration is confirmed",
       bodyHtml,
     }),
+    text,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Newsletter campaign (per recipient, with a one-click unsubscribe link)
+// ---------------------------------------------------------------------------
+export function newsletterCampaignEmail(params: {
+  subject: string;
+  /** Plain source text from the admin composer; blank lines separate paragraphs. */
+  body: string;
+  unsubscribeUrl: string;
+}): EmailContent {
+  const blocks = params.body
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean);
+  const bodyHtml =
+    blocks.map((b) => paragraph(esc(b).replace(/\n/g, "<br>"))).join("") +
+    `<div style="border-top:1px solid #E3E8EF;margin-top:18px;padding-top:14px;font-size:12px;line-height:1.7;color:${MUTED};">You are receiving this because you subscribed to the TenXPros newsletter. <a href="${esc(
+      params.unsubscribeUrl,
+    )}" style="color:#64748B;text-decoration:underline;">Unsubscribe</a> with one click at any time.</div>`;
+
+  const text = [
+    ...blocks,
+    "",
+    "You are receiving this because you subscribed to the TenXPros newsletter.",
+    `Unsubscribe: ${params.unsubscribeUrl}`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: params.subject,
+    html: layout({ preheader: params.subject, eyebrow: "Newsletter", heading: params.subject, bodyHtml }),
     text,
   };
 }

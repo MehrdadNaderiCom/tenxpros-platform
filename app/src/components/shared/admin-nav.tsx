@@ -68,6 +68,7 @@ const sections: NavSection[] = [
     items: [
       { label: "Users", href: "/admin/users" },
       { label: "Email", href: "/admin/email" },
+      { label: "Newsletter", href: "/admin/newsletter" },
       { label: "Audit", href: "/admin/audit" },
       { label: "Settings", href: "/admin/settings" },
     ],

@@ -8,6 +8,7 @@ import {
   HomeAudience,
   HomeFinalCta,
 } from "@/components/marketing/home-instrument";
+import { NewsletterSignup } from "@/components/marketing/newsletter-signup";
 
 export const metadata: Metadata = {
   title: "Selective AI Adoption Certification for Experienced Professionals",
@@ -26,6 +27,7 @@ export default function HomePage() {
       <HomeCertification />
       <HomeAudience />
       <HomeFinalCta />
+      <NewsletterSignup />
     </main>
   );
 }
