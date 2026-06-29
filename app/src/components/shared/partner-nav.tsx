@@ -7,6 +7,7 @@ import type { PartnerStatus } from "@prisma/client";
 
 const partnerItems: Array<[string, string]> = [
   ["Dashboard", "/partner"],
+  ["Academy", "/partner/academy"],
   ["Onboarding", "/partner/onboarding"],
   ["Deal Registrations", "/partner/deals"],
   ["My Accounts", "/partner/accounts"],
