@@ -83,7 +83,7 @@ export default async function NewsletterComposePage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-navy-900">{c.subject}</p>
-                    <Badge status={c.status === "sent" ? "PASSED" : "IN_PROGRESS"}>{c.status === "sent" ? "Sent" : "Draft"}</Badge>
+                    <Badge status={c.status === "sent" ? "PASSED" : "IN_PROGRESS"}>{c.status === "sent" ? "Sent" : c.status === "sending" ? "Sending" : "Draft"}</Badge>
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
                     {gids.length} group{gids.length === 1 ? "" : "s"}
@@ -94,6 +94,8 @@ export default async function NewsletterComposePage() {
                 <div className="flex flex-wrap gap-2">
                   {c.status === "sent" ? (
                     <ButtonLink href={`/admin/newsletter/campaigns/${c.id}`} variant="secondary" size="sm">View history</ButtonLink>
+                  ) : c.status === "sending" ? (
+                    <ButtonLink href={`/admin/newsletter/campaigns/${c.id}`} variant="secondary" size="sm">View</ButtonLink>
                   ) : (
                     <ButtonLink href={`/admin/newsletter/campaigns/${c.id}`} size="sm">Review &amp; send</ButtonLink>
                   )}

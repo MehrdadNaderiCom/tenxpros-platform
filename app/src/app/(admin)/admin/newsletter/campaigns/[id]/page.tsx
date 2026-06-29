@@ -47,6 +47,19 @@ export default async function CampaignPage({
   const nameOf = new Map(groups.map((g) => [g.id, g.name]));
   const isSent = campaign.status === "sent";
 
+  // ---- Sending: a send is in progress (claimed atomically). ----
+  if (campaign.status === "sending") {
+    return (
+      <div className="space-y-6">
+        <PageHeader title={campaign.subject} description="This campaign is being sent right now." />
+        <Card>
+          <p className="text-sm text-slate-600">Sending is in progress. The full send history appears here once it completes. Refresh in a moment.</p>
+          <ButtonLink href="/admin/newsletter" variant="secondary" size="sm" className="mt-4">Back to campaigns</ButtonLink>
+        </Card>
+      </div>
+    );
+  }
+
   // ---- Sent: immutable snapshot + delivery history ----
   if (isSent) {
     const ok = campaign.deliveries.filter((d) => d.status === "sent").length;

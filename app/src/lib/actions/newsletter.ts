@@ -167,6 +167,17 @@ export async function sendCampaign(formData: FormData) {
     redirect(`/admin/newsletter/campaigns/${id}?error=confirm&expected=${recipients.length}`);
   }
 
+  // Atomically claim the draft so two concurrent sends cannot both proceed and
+  // overwrite each other's immutable snapshot. Exactly one updateMany flips the
+  // row from "draft" to "sending"; any loser sees count 0 and stops here.
+  const claim = await prisma.newsletterCampaign.updateMany({
+    where: { id, status: "draft" },
+    data: { status: "sending" },
+  });
+  if (claim.count !== 1) {
+    redirect(`/admin/newsletter/campaigns/${id}`);
+  }
+
   const sentAt = new Date();
   let sent = 0;
   for (const r of recipients) {
