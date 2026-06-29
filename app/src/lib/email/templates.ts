@@ -657,3 +657,107 @@ export function newsletterCampaignEmail(params: {
     text,
   };
 }
+
+// ---------------------------------------------------------------------------
+// Payment reminder (24h after instructions, still unpaid, before the deadline)
+// ---------------------------------------------------------------------------
+export function paymentReminderEmail(params: {
+  fullName: string;
+  amount: number;
+  currency: string;
+  dueAt?: Date | null;
+  paymentLink?: string | null;
+  paymentInstructions?: string | null;
+  method?: string | null;
+  supportEmail: string;
+}): EmailContent {
+  const { fullName, amount, currency, dueAt, paymentLink, paymentInstructions, method, supportEmail } = params;
+  const hasLinkUrl = typeof paymentLink === "string" && /^https?:\/\//i.test(paymentLink);
+  const payeeNotice = payeeNoticeForMethod(method);
+  const rows: Array<{ label: string; value: string }> = [{ label: "Amount due", value: money(amount, currency) }];
+  if (dueAt) rows.push({ label: "Please pay by", value: dueAt.toDateString() });
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("This is a friendly reminder that your place at TenXPros is accepted but not yet confirmed. One step remains: completing payment.") +
+    infoBox(rows) +
+    (hasLinkUrl ? button(paymentLink as string, "Complete payment") : "") +
+    (paymentInstructions ? noteBox("Payment instructions", paymentInstructions) : "") +
+    noteBox("Payment & payee", payeeNotice) +
+    warningBox("Before you pay", SAFETY_WARNING) +
+    paragraph(
+      `If you have already paid, please ignore this message. Any questions? Contact <a href="mailto:${esc(
+        supportEmail,
+      )}" style="color:${NAVY};">${esc(supportEmail)}</a>.`,
+    );
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "This is a friendly reminder that your place at TenXPros is accepted but not yet confirmed. One step remains: completing payment.",
+    "",
+    `Amount due: ${money(amount, currency)}`,
+    ...(dueAt ? [`Please pay by: ${dueAt.toDateString()}`] : []),
+    ...(hasLinkUrl ? ["", `Complete payment: ${paymentLink}`] : []),
+    ...(paymentInstructions ? ["", "Payment instructions:", paymentInstructions] : []),
+    "",
+    `Payment & payee: ${payeeNotice}`,
+    "",
+    `Before you pay: ${SAFETY_WARNING}`,
+    "",
+    `If you have already paid, please ignore this message. Any questions? Contact ${supportEmail}.`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "A reminder to complete your TenXPros enrollment",
+    html: layout({
+      preheader: "Your place is accepted but not yet confirmed. One step remains: payment.",
+      eyebrow: "Payment reminder",
+      heading: "A reminder to complete your enrollment",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Payment deadline passed (coordinate with support before paying)
+// ---------------------------------------------------------------------------
+export function paymentDeadlinePassedEmail(params: { fullName: string; supportEmail: string }): EmailContent {
+  const { fullName, supportEmail } = params;
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("The payment window for your accepted TenXPros application has now closed, so the earlier payment link and terms may no longer be current.") +
+    paragraph("If you would still like to pay and join the program, please contact support first so we can confirm the current terms and give you a valid, up to date payment link. Pricing or program details may have changed since your acceptance.") +
+    warningBox("Please do not pay an old link", "For your security, do not use any earlier payment link before checking with support. We will confirm the correct amount, payee, and link with you directly.") +
+    button(`mailto:${supportEmail}`, "Contact support") +
+    paragraph(`You can reach us any time at <a href="mailto:${esc(supportEmail)}" style="color:${NAVY};">${esc(supportEmail)}</a>.`);
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "The payment window for your accepted TenXPros application has now closed, so the earlier payment link and terms may no longer be current.",
+    "",
+    "If you would still like to pay and join the program, please contact support first so we can confirm the current terms and give you a valid, up to date payment link. Pricing or program details may have changed since your acceptance.",
+    "",
+    "Please do not pay an old link. For your security, do not use any earlier payment link before checking with support. We will confirm the correct amount, payee, and link with you directly.",
+    "",
+    `Contact support: ${supportEmail}`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "Your TenXPros payment window has closed",
+    html: layout({
+      preheader: "Your payment window has closed. Please contact support before paying.",
+      eyebrow: "Payment window closed",
+      heading: "Your payment window has closed",
+      bodyHtml,
+    }),
+    text,
+  };
+}

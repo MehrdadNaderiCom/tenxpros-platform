@@ -1017,6 +1017,10 @@ model PaymentRecord {
 
   instructionsSentAt DateTime?
 
+  reminderSentAt DateTime?
+
+  expiryNoticeSentAt DateTime?
+
   waivedAt DateTime?
 
   cancelledAt DateTime?
