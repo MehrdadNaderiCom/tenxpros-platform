@@ -10,7 +10,7 @@ import { createCampaign, deleteCampaign } from "@/lib/actions/newsletter";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewsletterComposePage() {
+export default async function NewsletterComposePage({ searchParams }: { searchParams: { error?: string } }) {
   const [groups, subscribers, campaigns, subscribedCount] = await Promise.all([
     prisma.newsletterGroup.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { subscribers: true } } } }),
     prisma.newsletterSubscriber.findMany({ where: { status: "subscribed" }, orderBy: { createdAt: "desc" } }),
@@ -25,6 +25,10 @@ export default async function NewsletterComposePage() {
         <PageHeader title="Newsletter" description="Compose and send campaigns from the send-only newsletter mailbox. Every send is recorded with a full per-recipient history." />
         <ButtonLink href="/admin/newsletter/subscribers" variant="secondary" size="sm">Subscribers & groups</ButtonLink>
       </div>
+
+      {searchParams.error === "empty" ? (
+        <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">A campaign needs both a subject and a body before it can be saved.</p>
+      ) : null}
 
       <Card>
         <div className="flex items-center justify-between">

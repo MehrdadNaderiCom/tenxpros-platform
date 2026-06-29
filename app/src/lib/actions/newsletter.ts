@@ -11,7 +11,7 @@ import {
   NEWSLETTER_TEMPLATE_VERSION,
   NEWSLETTER_UNSUB_VERSION,
 } from "@/lib/email/newsletter-template";
-import { sendNewsletterEmail, newsletterFrom } from "@/lib/services/newsletter-email";
+import { sendNewsletterEmail, newsletterFrom, newsletterSenderIdentity } from "@/lib/services/newsletter-email";
 import { subscribe, resolveRecipients, normalizeEmail, isValidEmail } from "@/lib/newsletter/service";
 
 const SUBSCRIBE_MESSAGE: Record<string, string> = {
@@ -99,19 +99,22 @@ export async function createCampaign(formData: FormData) {
   const body = String(formData.get("body") ?? "").trim();
   const groupIds = formData.getAll("groupIds").map(String).filter(Boolean);
   const subscriberIds = formData.getAll("subscriberIds").map(String).filter(Boolean);
-  if (subject && body) {
-    await prisma.newsletterCampaign.create({
-      data: {
-        subject,
-        bodyHtml: body,
-        status: "draft",
-        targetGroupIds: groupIds,
-        targetSubscriberIds: subscriberIds,
-        createdBy: admin.email ?? admin.id,
-      },
-    });
+  if (!subject || !body) {
+    redirect("/admin/newsletter?error=empty");
   }
-  revalidatePath("/admin/newsletter");
+  const created = await prisma.newsletterCampaign.create({
+    data: {
+      subject,
+      bodyHtml: body,
+      status: "draft",
+      targetGroupIds: groupIds,
+      targetSubscriberIds: subscriberIds,
+      createdBy: admin.email ?? admin.id,
+    },
+  });
+  // Land on the review screen, where the operator can preview, send a single
+  // test, then confirm the bulk send.
+  redirect(`/admin/newsletter/campaigns/${created.id}`);
 }
 
 export async function deleteCampaign(formData: FormData) {
@@ -135,7 +138,7 @@ export async function sendTestCampaign(formData: FormData) {
     redirect(`/admin/newsletter/campaigns/${id}?test=invalid`);
   }
   const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/TEST-PREVIEW`);
-  const email = buildNewsletterEmail({ subject: `[TEST] ${campaign.subject}`, bodyHtml: campaign.bodyHtml, unsubscribeUrl });
+  const email = buildNewsletterEmail({ subject: `[TEST] ${campaign.subject}`, bodyHtml: campaign.bodyHtml, unsubscribeUrl, senderIdentity: newsletterSenderIdentity() });
   const res = await sendNewsletterEmail({ to: testEmail, subject: email.subject, html: email.html, text: email.text, unsubscribeUrl });
   redirect(`/admin/newsletter/campaigns/${id}?test=${res.ok ? "sent" : "error"}&to=${encodeURIComponent(testEmail)}`);
 }
@@ -182,7 +185,7 @@ export async function sendCampaign(formData: FormData) {
   let sent = 0;
   for (const r of recipients) {
     const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/${r.unsubToken}`);
-    const email = buildNewsletterEmail({ subject: campaign.subject, bodyHtml: campaign.bodyHtml, unsubscribeUrl });
+    const email = buildNewsletterEmail({ subject: campaign.subject, bodyHtml: campaign.bodyHtml, unsubscribeUrl, senderIdentity: newsletterSenderIdentity() });
     const res = await sendNewsletterEmail({ to: r.email, subject: email.subject, html: email.html, text: email.text, unsubscribeUrl });
     if (res.ok) sent += 1;
     await prisma.newsletterDelivery.create({

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveTargetStats } from "@/lib/newsletter/service";
 import { buildNewsletterEmail } from "@/lib/email/newsletter-template";
-import { newsletterFrom } from "@/lib/services/newsletter-email";
+import { newsletterFrom, newsletterSenderIdentity } from "@/lib/services/newsletter-email";
 import { absoluteUrl } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
@@ -129,6 +129,7 @@ export default async function CampaignPage({
     subject: campaign.subject,
     bodyHtml: campaign.bodyHtml,
     unsubscribeUrl: absoluteUrl("/newsletter/unsubscribe/PREVIEW"),
+    senderIdentity: newsletterSenderIdentity(),
   }).html;
   const from = newsletterFrom();
   const confirmError = searchParams.error === "confirm";
@@ -173,6 +174,16 @@ export default async function CampaignPage({
         </dl>
       </Card>
 
+      <Card className="border-navy-300">
+        <h2 className="text-lg font-semibold text-navy-900">Send a single test first</h2>
+        <p className="mt-1 text-sm text-slate-600">Enter any email and send just that one copy. Open it, check it looks right in a real inbox, and only then confirm the bulk send below. A test never touches subscribers or the send history.</p>
+        <form action={sendTestCampaign} className="mt-3 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="id" value={campaign.id} />
+          <input name="testEmail" type="email" required placeholder="you@example.com" className="h-10 w-72 rounded-md border border-neutral-300 px-3 text-sm" />
+          <Button type="submit">Send one test</Button>
+        </form>
+      </Card>
+
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold text-navy-900">Final preview</h2>
@@ -188,16 +199,6 @@ export default async function CampaignPage({
             <iframe title="Mobile preview" srcDoc={previewHtml} sandbox="" className="h-[560px] w-[375px] max-w-full rounded-md border border-neutral-200 bg-white" />
           </div>
         </div>
-      </Card>
-
-      <Card>
-        <h2 className="text-lg font-semibold text-navy-900">Send a test first</h2>
-        <p className="mt-1 text-sm text-slate-600">Send one copy to yourself (or any address) to check it in a real inbox. This does not affect subscribers or the send history.</p>
-        <form action={sendTestCampaign} className="mt-3 flex flex-wrap items-end gap-2">
-          <input type="hidden" name="id" value={campaign.id} />
-          <input name="testEmail" type="email" placeholder="you@example.com" className="h-10 w-72 rounded-md border border-neutral-300 px-3 text-sm" />
-          <Button type="submit" variant="secondary">Send test</Button>
-        </form>
       </Card>
 
       <Card className="border-gold-500">

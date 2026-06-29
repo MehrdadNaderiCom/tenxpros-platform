@@ -38,8 +38,9 @@ export function buildNewsletterEmail(params: {
   subject: string;
   bodyHtml: string;
   unsubscribeUrl: string;
+  senderIdentity?: string;
 }): NewsletterEmail {
-  const { subject, bodyHtml, unsubscribeUrl } = params;
+  const { subject, bodyHtml, unsubscribeUrl, senderIdentity } = params;
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"></head>
 <body style="margin:0;padding:0;background:#EEF2F7;">
@@ -59,7 +60,7 @@ export function buildNewsletterEmail(params: {
     <div style="border-top:1px solid #E3E8EF;margin-top:14px;padding-top:16px;font-size:12px;line-height:1.7;color:${MUTED};">
       You are receiving this because you subscribed to the TenXPros newsletter.
       <a href="${esc(unsubscribeUrl)}" style="color:#64748B;text-decoration:underline;">Unsubscribe in one click</a>.<br>
-      This newsletter is sent from a send-only address. Please do not reply to this email.
+      This newsletter is sent from a send-only address. Please do not reply to this email.${senderIdentity ? `<br>${esc(senderIdentity)}` : ""}
     </div>
   </td></tr>
 </table>
@@ -72,6 +73,7 @@ export function buildNewsletterEmail(params: {
     "You are receiving this because you subscribed to the TenXPros newsletter.",
     `Unsubscribe in one click: ${unsubscribeUrl}`,
     "This newsletter is sent from a send-only address. Please do not reply to this email.",
+    ...(senderIdentity ? [senderIdentity] : []),
   ].join("\n");
 
   return { subject, html, text };

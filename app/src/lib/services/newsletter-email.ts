@@ -24,6 +24,17 @@ export function newsletterFrom(): string {
   return process.env.NEWSLETTER_EMAIL_FROM ?? "TenXPros Newsletter <newsletter@tenxops.org>";
 }
 
+/**
+ * Sender identity shown in the footer (a deliverability and CAN-SPAM trust
+ * signal). A real postal address improves inbox placement; set it via
+ * NEWSLETTER_POSTAL_ADDRESS. Without it, the legal operator is still named.
+ */
+export function newsletterSenderIdentity(): string {
+  const org = "TenXPros, operated by Naprolity OU";
+  const postal = process.env.NEWSLETTER_POSTAL_ADDRESS?.trim();
+  return postal ? `${org}. ${postal}` : org;
+}
+
 export async function sendNewsletterEmail(input: {
   to: string;
   subject: string;
@@ -44,6 +55,8 @@ export async function sendNewsletterEmail(input: {
       headers: {
         "List-Unsubscribe": `<${input.unsubscribeUrl}>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        "List-Id": "TenXPros Newsletter <newsletter.tenxops.org>",
+        Precedence: "bulk",
       },
     });
   } catch (err) {
