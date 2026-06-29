@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
-import { safeSendEmail } from "@/lib/services/email";
-import { newsletterCampaignEmail } from "@/lib/email/templates";
+import { buildNewsletterEmail } from "@/lib/email/newsletter-template";
+import { sendNewsletterEmail } from "@/lib/services/newsletter-email";
 import { subscribe, resolveRecipients, normalizeEmail, isValidEmail } from "@/lib/newsletter/service";
 
 const SUBSCRIBE_MESSAGE: Record<string, string> = {
@@ -116,9 +116,11 @@ export async function deleteCampaign(formData: FormData) {
 }
 
 /**
- * Send a campaign to its deduplicated, subscribed-only recipient set. Each email
- * carries that recipient's own one-click unsubscribe link. Reuses the existing
- * email service (no second provider), which records an EmailEvent per send.
+ * Send a campaign to its deduplicated, subscribed-only recipient set. The rich
+ * HTML body is wrapped in the branded newsletter shell; each email is sent from
+ * the send-only newsletter mailbox with one-click unsubscribe headers and the
+ * recipient's own unsubscribe link. A NewsletterDelivery row is written per
+ * recipient (who, when, status) so the full send history is auditable.
  */
 export async function sendCampaign(formData: FormData) {
   await requireAdminUser();
@@ -135,18 +137,33 @@ export async function sendCampaign(formData: FormData) {
 
   let sent = 0;
   for (const r of recipients) {
-    const email = newsletterCampaignEmail({
-      subject: campaign.subject,
-      body: campaign.bodyHtml,
-      unsubscribeUrl: absoluteUrl(`/newsletter/unsubscribe/${r.unsubToken}`),
-    });
-    const res = await safeSendEmail({ to: r.email, subject: email.subject, template: "newsletter_campaign", text: email.text, html: email.html });
+    const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/${r.unsubToken}`);
+    const email = buildNewsletterEmail({ subject: campaign.subject, bodyHtml: campaign.bodyHtml, unsubscribeUrl });
+    const res = await sendNewsletterEmail({ to: r.email, subject: email.subject, html: email.html, text: email.text, unsubscribeUrl });
     if (res.ok) sent += 1;
+    await prisma.newsletterDelivery.create({
+      data: {
+        campaignId: id,
+        subscriberId: r.id,
+        email: r.email,
+        status: res.ok ? "sent" : "error",
+        error: res.ok ? null : res.error,
+        sentAt: res.ok ? new Date() : null,
+      },
+    });
   }
 
   await prisma.newsletterCampaign.update({
     where: { id },
-    data: { status: "sent", sentAt: new Date(), sentCount: sent },
+    data: { status: "sent", sentAt: new Date(), sentCount: sent, recipientCount: recipients.length },
   });
+  revalidatePath("/admin/newsletter");
+}
+
+/** Hard-delete a subscriber and all their memberships (deliveries are retained, detached). */
+export async function forceDeleteSubscriber(formData: FormData) {
+  await requireAdminUser();
+  const id = String(formData.get("id") ?? "");
+  if (id) await prisma.newsletterSubscriber.delete({ where: { id } });
   revalidatePath("/admin/newsletter");
 }

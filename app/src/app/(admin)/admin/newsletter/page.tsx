@@ -1,60 +1,45 @@
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  adminAddSubscriber,
-  adminSetSubscriberStatus,
-  createNewsletterGroup,
-  deleteNewsletterGroup,
-  toggleGroupMembership,
-  createCampaign,
-  sendCampaign,
-  deleteCampaign,
-} from "@/lib/actions/newsletter";
+import { NewsletterEditor } from "@/components/admin/newsletter-editor";
+import { ConfirmSubmit } from "@/components/admin/confirm-submit";
+import { createCampaign, sendCampaign, deleteCampaign } from "@/lib/actions/newsletter";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminNewsletterPage() {
-  const [subscribers, groups, campaigns, subscribedCount, unsubscribedCount] = await Promise.all([
-    prisma.newsletterSubscriber.findMany({ orderBy: { createdAt: "desc" }, include: { groups: true } }),
+export default async function NewsletterComposePage() {
+  const [groups, subscribers, campaigns, subscribedCount] = await Promise.all([
     prisma.newsletterGroup.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { subscribers: true } } } }),
+    prisma.newsletterSubscriber.findMany({ where: { status: "subscribed" }, orderBy: { createdAt: "desc" } }),
     prisma.newsletterCampaign.findMany({ orderBy: { createdAt: "desc" } }),
     prisma.newsletterSubscriber.count({ where: { status: "subscribed" } }),
-    prisma.newsletterSubscriber.count({ where: { status: "unsubscribed" } }),
   ]);
   const groupName = new Map(groups.map((g) => [g.id, g.name]));
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Newsletter" description="Subscribers, groups, and campaigns. Campaigns send through the existing email service, deduplicated and unsubscribed-aware, with a one-click unsubscribe link per recipient." />
-
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          ["Subscribed", subscribedCount],
-          ["Unsubscribed", unsubscribedCount],
-          ["Groups", groups.length],
-          ["Campaigns", campaigns.length],
-        ].map(([label, value]) => (
-          <Card key={label as string} className="text-center">
-            <p className="text-2xl font-semibold text-navy-900">{value as number}</p>
-            <p className="text-xs uppercase tracking-wide text-slate-500">{label as string}</p>
-          </Card>
-        ))}
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <PageHeader title="Newsletter" description="Compose and send campaigns from the send-only newsletter mailbox. Every send is recorded with a full per-recipient history." />
+        <ButtonLink href="/admin/newsletter/subscribers" variant="secondary" size="sm">Subscribers & groups</ButtonLink>
       </div>
 
-      {/* Compose campaign */}
       <Card>
-        <h2 className="text-lg font-semibold text-navy-900">Compose a campaign</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-navy-900">Compose a campaign</h2>
+          <span className="text-xs text-slate-500">{subscribedCount} subscribed</span>
+        </div>
         <form action={createCampaign} className="mt-4 space-y-4">
           <div>
             <label htmlFor="subject" className="block text-sm font-medium text-navy-900">Subject</label>
             <input id="subject" name="subject" required className="mt-1 h-10 w-full rounded-md border border-neutral-300 px-3 text-sm" />
           </div>
           <div>
-            <label htmlFor="body" className="block text-sm font-medium text-navy-900">Body</label>
-            <textarea id="body" name="body" required rows={6} placeholder="Write the newsletter. Leave a blank line between paragraphs." className="mt-1 w-full rounded-md border border-neutral-300 p-3 text-sm" />
+            <span className="block text-sm font-medium text-navy-900">Body</span>
+            <p className="mb-1 text-xs text-slate-500">Write it like a blog post: headings, bold, lists, quotes, and links.</p>
+            <NewsletterEditor name="body" />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <fieldset className="rounded-md border border-neutral-200 p-3">
@@ -72,7 +57,7 @@ export default async function AdminNewsletterPage() {
             <fieldset className="max-h-48 overflow-y-auto rounded-md border border-neutral-200 p-3">
               <legend className="px-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Target individuals</legend>
               <div className="space-y-1">
-                {subscribers.filter((s) => s.status === "subscribed").map((s) => (
+                {subscribers.map((s) => (
                   <label key={s.id} className="flex items-center gap-2 text-sm text-slate-700">
                     <input type="checkbox" name="subscriberIds" value={s.id} className="h-4 w-4" />
                     {s.email}
@@ -81,12 +66,11 @@ export default async function AdminNewsletterPage() {
               </div>
             </fieldset>
           </div>
-          <p className="text-xs text-slate-500">Recipients are the union of the chosen groups and individuals, deduplicated, and only those still subscribed.</p>
+          <p className="text-xs text-slate-500">Recipients are the deduplicated union of the chosen groups and individuals, only those still subscribed. Sent from newsletter@tenxops.org with one-click unsubscribe.</p>
           <Button type="submit">Save as draft</Button>
         </form>
       </Card>
 
-      {/* Campaigns list */}
       <Card>
         <h2 className="text-lg font-semibold text-navy-900">Campaigns</h2>
         <div className="mt-4 space-y-3">
@@ -104,20 +88,25 @@ export default async function AdminNewsletterPage() {
                   <p className="mt-1 text-xs text-slate-500">
                     {gids.length} group{gids.length === 1 ? "" : "s"}
                     {gids.length ? ` (${gids.map((id) => groupName.get(id) ?? "?").join(", ")})` : ""}, {sids.length} individual{sids.length === 1 ? "" : "s"}
-                    {c.status === "sent" ? ` ${String.fromCharCode(183)} sent to ${c.sentCount} on ${c.sentAt?.toLocaleString()}` : ""}
+                    {c.status === "sent" ? ` ${String.fromCharCode(183)} sent to ${c.sentCount} of ${c.recipientCount} on ${c.sentAt?.toLocaleString()}` : ""}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  {c.status !== "sent" ? (
-                    <form action={sendCampaign}>
+                <div className="flex flex-wrap gap-2">
+                  {c.status === "sent" ? (
+                    <ButtonLink href={`/admin/newsletter/campaigns/${c.id}`} variant="secondary" size="sm">View history</ButtonLink>
+                  ) : (
+                    <form action={sendCampaign} >
                       <input type="hidden" name="id" value={c.id} />
                       <Button type="submit" size="sm">Send now</Button>
                     </form>
-                  ) : null}
-                  <form action={deleteCampaign}>
-                    <input type="hidden" name="id" value={c.id} />
-                    <Button type="submit" size="sm" variant="secondary">Delete</Button>
-                  </form>
+                  )}
+                  <ConfirmSubmit
+                    action={deleteCampaign}
+                    hidden={{ id: c.id }}
+                    message={`Delete the campaign "${c.subject}"? This also removes its send history.`}
+                    label="Delete"
+                    className="rounded-md border border-neutral-300 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-neutral-50"
+                  />
                 </div>
               </div>
             );
@@ -125,81 +114,10 @@ export default async function AdminNewsletterPage() {
         </div>
       </Card>
 
-      {/* Groups */}
-      <Card>
-        <h2 className="text-lg font-semibold text-navy-900">Groups</h2>
-        <form action={createNewsletterGroup} className="mt-4 flex flex-wrap items-end gap-3">
-          <div>
-            <label htmlFor="g-name" className="block text-sm font-medium text-navy-900">Name</label>
-            <input id="g-name" name="name" required className="mt-1 h-10 w-56 rounded-md border border-neutral-300 px-3 text-sm" />
-          </div>
-          <div className="flex-1">
-            <label htmlFor="g-desc" className="block text-sm font-medium text-navy-900">Description</label>
-            <input id="g-desc" name="description" className="mt-1 h-10 w-full rounded-md border border-neutral-300 px-3 text-sm" />
-          </div>
-          <Button type="submit" size="sm">Add group</Button>
-        </form>
-        <div className="mt-4 space-y-2">
-          {groups.map((g) => (
-            <div key={g.id} className="flex items-center justify-between rounded-md border border-neutral-200 px-4 py-2">
-              <span className="text-sm text-navy-900">{g.name} <span className="text-xs text-slate-400">({g._count.subscribers})</span></span>
-              <form action={deleteNewsletterGroup}>
-                <input type="hidden" name="id" value={g.id} />
-                <Button type="submit" size="sm" variant="secondary">Delete</Button>
-              </form>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Subscribers */}
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold text-navy-900">Subscribers</h2>
-          <form action={adminAddSubscriber} className="flex items-end gap-2">
-            <input name="email" type="email" required placeholder="add@example.com" className="h-9 w-56 rounded-md border border-neutral-300 px-3 text-sm" />
-            <Button type="submit" size="sm">Add</Button>
-          </form>
-        </div>
-        <div className="mt-4 space-y-2">
-          {subscribers.length === 0 ? <p className="text-sm text-slate-500">No subscribers yet.</p> : null}
-          {subscribers.map((s) => {
-            const memberOf = new Set(s.groups.map((m) => m.groupId));
-            return (
-              <div key={s.id} className="rounded-md border border-neutral-200 p-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-navy-900">{s.email}</span>
-                    <Badge status={s.status === "subscribed" ? "PASSED" : "NOT_COMPLETED"}>{s.status}</Badge>
-                  </div>
-                  <form action={adminSetSubscriberStatus}>
-                    <input type="hidden" name="id" value={s.id} />
-                    <input type="hidden" name="status" value={s.status === "subscribed" ? "unsubscribed" : "subscribed"} />
-                    <Button type="submit" size="sm" variant="secondary">{s.status === "subscribed" ? "Unsubscribe" : "Resubscribe"}</Button>
-                  </form>
-                </div>
-                {groups.length > 0 ? (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {groups.map((g) => {
-                      const isMember = memberOf.has(g.id);
-                      return (
-                        <form key={g.id} action={toggleGroupMembership}>
-                          <input type="hidden" name="subscriberId" value={s.id} />
-                          <input type="hidden" name="groupId" value={g.id} />
-                          <input type="hidden" name="add" value={isMember ? "0" : "1"} />
-                          <button type="submit" className={`rounded-full px-2.5 py-0.5 text-xs transition ${isMember ? "bg-navy-900 text-white" : "border border-neutral-300 text-slate-600 hover:bg-neutral-50"}`}>
-                            {g.name}
-                          </button>
-                        </form>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
-      </Card>
+      <p className="text-xs text-slate-500">
+        Need to manage who receives campaigns?{" "}
+        <Link href="/admin/newsletter/subscribers" className="font-medium text-navy-900 hover:underline">Open subscribers and groups</Link>.
+      </p>
     </div>
   );
 }

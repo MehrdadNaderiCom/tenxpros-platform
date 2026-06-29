@@ -2520,6 +2520,7 @@ model NewsletterSubscriber {
   unsubscribedAt DateTime?
   unsubToken String @unique
   groups NewsletterGroupOnSubscriber[]
+  deliveries NewsletterDelivery[]
   createdAt DateTime @default(now())
 
   @@index([status])
@@ -2550,9 +2551,27 @@ model NewsletterCampaign {
   targetGroupIds Json
   targetSubscriberIds Json
   sentCount Int @default(0)
+  recipientCount Int @default(0)
   createdBy String
   createdAt DateTime @default(now())
   sentAt DateTime?
+  deliveries NewsletterDelivery[]
 
   @@index([status])
+}
+
+model NewsletterDelivery {
+  id String @id @default(cuid())
+  campaignId String
+  campaign NewsletterCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subscriberId String?
+  subscriber NewsletterSubscriber? @relation(fields: [subscriberId], references: [id], onDelete: SetNull)
+  email String
+  status String @default("sent")
+  error String?
+  sentAt DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([campaignId])
+  @@index([email])
 }

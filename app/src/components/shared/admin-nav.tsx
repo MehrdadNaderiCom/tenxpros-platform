@@ -64,11 +64,17 @@ const sections: NavSection[] = [
     ],
   },
   {
+    title: "Newsletter",
+    items: [
+      { label: "Compose & campaigns", href: "/admin/newsletter" },
+      { label: "Subscribers & groups", href: "/admin/newsletter/subscribers" },
+    ],
+  },
+  {
     title: "System",
     items: [
       { label: "Users", href: "/admin/users" },
       { label: "Email", href: "/admin/email" },
-      { label: "Newsletter", href: "/admin/newsletter" },
       { label: "Audit", href: "/admin/audit" },
       { label: "Settings", href: "/admin/settings" },
     ],
