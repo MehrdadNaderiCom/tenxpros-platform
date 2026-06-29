@@ -28,8 +28,8 @@ export function NewsletterSignup() {
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-800">Stay in the loop</p>
         <h2 className="mt-3 text-2xl font-semibold text-navy-900 md:text-3xl">The TenXPros newsletter</h2>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600">
-          Occasional updates on the method, certification, and the partner program. No spam, and you can unsubscribe with
-          one click at any time.
+          Once a month we share the findings of our own research on putting AI to work across many fields. Just one
+          carefully made email, never spam, and genuinely worth the read. You can unsubscribe with one click at any time.
         </p>
         <form onSubmit={submit} className="mx-auto mt-6 flex max-w-md flex-col gap-3 sm:flex-row">
           <label htmlFor="newsletter-email" className="sr-only">Email address</label>
