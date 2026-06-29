@@ -1,17 +1,11 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+import { normalizeEmail, isValidEmail } from "./validation";
 
 export type SubscribeResult = "subscribed" | "resubscribed" | "already" | "invalid";
 export type UnsubscribeResult = "unsubscribed" | "already" | "unknown";
 
-export function normalizeEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
-
-export function isValidEmail(email: string): boolean {
-  // Deliberately permissive but blocks the obvious bad input.
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+export { normalizeEmail, isValidEmail };
 
 function newToken(): string {
   return randomBytes(24).toString("hex");
