@@ -6,7 +6,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { NewsletterEditor } from "@/components/admin/newsletter-editor";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
-import { createCampaign, sendCampaign, deleteCampaign } from "@/lib/actions/newsletter";
+import { createCampaign, deleteCampaign } from "@/lib/actions/newsletter";
 
 export const dynamic = "force-dynamic";
 
@@ -95,10 +95,7 @@ export default async function NewsletterComposePage() {
                   {c.status === "sent" ? (
                     <ButtonLink href={`/admin/newsletter/campaigns/${c.id}`} variant="secondary" size="sm">View history</ButtonLink>
                   ) : (
-                    <form action={sendCampaign} >
-                      <input type="hidden" name="id" value={c.id} />
-                      <Button type="submit" size="sm">Send now</Button>
-                    </form>
+                    <ButtonLink href={`/admin/newsletter/campaigns/${c.id}`} size="sm">Review &amp; send</ButtonLink>
                   )}
                   <ConfirmSubmit
                     action={deleteCampaign}

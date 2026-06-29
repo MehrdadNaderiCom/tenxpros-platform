@@ -6,7 +6,7 @@
  * Resolution precedence (most specific wins):
  *   1. per-application override  (PaymentRecord payment* fields)
  *   2. tier default              (PricingTier payment* fields)
- *   3. env fallback              (paymentLinkForTier — link only)
+ *   3. env fallback              (paymentLinkForTier, link only)
  *   4. safe defaults             (never an empty/broken value)
  *
  * Amounts are integer USD-style minor-unit-free whole numbers (same convention
@@ -57,13 +57,13 @@ const STATUS_LABELS: Record<string, string> = {
 
 /** Human label for a payment method (e.g. "MANUAL_INVOICE" -> "Manual invoice"). */
 export function formatPaymentMethod(method?: string | null): string {
-  if (!method) return "—";
+  if (!method) return "-";
   return METHOD_LABELS[method] ?? method;
 }
 
 /** Human label for a payment status (e.g. "INSTRUCTIONS_SENT" -> "Instructions sent"). */
 export function formatPaymentStatus(status?: string | null): string {
-  if (!status) return "—";
+  if (!status) return "-";
   return STATUS_LABELS[status] ?? status;
 }
 
@@ -172,6 +172,29 @@ export function resolvePaymentTerms(args: {
     publicDiscountNote,
     supportEmail: SUPPORT_EMAIL,
   };
+}
+
+/**
+ * Format a deadline timestamp for applicant-facing emails. Rendered in UTC, the
+ * timezone the deadline is stored and enforced in, with the exact date and time
+ * so the displayed value matches the persisted dueAt exactly.
+ * Example: "Wednesday, 1 July 2026 at 14:30 UTC".
+ */
+export function formatDeadlineUtc(date: Date): string {
+  const datePart = new Intl.DateTimeFormat("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
+  const timePart = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "UTC",
+  }).format(date);
+  return `${datePart} at ${timePart} UTC`;
 }
 
 // ---------------------------------------------------------------------------

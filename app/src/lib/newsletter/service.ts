@@ -76,3 +76,26 @@ export async function resolveRecipients(
   // findMany already returns distinct rows, so the union is deduped by id.
   return subs;
 }
+
+/**
+ * Count how many people the target set resolves to: how many will receive the
+ * campaign (subscribed) and how many are in the target set but excluded because
+ * they unsubscribed. Used by the review screen.
+ */
+export async function resolveTargetStats(
+  targetGroupIds: string[],
+  targetSubscriberIds: string[],
+): Promise<{ subscribed: number; excluded: number }> {
+  if (targetGroupIds.length === 0 && targetSubscriberIds.length === 0) return { subscribed: 0, excluded: 0 };
+  const all = await prisma.newsletterSubscriber.findMany({
+    where: {
+      OR: [
+        targetSubscriberIds.length ? { id: { in: targetSubscriberIds } } : undefined,
+        targetGroupIds.length ? { groups: { some: { groupId: { in: targetGroupIds } } } } : undefined,
+      ].filter(Boolean) as object[],
+    },
+    select: { status: true },
+  });
+  const subscribed = all.filter((s) => s.status === "subscribed").length;
+  return { subscribed, excluded: all.length - subscribed };
+}

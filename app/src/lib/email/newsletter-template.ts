@@ -6,6 +6,11 @@
  */
 export type NewsletterEmail = { subject: string; html: string; text: string };
 
+/** Bumped when the branded shell or footer changes, so sent snapshots stay traceable. */
+export const NEWSLETTER_TEMPLATE_VERSION = "nl-1";
+/** Describes the unsubscribe mechanism baked into a sent campaign. */
+export const NEWSLETTER_UNSUB_VERSION = "rfc8058-one-click-v1";
+
 const NAVY = "#0B1F3A";
 const GOLD = "#B58A3C";
 const MUTED = "#94A3B8";

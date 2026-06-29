@@ -13,8 +13,16 @@ import {
   SUPPORT_FALLBACK,
   payeeNoticeForMethod,
 } from "../payment-disclosure";
+import { formatDeadlineUtc } from "../payment-terms";
 
 export type EmailContent = { subject: string; html: string; text: string };
+
+/** One consistent deadline sentence used across the payment emails. */
+function deadlineSentence(dueAt: Date, windowHours?: number | null): string {
+  return windowHours
+    ? `Please complete your payment within ${windowHours} hours, by ${formatDeadlineUtc(dueAt)}.`
+    : `Please complete your payment by ${formatDeadlineUtc(dueAt)}.`;
+}
 
 const NAVY = "#0B1F3A";
 const GOLD = "#B58A3C";
@@ -234,13 +242,14 @@ export function paymentInstructionsEmail(params: {
   amount: number;
   currency: string;
   dueAt?: Date | null;
+  windowHours?: number | null;
   paymentLink?: string | null;
   paymentInstructions?: string | null;
   publicDiscountNote?: string | null;
   method?: string | null;
   supportEmail: string;
 }): EmailContent {
-  const { fullName, amount, currency, dueAt, paymentLink, paymentInstructions, publicDiscountNote, method, supportEmail } =
+  const { fullName, amount, currency, dueAt, windowHours, paymentLink, paymentInstructions, publicDiscountNote, method, supportEmail } =
     params;
 
   const hasLinkUrl = typeof paymentLink === "string" && /^https?:\/\//i.test(paymentLink);
@@ -248,11 +257,13 @@ export function paymentInstructionsEmail(params: {
   const rows: Array<{ label: string; value: string }> = [
     { label: "Amount due", value: money(amount, currency) },
   ];
-  if (dueAt) rows.push({ label: "Please pay by", value: dueAt.toDateString() });
+  if (dueAt) rows.push({ label: "Payment deadline", value: formatDeadlineUtc(dueAt) });
+  const deadlineLine = dueAt ? deadlineSentence(dueAt, windowHours) : null;
 
   const bodyHtml =
     paragraph(`Hi ${esc(fullName)},`) +
     paragraph("Congratulations. Your application has been accepted, and one step remains to confirm your place: completing payment.") +
+    (deadlineLine ? paragraph(`<strong>${esc(deadlineLine)}</strong>`) : "") +
     infoBox(rows) +
     (hasLinkUrl ? button(paymentLink as string, "Complete payment") : "") +
     (paymentInstructions ? noteBox("Payment instructions", paymentInstructions) : "") +
@@ -269,9 +280,10 @@ export function paymentInstructionsEmail(params: {
     `Hi ${fullName},`,
     "",
     "Congratulations. Your application has been accepted, and one step remains to confirm your place: completing payment.",
+    ...(deadlineLine ? ["", deadlineLine] : []),
     "",
     `Amount due: ${money(amount, currency)}`,
-    ...(dueAt ? [`Please pay by: ${dueAt.toDateString()}`] : []),
+    ...(dueAt ? [`Payment deadline: ${formatDeadlineUtc(dueAt)}`] : []),
     ...(hasLinkUrl ? ["", `Complete payment: ${paymentLink}`] : []),
     ...(paymentInstructions ? ["", "Payment instructions:", paymentInstructions] : []),
     ...(publicDiscountNote ? ["", `Note: ${publicDiscountNote}`] : []),
@@ -666,20 +678,23 @@ export function paymentReminderEmail(params: {
   amount: number;
   currency: string;
   dueAt?: Date | null;
+  windowHours?: number | null;
   paymentLink?: string | null;
   paymentInstructions?: string | null;
   method?: string | null;
   supportEmail: string;
 }): EmailContent {
-  const { fullName, amount, currency, dueAt, paymentLink, paymentInstructions, method, supportEmail } = params;
+  const { fullName, amount, currency, dueAt, windowHours, paymentLink, paymentInstructions, method, supportEmail } = params;
   const hasLinkUrl = typeof paymentLink === "string" && /^https?:\/\//i.test(paymentLink);
   const payeeNotice = payeeNoticeForMethod(method);
   const rows: Array<{ label: string; value: string }> = [{ label: "Amount due", value: money(amount, currency) }];
-  if (dueAt) rows.push({ label: "Please pay by", value: dueAt.toDateString() });
+  if (dueAt) rows.push({ label: "Payment deadline", value: formatDeadlineUtc(dueAt) });
+  const deadlineLine = dueAt ? deadlineSentence(dueAt, windowHours) : null;
 
   const bodyHtml =
     paragraph(`Hi ${esc(fullName)},`) +
     paragraph("This is a friendly reminder that your place at TenXPros is accepted but not yet confirmed. One step remains: completing payment.") +
+    (deadlineLine ? paragraph(`<strong>${esc(deadlineLine)}</strong>`) : "") +
     infoBox(rows) +
     (hasLinkUrl ? button(paymentLink as string, "Complete payment") : "") +
     (paymentInstructions ? noteBox("Payment instructions", paymentInstructions) : "") +
@@ -695,9 +710,10 @@ export function paymentReminderEmail(params: {
     `Hi ${fullName},`,
     "",
     "This is a friendly reminder that your place at TenXPros is accepted but not yet confirmed. One step remains: completing payment.",
+    ...(deadlineLine ? ["", deadlineLine] : []),
     "",
     `Amount due: ${money(amount, currency)}`,
-    ...(dueAt ? [`Please pay by: ${dueAt.toDateString()}`] : []),
+    ...(dueAt ? [`Payment deadline: ${formatDeadlineUtc(dueAt)}`] : []),
     ...(hasLinkUrl ? ["", `Complete payment: ${paymentLink}`] : []),
     ...(paymentInstructions ? ["", "Payment instructions:", paymentInstructions] : []),
     "",

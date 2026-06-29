@@ -51,6 +51,7 @@ export async function processPaymentReminders(now: Date = new Date()): Promise<R
         amount: terms.amount,
         currency: terms.currency,
         dueAt: terms.dueAt,
+        windowHours: terms.dueDays != null ? terms.dueDays * 24 : null,
         paymentLink: terms.paymentLink,
         paymentInstructions: terms.paymentInstructions,
         method: terms.method,

@@ -393,6 +393,7 @@ async function sendPaymentInstructionsEmail(
     amount: terms.amount,
     currency: terms.currency,
     dueAt: terms.dueAt,
+    windowHours: terms.dueDays != null ? terms.dueDays * 24 : null,
     paymentLink: terms.paymentLink,
     paymentInstructions: terms.paymentInstructions,
     publicDiscountNote: terms.publicDiscountNote,

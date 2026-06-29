@@ -2555,6 +2555,14 @@ model NewsletterCampaign {
   createdBy String
   createdAt DateTime @default(now())
   sentAt DateTime?
+  // Immutable snapshot frozen at send. Later draft edits never change these.
+  sentSubject String?
+  sentBodyHtml String? @db.Text
+  sentText String? @db.Text
+  sentFromAddress String?
+  sentUnsubVersion String?
+  sentTemplateVersion String?
+  sentGroupIds Json?
   deliveries NewsletterDelivery[]
 
   @@index([status])

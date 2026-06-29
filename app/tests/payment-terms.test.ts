@@ -25,7 +25,7 @@ afterEach(() => {
   for (const k of ENV_KEYS) delete process.env[k];
 });
 
-describe("resolvePaymentTerms — precedence", () => {
+describe("resolvePaymentTerms: precedence", () => {
   const tier = {
     tier: "EARLY",
     price: 1247,
@@ -94,7 +94,7 @@ describe("resolvePaymentTerms — precedence", () => {
   });
 });
 
-describe("resolvePaymentTerms — discount note visibility", () => {
+describe("resolvePaymentTerms: discount note visibility", () => {
   it("hides the discount note from the applicant by default", () => {
     const terms = resolvePaymentTerms({ record: { discountNote: "Founder friend 20% off" } });
     expect(terms.discountNote).toBe("Founder friend 20% off"); // internal value retained
@@ -205,7 +205,7 @@ describe("validators", () => {
 describe("formatters", () => {
   it("formats methods and statuses", () => {
     expect(formatPaymentMethod("MANUAL_INVOICE")).toBe("Manual invoice");
-    expect(formatPaymentMethod(null)).toBe("—");
+    expect(formatPaymentMethod(null)).toBe("-");
     expect(formatPaymentStatus("INSTRUCTIONS_SENT")).toBe("Instructions sent");
   });
 });
