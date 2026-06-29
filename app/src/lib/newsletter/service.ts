@@ -59,6 +59,10 @@ export async function resolveRecipients(
   targetGroupIds: string[],
   targetSubscriberIds: string[],
 ): Promise<{ id: string; email: string; unsubToken: string }[]> {
+  // No targets means no recipients. Returning early also avoids an empty Prisma
+  // OR array, which Prisma rejects as an invalid condition.
+  if (targetGroupIds.length === 0 && targetSubscriberIds.length === 0) return [];
+
   const subs = await prisma.newsletterSubscriber.findMany({
     where: {
       status: "subscribed",

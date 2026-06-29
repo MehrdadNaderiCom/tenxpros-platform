@@ -232,15 +232,20 @@ export async function submitExam(input: { sittingId: string; selections: number[
     data: { answers: input.selections as object, score: result.percent, passed: result.passed, submittedAt: new Date() },
   });
 
-  const progress = await prisma.academyProgress.update({
+  await prisma.academyProgress.update({
     where: { partnerId_moduleId: { partnerId: partner.id, moduleId: m.id } },
     data: {
       examAttempts: { increment: 1 },
-      bestExamScore: { set: Math.max(result.percent, (await prisma.academyProgress.findUnique({ where: { partnerId_moduleId: { partnerId: partner.id, moduleId: m.id } } }))?.bestExamScore ?? 0) },
       ...(result.passed
         ? { examPassed: true, status: "passed", lockedUntil: null }
         : { lockedUntil: cooldownUntil(new Date(), m.examCooldownHours) }),
     },
+  });
+  // Raise the best score atomically and monotonically: a conditional update so a
+  // concurrent lower-scoring submission can never lower an already-higher best.
+  await prisma.academyProgress.updateMany({
+    where: { partnerId: partner.id, moduleId: m.id, bestExamScore: { lt: result.percent } },
+    data: { bestExamScore: result.percent },
   });
 
   // Award the badge if every published module is now passed.
@@ -260,7 +265,6 @@ export async function submitExam(input: { sittingId: string; selections: number[
       }
     }
   }
-  void progress;
 
   const review = served.map((s, i) => {
     const q = qById.get(s.questionId)!;
