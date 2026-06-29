@@ -17,3 +17,4 @@ Thumbs.db
 
 # Database backups / dumps — may contain password hashes; never commit.
 backups/
+scratch_academy/
