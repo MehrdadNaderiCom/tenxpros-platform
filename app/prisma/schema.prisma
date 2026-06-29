@@ -489,7 +489,7 @@ model ProgramPath {
 model Module {
   id String @id @default(cuid())
 
-  number Int // 1-11 (not unique alone — see @@unique below)
+  number Int // 1-11 (not unique alone, see @@unique below)
 
   phase ProgramPhase
 
@@ -1323,7 +1323,7 @@ model AdminSetting {
 
 // ============================================================
 
-// MARKETING — "TenXPros Command": founder-led sales operating system.
+// MARKETING. "TenXPros Command": founder-led sales operating system.
 // Super-admin only (SUPER_ADMIN_EMAIL). Campaigns set goals & channel quotas;
 // prospects move through an outreach pipeline with a follow-up cadence; daily
 // activity is logged against quotas; the playbook holds editable templates.
@@ -1454,7 +1454,7 @@ model Prospect {
 
   name String
 
-  // Industry/role context — no confidential details.
+  // Industry/role context. No confidential details.
   context String?
 
   warmth ProspectWarmth @default(COLD)
@@ -1660,7 +1660,7 @@ model MarketingTemplateCategory {
 }
 
 // AI coach advice history (OpenRouter). The API key/model live in AdminSetting
-// (keys: openrouter_api_key / openrouter_model), pasted by the super admin —
+// (keys: openrouter_api_key / openrouter_model), pasted by the super admin,
 // never stored in code or env files.
 // Per-area AI suggestions (channels / activity / prospects / playbook).
 // status "error" rows carry the failure message so it renders inline.
@@ -1706,7 +1706,7 @@ model MarketingCoachAdvice {
 // The Partner Panel is the single source of truth: nothing is approved,
 // registered, promoted or confirmed except by a Company action recorded here,
 // audited via the existing AuditLog (action prefixed PANEL_*). Money fields are
-// integer CENTS; rates/caps are integer BASIS POINTS (1% = 100 bp) — no floats.
+// integer CENTS; rates/caps are integer BASIS POINTS (1% = 100 bp), no floats.
 // All commercial numbers resolve through ProgramConfig defaults + optional
 // per-partner PartnerConfig overrides (see src/lib/partner/config.ts).
 
@@ -1911,6 +1911,10 @@ model Partner {
   engagements TenXOpsEngagement[]
   focusGrants FocusGrant[]
   qualityFlags QualityFlag[]
+  academyProgress AcademyProgress[]
+  academyExerciseAttempts AcademyExerciseAttempt[]
+  academyExamSittings AcademyExamSitting[]
+  academyBadge PartnerAcademyBadge?
 
   @@index([status])
 }
@@ -2358,4 +2362,193 @@ model QualityFlag {
   createdAt DateTime @default(now())
 
   @@index([partnerId])
+}
+
+// ===========================================================================
+// Partner Academy
+// ===========================================================================
+
+enum AcademyQuestionPool {
+  EXERCISE
+  EXAM
+}
+
+/// A training module in the Partner Academy. Ordered 1..N; passing one unlocks
+/// the next. passMark / examSize / examCooldownHours default to the spec values
+/// and are editable per module.
+model AcademyModule {
+  id String @id @default(cuid())
+  slug String @unique
+  order Int
+  title String
+  summary String
+  passMark Int @default(80)
+  examSize Int @default(10)
+  examCooldownHours Int @default(24)
+  isPublished Boolean @default(true)
+  lessons AcademyLesson[]
+  questions AcademyQuestion[]
+  progress AcademyProgress[]
+  examSittings AcademyExamSitting[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}
+
+model AcademyLesson {
+  id String @id @default(cuid())
+  moduleId String
+  module AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  order Int
+  title String
+  body String @db.Text
+  audioText String @db.Text
+
+  @@index([moduleId, order])
+}
+
+/// One multiple-choice question. A question never appears in both pools of a
+/// module, and no stem repeats across modules (enforced by the seed).
+model AcademyQuestion {
+  id String @id @default(cuid())
+  moduleId String
+  module AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  pool AcademyQuestionPool
+  order Int
+  stem String @db.Text
+  options Json
+  correctIndex Int
+  explanation String @db.Text
+  exerciseAttempts AcademyExerciseAttempt[]
+
+  @@index([moduleId, pool])
+}
+
+/// Per-partner, per-module progress and gating state.
+model AcademyProgress {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  moduleId String
+  module AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  status String @default("locked")
+  lessonReadAt DateTime?
+  exercisesDone Boolean @default(false)
+  examPassed Boolean @default(false)
+  bestExamScore Int @default(0)
+  examAttempts Int @default(0)
+  lockedUntil DateTime?
+  updatedAt DateTime @updatedAt
+
+  @@unique([partnerId, moduleId])
+  @@index([partnerId])
+}
+
+model AcademyExerciseAttempt {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  questionId String
+  question AcademyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attemptNo Int
+  selected Int
+  correct Boolean
+  createdAt DateTime @default(now())
+
+  @@index([partnerId, questionId])
+}
+
+model AcademyExamSitting {
+  id String @id @default(cuid())
+  partnerId String
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  moduleId String
+  module AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  questionIds Json
+  answers Json
+  score Int
+  passed Boolean
+  startedAt DateTime @default(now())
+  submittedAt DateTime?
+
+  @@index([partnerId, moduleId])
+}
+
+model PartnerAcademyBadge {
+  id String @id @default(cuid())
+  partnerId String @unique
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  awardedAt DateTime @default(now())
+  serial String @unique
+  year Int
+}
+
+// ===========================================================================
+// Annual terms versions (drives the versioned terms page)
+// ===========================================================================
+
+model TermsVersion {
+  id String @id @default(cuid())
+  year Int
+  audience String @default("all")
+  effectiveFrom DateTime
+  effectiveTo DateTime
+  bodyHtml String @db.Text
+  changelog String @db.Text
+  isCurrent Boolean @default(false)
+  publishedAt DateTime @default(now())
+
+  @@unique([year, audience])
+  @@index([audience, isCurrent])
+}
+
+// ===========================================================================
+// Newsletter
+// ===========================================================================
+
+model NewsletterSubscriber {
+  id String @id @default(cuid())
+  email String @unique
+  status String @default("subscribed")
+  source String @default("homepage")
+  consentAt DateTime @default(now())
+  unsubscribedAt DateTime?
+  unsubToken String @unique
+  groups NewsletterGroupOnSubscriber[]
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}
+
+model NewsletterGroup {
+  id String @id @default(cuid())
+  name String @unique
+  description String?
+  subscribers NewsletterGroupOnSubscriber[]
+  createdAt DateTime @default(now())
+}
+
+model NewsletterGroupOnSubscriber {
+  subscriberId String
+  groupId String
+  subscriber NewsletterSubscriber @relation(fields: [subscriberId], references: [id], onDelete: Cascade)
+  group NewsletterGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([subscriberId, groupId])
+}
+
+model NewsletterCampaign {
+  id String @id @default(cuid())
+  subject String
+  bodyHtml String @db.Text
+  status String @default("draft")
+  targetGroupIds Json
+  targetSubscriberIds Json
+  sentCount Int @default(0)
+  createdBy String
+  createdAt DateTime @default(now())
+  sentAt DateTime?
+
+  @@index([status])
 }
