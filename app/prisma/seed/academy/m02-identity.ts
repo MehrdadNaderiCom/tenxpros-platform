@@ -73,7 +73,7 @@ export const m02: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The deal registration form on the Partner Panel, where you record your real role for an opportunity. It captures the function you performed (introduction, qualified origination, strong origination, closing, or delivery and coaching) and the account details, so you are paid for what you actually did rather than for being nearby.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Partner Panel deal registration</div><img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" /><p>The deal registration form on the Partner Panel, where you record your real role for an opportunity. It captures the function you performed (introduction, qualified origination, strong origination, closing, or delivery and coaching) and the account details, so you are paid for what you actually did rather than for being nearby.</p></div>
 
 <h2>Talking points</h2>
 <ul>

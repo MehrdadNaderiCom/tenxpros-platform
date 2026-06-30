@@ -69,8 +69,8 @@ export const m14: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The explorer's field story view, which walks one profession through the twelve weeks. You use it as the model for building a prospect's own story, in their domain, for a field that is not on the list.</p></div>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>A tailored leave behind summary, assembled from approved materials: the prospect's problem in their own words, the opportunity and boundary, how the four phases handle it, what their people would produce, and the next step.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Field Journey Explorer</div><img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" /><p>The explorer's field story view, which walks one profession through the twelve weeks. You use it as the model for building a prospect's own story, in their domain, for a field that is not on the list.</p></div>
+<div class="form-preview"><div class="form-preview-label">Leave-behind summary</div><p>A tailored leave behind summary, assembled from approved materials: the prospect's problem in their own words, the opportunity and boundary, how the four phases handle it, what their people would produce, and the next step.</p></div>
 
 <h2>Talking points</h2>
 <ul>

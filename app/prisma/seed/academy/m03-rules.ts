@@ -74,7 +74,7 @@ export const m03: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The deal registration screen on the Partner Panel. It captures the legal entity or individual, country, business unit, contact, offering, estimated seats and value, your role, and your real reason for pursuing the account. The registration only protects you once the company confirms it here, and it covers only the exact scope shown.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Partner Panel deal registration</div><img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" /><p>The deal registration screen on the Partner Panel. It captures the legal entity or individual, country, business unit, contact, offering, estimated seats and value, your role, and your real reason for pursuing the account. The registration only protects you once the company confirms it here, and it covers only the exact scope shown.</p></div>
 
 <h2>Talking points</h2>
 <ul>

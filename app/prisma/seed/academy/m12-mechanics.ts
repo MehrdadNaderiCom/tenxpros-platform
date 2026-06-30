@@ -85,8 +85,8 @@ export const m12: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The dossier submission screen at the end of Foresee, where the participant submits the complete Living AI Solution Dossier with its twelve sections for review against the eight public criteria.</p></div>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The public verification view, showing the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.</p></div>
+<div class="form-preview"><div class="form-preview-label">The dossier submission screen</div><img src="/academy/screens/dossier-submission.png" alt="The dossier submission screen" /><p>The dossier submission screen at the end of Foresee, where the participant submits the complete Living AI Solution Dossier with its twelve sections for review against the eight public criteria.</p></div>
+<div class="form-preview"><div class="form-preview-label">Public credential verification</div><img src="/academy/screens/verification.png" alt="Public credential verification" /><p>The public verification view, showing the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.</p></div>
 
 <h2>Talking points</h2>
 <ul>

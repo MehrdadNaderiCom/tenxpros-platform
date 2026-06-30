@@ -57,9 +57,9 @@ export const m08: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The Field Journey Explorer, where you pick the prospect's field and walk through that profession's twelve weeks, showing what each phase produces and what they hold at the end.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Field Journey Explorer</div><img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" /><p>The Field Journey Explorer, where you pick the prospect's field and walk through that profession's twelve weeks, showing what each phase produces and what they hold at the end.</p></div>
 
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The application screen, the first quality gate, where the professional describes their expertise and the challenge they want to explore. Payment happens only after acceptance, never before.</p></div>
+<div class="form-preview"><div class="form-preview-label">The application screen</div><img src="/academy/screens/application.png" alt="The application screen" /><p>The application screen, the first quality gate, where the professional describes their expertise and the challenge they want to explore. Payment happens only after acceptance, never before.</p></div>
 
 <h2>Talking points</h2>
 <ul>

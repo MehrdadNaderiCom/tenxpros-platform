@@ -61,9 +61,9 @@ export const m07: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The coach pathway view, showing the six stages from Certified TenXPro to Lead Domain Coach, with the bar described at each stage so a prospect can see exactly where recognition, training, supporting, and leading begin.</p></div>
+<div class="form-preview"><div class="form-preview-label">The coach pathway</div><p>The coach pathway view, showing the six stages from Certified TenXPro to Lead Domain Coach, with the bar described at each stage so a prospect can see exactly where recognition, training, supporting, and leading begin.</p></div>
 
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The coach screening checklist, listing the ethics and confidentiality interview, sample coaching review, dossier audit, communication assessment, domain expertise check, methodology exam, and brand and boundary agreement.</p></div>
+<div class="form-preview"><div class="form-preview-label">The coach screening checklist</div><p>The coach screening checklist, listing the ethics and confidentiality interview, sample coaching review, dossier audit, communication assessment, domain expertise check, methodology exam, and brand and boundary agreement.</p></div>
 
 <h2>Talking points</h2>
 <ul>

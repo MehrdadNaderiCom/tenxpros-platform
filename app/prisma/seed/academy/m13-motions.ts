@@ -54,8 +54,8 @@ export const m13: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The Panel deal registration screen, where you log a B2B opportunity at its real scope: the legal entity, the country, the business unit, the contact, the estimated seats and value, and your route in. The opportunity is protected only once the company confirms it.</p></div>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The application a B2C prospect completes themselves, where they describe their expertise and the real problem they want to work on. Acceptance comes first, and only then is there a payment decision.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Partner Panel deal registration</div><img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" /><p>The Panel deal registration screen, where you log a B2B opportunity at its real scope: the legal entity, the country, the business unit, the contact, the estimated seats and value, and your route in. The opportunity is protected only once the company confirms it.</p></div>
+<div class="form-preview"><div class="form-preview-label">The application screen</div><img src="/academy/screens/application.png" alt="The application screen" /><p>The application a B2C prospect completes themselves, where they describe their expertise and the real problem they want to work on. Acceptance comes first, and only then is there a payment decision.</p></div>
 
 <h2>Talking points</h2>
 <ul>

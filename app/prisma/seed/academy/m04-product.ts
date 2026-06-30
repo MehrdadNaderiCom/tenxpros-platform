@@ -74,7 +74,8 @@ export const m04: ModuleSeed = {
 
 <h2>Forms and screens you will reference</h2>
 <div class="form-preview">
-  <div class="form-preview-label">Form preview, placeholder</div>
+  <div class="form-preview-label">Public credential verification</div>
+  <img src="/academy/screens/verification.png" alt="Public credential verification" />
   <p>The public credential verification screen shows the recipient, the credential status, the issue date, and the badge metadata. It confirms what was earned without exposing the participant's confidential dossier contents.</p>
 </div>
 

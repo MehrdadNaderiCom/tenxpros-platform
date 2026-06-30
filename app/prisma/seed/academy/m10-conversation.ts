@@ -62,8 +62,8 @@ export const m10: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The application screen the prospect fills in: a description of their expertise, the real problem they want to work on for twelve weeks, and their field. This is the first quality gate, and acceptance happens here before any payment.</p></div>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>Your opportunity registration in the Partner Panel, where you record the prospect and your route in, so the conversation you started is logged and protected.</p></div>
+<div class="form-preview"><div class="form-preview-label">The application screen</div><img src="/academy/screens/application.png" alt="The application screen" /><p>The application screen the prospect fills in: a description of their expertise, the real problem they want to work on for twelve weeks, and their field. This is the first quality gate, and acceptance happens here before any payment.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Partner Panel deal registration</div><img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" /><p>Your opportunity registration in the Partner Panel, where you record the prospect and your route in, so the conversation you started is logged and protected.</p></div>
 
 <h2>Talking points</h2>
 <ul>

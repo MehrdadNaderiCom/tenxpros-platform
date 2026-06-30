@@ -52,9 +52,9 @@ export const m09: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The Partner Panel opportunity registration, where you record a prospect before substantive contact. The opportunity is protected only once the company confirms it, so you register first, then pursue.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Partner Panel deal registration</div><img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" /><p>The Partner Panel opportunity registration, where you record a prospect before substantive contact. The opportunity is protected only once the company confirms it, so you register first, then pursue.</p></div>
 
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>A simple target list view, one row per prospect, showing the named person or organization, why they fit, and your concrete route in. Short and real beats long and unreachable.</p></div>
+<div class="form-preview"><div class="form-preview-label">Your target list</div><img src="/academy/screens/target-list.png" alt="Your target list" /><p>A simple target list view, one row per prospect, showing the named person or organization, why they fit, and your concrete route in. Short and real beats long and unreachable.</p></div>
 
 <h2>Talking points</h2>
 <ul>

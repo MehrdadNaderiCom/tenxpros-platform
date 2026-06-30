@@ -65,9 +65,9 @@ export const m11: ModuleSeed = {
 </table>
 
 <h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The opportunity registration form: the entity or person, the country, the business unit, the contact, the offering, the estimated seats and value, your role, and your route in. You complete this before substantive contact.</p></div>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The account update view, where you log a meeting, a documented next step, a customer response, a proposal path, or conversion evidence to keep the account protected.</p></div>
-<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The commission statements view, where you check what you are owed and raise a query within thirty days if something looks wrong.</p></div>
+<div class="form-preview"><div class="form-preview-label">The Partner Panel deal registration</div><img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" /><p>The opportunity registration form: the entity or person, the country, the business unit, the contact, the offering, the estimated seats and value, your role, and your route in. You complete this before substantive contact.</p></div>
+<div class="form-preview"><div class="form-preview-label">The account update view</div><img src="/academy/screens/accounts.png" alt="The account update view" /><p>The account update view, where you log a meeting, a documented next step, a customer response, a proposal path, or conversion evidence to keep the account protected.</p></div>
+<div class="form-preview"><div class="form-preview-label">Commission statements</div><img src="/academy/screens/commission-statements.png" alt="Commission statements" /><p>The commission statements view, where you check what you are owed and raise a query within thirty days if something looks wrong.</p></div>
 
 <h2>Talking points</h2>
 <ul>

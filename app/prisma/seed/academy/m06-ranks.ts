@@ -71,7 +71,7 @@ export const m06: ModuleSeed = {
 
 <h2>Forms and screens you will reference</h2>
 <div class="form-preview">
-  <div class="form-preview-label">Form preview, placeholder</div>
+  <div class="form-preview-label">The progress view</div>
   <p>The progress view shows where a participant sits right now: accepted member, a phase rank, dossier candidate, or one of the three review outcomes. Use it to describe status honestly rather than rounding up.</p>
 </div>
 
