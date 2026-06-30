@@ -18,9 +18,29 @@ async function seedAcademy(modules) {
       update: { order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
       create: { slug: m.slug, order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
     });
-    await prisma.academyLesson.deleteMany({ where: { moduleId: mod.id } });
+
+    // bodyHtml and audioText are prepared (sanitized/derived) by dump-content.ts.
+    const audioText = m.audioText || m.lesson;
+    const bodyHtml = m.bodyHtml || null;
+
+    // Preserve a superadmin-edited lesson (module contentVersion bumped past 1);
+    // otherwise keep the canonical seed content in sync.
+    const existingLesson = await prisma.academyLesson.findFirst({ where: { moduleId: mod.id, order: 1 } });
+    const edited = (mod.contentVersion || 1) > 1;
+    if (existingLesson) {
+      if (!edited) {
+        await prisma.academyLesson.update({
+          where: { id: existingLesson.id },
+          data: { title: m.title, body: m.lesson, audioText, bodyHtml },
+        });
+      }
+    } else {
+      await prisma.academyLesson.create({
+        data: { moduleId: mod.id, order: 1, title: m.title, body: m.lesson, audioText, bodyHtml },
+      });
+    }
+
     await prisma.academyQuestion.deleteMany({ where: { moduleId: mod.id } });
-    await prisma.academyLesson.create({ data: { moduleId: mod.id, order: 1, title: m.title, body: m.lesson, audioText: m.lesson } });
     let order = 1;
     for (const q of m.exercises) {
       await prisma.academyQuestion.create({ data: { moduleId: mod.id, pool: "EXERCISE", order: order++, stem: q.stem, options: q.options, correctIndex: q.correct, explanation: q.explanation } });

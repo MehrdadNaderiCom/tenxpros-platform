@@ -10,11 +10,19 @@
 import { ACADEMY_MODULES } from "../prisma/seed/academy/modules";
 import { validateAcademyContent } from "../prisma/seed/academy";
 import { buildTermsVersionSeed, currentTermsYear } from "../src/lib/terms/annual";
+import { sanitizeLessonHtml, htmlToPlainText } from "../src/lib/academy/lesson-html";
 
 validateAcademyContent(ACADEMY_MODULES);
 
+// Prepare the rich body and audio text here (in TS, where the sanitizer lives) so
+// the plain CommonJS prod seeder can write them verbatim.
+const academy = ACADEMY_MODULES.map((m) => {
+  const bodyHtml = m.bodyHtml ? sanitizeLessonHtml(m.bodyHtml) : null;
+  return { ...m, bodyHtml, audioText: bodyHtml ? htmlToPlainText(bodyHtml) : m.lesson };
+});
+
 const payload = {
-  academy: ACADEMY_MODULES,
+  academy,
   terms: [buildTermsVersionSeed(currentTermsYear())],
   groups: [
     { name: "General updates", description: "Everyone who subscribed from the site." },
