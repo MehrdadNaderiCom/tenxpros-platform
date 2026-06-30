@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolveTargetStats } from "@/lib/newsletter/service";
-import { buildNewsletterEmail } from "@/lib/email/newsletter-template";
+import { renderCampaign } from "@/lib/email/newsletter-render";
 import { newsletterFrom, newsletterSenderIdentity } from "@/lib/services/newsletter-email";
 import { absoluteUrl } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-shell";
@@ -12,15 +12,42 @@ import { sendTestCampaign, sendCampaign } from "@/lib/actions/newsletter";
 
 export const dynamic = "force-dynamic";
 
-const NL_HTML =
-  "[&_h2]:mt-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-navy-900 [&_h3]:mt-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-navy-900 [&_p]:my-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-slate-700 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:text-sm [&_li]:text-slate-700 [&_a]:text-navy-600 [&_a]:underline [&_strong]:text-navy-900";
-
 function Meta({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col">
       <dt className="text-xs uppercase tracking-wide text-slate-500">{label}</dt>
       <dd className="mt-0.5 text-sm text-navy-900">{value}</dd>
     </div>
+  );
+}
+
+/** Desktop + mobile rendered previews, plus plain-text and raw HTML source. */
+function EmailPreview({ html, text }: { html: string; text: string }) {
+  return (
+    <Card>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-lg font-semibold text-navy-900">Final preview</h2>
+        <span className="text-xs text-slate-500">Exactly what recipients will see (email-safe HTML)</span>
+      </div>
+      <div className="mt-4 grid gap-6 lg:grid-cols-[1fr,375px]">
+        <div>
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Desktop</p>
+          <iframe title="Desktop preview" srcDoc={html} sandbox="" className="h-[600px] w-full rounded-md border border-neutral-200 bg-white" />
+        </div>
+        <div>
+          <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Mobile</p>
+          <iframe title="Mobile preview" srcDoc={html} sandbox="" className="h-[600px] w-[375px] max-w-full rounded-md border border-neutral-200 bg-white" />
+        </div>
+      </div>
+      <details className="mt-4 rounded-md border border-neutral-200">
+        <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-navy-900">Plain-text version</summary>
+        <pre className="max-h-72 overflow-auto whitespace-pre-wrap border-t border-neutral-200 bg-neutral-50 p-3 text-xs text-slate-700">{text}</pre>
+      </details>
+      <details className="mt-2 rounded-md border border-neutral-200">
+        <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-navy-900">HTML source (for debugging)</summary>
+        <pre className="max-h-72 overflow-auto whitespace-pre-wrap border-t border-neutral-200 bg-neutral-50 p-3 text-[11px] leading-5 text-slate-700">{html}</pre>
+      </details>
+    </Card>
   );
 }
 
@@ -64,7 +91,6 @@ export default async function CampaignPage({
   if (isSent) {
     const ok = campaign.deliveries.filter((d) => d.status === "sent").length;
     const failed = campaign.deliveries.length - ok;
-    const bodyHtml = campaign.sentBodyHtml ?? campaign.bodyHtml;
     return (
       <div className="space-y-8">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -86,10 +112,7 @@ export default async function CampaignPage({
           </dl>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold text-navy-900">Message that was sent</h2>
-          <div className={`mt-3 ${NL_HTML}`} dangerouslySetInnerHTML={{ __html: bodyHtml }} />
-        </Card>
+        <EmailPreview html={campaign.sentBodyHtml ?? campaign.bodyHtml} text={campaign.sentText ?? ""} />
 
         <Card className="overflow-x-auto p-0">
           <table className="w-full min-w-[640px] text-sm">
@@ -123,14 +146,13 @@ export default async function CampaignPage({
     );
   }
 
-  // ---- Draft: preview + send test + review + confirm ----
+  // ---- Draft: review + single test + preview + confirm ----
   const stats = await resolveTargetStats(groupIds, subscriberIds);
-  const previewHtml = buildNewsletterEmail({
+  const rendered = renderCampaign(campaign, {
     subject: campaign.subject,
-    bodyHtml: campaign.bodyHtml,
     unsubscribeUrl: absoluteUrl("/newsletter/unsubscribe/PREVIEW"),
     senderIdentity: newsletterSenderIdentity(),
-  }).html;
+  });
   const from = newsletterFrom();
   const confirmError = searchParams.error === "confirm";
 
@@ -176,7 +198,7 @@ export default async function CampaignPage({
 
       <Card className="border-navy-300">
         <h2 className="text-lg font-semibold text-navy-900">Send a single test first</h2>
-        <p className="mt-1 text-sm text-slate-600">Enter any email and send just that one copy. Open it, check it looks right in a real inbox, and only then confirm the bulk send below. A test never touches subscribers or the send history.</p>
+        <p className="mt-1 text-sm text-slate-600">Enter any email and send just that one copy. It uses the exact same rendering as the real send. Open it, check it in a real inbox, and only then confirm the bulk send below. A test never touches subscribers or the send history.</p>
         <form action={sendTestCampaign} className="mt-3 flex flex-wrap items-end gap-2">
           <input type="hidden" name="id" value={campaign.id} />
           <input name="testEmail" type="email" required placeholder="you@example.com" className="h-10 w-72 rounded-md border border-neutral-300 px-3 text-sm" />
@@ -184,22 +206,7 @@ export default async function CampaignPage({
         </form>
       </Card>
 
-      <Card>
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold text-navy-900">Final preview</h2>
-          <span className="text-xs text-slate-500">Exactly what recipients will see</span>
-        </div>
-        <div className="mt-4 grid gap-6 lg:grid-cols-[1fr,375px]">
-          <div>
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Desktop</p>
-            <iframe title="Desktop preview" srcDoc={previewHtml} sandbox="" className="h-[560px] w-full rounded-md border border-neutral-200 bg-white" />
-          </div>
-          <div>
-            <p className="mb-1 text-xs font-medium uppercase tracking-wide text-slate-400">Mobile</p>
-            <iframe title="Mobile preview" srcDoc={previewHtml} sandbox="" className="h-[560px] w-[375px] max-w-full rounded-md border border-neutral-200 bg-white" />
-          </div>
-        </div>
-      </Card>
+      <EmailPreview html={rendered.html} text={rendered.text} />
 
       <Card className="border-gold-500">
         <h2 className="text-lg font-semibold text-navy-900">Confirm and send</h2>

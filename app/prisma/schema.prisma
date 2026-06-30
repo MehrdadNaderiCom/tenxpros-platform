@@ -2547,6 +2547,7 @@ model NewsletterCampaign {
   id String @id @default(cuid())
   subject String
   bodyHtml String @db.Text
+  bodyJson String? @db.Text
   status String @default("draft")
   targetGroupIds Json
   targetSubscriberIds Json

@@ -42,8 +42,8 @@ export default async function NewsletterComposePage({ searchParams }: { searchPa
           </div>
           <div>
             <span className="block text-sm font-medium text-navy-900">Body</span>
-            <p className="mb-1 text-xs text-slate-500">Write it like a blog post: headings, bold, lists, quotes, and links.</p>
-            <NewsletterEditor name="body" />
+            <p className="mb-1 text-xs text-slate-500">Compose like a blog post: headings, bold, lists, quotes, links, CTA buttons, callouts, dividers, and images. The output is compiled to email-safe HTML (MJML) for reliable rendering in Gmail, Outlook, and Apple Mail.</p>
+            <NewsletterEditor name="bodyJson" />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <fieldset className="rounded-md border border-neutral-200 p-3">

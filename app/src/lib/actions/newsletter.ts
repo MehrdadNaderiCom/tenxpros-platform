@@ -5,12 +5,8 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
-import {
-  buildNewsletterEmail,
-  htmlToText,
-  NEWSLETTER_TEMPLATE_VERSION,
-  NEWSLETTER_UNSUB_VERSION,
-} from "@/lib/email/newsletter-template";
+import { NEWSLETTER_TEMPLATE_VERSION, NEWSLETTER_UNSUB_VERSION } from "@/lib/email/newsletter-template";
+import { renderCampaign, docHasContent, type TipTapDoc } from "@/lib/email/newsletter-render";
 import { sendNewsletterEmail, newsletterFrom, newsletterSenderIdentity } from "@/lib/services/newsletter-email";
 import { subscribe, resolveRecipients, normalizeEmail, isValidEmail } from "@/lib/newsletter/service";
 
@@ -96,16 +92,31 @@ export async function toggleGroupMembership(formData: FormData) {
 export async function createCampaign(formData: FormData) {
   const admin = await requireAdminUser();
   const subject = String(formData.get("subject") ?? "").trim();
-  const body = String(formData.get("body") ?? "").trim();
+  const bodyJson = String(formData.get("bodyJson") ?? "").trim();
   const groupIds = formData.getAll("groupIds").map(String).filter(Boolean);
   const subscriberIds = formData.getAll("subscriberIds").map(String).filter(Boolean);
-  if (!subject || !body) {
+
+  let doc: TipTapDoc | null = null;
+  try {
+    doc = JSON.parse(bodyJson) as TipTapDoc;
+  } catch {
+    doc = null;
+  }
+  if (!subject || !docHasContent(doc)) {
     redirect("/admin/newsletter?error=empty");
   }
+
+  // Compile once for storage/display; the body content is identical for every
+  // recipient (only the per-recipient unsubscribe link in the footer differs).
+  const rendered = renderCampaign(
+    { bodyJson },
+    { subject, unsubscribeUrl: absoluteUrl("/newsletter/unsubscribe/PREVIEW"), senderIdentity: newsletterSenderIdentity() },
+  );
   const created = await prisma.newsletterCampaign.create({
     data: {
       subject,
-      bodyHtml: body,
+      bodyHtml: rendered.html,
+      bodyJson,
       status: "draft",
       targetGroupIds: groupIds,
       targetSubscriberIds: subscriberIds,
@@ -138,8 +149,10 @@ export async function sendTestCampaign(formData: FormData) {
     redirect(`/admin/newsletter/campaigns/${id}?test=invalid`);
   }
   const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/TEST-PREVIEW`);
-  const email = buildNewsletterEmail({ subject: `[TEST] ${campaign.subject}`, bodyHtml: campaign.bodyHtml, unsubscribeUrl, senderIdentity: newsletterSenderIdentity() });
-  const res = await sendNewsletterEmail({ to: testEmail, subject: email.subject, html: email.html, text: email.text, unsubscribeUrl });
+  const subject = `[TEST] ${campaign.subject}`;
+  // Exact same render pipeline as the real send.
+  const email = renderCampaign(campaign, { subject, unsubscribeUrl, senderIdentity: newsletterSenderIdentity() });
+  const res = await sendNewsletterEmail({ to: testEmail, subject, html: email.html, text: email.text, unsubscribeUrl });
   redirect(`/admin/newsletter/campaigns/${id}?test=${res.ok ? "sent" : "error"}&to=${encodeURIComponent(testEmail)}`);
 }
 
@@ -182,11 +195,12 @@ export async function sendCampaign(formData: FormData) {
   }
 
   const sentAt = new Date();
+  const senderIdentity = newsletterSenderIdentity();
   let sent = 0;
   for (const r of recipients) {
     const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/${r.unsubToken}`);
-    const email = buildNewsletterEmail({ subject: campaign.subject, bodyHtml: campaign.bodyHtml, unsubscribeUrl, senderIdentity: newsletterSenderIdentity() });
-    const res = await sendNewsletterEmail({ to: r.email, subject: email.subject, html: email.html, text: email.text, unsubscribeUrl });
+    const email = renderCampaign(campaign, { subject: campaign.subject, unsubscribeUrl, senderIdentity });
+    const res = await sendNewsletterEmail({ to: r.email, subject: campaign.subject, html: email.html, text: email.text, unsubscribeUrl });
     if (res.ok) sent += 1;
     await prisma.newsletterDelivery.create({
       data: {
@@ -200,6 +214,13 @@ export async function sendCampaign(formData: FormData) {
     });
   }
 
+  // Freeze the exact final generated output (same pipeline as the per-recipient
+  // send; only the per-recipient unsubscribe link differs).
+  const snapshot = renderCampaign(campaign, {
+    subject: campaign.subject,
+    unsubscribeUrl: absoluteUrl("/newsletter/unsubscribe/UNSUBSCRIBE"),
+    senderIdentity,
+  });
   await prisma.newsletterCampaign.update({
     where: { id },
     data: {
@@ -209,8 +230,8 @@ export async function sendCampaign(formData: FormData) {
       recipientCount: recipients.length,
       // Frozen, immutable snapshot of exactly what went out.
       sentSubject: campaign.subject,
-      sentBodyHtml: campaign.bodyHtml,
-      sentText: htmlToText(campaign.bodyHtml),
+      sentBodyHtml: snapshot.html,
+      sentText: snapshot.text,
       sentFromAddress: newsletterFrom(),
       sentUnsubVersion: NEWSLETTER_UNSUB_VERSION,
       sentTemplateVersion: NEWSLETTER_TEMPLATE_VERSION,
