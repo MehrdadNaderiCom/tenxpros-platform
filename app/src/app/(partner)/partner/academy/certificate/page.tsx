@@ -67,9 +67,8 @@ export default async function CertificatePage() {
             <p className="mt-6 text-sm uppercase tracking-[0.16em] text-slate-500">This certifies that</p>
             <p className="mt-3 text-4xl font-semibold text-navy-900">{current.partner.displayName}</p>
 
-            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-slate-600">
-              has completed the TenXPros Partner Academy, reading every lesson, working every exercise, passing all
-              fourteen module exams, and passing the comprehensive final exam against the program standard.
+            <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-slate-600 [text-wrap:balance]">
+              has completed the TenXPros Partner Academy, passing all fourteen module exams and the comprehensive final exam against the program standard.
             </p>
 
             <div className="mx-auto mt-8 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3">
@@ -89,8 +88,9 @@ export default async function CertificatePage() {
 
             <div className="mx-auto mt-10 flex max-w-xl flex-wrap items-end justify-between gap-6">
               <div className="text-left">
-                <div className="h-8 w-40 border-b border-navy-300" />
-                <p className="mt-1 text-xs text-slate-500">TenXPros, issuing authority</p>
+                <p className="font-serif text-2xl italic leading-none text-navy-900">Mehrdad Naderi</p>
+                <div className="mt-1 h-px w-44 bg-navy-300" />
+                <p className="mt-1 text-xs text-slate-500">Mehrdad Naderi, Founder &amp; CEO, TenXPros</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-slate-500">Verify at</p>
