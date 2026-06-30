@@ -2,6 +2,7 @@ import { ArrowRight, Check, FileText, Minus, ShieldCheck } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PAYEE_NOTICE, SAFETY_WARNING } from "@/lib/payment-disclosure";
+import { PRO_DEFINITION } from "@/lib/marketing/pro-definition";
 
 /**
  * Apply, "The Instrument" direction
@@ -500,5 +501,37 @@ export function ApplyFinalCta() {
         </div>
       </div>
     </section>
+  );
+}
+
+export function ProScreen() {
+  const d = PRO_DEFINITION;
+  return (
+    <SectionShell>
+      <div className="max-w-3xl">
+        <MonoLabel>{d.eyebrow}</MonoLabel>
+        <h2 className="mt-5 text-3xl font-semibold leading-tight text-white md:text-4xl">{d.headline}</h2>
+        <div className="mt-6 space-y-4">
+          {d.multiplier.map((p, i) => (
+            <p key={i} className="text-base leading-relaxed text-slate-300">{p}</p>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {d.archetypes.map((a) => (
+          <div key={a.title} className="rounded-xl border border-white/10 bg-[#0B1120] p-5">
+            <h3 className="text-sm font-semibold text-white">{a.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-300">{a.body}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-indigo-500/30 bg-indigo-600/10 p-7 md:p-8">
+        <MonoLabel className="text-indigo-300/80">The one-question test</MonoLabel>
+        <p className="mt-4 text-lg leading-relaxed text-slate-100">{d.screen.question}</p>
+        <p className="mt-3 text-base font-semibold text-indigo-200">{d.screen.verdict}</p>
+      </div>
+    </SectionShell>
   );
 }

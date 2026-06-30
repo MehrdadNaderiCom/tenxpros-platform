@@ -7,6 +7,7 @@ import {
   ApplyFormShell,
   ApplyProof,
   ApplyFinalCta,
+  ProScreen,
 } from "@/components/marketing/apply-instrument";
 import { Card } from "@/components/ui/card";
 
@@ -27,6 +28,7 @@ export default function ApplyPage() {
           <ApplicationForm />
         </Suspense>
       </ApplyFormShell>
+      <ProScreen />
       <ApplyAfter />
       <ApplyProof />
       <ApplyFinalCta />
