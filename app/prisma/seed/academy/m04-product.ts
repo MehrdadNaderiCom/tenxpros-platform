@@ -215,7 +215,7 @@ export const m04: ModuleSeed = {
       stem: "Why must a partner never promise the Certified outcome?",
       options: ["Because certification is decided by the work and the review, not by attendance", "Because the criteria are secret", "Because there is only one possible outcome", "Because the dossier is never actually reviewed"],
       correct: 0,
-      explanation: "Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed. --- ## 16.",
+      explanation: "Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed.",
     },
   ],
 };

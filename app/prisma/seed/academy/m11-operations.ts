@@ -204,7 +204,7 @@ export const m11: ModuleSeed = {
       stem: "What is the operating discipline this module comes down to?",
       options: ["Hold every account and stay quiet", "Run everything through the Panel with real updates, follow the ninety day rhythm, keep only what you work, ask for help early, and watch the yearly renewal", "Improvise and avoid asking questions", "Ignore the calendar and the Panel"],
       correct: 1,
-      explanation: "It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid. --- ## 23.",
+      explanation: "It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid.",
     },
   ],
 };

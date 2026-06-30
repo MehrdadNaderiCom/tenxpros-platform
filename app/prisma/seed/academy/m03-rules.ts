@@ -210,7 +210,7 @@ export const m03: ModuleSeed = {
       stem: "Which single line best captures the Rules module?",
       options: ["Earn on conversations, fast and often", "Your right to earn comes from recorded, real work, inside a defined year, under terms the Panel confirms", "Promises and persistence create rights", "Territory is owned by whoever asks first"],
       correct: 1,
-      explanation: "The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights. --- ## 15.",
+      explanation: "The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights.",
     },
   ],
 };

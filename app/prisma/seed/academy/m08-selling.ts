@@ -197,7 +197,7 @@ export const m08: ModuleSeed = {
       stem: "Selling with integrity is best understood as which of these?",
       options: ["A softer, weaker way to sell", "A sharper way to sell, because the people brought in actually belong and remember who opened the door", "Avoiding selling entirely", "Selling on price alone"],
       correct: 1,
-      explanation: "Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling. --- ## 20.",
+      explanation: "Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling.",
     },
   ],
 };

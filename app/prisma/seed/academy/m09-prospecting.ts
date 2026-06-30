@@ -192,7 +192,7 @@ export const m09: ModuleSeed = {
       stem: "What is the heart of prospecting, in a sentence?",
       options: ["Chase volume by any means", "Find real fits in your trusted network, qualify honestly, turn away poor fits, and register before you pursue", "Buy lists and message everyone", "Promise outcomes to fill seats"],
       correct: 1,
-      explanation: "The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite. --- ## 21.",
+      explanation: "The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite.",
     },
   ],
 };

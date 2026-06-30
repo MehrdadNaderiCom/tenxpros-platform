@@ -200,7 +200,7 @@ export const m10: ModuleSeed = {
       stem: "Put simply, what is the right way to run outreach and the conversation?",
       options: ["Pitch hard and chase relentlessly", "Reach people personally, open with their challenge, handle price by pointing to approved materials and the application, follow up with value, and hand off cleanly", "Quote prices freely and close on the spot", "Promise outcomes to win trust"],
       correct: 1,
-      explanation: "Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior. --- ## 22.",
+      explanation: "Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior.",
     },
   ],
 };

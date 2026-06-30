@@ -223,7 +223,7 @@ export const m12: ModuleSeed = {
       stem: "How should a partner hold the twelve week mechanics in their head?",
       options: ["Improvise the details to keep the conversation moving", "Explain the fixed twelve week structure with confidence and use the current official answer for every operational detail rather than guessing", "Promise whatever schedule the prospect prefers", "Avoid talking about how the program works"],
       correct: 1,
-      explanation: "Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust. --- ## 24.",
+      explanation: "Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust.",
     },
   ],
 };

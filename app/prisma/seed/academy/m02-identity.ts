@@ -209,7 +209,7 @@ export const m02: ModuleSeed = {
       stem: "In one breath, the partner identity is best summarized as which of these?",
       options: ["Recognize the right professional, tell the truth, register your real role, and protect the standard", "Close as many deals as possible by any means", "Promise outcomes that make people feel safe", "Move money and data quickly to speed enrollment"],
       correct: 0,
-      explanation: "The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits. --- ## 14.",
+      explanation: "The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits.",
     },
   ],
 };

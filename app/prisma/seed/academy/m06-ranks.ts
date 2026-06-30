@@ -211,7 +211,7 @@ export const m06: ModuleSeed = {
       stem: "How should a partner sum up recognition in the program?",
       options: ["Sell the stickers, not the proof", "Small weekly badges mark real work, four ranks mark real capability, and one defensible credential sits at the top", "Attendance earns the credential", "The badges are the product"],
       correct: 1,
-      explanation: "The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it. --- ## 18.",
+      explanation: "The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it.",
     },
   ],
 };

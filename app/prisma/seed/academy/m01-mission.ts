@@ -193,7 +193,7 @@ export const m01: ModuleSeed = {
       stem: "A partner is most accurately described as which of the following?",
       options: ["An aggressive reseller chasing volume", "Someone who recognizes ready professionals and opens a door honestly", "A recruiter who promises jobs", "A discount broker"],
       correct: 1,
-      explanation: "The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter. --- ## 13.",
+      explanation: "The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter.",
     },
   ],
 };

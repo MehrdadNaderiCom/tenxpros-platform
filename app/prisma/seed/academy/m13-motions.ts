@@ -194,7 +194,7 @@ export const m13: ModuleSeed = {
       stem: "What is the essence of the two selling motions?",
       options: ["Treat every sale the same way", "B2C turns on personal relevance, B2B turns on a business case run through several stakeholders with a pilot first, and a strong individual is often the door to a whole team", "Promise organizations a guaranteed return", "Relax the rules for bigger deals"],
       correct: 1,
-      explanation: "The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module. --- ## 25.",
+      explanation: "The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module.",
     },
   ],
 };

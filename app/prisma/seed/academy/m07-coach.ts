@@ -200,7 +200,7 @@ export const m07: ModuleSeed = {
       stem: "The module in one careful breath is which of these?",
       options: ["The coaching role is promised to all graduates", "The coach pathway is a real, selective ladder you may describe honestly and never promise", "Coaching is bought", "Certification automatically makes someone a coach"],
       correct: 1,
-      explanation: "The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway. --- ## 19.",
+      explanation: "The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway.",
     },
   ],
 };

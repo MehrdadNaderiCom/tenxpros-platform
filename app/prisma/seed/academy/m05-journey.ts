@@ -223,7 +223,7 @@ export const m05: ModuleSeed = {
       stem: "Told honestly, a field story turns the prospect's evaluation into what?",
       options: ["A comparison of AI courses", "A believable picture of themselves in twelve weeks holding defensible proof", "A price negotiation", "A promise of guaranteed results"],
       correct: 1,
-      explanation: "A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee. --- ## 17.",
+      explanation: "A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee.",
     },
   ],
 };
