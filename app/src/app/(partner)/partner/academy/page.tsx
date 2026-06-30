@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Bar } from "@/components/admin/dashboard-ui";
+import { ProDetectionPanel } from "@/components/partner/pro-detection-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,8 @@ export default async function AcademyHome() {
           </div>
         ) : null}
       </Card>
+
+      <ProDetectionPanel />
 
       <div className="space-y-3">
         {overview.modules.map((m) => {

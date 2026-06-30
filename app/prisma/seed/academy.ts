@@ -2,6 +2,7 @@ import type { PrismaClient } from "@prisma/client";
 import { ACADEMY_MODULES } from "./academy/modules";
 import type { ModuleSeed } from "./academy/content-types";
 import { normalizeStem } from "../../src/lib/academy/engine";
+import { sanitizeLessonHtml, htmlToPlainText } from "../../src/lib/academy/lesson-html";
 
 /**
  * Validate the Academy content before any write. Enforces Section 5.4: a stem
@@ -61,13 +62,28 @@ export async function seedAcademy(prisma: PrismaClient): Promise<void> {
       create: { slug: m.slug, order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
     });
 
-    // Replace lessons and questions so a re-seed stays in sync with the content.
-    await prisma.academyLesson.deleteMany({ where: { moduleId: mod.id } });
-    await prisma.academyQuestion.deleteMany({ where: { moduleId: mod.id } });
+    // Build the rich body (if authored) and derive the audio text from it.
+    const bodyHtml = m.bodyHtml ? sanitizeLessonHtml(m.bodyHtml) : null;
+    const audioText = bodyHtml ? htmlToPlainText(bodyHtml) : m.lesson;
 
-    await prisma.academyLesson.create({
-      data: { moduleId: mod.id, order: 1, title: m.title, body: m.lesson, audioText: m.lesson },
-    });
+    // Preserve a superadmin-edited lesson (module contentVersion bumped past 1).
+    // Otherwise keep the canonical seed content in sync.
+    const existingLesson = await prisma.academyLesson.findFirst({ where: { moduleId: mod.id, order: 1 } });
+    const edited = mod.contentVersion > 1;
+    if (existingLesson) {
+      if (!edited) {
+        await prisma.academyLesson.update({
+          where: { id: existingLesson.id },
+          data: { title: m.title, body: m.lesson, audioText, bodyHtml },
+        });
+      }
+    } else {
+      await prisma.academyLesson.create({
+        data: { moduleId: mod.id, order: 1, title: m.title, body: m.lesson, audioText, bodyHtml },
+      });
+    }
+    // Questions are never edited from the content manager, so keep them in sync.
+    await prisma.academyQuestion.deleteMany({ where: { moduleId: mod.id } });
 
     const questions = [
       ...m.exercises.map((q, i) => ({ ...q, pool: "EXERCISE" as const, order: i + 1 })),

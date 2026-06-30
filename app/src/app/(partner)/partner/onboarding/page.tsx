@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
+import { ProDetectionPanel } from "@/components/partner/pro-detection-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,8 @@ export default async function PartnerOnboardingPage() {
           </Badge>
         </div>
       </Card>
+
+      <ProDetectionPanel compact />
 
       <div className="space-y-3">
         {partner.activationItems.map((item) => (

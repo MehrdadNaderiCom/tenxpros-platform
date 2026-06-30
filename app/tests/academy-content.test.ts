@@ -47,6 +47,7 @@ describe("Academy seed content", () => {
         m.title,
         m.summary,
         m.lesson,
+        m.bodyHtml ?? "",
         ...m.exercises.flatMap((q) => [q.stem, ...q.options, q.explanation]),
         ...m.exam.flatMap((q) => [q.stem, ...q.options, q.explanation]),
       ].join("\n");
