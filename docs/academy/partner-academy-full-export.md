@@ -416,7 +416,7 @@ One more thing about tone, because it will define how you are seen. This program
 
 **Answer:** B. Someone who recognizes ready professionals and opens a door honestly
 
-**Explanation:** The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter. --- ## 13.
+**Explanation:** The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter.
 
 
 ---
@@ -527,7 +527,9 @@ Honest selling here is mostly listening and naming. You qualify on genuine readi
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The deal registration form on the Partner Panel, where you record your real role for an opportunity. It captures the function you performed (introduction, qualified origination, strong origination, closing, or delivery and coaching) and the account details, so you are paid for what you actually did rather than for being nearby.
 
@@ -781,7 +783,7 @@ So your identity, in one breath: you are the person who recognizes the right pro
 
 **Answer:** A. Recognize the right professional, tell the truth, register your real role, and protect the standard
 
-**Explanation:** The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits. --- ## 14.
+**Explanation:** The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits.
 
 
 ---
@@ -897,7 +899,9 @@ You sell within the limits, not around them. You describe the offering from appr
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The deal registration screen on the Partner Panel. It captures the legal entity or individual, country, business unit, contact, offering, estimated seats and value, your role, and your real reason for pursuing the account. The registration only protects you once the company confirms it here, and it covers only the exact scope shown.
 
@@ -1169,7 +1173,7 @@ Hold the spirit of this whole module in one line. Your right to earn comes from 
 
 **Answer:** B. Your right to earn comes from recorded, real work, inside a defined year, under terms the Panel confirms
 
-**Explanation:** The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights. --- ## 15.
+**Explanation:** The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights.
 
 
 ---
@@ -1280,7 +1284,9 @@ The honest pitch is the strong pitch here. Lead with what the program produces (
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> Public credential verification
+
+<img src="/academy/screens/verification.png" alt="Public credential verification" loading="lazy" />
 
 The public credential verification screen shows the recipient, the credential status, the issue date, and the badge metadata. It confirms what was earned without exposing the participant's confidential dossier contents.
 
@@ -1536,7 +1542,7 @@ Keep this whole module honest in your mouth. TenXPros is selective, applied, and
 
 **Answer:** A. Because certification is decided by the work and the review, not by attendance
 
-**Explanation:** Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed. --- ## 16.
+**Explanation:** Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed.
 
 
 ---
@@ -1583,6 +1589,8 @@ _This is the complete production lesson, converted from the stored HTML to Markd
 
 This is the module you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and become a story a specific person can see themselves inside. You make the journey feel real by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
 
+> **Two different module counts, do not mix them up.** This Academy has 14 modules that train you as a partner. The program your prospects take is different: it is 11 weekly modules plus a capstone review across 12 weeks.
+
 ##### What you will be able to do
 
 - Walk a prospect through all twelve weeks, naming what they produce and the badge they earn each week.
@@ -1599,7 +1607,7 @@ The program runs as eleven core modules plus a final dossier and capstone review
 
 | Week | Focus | What they produce | Badge |
 | --- | --- | --- | --- |
-| 1 | AI readiness and the TenX mindset | A readiness snapshot and a professional stance | TenX Mindset |
+| 1 | AI readiness and the TenX Mindset | A readiness snapshot and a professional stance | TenX Mindset |
 | 2 | Practical AI literacy and tool fluency | A tool use map and first safe experiments | AI Core |
 | 3 | Responsible AI and professional boundaries | Boundary rules and a confidentiality plan | Responsible AI |
 | 4 | Problem discovery and structured framing | A problem definition and an AI suitability assessment | Problem Framing |
@@ -1646,7 +1654,9 @@ The same four phases, for a lawyer, produce a contract intake and risk triage as
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The Field Journey Explorer lets you pick a profession and see the four phases retold in that field's language, with the weekly badges and the field specific credential the participant would hold at the end. Use it to prepare, not to recite.
 
@@ -1681,7 +1691,7 @@ Your exam checks that you can pair each week with its badge, place each week in 
 
 This is the part of the program you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and start being a story a specific person can see themselves inside. Your job is to make the journey feel real, and the way you do that is by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
 
-Here is the universal map. The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. Week one is AI readiness and the TenX mindset, and it produces a readiness snapshot and a professional stance, earning the TenX Mindset badge. Week two is practical AI literacy and tool fluency, producing a tool use map and first safe experiments, earning AI Core. Week three is responsible AI and professional boundaries, producing boundary rules and a confidentiality plan, earning Responsible AI. Week four is problem discovery and structured framing, producing a problem definition and an AI suitability assessment, earning Problem Framing. That closes the Frame phase.
+Here is the universal map. The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. Week one is AI readiness and the TenX Mindset, and it produces a readiness snapshot and a professional stance, earning the TenX Mindset badge. Week two is practical AI literacy and tool fluency, producing a tool use map and first safe experiments, earning AI Core. Week three is responsible AI and professional boundaries, producing boundary rules and a confidentiality plan, earning Responsible AI. Week four is problem discovery and structured framing, producing a problem definition and an AI suitability assessment, earning Problem Framing. That closes the Frame phase.
 
 Week five is context, stakeholder, and foresight mapping, producing a stakeholder map and early scenario notes, earning Context Mapper. Week six is data, evidence, and verification discipline, producing a grounded knowledge pack and source rules, earning Evidence Discipline. Week seven is workflow and human to AI allocation, producing a before and after workflow and an allocation map, earning Workflow Designer. Week eight is responsible AI solution design, producing an assistant or workflow prototype with guardrails, earning Responsible Solution. That closes the Design phase.
 
@@ -1717,7 +1727,7 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Answer:** C. TenX Mindset
 
-**Explanation:** Week one, AI readiness and the TenX mindset, earns the TenX Mindset badge. The others are earned in later weeks.
+**Explanation:** Week one, AI readiness and the TenX Mindset, earns the TenX Mindset badge. The others are earned in later weeks.
 
 **Exercise 3.** What is the right way to use the Field Journey Explorer in a conversation?
 
@@ -1896,7 +1906,7 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Answer:** B. A believable picture of themselves in twelve weeks holding defensible proof
 
-**Explanation:** A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee. --- ## 17.
+**Explanation:** A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee.
 
 
 ---
@@ -1999,7 +2009,7 @@ Lead with the credential and the dossier, then explain the badges and ranks as t
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The progress view
 
 The progress view shows where a participant sits right now: accepted member, a phase rank, dossier candidate, or one of the three review outcomes. Use it to describe status honestly rather than rounding up.
 
@@ -2249,7 +2259,7 @@ So, the whole module in one breath. Small weekly badges mark real work. Four pha
 
 **Answer:** B. Small weekly badges mark real work, four ranks mark real capability, and one defensible credential sits at the top
 
-**Explanation:** The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it. --- ## 18.
+**Explanation:** The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it.
 
 
 ---
@@ -2348,12 +2358,12 @@ This is detection, not persuasion. The pathway only lands with people who alread
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The coach pathway
 
 The coach pathway view, showing the six stages from Certified TenXPro to Lead Domain Coach, with the bar described at each stage so a prospect can see exactly where recognition, training, supporting, and leading begin.
 
 > **Form preview:**
-> Form preview, placeholder
+> The coach screening checklist
 
 The coach screening checklist, listing the ethics and confidentiality interview, sample coaching review, dossier audit, communication assessment, domain expertise check, methodology exam, and brand and boundary agreement.
 
@@ -2604,7 +2614,7 @@ So hold the whole module in one careful breath. The coach pathway is a real, sel
 
 **Answer:** B. The coach pathway is a real, selective ladder you may describe honestly and never promise
 
-**Explanation:** The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway. --- ## 19.
+**Explanation:** The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway.
 
 
 ---
@@ -2701,12 +2711,16 @@ Every honest answer is also persuasive, because it respects the intelligence of 
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The Field Journey Explorer, where you pick the prospect's field and walk through that profession's twelve weeks, showing what each phase produces and what they hold at the end.
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application screen, the first quality gate, where the professional describes their expertise and the challenge they want to explore. Payment happens only after acceptance, never before.
 
@@ -2960,7 +2974,7 @@ One last reminder that ties the whole Academy together. Everything you say shoul
 
 **Answer:** B. A sharper way to sell, because the people brought in actually belong and remember who opened the door
 
-**Explanation:** Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling. --- ## 20.
+**Explanation:** Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling.
 
 
 ---
@@ -3050,12 +3064,16 @@ Honest prospecting is qualification, not pressure. The single most useful test i
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The Partner Panel opportunity registration, where you record a prospect before substantive contact. The opportunity is protected only once the company confirms it, so you register first, then pursue.
 
 > **Form preview:**
-> Form preview, placeholder
+> Your target list
+
+<img src="/academy/screens/target-list.png" alt="Your target list" loading="lazy" />
 
 A simple target list view, one row per prospect, showing the named person or organization, why they fit, and your concrete route in. Short and real beats long and unreachable.
 
@@ -3305,7 +3323,7 @@ Hold the whole module in one line. The right prospects are usually in your own t
 
 **Answer:** B. Find real fits in your trusted network, qualify honestly, turn away poor fits, and register before you pursue
 
-**Explanation:** The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite. --- ## 21.
+**Explanation:** The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite.
 
 
 ---
@@ -3404,12 +3422,16 @@ This program multiplies an AI method onto expertise the person already has. Ten 
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application screen the prospect fills in: a description of their expertise, the real problem they want to work on for twelve weeks, and their field. This is the first quality gate, and acceptance happens here before any payment.
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 Your opportunity registration in the Partner Panel, where you record the prospect and your route in, so the conversation you started is logged and protected.
 
@@ -3662,7 +3684,7 @@ One line for the module. Reach real people personally and honestly, open the con
 
 **Answer:** B. Reach people personally, open with their challenge, handle price by pointing to approved materials and the application, follow up with value, and hand off cleanly
 
-**Explanation:** Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior. --- ## 22.
+**Explanation:** Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior.
 
 
 ---
@@ -3765,17 +3787,23 @@ The same instinct that makes you a good partner in a conversation, detection rat
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The opportunity registration form: the entity or person, the country, the business unit, the contact, the offering, the estimated seats and value, your role, and your route in. You complete this before substantive contact.
 
 > **Form preview:**
-> Form preview, placeholder
+> The account update view
+
+<img src="/academy/screens/accounts.png" alt="The account update view" loading="lazy" />
 
 The account update view, where you log a meeting, a documented next step, a customer response, a proposal path, or conversion evidence to keep the account protected.
 
 > **Form preview:**
-> Form preview, placeholder
+> Commission statements
+
+<img src="/academy/screens/commission-statements.png" alt="Commission statements" loading="lazy" />
 
 The commission statements view, where you check what you are owed and raise a query within thirty days if something looks wrong.
 
@@ -4026,7 +4054,7 @@ One line for the module. Run everything through the Panel with real updates, fol
 
 **Answer:** B. Run everything through the Panel with real updates, follow the ninety day rhythm, keep only what you work, ask for help early, and watch the yearly renewal
 
-**Explanation:** It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid. --- ## 23.
+**Explanation:** It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid.
 
 
 ---
@@ -4130,12 +4158,16 @@ The structure multiplies a method onto expertise the participant already brings.
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The dossier submission screen
+
+<img src="/academy/screens/dossier-submission.png" alt="The dossier submission screen" loading="lazy" />
 
 The dossier submission screen at the end of Foresee, where the participant submits the complete Living AI Solution Dossier with its twelve sections for review against the eight public criteria.
 
 > **Form preview:**
-> Form preview, placeholder
+> Public credential verification
+
+<img src="/academy/screens/verification.png" alt="Public credential verification" loading="lazy" />
 
 The public verification view, showing the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.
 
@@ -4396,7 +4428,7 @@ One line for the module. Know the fixed twelve week structure cold and explain i
 
 **Answer:** B. Explain the fixed twelve week structure with confidence and use the current official answer for every operational detail rather than guessing
 
-**Explanation:** Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust. --- ## 24.
+**Explanation:** Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust.
 
 
 ---
@@ -4492,12 +4524,16 @@ Identify the buyer before you position anything. If the person in front of you i
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The Panel deal registration screen, where you log a B2B opportunity at its real scope: the legal entity, the country, the business unit, the contact, the estimated seats and value, and your route in. The opportunity is protected only once the company confirms it.
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application a B2C prospect completes themselves, where they describe their expertise and the real problem they want to work on. Acceptance comes first, and only then is there a payment decision.
 
@@ -4752,7 +4788,7 @@ One line for the module. A B2C Charter sale is to an individual investing in the
 
 **Answer:** B. B2C turns on personal relevance, B2B turns on a business case run through several stakeholders with a pilot first, and a strong individual is often the door to a whole team
 
-**Explanation:** The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module. --- ## 25.
+**Explanation:** The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module.
 
 
 ---
@@ -4861,12 +4897,14 @@ Run the five steps in order, every time, regardless of the field. Listen first, 
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The explorer's field story view, which walks one profession through the twelve weeks. You use it as the model for building a prospect's own story, in their domain, for a field that is not on the list.
 
 > **Form preview:**
-> Form preview, placeholder
+> Leave-behind summary
 
 A tailored leave behind summary, assembled from approved materials: the prospect's problem in their own words, the opportunity and boundary, how the four phases handle it, what their people would produce, and the next step.
 
@@ -5120,7 +5158,7 @@ One line for the module. Customize by translating the fixed program into the pro
 
 **Answer:** B. Translate the fixed program into the prospect's world through discovery, opportunity and boundary, mapping to the phases, a field story, and their language, while never changing a fact or promising a result
 
-**Explanation:** The core is translating a fixed program into the prospect's world without changing facts or promising results. Reshaping the program, promising outcomes, or using one generic pitch are all wrong. --- ## 26. The Partner Toolkit: ready to use templates Seed these as a Partner Toolkit resource inside the Academy, viewable and downloadable. They are starting points, not scripts to send blindly. Every message a partner sends must still use approved messaging and pass the truth test. Keep placeholders in square brackets so the partner personalizes each one. None of these contain a price or a promise of results, by design. **Warm reconnect, a former colleague or past client** > Subject: A quick thought for you, [first name] > > Hi [first name], it has been a while since [shared context, for example our time at [company] or the [project] work]. I have been close to how experienced professionals in [their field] are moving from just using AI to actually leading its adoption, and you came to mind. If it is useful, I would value a short conversation to share what I am seeing. No pressure either way. How is the next couple of weeks looking for you? **Introduction through a mutual contact** > Subject: [mutual contact] suggested we connect > > Hi [first name], [mutual contact] thought it would be worth us talking. I work with experienced professionals in [their field] who want to lead AI adoption in their work, not just use the tools, and [mutual contact] felt that might be relevant to what you are focused on right now. Would a short call in the next week or two be welcome? Happy to work around your schedule. **Reaching someone in a shared professional circle** > Hi [first name], we are both part of [shared group or community], and I noticed your work on [specific, real detail]. I spend a lot of time on how professionals in [field] build defensible, reviewed AI work in their own domain. If that is something you are thinking about, I would be glad to compare notes over a short call. If not, no problem at all. **Follow up one, adds value** > Hi [first name], following up on my note. I mentioned I would share an example of how someone in [their field] works through this, so here it is in brief: [one or two sentences from the matching field story, framed as an example, not a promise]. If it is worth a short conversation, I am happy to set one up. If the timing is not right, just let me know and I will leave it there. **Follow up two, gracious close** > Hi [first name], I do not want to crowd your inbox, so this is my last note for now. If leading AI adoption in [their field] becomes a priority, I am easy to reach and glad to help. Wishing you well either way. **Guiding a qualified prospect to apply** > It sounds like this could genuinely fit what you are working on. The next step is simple and there is no payment involved yet: you apply and describe your expertise and the real problem you want to work on, and the team reviews it. Acceptance comes first, and only then is there any payment decision. I can point you to the current details and the application whenever you are ready. Would you like me to do that now? **Objection one liners, honest and short** > Is this just another AI course. No. Most courses teach tools and prompts. This is built around one real problem and a reviewed dossier, so you leave with evidence you can defend, not a completion certificate. > > Is it accredited. No. It is a private professional certification. Its credibility comes from the reviewed dossier, the public criteria, and the verifiable credential, not from a university stamp. > > Do I need to code. No. The core requirement is professional judgment in your field, not coding. > > Will I definitely get certified. No. Certification depends on whether your dossier meets the review standard. The three outcomes are Certified, Strong Draft, and Completed. > > Can I join as a regulated professional. Yes, as long as you protect confidential and regulated data and use redacted or fictionalized examples unless you have the rights and safeguards to use real data. **Prospect qualification checklist, run it in your head before you register** > Does this person have real depth in their field. Do they already use AI and feel the gap between using and leading it. Do they have one real problem worth solving. Can they commit focused hours over twelve weeks. Do they want reviewed, defensible work rather than a quick certificate. Do they accept that outcomes are earned, not guaranteed. If the answer to most of these is yes, they are worth registering. If they are an absolute beginner with no domain, or they want a guarantee, they are not a fit, and the honest move is to say so. **Deal registration field checklist, before you submit on the Panel** > The legal entity or individual. The country. The business unit. The contact. The offering. The estimated seats and value. Your role on this opportunity. Your concrete route in, meaning a warm contact, a shared circle, or a real reason you can reach them. Submit only when you can fill each field honestly, and remember it is protected only when the company confirms it. --- ## 27. Quick reference: glossary, brand use, and getting help Seed these as short reference pages inside the Academy.
+**Explanation:** The core is translating a fixed program into the prospect's world without changing facts or promising results. Reshaping the program, promising outcomes, or using one generic pitch are all wrong.
 
 
 ---

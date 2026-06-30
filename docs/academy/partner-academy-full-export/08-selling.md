@@ -88,12 +88,16 @@ Every honest answer is also persuasive, because it respects the intelligence of 
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The Field Journey Explorer, where you pick the prospect's field and walk through that profession's twelve weeks, showing what each phase produces and what they hold at the end.
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application screen, the first quality gate, where the professional describes their expertise and the challenge they want to explore. Payment happens only after acceptance, never before.
 
@@ -344,4 +348,4 @@ One last reminder that ties the whole Academy together. Everything you say shoul
 
 **Answer:** B. A sharper way to sell, because the people brought in actually belong and remember who opened the door
 
-**Explanation:** Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling. --- ## 20.
+**Explanation:** Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling.

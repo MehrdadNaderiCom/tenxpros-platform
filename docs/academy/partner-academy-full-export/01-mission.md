@@ -334,4 +334,4 @@ One more thing about tone, because it will define how you are seen. This program
 
 **Answer:** B. Someone who recognizes ready professionals and opens a door honestly
 
-**Explanation:** The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter. --- ## 13.
+**Explanation:** The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter.

@@ -94,17 +94,23 @@ The same instinct that makes you a good partner in a conversation, detection rat
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The opportunity registration form: the entity or person, the country, the business unit, the contact, the offering, the estimated seats and value, your role, and your route in. You complete this before substantive contact.
 
 > **Form preview:**
-> Form preview, placeholder
+> The account update view
+
+<img src="/academy/screens/accounts.png" alt="The account update view" loading="lazy" />
 
 The account update view, where you log a meeting, a documented next step, a customer response, a proposal path, or conversion evidence to keep the account protected.
 
 > **Form preview:**
-> Form preview, placeholder
+> Commission statements
+
+<img src="/academy/screens/commission-statements.png" alt="Commission statements" loading="lazy" />
 
 The commission statements view, where you check what you are owed and raise a query within thirty days if something looks wrong.
 
@@ -352,4 +358,4 @@ One line for the module. Run everything through the Panel with real updates, fol
 
 **Answer:** B. Run everything through the Panel with real updates, follow the ninety day rhythm, keep only what you work, ask for help early, and watch the yearly renewal
 
-**Explanation:** It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid. --- ## 23.
+**Explanation:** It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid.

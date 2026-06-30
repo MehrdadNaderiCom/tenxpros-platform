@@ -81,12 +81,16 @@ Honest prospecting is qualification, not pressure. The single most useful test i
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The Partner Panel opportunity registration, where you record a prospect before substantive contact. The opportunity is protected only once the company confirms it, so you register first, then pursue.
 
 > **Form preview:**
-> Form preview, placeholder
+> Your target list
+
+<img src="/academy/screens/target-list.png" alt="Your target list" loading="lazy" />
 
 A simple target list view, one row per prospect, showing the named person or organization, why they fit, and your concrete route in. Short and real beats long and unreachable.
 
@@ -333,4 +337,4 @@ Hold the whole module in one line. The right prospects are usually in your own t
 
 **Answer:** B. Find real fits in your trusted network, qualify honestly, turn away poor fits, and register before you pursue
 
-**Explanation:** The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite. --- ## 21.
+**Explanation:** The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite.

@@ -87,12 +87,16 @@ Identify the buyer before you position anything. If the person in front of you i
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The Panel deal registration screen, where you log a B2B opportunity at its real scope: the legal entity, the country, the business unit, the contact, the estimated seats and value, and your route in. The opportunity is protected only once the company confirms it.
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application a B2C prospect completes themselves, where they describe their expertise and the real problem they want to work on. Acceptance comes first, and only then is there a payment decision.
 
@@ -344,4 +348,4 @@ One line for the module. A B2C Charter sale is to an individual investing in the
 
 **Answer:** B. B2C turns on personal relevance, B2B turns on a business case run through several stakeholders with a pilot first, and a strong individual is often the door to a whole team
 
-**Explanation:** The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module. --- ## 25.
+**Explanation:** The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module.

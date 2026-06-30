@@ -102,7 +102,9 @@ The honest pitch is the strong pitch here. Lead with what the program produces (
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> Public credential verification
+
+<img src="/academy/screens/verification.png" alt="Public credential verification" loading="lazy" />
 
 The public credential verification screen shows the recipient, the credential status, the issue date, and the badge metadata. It confirms what was earned without exposing the participant's confidential dossier contents.
 
@@ -355,4 +357,4 @@ Keep this whole module honest in your mouth. TenXPros is selective, applied, and
 
 **Answer:** A. Because certification is decided by the work and the review, not by attendance
 
-**Explanation:** Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed. --- ## 16.
+**Explanation:** Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed.

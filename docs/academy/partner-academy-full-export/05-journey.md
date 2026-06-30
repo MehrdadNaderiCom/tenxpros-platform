@@ -38,6 +38,8 @@ _This is the complete production lesson, converted from the stored HTML to Markd
 
 This is the module you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and become a story a specific person can see themselves inside. You make the journey feel real by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
 
+> **Two different module counts, do not mix them up.** This Academy has 14 modules that train you as a partner. The program your prospects take is different: it is 11 weekly modules plus a capstone review across 12 weeks.
+
 ##### What you will be able to do
 
 - Walk a prospect through all twelve weeks, naming what they produce and the badge they earn each week.
@@ -54,7 +56,7 @@ The program runs as eleven core modules plus a final dossier and capstone review
 
 | Week | Focus | What they produce | Badge |
 | --- | --- | --- | --- |
-| 1 | AI readiness and the TenX mindset | A readiness snapshot and a professional stance | TenX Mindset |
+| 1 | AI readiness and the TenX Mindset | A readiness snapshot and a professional stance | TenX Mindset |
 | 2 | Practical AI literacy and tool fluency | A tool use map and first safe experiments | AI Core |
 | 3 | Responsible AI and professional boundaries | Boundary rules and a confidentiality plan | Responsible AI |
 | 4 | Problem discovery and structured framing | A problem definition and an AI suitability assessment | Problem Framing |
@@ -101,7 +103,9 @@ The same four phases, for a lawyer, produce a contract intake and risk triage as
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The Field Journey Explorer lets you pick a profession and see the four phases retold in that field's language, with the weekly badges and the field specific credential the participant would hold at the end. Use it to prepare, not to recite.
 
@@ -135,7 +139,7 @@ Your exam checks that you can pair each week with its badge, place each week in 
 
 This is the part of the program you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and start being a story a specific person can see themselves inside. Your job is to make the journey feel real, and the way you do that is by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
 
-Here is the universal map. The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. Week one is AI readiness and the TenX mindset, and it produces a readiness snapshot and a professional stance, earning the TenX Mindset badge. Week two is practical AI literacy and tool fluency, producing a tool use map and first safe experiments, earning AI Core. Week three is responsible AI and professional boundaries, producing boundary rules and a confidentiality plan, earning Responsible AI. Week four is problem discovery and structured framing, producing a problem definition and an AI suitability assessment, earning Problem Framing. That closes the Frame phase.
+Here is the universal map. The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. Week one is AI readiness and the TenX Mindset, and it produces a readiness snapshot and a professional stance, earning the TenX Mindset badge. Week two is practical AI literacy and tool fluency, producing a tool use map and first safe experiments, earning AI Core. Week three is responsible AI and professional boundaries, producing boundary rules and a confidentiality plan, earning Responsible AI. Week four is problem discovery and structured framing, producing a problem definition and an AI suitability assessment, earning Problem Framing. That closes the Frame phase.
 
 Week five is context, stakeholder, and foresight mapping, producing a stakeholder map and early scenario notes, earning Context Mapper. Week six is data, evidence, and verification discipline, producing a grounded knowledge pack and source rules, earning Evidence Discipline. Week seven is workflow and human to AI allocation, producing a before and after workflow and an allocation map, earning Workflow Designer. Week eight is responsible AI solution design, producing an assistant or workflow prototype with guardrails, earning Responsible Solution. That closes the Design phase.
 
@@ -170,7 +174,7 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Answer:** C. TenX Mindset
 
-**Explanation:** Week one, AI readiness and the TenX mindset, earns the TenX Mindset badge. The others are earned in later weeks.
+**Explanation:** Week one, AI readiness and the TenX Mindset, earns the TenX Mindset badge. The others are earned in later weeks.
 
 **Exercise 3.** What is the right way to use the Field Journey Explorer in a conversation?
 
@@ -348,4 +352,4 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Answer:** B. A believable picture of themselves in twelve weeks holding defensible proof
 
-**Explanation:** A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee. --- ## 17.
+**Explanation:** A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee.

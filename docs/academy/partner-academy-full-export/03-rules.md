@@ -107,7 +107,9 @@ You sell within the limits, not around them. You describe the offering from appr
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The deal registration screen on the Partner Panel. It captures the legal entity or individual, country, business unit, contact, offering, estimated seats and value, your role, and your real reason for pursuing the account. The registration only protects you once the company confirms it here, and it covers only the exact scope shown.
 
@@ -376,4 +378,4 @@ Hold the spirit of this whole module in one line. Your right to earn comes from 
 
 **Answer:** B. Your right to earn comes from recorded, real work, inside a defined year, under terms the Panel confirms
 
-**Explanation:** The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights. --- ## 15.
+**Explanation:** The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights.

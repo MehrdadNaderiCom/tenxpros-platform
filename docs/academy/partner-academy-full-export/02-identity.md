@@ -102,7 +102,9 @@ Honest selling here is mostly listening and naming. You qualify on genuine readi
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The deal registration form on the Partner Panel, where you record your real role for an opportunity. It captures the function you performed (introduction, qualified origination, strong origination, closing, or delivery and coaching) and the account details, so you are paid for what you actually did rather than for being nearby.
 
@@ -353,4 +355,4 @@ So your identity, in one breath: you are the person who recognizes the right pro
 
 **Answer:** A. Recognize the right professional, tell the truth, register your real role, and protect the standard
 
-**Explanation:** The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits. --- ## 14.
+**Explanation:** The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits.

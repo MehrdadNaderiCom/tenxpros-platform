@@ -1,144 +1,162 @@
-# TenXPros Partner Academy: Complete Review Package
+# TenXPros Partner Academy: Complete Production Export
 
-This document is generated directly from the Academy source of truth (the seed modules) and the program badge and rank catalog. It contains every module's metadata, the full plain lesson prose, the full rich lesson content (converted to Markdown), and every exercise and exam question with its answer and explanation. Nothing is summarized or omitted.
+<a id="how-this-export-was-produced"></a>
+## How this export was produced
 
+This is the entire Partner Academy exactly as stored in the production database, exported field by field. The lesson bodies are the exact stored HTML, converted to readable Markdown with no content removed. Every module, every metadata field, every exercise and exam question with its options, correct answer, and explanation, plus the global appendix (Pro vs TenXPro, partner rules, the journey, badges and ranks, glossary, and reusable snippets) are included. Nothing is summarized or omitted.
+
+- Source: **production database** (`AcademyModule`, `AcademyLesson`, `AcademyQuestion`).
 - Modules: **14**
-- Exercise questions: **84** (14 modules, 6 each)
-- Exam questions: **168** (12 each)
+- Exercise questions: **84**
+- Exam questions: **168**
 - Total questions: **252**
 
-## Module index
+## Table of contents
 
-| # | Title | Slug | Pass mark | Exam size | Exercises | Exam Qs | Content version |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | The Mission | `mission` | 80% | 10 | 6 | 12 | v1 |
-| 2 | Your Partner Identity | `identity` | 80% | 10 | 6 | 12 | v1 |
-| 3 | The Rules | `rules` | 80% | 10 | 6 | 12 | v1 |
-| 4 | What TenXPros Is | `product` | 80% | 10 | 6 | 12 | v1 |
-| 5 | The Twelve Week Journey | `journey` | 80% | 10 | 6 | 12 | v1 |
-| 6 | Ranks, Badges, and Credentials | `ranks` | 80% | 10 | 6 | 12 | v1 |
-| 7 | From Top Student to Coach | `coach` | 80% | 10 | 6 | 12 | v1 |
-| 8 | Selling With Integrity | `selling` | 80% | 10 | 6 | 12 | v1 |
-| 9 | Finding and Qualifying the Right Prospects | `prospecting` | 80% | 10 | 6 | 12 | v1 |
-| 10 | Outreach and the Conversation in Practice | `conversation` | 80% | 10 | 6 | 12 | v1 |
-| 11 | Operating the System and Your First 90 Days | `operations` | 80% | 10 | 6 | 12 | v1 |
-| 12 | How the Twelve Weeks Work, in Full | `mechanics` | 80% | 10 | 6 | 12 | v1 |
-| 13 | Selling to Organizations and to Individuals | `motions` | 80% | 10 | 6 | 12 | v1 |
-| 14 | Customizing for Any Industry, Organization, or Person | `customize` | 80% | 10 | 6 | 12 | v1 |
+- [How this export was produced](#how-this-export-was-produced)
+- [Master index (all modules)](#master-index)
+- **Modules**
+  - [Module 1: The Mission](#m1)
+    - [Metadata](#m1-meta) | [Learning objectives](#m1-obj) | [Lesson body](#m1-lesson) | [Plain prose](#m1-plain) | [Exercises](#m1-ex) | [Exam](#m1-exam)
+  - [Module 2: Your Partner Identity](#m2)
+    - [Metadata](#m2-meta) | [Learning objectives](#m2-obj) | [Lesson body](#m2-lesson) | [Plain prose](#m2-plain) | [Exercises](#m2-ex) | [Exam](#m2-exam)
+  - [Module 3: The Rules](#m3)
+    - [Metadata](#m3-meta) | [Learning objectives](#m3-obj) | [Lesson body](#m3-lesson) | [Plain prose](#m3-plain) | [Exercises](#m3-ex) | [Exam](#m3-exam)
+  - [Module 4: What TenXPros Is](#m4)
+    - [Metadata](#m4-meta) | [Learning objectives](#m4-obj) | [Lesson body](#m4-lesson) | [Plain prose](#m4-plain) | [Exercises](#m4-ex) | [Exam](#m4-exam)
+  - [Module 5: The Twelve Week Journey](#m5)
+    - [Metadata](#m5-meta) | [Learning objectives](#m5-obj) | [Lesson body](#m5-lesson) | [Plain prose](#m5-plain) | [Exercises](#m5-ex) | [Exam](#m5-exam)
+  - [Module 6: Ranks, Badges, and Credentials](#m6)
+    - [Metadata](#m6-meta) | [Learning objectives](#m6-obj) | [Lesson body](#m6-lesson) | [Plain prose](#m6-plain) | [Exercises](#m6-ex) | [Exam](#m6-exam)
+  - [Module 7: From Top Student to Coach](#m7)
+    - [Metadata](#m7-meta) | [Learning objectives](#m7-obj) | [Lesson body](#m7-lesson) | [Plain prose](#m7-plain) | [Exercises](#m7-ex) | [Exam](#m7-exam)
+  - [Module 8: Selling With Integrity](#m8)
+    - [Metadata](#m8-meta) | [Learning objectives](#m8-obj) | [Lesson body](#m8-lesson) | [Plain prose](#m8-plain) | [Exercises](#m8-ex) | [Exam](#m8-exam)
+  - [Module 9: Finding and Qualifying the Right Prospects](#m9)
+    - [Metadata](#m9-meta) | [Learning objectives](#m9-obj) | [Lesson body](#m9-lesson) | [Plain prose](#m9-plain) | [Exercises](#m9-ex) | [Exam](#m9-exam)
+  - [Module 10: Outreach and the Conversation in Practice](#m10)
+    - [Metadata](#m10-meta) | [Learning objectives](#m10-obj) | [Lesson body](#m10-lesson) | [Plain prose](#m10-plain) | [Exercises](#m10-ex) | [Exam](#m10-exam)
+  - [Module 11: Operating the System and Your First 90 Days](#m11)
+    - [Metadata](#m11-meta) | [Learning objectives](#m11-obj) | [Lesson body](#m11-lesson) | [Plain prose](#m11-plain) | [Exercises](#m11-ex) | [Exam](#m11-exam)
+  - [Module 12: How the Twelve Weeks Work, in Full](#m12)
+    - [Metadata](#m12-meta) | [Learning objectives](#m12-obj) | [Lesson body](#m12-lesson) | [Plain prose](#m12-plain) | [Exercises](#m12-ex) | [Exam](#m12-exam)
+  - [Module 13: Selling to Organizations and to Individuals](#m13)
+    - [Metadata](#m13-meta) | [Learning objectives](#m13-obj) | [Lesson body](#m13-lesson) | [Plain prose](#m13-plain) | [Exercises](#m13-ex) | [Exam](#m13-exam)
+  - [Module 14: Customizing for Any Industry, Organization, or Person](#m14)
+    - [Metadata](#m14-meta) | [Learning objectives](#m14-obj) | [Lesson body](#m14-lesson) | [Plain prose](#m14-plain) | [Exercises](#m14-ex) | [Exam](#m14-exam)
+- **[Appendix: global reference](#appendix)**
+  - [Pro vs TenXPro](#pro-vs-tenxpro)
+  - [Partner rules referenced by the Academy](#partner-rules)
+  - [Journey explanation](#journey)
+  - [Badges, ranks, and certificates](#badges-ranks)
+  - [Glossary and canonical terminology](#glossary)
+  - [Reusable snippets](#snippets)
 
-## Content versioning and re-pass model
+<a id="master-index"></a>
+## Master index
 
-Every module carries an integer content version. Today all fourteen modules are at **version 1**, and the change history (AcademyLessonVersion) is empty because no superadmin edit has been published yet. When a superadmin edits a lesson in the content manager, the module's content version increments, an immutable snapshot is written to the history, and partners with progress on that module are notified. Partners who already passed keep their certificate valid through the calendar year (notification only). Partners who have not passed take the latest version. A partner's `passedContentVersion` records which version they passed, so the admin can see who is on the current version and who passed an earlier one.
+| # | Title | Slug | Pass mark | Exam size | Exercises | Exam | Version | Published |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | The Mission | `mission` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 2 | Your Partner Identity | `identity` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 3 | The Rules | `rules` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 4 | What TenXPros Is | `product` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 5 | The Twelve Week Journey | `journey` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 6 | Ranks, Badges, and Credentials | `ranks` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 7 | From Top Student to Coach | `coach` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 8 | Selling With Integrity | `selling` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 9 | Finding and Qualifying the Right Prospects | `prospecting` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 10 | Outreach and the Conversation in Practice | `conversation` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 11 | Operating the System and Your First 90 Days | `operations` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 12 | How the Twelve Weeks Work, in Full | `mechanics` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 13 | Selling to Organizations and to Individuals | `motions` | 80% | 10 | 6 | 12 | v1 | Yes |
+| 14 | Customizing for Any Industry, Organization, or Person | `customize` | 80% | 10 | 6 | 12 | v1 | Yes |
 
-## Badges and ranks
 
-These are the credentials of the twelve week program that partners learn to represent. They are distinct from the Partner Academy certificate, which is the partner's own credential for completing this Academy.
+# Modules
 
-### Module milestone badges
+<a id="m1"></a>
+## Module 1: The Mission
 
-| Order | Badge | Awarded for |
-| --- | --- | --- |
-| 1 | TenX Mindset Badge | Issued when Module 1, AI Readiness & TenXPro Mindset, is passed. |
-| 2 | AI Core Badge | Issued when Module 2, Practical AI Literacy & Hands-On Tool Fluency, is passed. |
-| 3 | Responsible AI Badge | Issued when Module 3, Responsible AI & Professional Boundaries, is passed. |
-| 4 | Problem Framing Badge | Issued when Module 4, Problem Discovery & Structured Framing, is passed. |
-| 5 | Context Mapper Badge | Issued when Module 5, Context, Stakeholder & Initial Foresight Mapping, is passed. |
-| 6 | Evidence Discipline Badge | Issued when Module 6, Data, Evidence & Verification Discipline, is passed. |
-| 7 | Workflow Designer Badge | Issued when Module 7, Workflow, Task & Human-AI Allocation, is passed. |
-| 8 | Responsible Solution Badge | Issued when Module 8, Responsible AI Solution Design, is passed. |
-| 9 | Adoption Designer Badge | Issued when Module 9, Adoption, Communication & Change Design, is passed. |
-| 10 | Value Proof Badge | Issued when Module 10, Value, Roadmap & Proof Plan, is passed. |
-| 11 | Foresight Strategist Badge | Issued when Module 11, AI Foresight, Scenario Planning & Future-Proofing, is passed. |
+<a id="m1-meta"></a>
+### Metadata
 
-### Ranks
-
-| Rank | Meaning |
+| Field | Value |
 | --- | --- |
-| AI-Ready Professional | Rank 1 credential for completing the Frame phase. |
-| AI Problem Solver & Solution Designer | Rank 2 credential for completing the Design phase. |
-| Future-Ready AI Solution Designer | Rank 3 credential for completing the Prove and Foresee phases. |
-
-### Capstone
-
-- **Certified TenXPro Capstone Seal.** Issued when a participant is certified after capstone review.
-
-### Special and charter badges
-
-- **Founding Charter Member.** Special badge for the first Founding Charter cohort.
-- **Early Charter Member.** Special badge for Early Charter participants.
-- **Late Charter Member.** Special badge for Late Charter participants.
-- **Final Charter Member.** Special badge for Final Charter participants.
-
-### Partner Academy completion certificate
-
-Issued to a partner when every published Academy module is passed. It carries a unique serial and the calendar year, is verifiable on a public page, and is renewed annually. It certifies that the partner can represent the program accurately, not that they completed the paid program.
-
-## Modules
-
-### Module 1: The Mission
-
-- **Slug:** `mission`
-- **Order:** 1
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+| Module number | 1 |
+| Slug | `mission` |
+| Title | The Mission |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocked by default (first module). |
 
 **Summary.** Why TenXPros exists, the standard behind the credential, and the honest promise a partner makes.
 
-#### Lesson (rich content)
-
-Your job in this module is not to learn a pitch. It is to understand one standard well enough to explain it to a serious professional without exaggerating a single thing. Everything that follows rests on a single shift in the market: access to AI is now universal, so access no longer separates strong professionals from weak ones. Judgment does.
-
-#### What you will be able to do
+<a id="m1-obj"></a>
+### Learning objectives
 
 - Explain, in plain language, why TenXPros exists and why your introduction to it carries real weight.
 - Draw a clean line between using AI and leading its adoption, using a prospect's own field as the example.
 - Describe how the credential is earned, what makes it different from a tools course, and the tone (proof, not hype) you must hold in every sentence.
 
-#### What you need to understand
+<a id="m1-lesson"></a>
+### Full lesson body (rich content)
 
-##### The market shift your whole job rests on
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+Your job in this module is not to learn a pitch. It is to understand one standard well enough to explain it to a serious professional without exaggerating a single thing. Everything that follows rests on a single shift in the market: access to AI is now universal, so access no longer separates strong professionals from weak ones. Judgment does.
+
+##### What you will be able to do
+
+- Explain, in plain language, why TenXPros exists and why your introduction to it carries real weight.
+- Draw a clean line between using AI and leading its adoption, using a prospect's own field as the example.
+- Describe how the credential is earned, what makes it different from a tools course, and the tone (proof, not hype) you must hold in every sentence.
+
+##### What you need to understand
+
+###### The market shift your whole job rests on
 
 AI tools are now in everyone's hands. A doctor, a lawyer, an engineer, a teacher, an accountant, a marketer: anyone can open a chat window and get an answer in seconds. Most professionals are already doing exactly this. That is the point. When everyone has access, access stops being the dividing line. What remains is judgment: knowing where the answer can be trusted and where it cannot.
 
-##### Using AI versus leading its adoption
+###### Using AI versus leading its adoption
 
 These are two different skills, and the difference is the heart of the program.
 
 - **Using AI** means typing a question, copying the output into a document, and hoping it holds up. It looks productive. It builds nothing you can defend.
 - **Leading AI adoption** means knowing where AI genuinely helps inside your specific field, knowing where it fails, knowing where it adds risk, and knowing where a human has to stay in control no matter how good the model looks. It means producing systems and evidence that survive a hard question from a board, a regulator, or a skeptical client. It means becoming the person others in your field turn to when they are unsure.
 
-##### Pro and TenXPro: the multiplier
+###### Pro and TenXPro: the multiplier
 
 TenX means a multiplier. The program multiplies an AI method onto something the person already has. Ten times zero is still zero, so the input has to be real. A beginner with no field is a zero: there is nothing to multiply. That is the structural reason it does not work for a beginner, and it is exactly what the promise says. You bring the expertise. We bring the method.
 
 A **Pro** is an expert in a field who already uses AI in a loose, occasional way. A **TenXPro** is that same expert, now leading AI adoption with method, evidence, and governance, holding a body of work they can defend. The credential certifies exactly that jump. It does not certify learning AI.
 
-##### What makes the program different
+###### What makes the program different
 
 Most AI courses teach tools: a chat interface, some prompt tricks, a way to automate a small task. Some are fine for beginners. None are built for an experienced professional who wants to lead. TenXPros runs on a different premise. The participant already has years of domain knowledge, and the program gives them a structured way to apply it, so the output is not a certificate of attendance but a body of evidence.
 
-##### How the credential is earned
+###### How the credential is earned
 
 It is earned by doing the work, not by watching videos or passing a quick quiz. The participant assembles a Living AI Solution Dossier, submits it, and it is reviewed against a public standard. If the work meets the standard, the credential is awarded. If it does not, specific revisions come back. That rigor is the whole point: it is why the credential means something, and why the people you bring in respect the bar rather than resent it.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 You are not pushing a course. You are opening a door to a professional standard for someone who is already ready to walk through it. Your job is detection, not persuasion. If you have to convince someone they are a Pro, they almost always are not. So instead of talking, you look: does this person have a real problem in their own field they could spend twelve weeks proving an AI approach against, and does the result have to pass the judgment of someone who matters to them. If yes to both, you have found a fit, and the honest move is simply to name the standard and the bar, then let them decide.
 
->
->
 > **Say this:** You already use AI every day, so the question is not access. The question is whether you can lead it: build something in your own field that survives a hard question from a board or a regulator. That is the gap this credential is built to close.
->
 
->
->
 > **Do not say this:** Finish the twelve weeks and you are automatically certified, and it will get you promoted.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -148,7 +166,7 @@ You are not pushing a course. You are opening a door to a professional standard 
 | Is this an accredited degree. | No. It is a reviewed, defensible professional credential built on real work, not a university degree or an accredited academic qualification. |
 | Will this get me a better job. | I cannot promise an outcome I do not control. What I can say is that it gives you a body of evidence you can defend, which is something a certificate of attendance never does. |
 
-#### Talking points
+##### Talking points
 
 - Access to AI is universal now. Judgment is the dividing line.
 - You bring the expertise. We bring the AI method.
@@ -156,12 +174,9 @@ You are not pushing a course. You are opening a door to a professional standard 
 - Productive effort, real success: proof over hype, every time.
 - I am opening a door for someone who is ready, not talking anyone into anything.
 
->
->
 > **Mistakes to avoid:** Do not pitch the program as easy or fast. Do not promise certification, a job, a raise, or any outcome you cannot control. Do not hide the review standard to make it sound simpler, and do not imply it is an accredited degree. Each of those quietly breaks the trust that gives your introduction its weight.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can explain why access to AI no longer separates the strong from the weak.
 - I can describe using AI versus leading its adoption with an example from the prospect's field.
@@ -169,15 +184,16 @@ You are not pushing a course. You are opening a door to a professional standard 
 - I can explain how the credential is earned and what happens when a dossier falls short.
 - I can keep my tone to proof, not hype, and back up everything I say.
 
-#### A real scenario
+##### A real scenario
 
 You know a senior compliance lead at a mid-size insurer. Her board keeps asking what our AI plan is, and she has been answering with instinct and a few chat experiments she could not defend if pressed. She has a real problem in her field, and the answer has to pass people who matter to her. You do not sell her anything. You say: you are clearly a Pro already, and this is the structured way to turn what you know into a dossier you could put in front of your board. Then you stop talking and let her decide.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Your exam tests whether you can hold the line between using AI and leading adoption, state the motto correctly, explain how the credential is earned and what happens to a dossier below the bar, and recognize the honest partner posture (detect a ready professional and open the door, never promise certification or career results).
 
-#### Lesson (plain prose and audio text)
+<a id="m1-plain"></a>
+### Lesson body (plain prose / audio text)
 
 You are not here to memorize a sales pitch. You are here to understand a standard, and to be able to explain it to a serious professional without exaggerating a single thing.
 
@@ -198,7 +214,8 @@ So hold this in your head before you ever speak to a prospect. A good partner do
 One more thing about tone, because it will define how you are seen. This program does not trade in hype. It trades in proof. The phrase to keep close is simple: productive effort, real success. Everything you say should be true, specific, and defensible. If you cannot back it up, do not say it.
 
 
-#### Exercises (6)
+<a id="m1-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** What is the real line that now separates strong professionals from weak ones, according to the lesson?
 
@@ -266,7 +283,8 @@ One more thing about tone, because it will define how you are seen. This program
 
 **Explanation:** The program trades in proof, not hype. Productive effort, real success is the stated tone. The others are exactly the hype the program avoids.
 
-#### Final exam pool (12)
+<a id="m1-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** Why does a partner's introduction to TenXPros carry weight?
 
@@ -398,35 +416,60 @@ One more thing about tone, because it will define how you are seen. This program
 
 **Answer:** B. Someone who recognizes ready professionals and opens a door honestly
 
-**Explanation:** The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter. --- ## 13.
+**Explanation:** The partner identity is an honest opener of a standard for ready people, not a volume reseller, job promiser, or discounter.
+
 
 ---
 
-### Module 2: Your Partner Identity
+<a id="m2"></a>
+## Module 2: Your Partner Identity
 
-- **Slug:** `identity`
-- **Order:** 2
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m2-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 2 |
+| Slug | `identity` |
+| Title | Your Partner Identity |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 1 is passed (sequential gating). |
 
 **Summary.** Who you are as a partner: an independent representative of a real standard, what you may and may not say, and the integrity that protects your name.
 
-#### Lesson (rich content)
-
-A partner is a trust builder, not a shortcut seller. Keep that one sentence at the center of everything here, because the rest is detail that flows from it. This module is about who you are when you speak for a real standard: the role you played, the four things you protect, the lines you must never cross, and the quick test that keeps you safe in the field.
-
-#### What you will be able to do
+<a id="m2-obj"></a>
+### Learning objectives
 
 - Name the five partner functions and describe your own role honestly when you register a deal.
 - State the four things a partner protects and why they hold together.
 - Run any sentence through the quick test before you say it, and recognize prohibited claims on sight.
 
-#### What you need to understand
+<a id="m2-lesson"></a>
+### Full lesson body (rich content)
 
-##### The five functions, and getting paid for what you did
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+A partner is a trust builder, not a shortcut seller. Keep that one sentence at the center of everything here, because the rest is detail that flows from it. This module is about who you are when you speak for a real standard: the role you played, the four things you protect, the lines you must never cross, and the quick test that keeps you safe in the field.
+
+##### What you will be able to do
+
+- Name the five partner functions and describe your own role honestly when you register a deal.
+- State the four things a partner protects and why they hold together.
+- Run any sentence through the quick test before you say it, and recognize prohibited claims on sight.
+
+##### What you need to understand
+
+###### The five functions, and getting paid for what you did
 
 You can play several roles in a single deal, or just one. The program recognizes five functions and pays you for the function you actually performed, not for being nearby when something happened. Learn the names now, because you will describe your role honestly when you register a deal. (The exact pay for each lives in the Rules module.)
 
@@ -436,15 +479,15 @@ You can play several roles in a single deal, or just one. The program recognizes
 - **Closing:** you carry the opportunity through to a signed, binding agreement.
 - **Delivery or coaching:** you help deliver, coach, or support the offering when you are approved to do so.
 
-##### The four things a partner protects
+###### The four things a partner protects
 
 The mindset under all five functions protects you as much as it protects the company. A partner protects the brand, protects the prospect, protects the standard, and protects their own right to earn by following the process. Those four hold together: drop one and the others weaken. Protect the prospect, for instance, and you protect the brand at the same time, because an honest introduction is what makes the brand trustworthy in the first place.
 
-##### Detection, not persuasion
+###### Detection, not persuasion
 
 Your job is detection, not persuasion. A Pro is a real expert in a field who already uses AI loosely. A TenXPro is that same expert leading AI adoption with method, evidence, and governance. You are looking for the first so the program can build the second. If you have to convince someone they are a Pro, they almost always are not. That is why qualifying on genuine readiness is honest work and pushing volume is not.
 
-##### The lines you must never cross
+###### The lines you must never cross
 
 Read these slowly. Crossing any of them can end a partnership and, in some cases, expose you personally.
 
@@ -459,25 +502,19 @@ Read these slowly. Crossing any of them can end a partnership and, in some cases
 
 These are not arbitrary. Promise a job and you set up a participant for a betrayal that lands on your name. Imply accreditation and you mislead someone making a serious decision. Mishandle regulated data and you create legal exposure for the participant, the company, and yourself. The rule protects the people in the room.
 
-##### The quick test
+###### The quick test
 
 Before you say a sentence to a prospect, run it through four questions. Is it true. Can I back it up. Does it promise an outcome I cannot control. Does it route money or data the wrong way. If a sentence fails any of those, do not say it. If you are not sure, treat that doubt as a no until you confirm on the Partner Panel.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 Honest selling here is mostly listening and naming. You qualify on genuine readiness, you describe the standard plainly, and you register the role you actually played. Saying "this is a strong fit because you already have deep expertise and one real problem worth solving" is approved: it qualifies on readiness, which is exactly your job. Saying "join and you will be certified automatically after twelve weeks" is prohibited: certification is earned through review, not attendance, and you cannot promise it. The gap between those two sentences is this whole module in miniature.
 
->
->
 > **Say this:** This is a strong fit because you already have deep expertise and one real problem worth solving. The credential is earned through a reviewed dossier, so the work is real, and that is exactly why it carries weight.
->
 
->
->
 > **Do not say this:** Pay me directly to speed up enrollment, and once you finish the twelve weeks your income will rise.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -487,14 +524,16 @@ Honest selling here is mostly listening and naming. You qualify on genuine readi
 | Do you own this whole industry or region. | Only if it is confirmed in writing on the Partner Panel. I will not claim exclusivity that is not recorded there. |
 | I bought a contact list, can we use it. | No. Bought, scraped, and spam lists are prohibited, with no relevance or timing exception. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The deal registration form on the Partner Panel, where you record your real role for an opportunity. It captures the function you performed (introduction, qualified origination, strong origination, closing, or delivery and coaching) and the account details, so you are paid for what you actually did rather than for being nearby.
 
-#### Talking points
+##### Talking points
 
 - I am a trust builder, not a shortcut seller.
 - I get paid for the function I actually performed, not for being in the room.
@@ -502,12 +541,9 @@ The deal registration form on the Partner Panel, where you record your real role
 - Certification is earned through a reviewed dossier. I cannot promise it.
 - If a sentence is not true, not backable, or routes money or data wrongly, I do not say it.
 
->
->
 > **Mistakes to avoid:** Promising a job, a raise, leads, or a guaranteed pass. Implying the credential is an accredited degree. Accepting payment off official channels or using messaging that is not approved. Using the TenXPros name before the Activation Gate. Using bought or scraped lists. Claiming exclusivity that is not confirmed in writing on the Panel. Any one of these can end a partnership.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can name the five functions and register the role I actually performed.
 - I can state the four things a partner protects and why they reinforce each other.
@@ -515,15 +551,16 @@ The deal registration form on the Partner Panel, where you record your real role
 - I can run any sentence through the quick test before I speak.
 - I can tell an approved readiness statement from a prohibited promise.
 
-#### A real scenario
+##### A real scenario
 
 A prospect you respect says, "Just take my payment now so we skip the queue, and tell me I am certified the day I finish." You like him, and the deal is right in front of you. You still say no to both: payment must go through official channels, and certification is earned through review, not attendance. Then you give him the sentence you can stand behind: he is a strong fit because of his expertise and one real problem worth solving, and you will register your role honestly on the Panel. You protected the standard, and you protected him.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Your exam checks that you can match each function to its meaning, recall the four things a partner protects, identify prohibited claims (certification, income, accreditation, off-channel payment, bought lists, unconfirmed exclusivity), and apply the quick test to tell an approved sentence from a prohibited one.
 
-#### Lesson (plain prose and audio text)
+<a id="m2-plain"></a>
+### Lesson body (plain prose / audio text)
 
 A partner is a trust builder, not a shortcut seller. Keep that sentence at the center of everything in this module, because the rest is just detail that flows from it.
 
@@ -544,7 +581,8 @@ A short example of the judgment you will use constantly. Saying, this is a stron
 So your identity, in one breath: you are the person who recognizes the right professional, tells them the truth, registers your real role honestly, and protects the standard even when bending it would be easier. That is what earns you the long term trust that makes this worth doing.
 
 
-#### Exercises (6)
+<a id="m2-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** How many functions can a partner perform in a single deal?
 
@@ -612,7 +650,8 @@ So your identity, in one breath: you are the person who recognizes the right pro
 
 **Explanation:** The test asks whether a claim is true, backable, and free of uncontrollable promises or wrong money and data routing. Impressing, adding false urgency, or hiding the bar are not part of it.
 
-#### Final exam pool (12)
+<a id="m2-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** The single sentence at the center of the partner identity is which of these?
 
@@ -744,51 +783,76 @@ So your identity, in one breath: you are the person who recognizes the right pro
 
 **Answer:** A. Recognize the right professional, tell the truth, register your real role, and protect the standard
 
-**Explanation:** The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits. --- ## 14.
+**Explanation:** The summary is honest recognition, truth, accurate role registration, and protecting the standard. The others describe behavior the module prohibits.
+
 
 ---
 
-### Module 3: The Rules
+<a id="m3"></a>
+## Module 3: The Rules
 
-- **Slug:** `rules`
-- **Order:** 3
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m3-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 3 |
+| Slug | `rules` |
+| Title | The Rules |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 2 is passed (sequential gating). |
 
 **Summary.** Where your right to earn comes from: the five part formula, the Partner Panel as single source of truth, commission by function, tiers, clawback, annual validity, and survival clauses.
 
-#### Lesson (rich content)
-
-This is the most precise part of the Academy and the most important to get right, because your right to earn lives here. Everything is governed by the official Partner Program Terms, and the Partner Panel is the single source of truth. When this lesson and a casual message disagree, the Panel and the Terms win. Read it once fully before your first conversation, then keep it as reference.
-
-#### What you will be able to do
+<a id="m3-obj"></a>
+### Learning objectives
 
 - State the five part earning formula and explain why a conversation is not a right.
 - Register a deal correctly, respect exact scope, and know what cannot be registered.
 - Explain commission logic, clawback, the tier ladder, your authority limits, and which obligations survive the year end.
 
-#### What you need to understand
+<a id="m3-lesson"></a>
+### Full lesson body (rich content)
 
-##### The five part formula
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+This is the most precise part of the Academy and the most important to get right, because your right to earn lives here. Everything is governed by the official Partner Program Terms, and the Partner Panel is the single source of truth. When this lesson and a casual message disagree, the Panel and the Terms win. Read it once fully before your first conversation, then keep it as reference.
+
+##### What you will be able to do
+
+- State the five part earning formula and explain why a conversation is not a right.
+- Register a deal correctly, respect exact scope, and know what cannot be registered.
+- Explain commission logic, clawback, the tier ladder, your authority limits, and which obligations survive the year end.
+
+##### What you need to understand
+
+###### The five part formula
 
 Your right to earn comes from five things, and you need all five together: a registered opportunity, a real role you actually performed, money that was actually received and cleared, a defined time window, and active account management. If something is not registered, not confirmed, not performed, not cleared, and not recorded, it is not a protected earning right. A friendly conversation is not a right. A pending status is not a right. A confirmed record on the Panel is a right.
 
-##### The relationship, and the Panel as single source of truth
+###### The relationship, and the Panel as single source of truth
 
 It is an independent contractor relationship. It does not create employment, agency, equity, co founder status, salary, benefits, exclusivity, territory ownership, or any long term commitment. You earn defined commission only when there is a confirmed deal registration, real work performed, and cleared money received.
 
 The Panel being the single source of truth is not a slogan. A verbal comment, a chat message, an email thread, a pending label, or warm encouragement from someone at the company is not approval. No reply is not approval. Silence is not a yes. If it is not confirmed on the Panel, treat it as not yet real.
 
-##### The pilot and the Activation Gate
+###### The pilot and the Activation Gate
 
 Every partner begins with a ninety day commission only pilot that lets both sides test fit, quality, seriousness, and operating discipline. Either side can end it on seven days written notice, and ending it does not erase commission already earned on a closed deal, subject to the refund, chargeback, cancellation, and clawback rules.
 
 Before you contact a single prospect using the TenXPros name, you complete the Activation Gate: a signed agreement, completed onboarding, approved messaging, acknowledgement of the partner terms, agreement to use no spam and no bought or scraped lists, your first target list submitted on the Panel, and the company's confirmation on the Panel. Only after that confirmation do you begin outreach.
 
-##### Deal registration and scope
+###### Deal registration and scope
 
 Register the opportunity before substantive contact, and it is effective only when the company confirms it on the Panel. A proper registration names the legal entity or individual, the country, the business unit, the contact, the offering, the estimated seats and value, your role, and a real reason you are positioned to pursue this account.
 
@@ -796,13 +860,13 @@ Register the opportunity before substantive contact, and it is effective only wh
 - **Some things cannot be registered:** house accounts, existing TenXPros relationships or pipeline, direct inbound customers, and accounts already registered to another partner.
 - **Priority is simple.** If two partners want the same account, priority goes to the one whose registration was confirmed first on the Panel.
 
-##### Commission, payment, and clawback
+###### Commission, payment, and clawback
 
 Commission is earned by function and calculated on net receipts actually received and cleared. The unit of sale is the seat, meaning one enrolled professional, sold either as a business to consumer charter (an individual enrolls) or a business to business engagement (an organization buys seats). Stronger origination and closing pay more than a basic introduction, delivery or coaching pays a fixed fee or small approved percentage, and there is a cap per deal. The exact figures live in the official terms. The logic to remember: you are paid on cleared money, for the function you performed, up to a cap, never simply because a conversation happened.
 
 Commission becomes payable only after the offering has been delivered and the matching customer payment is received and cleared, then within thirty business days of the later of those two events. You handle your own taxes and any receiving side bank fees, and you check your statements and raise any query within thirty days. Clawback is the other side: if an engagement, seat, or payment is refunded, charged back, cancelled, credited, or reversed, no commission is owed, and if you were already paid it can be reversed, offset, or repaid.
 
-##### The tier ladder
+###### The tier ladder
 
 The tiers are climbed on collected results, not promises.
 
@@ -810,25 +874,19 @@ The tiers are climbed on collected results, not promises.
 - **Tier two, certified partner:** earned by selling and collecting a defined number of paid, non refunded seats within twelve months, with a clean record and Panel confirmation. It brings more open accounts, longer protection, priority on company leads, growth bonus eligibility, a certified credential, a public listing, and a letter of recognition.
 - **Tier three, territory builder:** earned after tier two by sourcing and collecting a defined number of paid, non refunded seats in one industry or region within twelve months. It brings the most open accounts, the longest protection, first priority on leads in your focus, a focus bonus, and public recognition as the lead partner for your area.
 
-##### Authority limits, and what survives the year
+###### Authority limits, and what survives the year
 
 You cannot bind the company, quote prices outside approved current materials, give discounts, promise results, approve terms, accept payment, or issue invoices. You cannot register domains, handles, or business names using the brand, or use unofficial titles. The rules, commission structure, and tier thresholds are valid for the current calendar year only, changeable each new year with notice through the website, and contracts run until the thirty first of December of the year accepted. The annual reset does not cancel everything: confidentiality, non circumvention, non solicitation, clawback on commission already paid, and ownership of intellectual property and customer relationships survive for their defined periods.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 You sell within the limits, not around them. You describe the offering from approved current materials, you register your role before substantive contact, and you let the Panel confirm what is real. If a prospect pushes for a discount or a price you cannot quote, you do not improvise: you point to the approved materials and route the rest to the company. Your honesty here is what makes your earning right durable, because a right built on the process cannot be argued away later.
 
->
->
 > **Say this:** I will register this opportunity before we go further, so your account and my role are recorded and protected on the Panel. Pricing comes from our approved current materials, not from me.
->
 
->
->
 > **Do not say this:** I can knock USD 500 off and lock your whole company group in under one registration, and we will sort the paperwork later.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -838,14 +896,16 @@ You sell within the limits, not around them. You describe the offering from appr
 | When do I get paid. | Commission is payable after delivery and after the matching customer payment is received and cleared, then within thirty business days of the later of those two events. |
 | If a seat is refunded after I am paid, do I keep the commission. | No. Clawback applies, so it can be reversed, offset against future commission, or repaid. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The deal registration screen on the Partner Panel. It captures the legal entity or individual, country, business unit, contact, offering, estimated seats and value, your role, and your real reason for pursuing the account. The registration only protects you once the company confirms it here, and it covers only the exact scope shown.
 
-#### Talking points
+##### Talking points
 
 - Five parts make a right: registered, performed, cleared, timed, managed.
 - The Panel is the single source of truth. Silence is not a yes.
@@ -853,12 +913,9 @@ The deal registration screen on the Partner Panel. It captures the legal entity 
 - Paid on cleared money, by function, up to a cap.
 - Clawback and survival clauses outlast a refund and the year end.
 
->
->
 > **Mistakes to avoid:** Treating a verbal or pending nod as approval. Contacting a prospect with the TenXPros name before the Activation Gate is confirmed. Assuming a registration covers the parent or other departments. Quoting prices or giving discounts on your own authority. Forgetting that clawback, confidentiality, non circumvention, and non solicitation survive the year end and the partnership.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can recite the five part formula and explain why a conversation is not a right.
 - I can register a deal with the required details and respect exact scope.
@@ -866,15 +923,16 @@ The deal registration screen on the Partner Panel. It captures the legal entity 
 - I can explain commission on cleared money, payment timing, and clawback.
 - I can describe the three tiers and which obligations survive the year end.
 
-#### A real scenario
+##### A real scenario
 
 You had a strong call with a regional bank's training lead, who said over chat, "We are in, send it through." You feel done, but nothing is registered or confirmed on the Panel, so you have no protected right yet. You register the opportunity with the exact business unit and your real role, wait for the company's confirmation, and only then continue. A week later another partner mentions the same bank. Because your registration was confirmed first on the Panel, priority is yours. The process, not the conversation, is what protected you.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Your exam tests the five part formula, the Panel as the only source of approval, the Activation Gate, exact registration scope and first-confirmed priority, commission on cleared receipts with payment timing and clawback, the tier thresholds, your authority limits, and which obligations survive the calendar year.
 
-#### Lesson (plain prose and audio text)
+<a id="m3-plain"></a>
+### Lesson body (plain prose / audio text)
 
 This is the most precise part of the Academy, and the most important to get right, because your right to earn lives here. Read it once fully before your first conversation, then come back to it as reference. Everything in this module is governed by the official Partner Program Terms, and the Partner Panel is the single source of truth. When this lesson and a casual message disagree, the Panel and the Terms win.
 
@@ -913,7 +971,8 @@ The annual reset does not cancel everything, and this is the part people get wro
 Hold the spirit of this whole module in one line. Your right to earn comes from recorded, real work, inside a defined year, under terms the Panel confirms. Follow the process and you are protected. Skip it and you are not.
 
 
-#### Exercises (6)
+<a id="m3-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** Which set is the five part earning formula?
 
@@ -981,7 +1040,8 @@ Hold the spirit of this whole module in one line. Your right to earn comes from 
 
 **Explanation:** Payment is within thirty business days of the later of delivery and cleared customer payment. Signing alone, a year, or a tier requirement are not the rule.
 
-#### Final exam pool (12)
+<a id="m3-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** A partner had a great call but nothing is registered or confirmed on the Panel. What is true?
 
@@ -1113,27 +1173,39 @@ Hold the spirit of this whole module in one line. Your right to earn comes from 
 
 **Answer:** B. Your right to earn comes from recorded, real work, inside a defined year, under terms the Panel confirms
 
-**Explanation:** The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights. --- ## 15.
+**Explanation:** The module's spirit is recorded, real work, within a defined year, confirmed by the Panel. Conversations, promises, and asking for territory do not create rights.
+
 
 ---
 
-### Module 4: What TenXPros Is
+<a id="m4"></a>
+## Module 4: What TenXPros Is
 
-- **Slug:** `product`
-- **Order:** 4
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m4-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 4 |
+| Slug | `product` |
+| Title | What TenXPros Is |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 3 is passed (sequential gating). |
 
 **Summary.** How to explain TenXPros cleanly and honestly: what it is, who it is for, the four phases, and the reviewed evidence it produces.
 
-#### Lesson (rich content)
-
-A professional will judge your judgment by how you describe the product. So describe it cleanly, with no exaggeration. TenXPros is a selective twelve week certification: an experienced professional brings one real problem from their own field, runs it through a structured method, and finishes with a reviewed body of evidence they can defend. Not a video library. Not a prompt course. A guided process that ends in defensible proof.
-
-#### What you will be able to do
+<a id="m4-obj"></a>
+### Learning objectives
 
 - State in one clean sentence what TenXPros is, and what it is not.
 - Name who the program is for and, just as importantly, who it is not for.
@@ -1141,24 +1213,34 @@ A professional will judge your judgment by how you describe the product. So desc
 - Explain the Living AI Solution Dossier as the center of the program.
 - Represent the three review outcomes accurately, and explain why you can never promise the Certified one.
 
-#### What you need to understand
+<a id="m4-lesson"></a>
+### Full lesson body (rich content)
 
-##### The one sentence
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+A professional will judge your judgment by how you describe the product. So describe it cleanly, with no exaggeration. TenXPros is a selective twelve week certification: an experienced professional brings one real problem from their own field, runs it through a structured method, and finishes with a reviewed body of evidence they can defend. Not a video library. Not a prompt course. A guided process that ends in defensible proof.
+
+##### What you will be able to do
+
+- State in one clean sentence what TenXPros is, and what it is not.
+- Name who the program is for and, just as importantly, who it is not for.
+- Walk a prospect through the four phases (Frame, Design, Prove, Foresee) and the eight assets they build.
+- Explain the Living AI Solution Dossier as the center of the program.
+- Represent the three review outcomes accurately, and explain why you can never promise the Certified one.
+
+##### What you need to understand
+
+###### The one sentence
 
 TenXPros is a selective twelve week certification for experienced professionals. The participant brings one real professional problem from their own field, runs it through a structured method, and finishes with a reviewed body of evidence they can explain and defend to employers, clients, boards, and peers. That is the product.
 
-##### Who it is for, and who it is not for
+###### Who it is for, and who it is not for
 
 The program is built for people who already have real expertise: senior operators and experienced professionals, consultants and advisors, managers and decision makers, founders and small business owners, and researchers, educators, and knowledge workers. It does not work well for an absolute beginner with no domain expertise, and that is on purpose.
 
->
->
->
 > **The multiplier idea:** TenX means a multiplier. The program multiplies an AI method onto expertise the person already has. Ten times zero is still zero, so the input has to be real. A beginner with no field is a zero: there is nothing to multiply. That is the structural reason selectivity is a feature, not friction. A Pro brings the expertise. The program brings the method, the evidence, and the governance that turn that Pro into a TenXPro.
->
->
 
-##### The four phases
+###### The four phases
 
 The twelve weeks are organized into four phases, and each one answers a single real question.
 
@@ -1169,37 +1251,27 @@ The twelve weeks are organized into four phases, and each one answers a single r
 
 These are not lessons to watch. They are a sequence of building, where the thinking from each phase gets tested by the work of the next.
 
-##### The eight assets and the dossier
+###### The eight assets and the dossier
 
 Across those phases the participant builds eight connected assets: a Personal AI Strategy Brief, an AI Use Case Portfolio, an Interaction and Decision Kit, a Grounded Domain Knowledge Pack, an AI Evaluation Rubric and Test Set, Custom Assistants and AI Workflows, an AI Value and Economics Case, and a Final Portfolio and ninety day Roadmap. Each one is real, and each one builds on the last.
 
 Those eight assets assemble into one thing: the Living AI Solution Dossier. It is the professional proof artifact and the center of the whole program. It is called living because it can be updated as the participant's work evolves. It is reviewed, it is verifiable, and it is built to be defended. It carries twelve sections mapped to the four phases.
 
-##### The public review criteria and the three outcomes
+###### The public review criteria and the three outcomes
 
 The dossier is reviewed against eight public criteria: the problem is clearly defined, risks and boundaries are explicit, use cases are chosen and prioritized, an evaluation rubric and a test set exist, the workflow is usable, value is shown with evidence, governance and confidentiality are respected, and the roadmap is realistic. The bar is public, not hidden.
 
 A review has three outcomes, and you must represent all three accurately. **Certified** means the dossier meets the standard and the credential is awarded. **Strong Draft** means the work is close, and specific revisions come back before certification. **Completed** means the program is finished but the credential is not yet earned.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 The honest pitch is the strong pitch here. Lead with what the program produces (defensible evidence in the prospect's own field), name the selectivity as part of the value, and be upfront that the Certified outcome depends on the work and the review, never on attendance. If you describe the product as anything easier or anything grander, you are describing a different product and setting the person up for disappointment.
 
->
->
->
 > **Say this:** TenXPros is a selective twelve week certification. You bring one real problem from your field, run it through a structured method, and finish with a reviewed dossier you can defend to anyone who matters to you.
->
->
 
->
->
->
 > **Do not say this:** It is an easy AI certificate you finish in twelve weeks, and you are guaranteed to pass. That promises an outcome only the review can decide, and it misnames a selective program as an easy one.
->
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -1209,15 +1281,16 @@ The honest pitch is the strong pitch here. Lead with what the program produces (
 | What do I actually walk away with? | A Living AI Solution Dossier built from eight connected assets, and, if it is reviewed as Certified, a verifiable field specific credential. |
 | Is the standard hidden or subjective? | No. The dossier is reviewed against eight public criteria. The bar is explicit and published. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> 
-> Form preview, placeholder
+> Public credential verification
+
+<img src="/academy/screens/verification.png" alt="Public credential verification" loading="lazy" />
 
 The public credential verification screen shows the recipient, the credential status, the issue date, and the badge metadata. It confirms what was earned without exposing the participant's confidential dossier contents.
 
-#### Talking points
+##### Talking points
 
 - One real problem, run through a structured method, ending in reviewed proof.
 - Four phases that each answer one question: Frame, Design, Prove, Foresee.
@@ -1225,14 +1298,9 @@ The public credential verification screen shows the recipient, the credential st
 - Eight public review criteria, so the bar is never a secret.
 - A field specific credential that names the participant's actual domain.
 
->
->
->
 > **Mistakes to avoid:** calling it a video library or a prompt course, promising the Certified outcome, pitching it to a beginner with no domain, implying the review bar is hidden, or describing the credential as a generic AI certificate. Each one trades the truth of the product for a weaker, riskier story.
->
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can state in one sentence what TenXPros is and is not.
 - I can name the four phases and the question each one answers.
@@ -1240,15 +1308,16 @@ The public credential verification screen shows the recipient, the credential st
 - I can list the three review outcomes and explain why Certified is never promised.
 - I can explain why selectivity is a feature, using the multiplier idea.
 
-#### A real scenario
+##### A real scenario
 
 A consultant with eighteen years advising mid market manufacturers asks whether this is worth her time. You do not promise her certification. You show her that across twelve weeks she frames where AI belongs in her advisory work, designs a responsible workflow grounded in her own sources, proves value with a rubric and a test set, and writes a ninety day roadmap, all assembled into a dossier reviewed against eight public criteria. She leaves seeing a body of work she could defend to a client, not a certificate of attendance.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Your exam checks that you can name the central artifact (the Living AI Solution Dossier), match each phase to its question, list the eight review criteria and the three outcomes, and explain why a partner can never promise the Certified result. Hold those straight and the rest follows.
 
-#### Lesson (plain prose and audio text)
+<a id="m4-plain"></a>
+### Lesson body (plain prose / audio text)
 
 You have to be able to explain the product cleanly, without a single exaggeration, to a professional who will judge your judgment by how you describe it. So learn the shape of it well.
 
@@ -1271,7 +1340,8 @@ The credential itself is verifiable and public, and it is field specific, which 
 Keep this whole module honest in your mouth. TenXPros is selective, applied, and reviewed. It turns one real problem into defensible evidence for an experienced professional. If you describe it as anything easier or anything grander than that, you are describing a different product, and you are setting up the person in front of you for disappointment.
 
 
-#### Exercises (6)
+<a id="m4-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** In one sentence, what is TenXPros?
 
@@ -1339,7 +1409,8 @@ Keep this whole module honest in your mouth. TenXPros is selective, applied, and
 
 **Explanation:** Certified depends on the work and the review, so it can never be promised. The other statements are true and can be shared.
 
-#### Final exam pool (12)
+<a id="m4-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** What is the central artifact of the entire program?
 
@@ -1471,27 +1542,39 @@ Keep this whole module honest in your mouth. TenXPros is selective, applied, and
 
 **Answer:** A. Because certification is decided by the work and the review, not by attendance
 
-**Explanation:** Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed. --- ## 16.
+**Explanation:** Certified depends on reviewed work against a public standard, so it cannot be promised. The criteria are public, there are three outcomes, and the dossier is reviewed.
+
 
 ---
 
-### Module 5: The Twelve Week Journey
+<a id="m5"></a>
+## Module 5: The Twelve Week Journey
 
-- **Slug:** `journey`
-- **Order:** 5
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m5-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 5 |
+| Slug | `journey` |
+| Title | The Twelve Week Journey |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 4 is passed (sequential gating). |
 
 **Summary.** The twelve week journey a participant takes, phase by phase, so you can describe the experience with confidence.
 
-#### Lesson (rich content)
-
-This is the module you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and become a story a specific person can see themselves inside. You make the journey feel real by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
-
-#### What you will be able to do
+<a id="m5-obj"></a>
+### Learning objectives
 
 - Walk a prospect through all twelve weeks, naming what they produce and the badge they earn each week.
 - Frame the journey as four phases: Frame, Design, Prove, Foresee.
@@ -1499,15 +1582,32 @@ This is the module you will lean on most in real conversations, because it is wh
 - Use illustrative field numbers honestly, never as a promise.
 - Lead a field story with the boundary that keeps a human in control.
 
-#### What you need to understand
+<a id="m5-lesson"></a>
+### Full lesson body (rich content)
 
-##### The universal map
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+This is the module you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and become a story a specific person can see themselves inside. You make the journey feel real by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
+
+> **Two different module counts, do not mix them up.** This Academy has 14 modules that train you as a partner. The program your prospects take is different: it is 11 weekly modules plus a capstone review across 12 weeks.
+
+##### What you will be able to do
+
+- Walk a prospect through all twelve weeks, naming what they produce and the badge they earn each week.
+- Frame the journey as four phases: Frame, Design, Prove, Foresee.
+- Retell the same map in the prospect's own field without inventing anything.
+- Use illustrative field numbers honestly, never as a promise.
+- Lead a field story with the boundary that keeps a human in control.
+
+##### What you need to understand
+
+###### The universal map
 
 The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. The four phases are Frame (weeks one to four), Design (weeks five to eight), Prove (weeks nine and ten), and Foresee (weeks eleven and twelve). Here is the week by week skeleton, built strictly from the canonical map.
 
 | Week | Focus | What they produce | Badge |
 | --- | --- | --- | --- |
-| 1 | AI readiness and the TenX mindset | A readiness snapshot and a professional stance | TenX Mindset |
+| 1 | AI readiness and the TenX Mindset | A readiness snapshot and a professional stance | TenX Mindset |
 | 2 | Practical AI literacy and tool fluency | A tool use map and first safe experiments | AI Core |
 | 3 | Responsible AI and professional boundaries | Boundary rules and a confidentiality plan | Responsible AI |
 | 4 | Problem discovery and structured framing | A problem definition and an AI suitability assessment | Problem Framing |
@@ -1520,38 +1620,28 @@ The program runs as eleven core modules plus a final dossier and capstone review
 | 11 | AI foresight and scenario planning | A foresight plan and scenario triggers | Foresight Strategist |
 | 12 | Final dossier and capstone review | The Living AI Solution Dossier and the final recommendation | Capstone Review |
 
-##### The four phases, and what each one settles
+###### The four phases, and what each one settles
 
 - **Frame (weeks one to four):** the participant settles where AI belongs in their work, ending with a problem definition and an AI suitability assessment.
 - **Design (weeks five to eight):** they build responsibly, ending with an assistant or workflow prototype carrying guardrails, grounded in their own sources.
 - **Prove (weeks nine and ten):** they show value with evidence, ending with an evaluation rubric, a test set, and a value case.
 - **Foresee (weeks eleven and twelve):** they lead what comes next, ending with a foresight plan and the final dossier and capstone review.
 
-##### What they are reviewed on, and the outcome they receive
+###### What they are reviewed on, and the outcome they receive
 
 Every week's badge is earned by completing and submitting that week's actual work, so the badge trail is a record of real deliverables, not attendance. The whole journey points at week twelve, where the eight assets assemble into the Living AI Solution Dossier and the final recommendation. That dossier is what gets reviewed, and from that review the participant receives an outcome, with the field specific credential awarded when the work meets the standard.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 The skeleton above is the same for everyone, but the same skeleton looks completely different depending on who is walking through it. That is the point of the Field Journey Explorer. When you sit with a radiologist, you do not recite the twelve weeks. You show her how a radiologist with fourteen years of experience uses Frame to rule out autonomous diagnosis and rule in an image triage layer, uses Design to build a decision kit and a grounded knowledge pack, uses Prove to test against a real set of past cases and report honest numbers including the misses, and uses Foresee to write a ninety day rollout and submit a dossier that earns the field specific credential of a certified AI adopted radiologist.
 
 The same four phases, for a lawyer, produce a contract intake and risk triage assistant that never gives legal advice. For an HR director, they produce an interview feedback assistant that never makes the hiring decision. Finance, marketing, education, product, engineering, healthcare operations, consulting: each one is the same method wearing the prospect's own clothes.
 
->
->
->
 > **Say this:** In week four you would land on the one problem worth twelve weeks of your time, and by week twelve you would hold a reviewed dossier you can defend in your own field. Let me walk it through the way it would look for you.
->
->
 
->
->
->
 > **Do not say this:** Other people in your field cut their review time by forty percent, so you will too. Any number from a field story is illustrative of how value gets proven, never a promise of what anyone will achieve.
->
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -1561,15 +1651,16 @@ The same four phases, for a lawyer, produce a contract intake and risk triage as
 | Will AI take over the judgment in my work? | No. Every field story keeps a human in control. The radiologist keeps diagnostic authority, the lawyer keeps legal advice, and the program teaches exactly that boundary. |
 | What do I hold at the end? | A reviewed Living AI Solution Dossier and, when the work meets the standard, a field specific credential naming your actual domain. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> 
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The Field Journey Explorer lets you pick a profession and see the four phases retold in that field's language, with the weekly badges and the field specific credential the participant would hold at the end. Use it to prepare, not to recite.
 
-#### Talking points
+##### Talking points
 
 - Eleven core modules plus a final dossier and capstone review, one stretch of work per week.
 - Four phases: Frame, Design, Prove, Foresee, each answering one real question.
@@ -1577,14 +1668,9 @@ The Field Journey Explorer lets you pick a profession and see the four phases re
 - The same method, retold in the prospect's own field.
 - Lead with the boundary as much as the benefit.
 
->
->
->
 > **Mistakes to avoid:** reciting the generic twelve weeks to a specific person, presenting an illustrative number as a guaranteed result, leading with AI capability instead of the boundary that keeps a human in control, or inventing weeks, badges, or outcomes that are not on the map.
->
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can name the focus, the deliverable, and the badge for each of the twelve weeks.
 - I can group the weeks into the four phases and say what each phase settles.
@@ -1592,19 +1678,20 @@ The Field Journey Explorer lets you pick a profession and see the four phases re
 - I can use a field number as an illustration, never a promise.
 - I can lead a field story with the human boundary.
 
-#### A real scenario
+##### A real scenario
 
 You meet an HR director with eleven years running talent for a regional bank. You do not list weeks one to twelve. You show her Frame landing on a single problem, interview feedback that is inconsistent across panels, then Design producing a feedback assistant that structures notes and checks evidence but never makes the hiring decision, then Prove testing it against a set of past interviews and reporting honest numbers, then Foresee writing a ninety day rollout into one division. She leaves seeing herself in twelve weeks holding a defensible dossier, with the decision still firmly hers.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Your exam checks that you can pair each week with its badge, place each week in the right phase, retell the method in a field while keeping the boundary central, and frame any field number as illustrative rather than a promise. Know the table and the phase boundaries and you will have it.
 
-#### Lesson (plain prose and audio text)
+<a id="m5-plain"></a>
+### Lesson body (plain prose / audio text)
 
 This is the part of the program you will lean on most in real conversations, because it is where the twelve weeks stop being abstract and start being a story a specific person can see themselves inside. Your job is to make the journey feel real, and the way you do that is by knowing the universal map cold and then telling it through the lens of the prospect's own profession.
 
-Here is the universal map. The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. Week one is AI readiness and the TenX mindset, and it produces a readiness snapshot and a professional stance, earning the TenX Mindset badge. Week two is practical AI literacy and tool fluency, producing a tool use map and first safe experiments, earning AI Core. Week three is responsible AI and professional boundaries, producing boundary rules and a confidentiality plan, earning Responsible AI. Week four is problem discovery and structured framing, producing a problem definition and an AI suitability assessment, earning Problem Framing. That closes the Frame phase.
+Here is the universal map. The program runs as eleven core modules plus a final dossier and capstone review, one stretch of work per week, and each week ends with a milestone badge that marks a small, earned win. Week one is AI readiness and the TenX Mindset, and it produces a readiness snapshot and a professional stance, earning the TenX Mindset badge. Week two is practical AI literacy and tool fluency, producing a tool use map and first safe experiments, earning AI Core. Week three is responsible AI and professional boundaries, producing boundary rules and a confidentiality plan, earning Responsible AI. Week four is problem discovery and structured framing, producing a problem definition and an AI suitability assessment, earning Problem Framing. That closes the Frame phase.
 
 Week five is context, stakeholder, and foresight mapping, producing a stakeholder map and early scenario notes, earning Context Mapper. Week six is data, evidence, and verification discipline, producing a grounded knowledge pack and source rules, earning Evidence Discipline. Week seven is workflow and human to AI allocation, producing a before and after workflow and an allocation map, earning Workflow Designer. Week eight is responsible AI solution design, producing an assistant or workflow prototype with guardrails, earning Responsible Solution. That closes the Design phase.
 
@@ -1617,7 +1704,8 @@ Two things make these field stories work, and you must respect both. First, they
 So when you prepare for a conversation, pick the field that matches the person, walk the four phases in their language, name the badges and the rank they would earn along the way, and end on the field specific credential they would hold. Do that and the prospect is no longer evaluating an AI course. They are looking at a believable picture of themselves twelve weeks from now, holding proof they can defend. That picture, told honestly, is the most persuasive and the most ethical thing you can offer.
 
 
-#### Exercises (6)
+<a id="m5-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** How is the universal program structured across the twelve weeks?
 
@@ -1639,7 +1727,7 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Answer:** C. TenX Mindset
 
-**Explanation:** Week one, AI readiness and the TenX mindset, earns the TenX Mindset badge. The others are earned in later weeks.
+**Explanation:** Week one, AI readiness and the TenX Mindset, earns the TenX Mindset badge. The others are earned in later weeks.
 
 **Exercise 3.** What is the right way to use the Field Journey Explorer in a conversation?
 
@@ -1685,7 +1773,8 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Explanation:** Design runs weeks five to eight, so week eight closes it. Week four closes Frame, week ten closes Prove, and week twelve closes Foresee.
 
-#### Final exam pool (12)
+<a id="m5-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** Why is the journey module the one partners lean on most?
 
@@ -1817,27 +1906,39 @@ So when you prepare for a conversation, pick the field that matches the person, 
 
 **Answer:** B. A believable picture of themselves in twelve weeks holding defensible proof
 
-**Explanation:** A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee. --- ## 17.
+**Explanation:** A good field story lets the prospect see a believable future version of themselves with proof. It is not a course comparison, a price talk, or a guarantee.
+
 
 ---
 
-### Module 6: Ranks, Badges, and Credentials
+<a id="m6"></a>
+## Module 6: Ranks, Badges, and Credentials
 
-- **Slug:** `ranks`
-- **Order:** 6
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m6-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 6 |
+| Slug | `ranks` |
+| Title | Ranks, Badges, and Credentials |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 5 is passed (sequential gating). |
 
 **Summary.** The two layer recognition system of weekly badges and meaningful credentials, and how they build toward certification.
 
-#### Lesson (rich content)
-
-Recognition in this program runs on two layers, and once you see them, the whole thing makes sense and you can explain it in thirty seconds. Layer one is small and frequent. Layer two is large and meaningful. Together they build toward one flagship credential. The short version: sell the proof, not the stickers.
-
-#### What you will be able to do
+<a id="m6-obj"></a>
+### Learning objectives
 
 - Explain the two layer recognition system in plain language.
 - List the twelve weekly badges in order and say what a badge actually stands for.
@@ -1845,13 +1946,28 @@ Recognition in this program runs on two layers, and once you see them, the whole
 - Say what makes the flagship credential worth holding.
 - Describe a participant's status honestly at any point in the program.
 
-#### What you need to understand
+<a id="m6-lesson"></a>
+### Full lesson body (rich content)
 
-##### Layer one: the twelve weekly badges
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+Recognition in this program runs on two layers, and once you see them, the whole thing makes sense and you can explain it in thirty seconds. Layer one is small and frequent. Layer two is large and meaningful. Together they build toward one flagship credential. The short version: sell the proof, not the stickers.
+
+##### What you will be able to do
+
+- Explain the two layer recognition system in plain language.
+- List the twelve weekly badges in order and say what a badge actually stands for.
+- Name the four phase ranks and what each one means a participant has produced.
+- Say what makes the flagship credential worth holding.
+- Describe a participant's status honestly at any point in the program.
+
+##### What you need to understand
+
+###### Layer one: the twelve weekly badges
 
 One badge per week. These are not participation trophies, and you should never describe them as decorations. Each badge is earned by completing and submitting that week's actual work. They exist because a twelve week program is long, and small earned wins keep a serious professional moving with a visible trail of progress. The twelve, in order, are TenX Mindset, AI Core, Responsible AI, Problem Framing, Context Mapper, Evidence Discipline, Workflow Designer, Responsible Solution, Adoption Designer, Value Proof, Foresight Strategist, and Capstone Review. Each one maps to a week and to a concrete deliverable, so a badge is shorthand for a piece of real work that exists.
 
-##### Layer two: the four phase ranks
+###### Layer two: the four phase ranks
 
 As each phase is completed, the participant earns a rank that signals what they can now do, not just what they attended.
 
@@ -1862,35 +1978,25 @@ As each phase is completed, the participant earns a rank that signals what they 
 | Prove | TenX Practitioner at Proof Level | AI Evidence Builder | A tested, evaluated system with an evidence based value case |
 | Foresee, with a certified dossier | TenXPros Certified Professional | AI Adoption Leader, carrying their field | A responsible AI adoption system in their domain, built, tested, documented, and defensible |
 
-##### What makes the flagship credential worth holding
+###### What makes the flagship credential worth holding
 
 The flagship credential is the thing everything points toward, and you should be able to say what makes it real. It is **verifiable**, reviewed against a public rubric rather than self reported. It is **field specific**, naming the participant's actual domain rather than a generic AI certificate. It is **evidence based**, backed by a reviewed living dossier of real work. And it is **defensible**, meaning the holder can walk any stakeholder through exactly what they built, how they tested it, and what value it delivers.
 
 > A normal certificate says this person completed a course. This credential says this person built, tested, and documented a responsible AI adoption system in their field, and it was reviewed against an explicit public standard. Those are not the same sentence, and serious people know the difference.
 
-##### The language of progress titles
+###### The language of progress titles
 
 There is a simple language of progress titles for where a participant is at any moment: accepted member before week one, through the phase ranks, to dossier candidate at submission, and finally to one of the three review outcomes. Use these to set expectations honestly. A participant in week six is a Design level practitioner doing real work, not a certified professional yet, and saying so plainly is part of protecting the standard.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 Lead with the credential and the dossier, then explain the badges and ranks as the trail that gets a participant there. If you flip that order and sell the stickers, you attract people who want the decoration rather than the proof, and they are the wrong people. Let the rigor of a public review standard do the persuading.
 
->
->
->
 > **Say this:** The weekly badges mark real work as you go, the four ranks mark real capability, and at the top sits one verifiable, field specific credential reviewed against a public standard.
->
->
 
->
->
->
 > **Do not say this:** Collect the badges and you are basically certified, and it is like a university qualification. The badges are not the credential, and this is a professional credential, never an academic one.
->
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -1900,15 +2006,14 @@ Lead with the credential and the dossier, then explain the badges and ranks as t
 | If I finish the weeks, am I certified? | Not automatically. The flagship rank requires completing Foresee together with a certified dossier, not attendance alone. |
 | Can someone outside the program trust it? | Yes. It is verifiable against a public standard rather than self reported, which is exactly what makes it credible to an outsider. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> 
-> Form preview, placeholder
+> The progress view
 
 The progress view shows where a participant sits right now: accepted member, a phase rank, dossier candidate, or one of the three review outcomes. Use it to describe status honestly rather than rounding up.
 
-#### Talking points
+##### Talking points
 
 - Two layers: small weekly badges, four phase ranks.
 - A badge is shorthand for a concrete deliverable, not a decoration.
@@ -1916,14 +2021,9 @@ The progress view shows where a participant sits right now: accepted member, a p
 - The flagship credential is verifiable, field specific, evidence based, and defensible.
 - Sell the proof, not the stickers.
 
->
->
->
 > **Mistakes to avoid:** letting the badges sound like the point, implying badges add up to certification, calling the rank or credential an academic qualification, describing it as a generic AI certificate, or rounding a Design level practitioner up to certified professional.
->
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can explain both recognition layers in thirty seconds.
 - I can list the twelve badges in order and say what one stands for.
@@ -1931,15 +2031,16 @@ The progress view shows where a participant sits right now: accepted member, a p
 - I can state the four things that make the flagship credential worth holding.
 - I can describe a week six participant honestly as a Design level practitioner.
 
-#### A real scenario
+##### A real scenario
 
 A founder in week six asks you, half joking, whether he can already put certified professional on his profile. You hold the line kindly. You tell him he is a Design level practitioner right now, an AI Systems Builder who has produced a working workflow grounded in his own domain knowledge, and that the flagship rank comes only with completing Foresee and a certified dossier. He respects the honesty, and it is exactly that honesty that protects the value of the credential he is working toward.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Your exam checks that you can order the first weekly badges, pair each phase with its rank and badge name, state what the flagship credential says about its holder, and avoid the two cautions: never sell the badges as the point, and never imply the credential is an academic qualification.
 
-#### Lesson (plain prose and audio text)
+<a id="m6-plain"></a>
+### Lesson body (plain prose / audio text)
 
 Recognition in this program runs on two layers, and once you see the two layers, the whole thing makes sense and you can explain it to a prospect in thirty seconds. Layer one is small and frequent. Layer two is large and meaningful. Together they build toward one flagship credential.
 
@@ -1956,7 +2057,8 @@ Two cautions when you talk about recognition. First, never let the badges sound 
 So, the whole module in one breath. Small weekly badges mark real work. Four phase ranks mark real capability. One verifiable, field specific, defensible credential sits at the top. Sell the proof, not the stickers.
 
 
-#### Exercises (6)
+<a id="m6-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** Recognition in the program runs on how many layers?
 
@@ -2024,7 +2126,8 @@ So, the whole module in one breath. Small weekly badges mark real work. Four pha
 
 **Explanation:** The point is the dossier and the credential. Selling the badges or attendance attracts the wrong people.
 
-#### Final exam pool (12)
+<a id="m6-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** What is the purpose of the two layer recognition system?
 
@@ -2156,27 +2259,39 @@ So, the whole module in one breath. Small weekly badges mark real work. Four pha
 
 **Answer:** B. Small weekly badges mark real work, four ranks mark real capability, and one defensible credential sits at the top
 
-**Explanation:** The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it. --- ## 18.
+**Explanation:** The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it.
+
 
 ---
 
-### Module 7: From Top Student to Coach
+<a id="m7"></a>
+## Module 7: From Top Student to Coach
 
-- **Slug:** `coach`
-- **Order:** 7
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m7-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 7 |
+| Slug | `coach` |
+| Title | From Top Student to Coach |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 6 is passed (sequential gating). |
 
 **Summary.** The path from top student to coach, and how delivery and coaching roles work inside the program.
 
-#### Lesson (rich content)
-
-The coach pathway is the most powerful part of your story and the easiest to ruin by overselling. Learn the line exactly: the path from top student to coach is real, and it is not a guarantee. You say both halves every single time, because one half without the other either undersells a genuine opportunity or sets someone up to feel cheated.
-
-#### What you will be able to do
+<a id="m7-obj"></a>
+### Learning objectives
 
 - State the coach pathway in its two honest halves: real, and not guaranteed.
 - Name the six stages in order and describe the bar at each one.
@@ -2185,13 +2300,29 @@ The coach pathway is the most powerful part of your story and the easiest to rui
 - Use the pathway to motivate ambitious professionals without ever promising a role.
 - See how recommending and co delivering with your own graduates compounds your practice.
 
-#### What you need to understand
+<a id="m7-lesson"></a>
+### Full lesson body (rich content)
 
-##### The honest framing, said in full
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+The coach pathway is the most powerful part of your story and the easiest to ruin by overselling. Learn the line exactly: the path from top student to coach is real, and it is not a guarantee. You say both halves every single time, because one half without the other either undersells a genuine opportunity or sets someone up to feel cheated.
+
+##### What you will be able to do
+
+- State the coach pathway in its two honest halves: real, and not guaranteed.
+- Name the six stages in order and describe the bar at each one.
+- Explain what earns Top Student consideration so a prospect understands how high the standard sits.
+- Describe the coach screening accurately, as serious work and not a formality.
+- Use the pathway to motivate ambitious professionals without ever promising a role.
+- See how recommending and co delivering with your own graduates compounds your practice.
+
+##### What you need to understand
+
+###### The honest framing, said in full
 
 Becoming a TenXPros coach is not automatic, and certification does not guarantee a coaching role. Top performing participants may be invited to apply for a domain specific coach pathway if their work, judgment, communication, ethics, and professionalism meet the standard. It is selective, it is earned, and that is exactly what makes it worth aiming for. If you describe it as a real but selective door, you give an ambitious professional something genuine to reach for. If you promise the role, you break the rule against promising outcomes.
 
-##### The six stages, each with its own bar
+###### The six stages, each with its own bar
 
 - **Stage one, Certified TenXPro:** the dossier met the review standard and the credential was awarded.
 - **Stage two, Top Student Recognition:** reserved for an exceptional dossier with standout professionalism and review discipline. Not everyone who certifies reaches this.
@@ -2202,25 +2333,19 @@ Becoming a TenXPros coach is not automatic, and certification does not guarantee
 
 The pathway rises from earning a credential, to being recognized, to being trained, to supporting, to leading. It is a ladder of demonstrated capability, not a title handed out.
 
-##### What earns Top Student consideration
+###### What earns Top Student consideration
 
 The bar is specific, and you can describe it so a prospect understands it. A top student shows excellent problem framing and strong professional judgment, clear boundaries and governance with real confidentiality discipline, a high quality evaluation rubric and test set, a workflow that is actually usable, an evidence based value case, and a realistic ninety day roadmap. They also communicate well, take coaching, and can explain their work to others, because a coach has to teach, not just perform. All of those together, not one or two, is what gets someone looked at.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 This is detection, not persuasion. The pathway only lands with people who already operate at a level where the screening is a real ambition rather than a fantasy. If you have to talk someone into believing they could coach in their field, they almost certainly are not ready for it. Your job is to describe the door accurately and let the ambitious ones walk toward it.
 
->
->
 > **Say this:** The coach pathway is real and it is selective. Certification does not guarantee a coaching role, but top performers may be invited to apply, complete a real screening, and earn their way up a six stage ladder. If you perform at the highest level, you could become the person who coaches others in your field.
->
 
->
->
 > **Do not say this:** Finish the program and you will become a coach, or, I can get you a coaching role. That promises an outcome you do not control, breaks the rule, and sets the person up to feel cheated.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -2230,19 +2355,19 @@ This is detection, not persuasion. The pathway only lands with people who alread
 | Is the screening just a formality? | No. It includes an ethics and confidentiality interview, a sample coaching review, a dossier audit, a communication assessment, a domain expertise check, the methodology exam, and a brand and boundary agreement. |
 | Why should I aim at this if it is not certain? | Because it is genuine. A real, selective door is worth more than a guaranteed title, and the work you do reaching for it strengthens your dossier either way. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The coach pathway
 
 The coach pathway view, showing the six stages from Certified TenXPro to Lead Domain Coach, with the bar described at each stage so a prospect can see exactly where recognition, training, supporting, and leading begin.
 
 > **Form preview:**
-> Form preview, placeholder
+> The coach screening checklist
 
 The coach screening checklist, listing the ethics and confidentiality interview, sample coaching review, dossier audit, communication assessment, domain expertise check, methodology exam, and brand and boundary agreement.
 
-#### Talking points
+##### Talking points
 
 - The pathway is a ladder of demonstrated capability, not a promotion handed out after the program.
 - For a senior doctor, engineer, or educator, the bigger motivation is leading and coaching others in their own field, and that is true, so you may say it.
@@ -2250,12 +2375,9 @@ The coach screening checklist, listing the ethics and confidentiality interview,
 - Recommending your own graduates and co delivering future cohorts with them is how you stop trading time for single referrals.
 - The best students you bring in can become co builders of your own practice.
 
->
->
 > **Mistakes to avoid:** promising or implying a coaching role, describing the pathway as automatic after the program, naming only the top stage and skipping how it is earned, or treating the screening as a rubber stamp. Each of these breaks trust the moment reality arrives.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can state both halves: the pathway is real, and it is not guaranteed.
 - I can name the six stages in order and the bar at each.
@@ -2264,15 +2386,16 @@ The coach screening checklist, listing the ethics and confidentiality interview,
 - I can motivate an ambitious professional without ever promising a role.
 - I can explain how co delivering with my own graduates compounds my practice.
 
-#### A real scenario
+##### A real scenario
 
 You are talking with a seasoned cardiologist who is already respected by her peers and curious about leading AI use in her department. She asks, point blank, whether finishing the program makes her a coach. You answer honestly: no, certification is the first stage, and a coaching role is selective and invited, earned through a real screening. Then you describe the ladder and what gets a dossier noticed. She leans in, not because you promised anything, but because you gave her a genuine target that respects how high she already aims.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Expect questions on the two halves of the honest framing, the correct order of the first three stages, what Lead Domain Coach involves, what the screening includes, and the single rule you may never break: promising a prospect they will become a coach.
 
-#### Lesson (plain prose and audio text)
+<a id="m7-plain"></a>
+### Lesson body (plain prose / audio text)
 
 This is one of the most powerful parts of your story, and also the one most easily ruined by overselling. So learn the line exactly. The pathway from top student to coach is real, and it is not a guarantee. Say both halves every single time.
 
@@ -2289,7 +2412,8 @@ Now why this matters for you as a partner, beyond being a nice story. When you s
 So hold the whole module in one careful breath. The coach pathway is a real, selective ladder from certified, to recognized, to trained, to supporting, to leading. You may describe it honestly and you may never promise it. Used right, it gives serious people a reason to aim high and gives you a way to grow a network instead of a list of one off deals.
 
 
-#### Exercises (6)
+<a id="m7-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** What are the two halves a partner must always say about the coach pathway?
 
@@ -2357,7 +2481,8 @@ So hold the whole module in one careful breath. The coach pathway is a real, sel
 
 **Explanation:** A partner can recommend graduates and co deliver with them, building a network. Promising roles, taking direct payment, and verbal territory claims are not allowed.
 
-#### Final exam pool (12)
+<a id="m7-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** A prospect asks if finishing the program guarantees a coaching role. What is the correct answer?
 
@@ -2489,27 +2614,39 @@ So hold the whole module in one careful breath. The coach pathway is a real, sel
 
 **Answer:** B. The coach pathway is a real, selective ladder you may describe honestly and never promise
 
-**Explanation:** The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway. --- ## 19.
+**Explanation:** The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway.
+
 
 ---
 
-### Module 8: Selling With Integrity
+<a id="m8"></a>
+## Module 8: Selling With Integrity
 
-- **Slug:** `selling`
-- **Order:** 8
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m8-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 8 |
+| Slug | `selling` |
+| Title | Selling With Integrity |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 7 is passed (sequential gating). |
 
 **Summary.** Selling with integrity: qualifying honestly, never overpromising, and matching the program only to people it fits.
 
-#### Lesson (rich content)
-
-Selling with integrity is not a softer way to sell. It is a sharper one. When you qualify honestly and turn away the people the program does not fit, the people you do bring in actually belong, and they remember who opened the door. Your job here is detection, not persuasion. If you have to convince someone the program is for them, it usually is not.
-
-#### What you will be able to do
+<a id="m8-obj"></a>
+### Learning objectives
 
 - Open a first conversation with the person and their real challenge, not a pitch.
 - Match a field story to the prospect so the program becomes real in their mind.
@@ -2518,39 +2655,49 @@ Selling with integrity is not a softer way to sell. It is a sharper one. When yo
 - Route the prospect to apply first and pay only after acceptance.
 - Run every sentence through the truth test before you say it.
 
-#### What you need to understand
+<a id="m8-lesson"></a>
+### Full lesson body (rich content)
 
-##### Start with the person, not the program
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+Selling with integrity is not a softer way to sell. It is a sharper one. When you qualify honestly and turn away the people the program does not fit, the people you do bring in actually belong, and they remember who opened the door. Your job here is detection, not persuasion. If you have to convince someone the program is for them, it usually is not.
+
+##### What you will be able to do
+
+- Open a first conversation with the person and their real challenge, not a pitch.
+- Match a field story to the prospect so the program becomes real in their mind.
+- Deliver a clean sixty to ninety second mini pitch with no hype.
+- Answer the standard objections honestly, in a way that is also persuasive.
+- Route the prospect to apply first and pay only after acceptance.
+- Run every sentence through the truth test before you say it.
+
+##### What you need to understand
+
+###### Start with the person, not the program
 
 Do not open by describing TenXPros. Open with one question: what is the biggest challenge you are facing right now around AI in your work. Then listen. Most professionals give one of three answers, and all three are perfect entry points: I do not know where to start, or, I have tried some tools but nothing feels systematic, or, I am worried about falling behind but I am not sure what to do. Each points straight at what the program addresses, so now you are responding to a real situation instead of reciting at someone.
 
-##### Match the example to the person
+###### Match the example to the person
 
 This is where the Field Journey Explorer earns its place. Talking to a doctor, walk them through the radiologist's twelve weeks. A lawyer, the legal counsel's. An engineer, the civil engineer's. A finance leader, marketer, educator, product manager, clinic operations manager, or consultant each has a field story that shows what the weeks produce and what they would walk away holding. The story makes the program real, and real beats impressive every time.
 
-##### The mini pitch, sixty to ninety seconds
+###### The mini pitch, sixty to ninety seconds
 
 Have it ready so you can say it in your sleep: TenXPros is a selective twelve week certification for experienced professionals who want to lead AI adoption in their field, not just use AI tools. You bring one real professional problem. The program gives you a structured method, Frame, Design, Prove, Foresee, to decide where AI belongs, design a responsible workflow, test value and risk, and assemble the work into a reviewed Living AI Solution Dossier. The credential is earned through reviewed evidence, not attendance. If your dossier meets the public standard, you earn a verifiable certified credential. That is the whole thing, said straight.
 
-##### Detection beats persuasion
+###### Detection beats persuasion
 
 The program multiplies a method onto expertise the person already has. Ten times zero is still zero, so the input has to be real. A professional with a real problem and the judgment to defend their work is someone you detect, not someone you talk into it. If you find yourself working hard to convince a prospect they belong, treat that effort as a signal that they probably do not.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 Every honest answer is also persuasive, because it respects the intelligence of the person asking. You never trade accuracy for a close. The structure of the program, apply first and pay only after acceptance, does your qualifying for you and takes the pressure out of the whole conversation.
 
->
->
 > **Say this:** What is the biggest challenge you are facing right now around AI in your work? Tell me where you are stuck, and I will tell you honestly whether this program is built for that, or whether it is not the right fit.
->
 
->
->
 > **Do not say this:** This will make you certified and ten times more valuable, trust me. That promises an outcome you do not control, replaces the reviewed standard with hype, and breaks the truth test on the first sentence.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -2561,19 +2708,23 @@ Every honest answer is also persuasive, because it respects the intelligence of 
 | Can a regulated professional join? | Yes, but they must protect confidential and regulated data and use redacted or fictionalized examples unless they have the rights and safeguards to use real data. |
 | What do I actually leave with? | Eight connected assets assembled into a Living AI Solution Dossier, a ninety day adoption roadmap, and, if the dossier meets the standard, a verifiable credential. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The Field Journey Explorer, where you pick the prospect's field and walk through that profession's twelve weeks, showing what each phase produces and what they hold at the end.
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application screen, the first quality gate, where the professional describes their expertise and the challenge they want to explore. Payment happens only after acceptance, never before.
 
-#### Talking points
+##### Talking points
 
 - Open with the person, listen first, and respond to their real situation.
 - Use a matched field story to make the program concrete, because real beats impressive.
@@ -2582,12 +2733,9 @@ The application screen, the first quality gate, where the professional describes
 - The acceptance step signals the program is serious and only admits people who are genuinely ready.
 - Graduates who earn a field specific credential remember who opened the door, and that builds your reputation for years.
 
->
->
 > **Mistakes to avoid:** opening by reciting the program, leading with price, promising certification, inflating a private certification into an accreditation or degree, pushing someone toward payment before acceptance, or selling to a poor fit just to close. Each one fails the truth test and costs you the long game.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can open with a question about the person's real AI challenge and then listen.
 - I can match a field story to the prospect in front of me.
@@ -2596,15 +2744,16 @@ The application screen, the first quality gate, where the professional describes
 - I can route the prospect to apply first and pay only after acceptance.
 - I can run every sentence through: is it true, can I back it up, does it avoid promising what I cannot control, does it route money and data correctly.
 
-#### A real scenario
+##### A real scenario
 
 You are sitting with a hospital finance leader who says she has tried a few AI tools but nothing feels systematic. You do not pitch. You ask what decision she is trying to make better, listen, then walk her through a finance field journey so she can see what twelve weeks would produce. She asks if it is accredited. You say no, it is a private professional certification whose credibility is the reviewed dossier and public criteria, and you watch her trust go up, not down, because you told her the truth. You point her to apply, and you mention that she pays nothing until she is accepted.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Expect questions on why you open with the person rather than the program, the three common opening answers, the honest replies to is this just another AI course, is it accredited, do I need to code, and will I definitely get certified, when payment happens, and the four part truth test every sentence must pass.
 
-#### Lesson (plain prose and audio text)
+<a id="m8-plain"></a>
+### Lesson body (plain prose / audio text)
 
 You know the mission, the rules, the product, the journey, the recognition, and the coach pathway. This module turns all of it into a real conversation that converts the right people and honestly turns away the wrong ones. Selling with integrity is not a softer way to sell. It is a sharper one, because the people you bring in actually belong, and they remember who opened the door.
 
@@ -2623,7 +2772,8 @@ Finally, think past the single deal. As your referrals complete the program and 
 One last reminder that ties the whole Academy together. Everything you say should pass the same test from the identity module. Is it true. Can you back it up. Does it avoid promising what you cannot control. Does it route money and data correctly. Selling with integrity is just that test, applied out loud, in front of a real person, every time.
 
 
-#### Exercises (6)
+<a id="m8-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** How should a partner open the first conversation?
 
@@ -2691,7 +2841,8 @@ One last reminder that ties the whole Academy together. Everything you say shoul
 
 **Explanation:** The long game is honest qualification and reputation built on rigor. Volume by any means, promises, and selling badges are not it.
 
-#### Final exam pool (12)
+<a id="m8-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** Why open with the person rather than the program?
 
@@ -2823,27 +2974,39 @@ One last reminder that ties the whole Academy together. Everything you say shoul
 
 **Answer:** B. A sharper way to sell, because the people brought in actually belong and remember who opened the door
 
-**Explanation:** Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling. --- ## 20.
+**Explanation:** Integrity is sharper, not softer, because it brings in people who belong and builds lasting trust. It is not weakness, avoidance, or price selling.
+
 
 ---
 
-### Module 9: Finding and Qualifying the Right Prospects
+<a id="m9"></a>
+## Module 9: Finding and Qualifying the Right Prospects
 
-- **Slug:** `prospecting`
-- **Order:** 9
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m9-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 9 |
+| Slug | `prospecting` |
+| Title | Finding and Qualifying the Right Prospects |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 8 is passed (sequential gating). |
 
 **Summary.** Finding and qualifying the right prospect, and recognizing who the program is not for.
 
-#### Lesson (rich content)
-
-Nothing you have learned earns anything until you are talking to the right people. Prospecting is where you find them and tell quickly whether someone belongs. Your job is detection, not persuasion. The program multiplies a method onto real expertise, and ten times zero is still zero, so a prospect with no real field to work from is not a hard sell, they are a poor fit you decline.
-
-#### What you will be able to do
+<a id="m9-obj"></a>
+### Learning objectives
 
 - Find prospects in your own trusted network first, where the right people usually are.
 - Tell a strong fit from a poor fit quickly and honestly.
@@ -2851,35 +3014,44 @@ Nothing you have learned earns anything until you are talking to the right peopl
 - Register an opportunity before substantive contact and pursue only after confirmation.
 - Recognize the red flags that mean slow down or walk away.
 
-#### What you need to understand
+<a id="m9-lesson"></a>
+### Full lesson body (rich content)
 
-##### Where the right prospects actually are
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+Nothing you have learned earns anything until you are talking to the right people. Prospecting is where you find them and tell quickly whether someone belongs. Your job is detection, not persuasion. The program multiplies a method onto real expertise, and ten times zero is still zero, so a prospect with no real field to work from is not a hard sell, they are a poor fit you decline.
+
+##### What you will be able to do
+
+- Find prospects in your own trusted network first, where the right people usually are.
+- Tell a strong fit from a poor fit quickly and honestly.
+- Build a short, specific, real target list with a route in for each entry.
+- Register an opportunity before substantive contact and pursue only after confirmation.
+- Recognize the red flags that mean slow down or walk away.
+
+##### What you need to understand
+
+###### Where the right prospects actually are
 
 They are almost always closer than you think. Your strongest source is your own existing network: former colleagues, current clients, people you have worked with or taught or advised, the professionals who already trust your judgment. A warm introduction from someone who respects you outperforms a hundred cold messages, every time. Your second source is referrals: a happy participant, a peer who knows what you do, or a contact who cannot join but knows three people who should. Your third source is the professional circles you already belong to: industry groups, alumni networks, communities of practice, and events where serious people in a field gather. What you never do is buy a list, scrape a list, or blast strangers, because that is prohibited, it damages the brand, and it brings you exactly the wrong people.
 
-##### Who actually fits, and who does not
+###### Who actually fits, and who does not
 
 The program is selective and your job is to match, not to push. A strong fit is an experienced professional with real depth in their field, who already uses AI in some form and feels the gap between using it and leading it, who has one real problem worth solving, who can commit focused hours over twelve weeks, and who wants reviewed, defensible work they can show. A poor fit is an absolute beginner with no domain to work from, someone hunting a quick certificate with no interest in the work, someone who cannot give the time, or someone who wants a guaranteed job or outcome you cannot promise. When you see a poor fit, the honest move is to say so kindly and not enroll them. That protects the prospect, the standard, and your own name.
 
-##### The list, and registering before you pursue
+###### The list, and registering before you pursue
 
 A good list is short, specific, and real. For each entry you should be able to name the actual person or organization, why they fit, and your concrete route in, meaning a warm contact, a shared circle, or a real reason you are positioned to reach them. Three real, well chosen prospects beat thirty names you cannot reach. And the discipline from the rules holds: you register an opportunity on the Partner Panel before substantive contact, and it is protected only when the company confirms it. So you find a real fit, you register it, you get confirmation, then you pursue.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 Honest prospecting is qualification, not pressure. The single most useful test is the one sentence screen: does this person have a real problem in their own field that they could spend twelve weeks proving an AI approach against, and does the result have to pass the judgment of someone who matters to them. If the answer is yes to both, they are a Pro and worth your time. If you find yourself working to convince someone that they fit, that effort is itself the answer.
 
->
->
 > **Say this:** Who in your field already has a real problem worth twelve weeks of work and would value reviewed, defensible evidence? If that is you, let us talk. If it is not quite you yet, I would rather tell you straight than enroll you into something that is not the right fit.
->
 
->
->
 > **Do not say this:** I can guarantee you will pass and probably get hired after, just send me a deposit to hold your spot. That promises an outcome you do not control and routes money off the official channel, which are both hard rule breaks.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -2889,19 +3061,23 @@ Honest prospecting is qualification, not pressure. The single most useful test i
 | I will send over our confidential data so you can set things up. | Please do not. That data needs the right rights and safeguards before it goes anywhere near the program. We stop here and protect everyone. |
 | Can you guarantee I will get a job out of this? | No. The program produces reviewed, defensible work and a credential if the standard is met. It does not promise employment, and I will not either. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The Partner Panel opportunity registration, where you record a prospect before substantive contact. The opportunity is protected only once the company confirms it, so you register first, then pursue.
 
 > **Form preview:**
-> Form preview, placeholder
+> Your target list
+
+<img src="/academy/screens/target-list.png" alt="Your target list" loading="lazy" />
 
 A simple target list view, one row per prospect, showing the named person or organization, why they fit, and your concrete route in. Short and real beats long and unreachable.
 
-#### Talking points
+##### Talking points
 
 - The right prospects are usually in your trusted network, not on a purchased list.
 - A warm introduction from someone who respects you beats a hundred cold messages.
@@ -2910,12 +3086,9 @@ A simple target list view, one row per prospect, showing the named person or org
 - Three real, reachable prospects beat thirty names you cannot reach.
 - Register on the Partner Panel before substantive contact, and pursue only after confirmation.
 
->
->
 > **Mistakes to avoid:** buying or scraping a list, blasting strangers, padding a list with unreachable names, enrolling a poor fit to hit a number, promising certification or income, taking off channel payment, or accepting confidential data without rights and safeguards. Each one breaks a rule or wastes the time you should spend on real fits.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I look first in my own network and warm circles, never a bought list.
 - I can tell a strong fit from a poor fit using the one sentence screen.
@@ -2924,15 +3097,16 @@ A simple target list view, one row per prospect, showing the named person or org
 - I register before substantive contact and pursue only after confirmation.
 - I treat promise demands, off channel payment, and confidential data as red flags.
 
-#### A real scenario
+##### A real scenario
 
 A former colleague, now a senior civil engineer running a mid size firm, mentions over coffee that leadership keeps asking what their AI plan is. That is a real problem in a real field, with judgment that matters to people who matter to him. You note him on your target list with the reason he fits and your route in, which is the relationship you already have. You register the opportunity on the Partner Panel before you pursue it. When his junior colleague later asks you to guarantee a certificate for a quick resume boost, you recognize the poor fit and decline kindly, which keeps your name clean with both of them.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 Expect questions on why warm introductions beat cold outreach, why bought and scraped lists are prohibited, what makes a strong versus poor fit, what a good target list entry contains, the register before you pursue discipline, and the red flags of promised outcomes, off channel payment, and confidential data.
 
-#### Lesson (plain prose and audio text)
+<a id="m9-plain"></a>
+### Lesson body (plain prose / audio text)
 
 You now know the program, the rules, and how to talk about it. None of that earns you anything until you are talking to the right people. This module is about where those people come from and how to tell quickly whether someone belongs, so you spend your time on prospects who can actually close and protect the standard by turning away the ones who do not fit.
 
@@ -2947,7 +3121,8 @@ Watch for the red flags that tell you to slow down or step back. A prospect who 
 Hold the whole module in one line. The right prospects are usually in your own trusted network, a strong fit is an experienced professional with a real problem and real time, you qualify honestly and turn away poor fits, and you register before you pursue. Do that and every conversation you have is with someone who could actually belong.
 
 
-#### Exercises (6)
+<a id="m9-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** What is the strongest source of good prospects?
 
@@ -3015,7 +3190,8 @@ Hold the whole module in one line. The right prospects are usually in your own t
 
 **Explanation:** You register before substantive contact, and protection comes only with Panel confirmation. Registering after closing, at random, or only under threat all break the discipline.
 
-#### Final exam pool (12)
+<a id="m9-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** Why does a warm introduction outperform cold outreach?
 
@@ -3147,27 +3323,39 @@ Hold the whole module in one line. The right prospects are usually in your own t
 
 **Answer:** B. Find real fits in your trusted network, qualify honestly, turn away poor fits, and register before you pursue
 
-**Explanation:** The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite. --- ## 21.
+**Explanation:** The heart of it is honest qualification from your network and registration before pursuit. Volume by any means, bought lists, and promises are the opposite.
+
 
 ---
 
-### Module 10: Outreach and the Conversation in Practice
+<a id="m10"></a>
+## Module 10: Outreach and the Conversation in Practice
 
-- **Slug:** `conversation`
-- **Order:** 10
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m10-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 10 |
+| Slug | `conversation` |
+| Title | Outreach and the Conversation in Practice |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 9 is passed (sequential gating). |
 
 **Summary.** Outreach and the real conversation: approved messaging, no spam, and moving from interest to a registered opportunity.
 
-#### Lesson (rich content)
-
-You already have a list of real, qualified prospects, each one registered and confirmed. This module is how you actually reach them and run the conversation in practice, without breaking a rule and without sounding like a script. The goal is detection, not persuasion: you are finding the professional who already has a real problem worth twelve weeks, not talking anyone into being someone they are not.
-
-#### What you will be able to do
+<a id="m10-obj"></a>
+### Learning objectives
 
 - Write a first message that is personal, honest, specific, and short, and that passes the truth test every time.
 - Open the conversation with the prospect's challenge instead of your program, then listen.
@@ -3175,9 +3363,24 @@ You already have a list of real, qualified prospects, each one registered and co
 - Handle the price question inside the rules, by pointing to approved materials and the application.
 - Guide a qualified prospect to apply, follow up with value, and hand off cleanly to the company.
 
-#### What you need to understand
+<a id="m10-lesson"></a>
+### Full lesson body (rich content)
 
-##### The four qualities of good outreach
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+You already have a list of real, qualified prospects, each one registered and confirmed. This module is how you actually reach them and run the conversation in practice, without breaking a rule and without sounding like a script. The goal is detection, not persuasion: you are finding the professional who already has a real problem worth twelve weeks, not talking anyone into being someone they are not.
+
+##### What you will be able to do
+
+- Write a first message that is personal, honest, specific, and short, and that passes the truth test every time.
+- Open the conversation with the prospect's challenge instead of your program, then listen.
+- Match the field story to the person in front of you, so they see their own profession walking through the twelve weeks.
+- Handle the price question inside the rules, by pointing to approved materials and the application.
+- Guide a qualified prospect to apply, follow up with value, and hand off cleanly to the company.
+
+##### What you need to understand
+
+###### The four qualities of good outreach
 
 Every message you send, warm or through a mutual contact, lives or dies on four qualities. They are not style preferences, they are the difference between outreach and spam.
 
@@ -3188,31 +3391,25 @@ Every message you send, warm or through a mutual contact, lives or dies on four 
 
 On top of those four, every message must still use approved messaging and pass the truth test from the identity module: is it true, can you back it up, does it avoid promising what you cannot control, does it route money and data correctly.
 
-##### Warm, introduced, and the absence of cold
+###### Warm, introduced, and the absence of cold
 
 - A **warm** message, where you already have a relationship, can be direct: remind them who you are, say briefly why you thought of them, and suggest a short conversation.
 - A message **through a mutual contact** leads with that person's name and the reason for the introduction, because their trust is being lent to you.
 - There is no genuinely **cold** outreach here. Strangers from bought or scraped lists are prohibited. The closest you get is reaching someone in a shared circle, and even then you lead with the real connection, not a pitch.
 
-##### Running the conversation, not pitching it
+###### Running the conversation, not pitching it
 
 When you get the conversation, do not pitch. Open with their challenge, not your program: ask what the biggest challenge they are facing around AI in their work is, and then listen. Most people hand you one of the three classic openings, and each one points straight at the program. Then match the field story to who they are, using the explorer, so they recognize themselves. Place your mini pitch where it fits naturally, sixty to ninety seconds, no hype, and lead with the boundary as much as the benefit, because that is what a serious professional respects.
 
-#### How to sell it honestly
+##### How to sell it honestly
 
 This program multiplies an AI method onto expertise the person already has. Ten times zero is still zero, so if there is nothing real to multiply, the program is not for them, and your job in the conversation is to find that out, not to paper over it. That is why you open with their challenge and listen: a real challenge in their own field is the signal that they have something multipliable. If you find yourself working hard to convince someone that they belong, that is the signal that they probably do not, and an honest partner names it kindly and moves on.
 
->
->
 > **Say this:** What is the biggest challenge you are facing around AI in your work right now? I thought of you because of the work you do in your field, and I want to understand the problem before I say anything about how the program might fit.
->
 
->
->
 > **Do not say this:** This program will make you an AI leader and get you results. The price is a special number just for you, and you can pay today to lock it in.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -3222,19 +3419,23 @@ This program multiplies an AI method onto expertise the person already has. Ten 
 | Why do I have to apply instead of just paying? | The application is the first quality gate, where you describe your expertise and the problem you want to work on. Acceptance comes before any payment, which actually removes pressure. |
 | Is this for beginners learning AI? | No. The real prerequisite is professional judgment and genuine domain expertise. An absolute beginner with no field to work from is not the fit, and it is honest to say so. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application screen the prospect fills in: a description of their expertise, the real problem they want to work on for twelve weeks, and their field. This is the first quality gate, and acceptance happens here before any payment.
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 Your opportunity registration in the Partner Panel, where you record the prospect and your route in, so the conversation you started is logged and protected.
 
-#### Talking points
+##### Talking points
 
 - Lead with the boundary as much as the benefit: a serious professional respects the limits you name.
 - Payment only after acceptance, so no one is ever sold into paying before they are accepted.
@@ -3242,12 +3443,9 @@ Your opportunity registration in the Partner Panel, where you record the prospec
 - You bring the expertise, the program brings the method: that is the whole multiplier idea, said plainly.
 - Your role ends at a clean handoff: the company handles acceptance, payment, and delivery.
 
->
->
 > **Mistakes to avoid:** quoting a price outside approved materials, offering a discount, promising a result, blasting a generic message to a list, chasing a prospect who is clearly not a fit, or following up by repeating the same ask with more pressure. Each one breaks a rule or wastes the time the right prospect deserves.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can write a first message that is personal, honest, specific, and short.
 - I can lead a mutual contact introduction with their name and the reason for it.
@@ -3256,15 +3454,16 @@ Your opportunity registration in the Partner Panel, where you record the prospec
 - I can guide a qualified prospect to apply, and follow up by adding value.
 - I can thank a poor fit and move on, and hand off cleanly to the company.
 
-#### A real scenario
+##### A real scenario
 
 Dr. Lena Okafor is a compliance lead at a mid-size insurer, introduced to you by a former colleague. You lead with that colleague's name and the reason for the introduction, then ask what her biggest challenge around AI is. She says leadership keeps asking what the AI plan is and she has nothing she can defend. That is a real, multipliable problem in her own field. You match the field story, give a sixty second mini pitch that leads with governance and limits, and when she asks the price you point her to the approved information and the application, noting payment only follows acceptance. You guide her to apply, and you hand off cleanly.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 The exam checks that you know the four qualities of outreach, how to open the conversation with the prospect's challenge, the correct way to handle a price question without approved materials, what a value adding follow up looks like, and where your role ends at handoff. Answer from this material and you will pass.
 
-#### Lesson (plain prose and audio text)
+<a id="m10-plain"></a>
+### Lesson body (plain prose / audio text)
 
 You have a list of real, qualified prospects, each one registered and confirmed. This module is how you actually reach them and run the conversation, in practice, without breaking a rule and without sounding like a script.
 
@@ -3283,7 +3482,8 @@ Finally, know the handoff. Your job is to bring the right professional to the do
 One line for the module. Reach real people personally and honestly, open the conversation with their challenge and match their field, handle price by pointing to approved materials and the application, guide them to apply, follow up with value, and hand off cleanly.
 
 
-#### Exercises (6)
+<a id="m10-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** What are the four qualities of good outreach?
 
@@ -3351,7 +3551,8 @@ One line for the module. Reach real people personally and honestly, open the con
 
 **Explanation:** The company handles acceptance, payment, and delivery, while you bring and register the opportunity. Accepting payment, invoicing, and pricing are not the partner's role.
 
-#### Final exam pool (12)
+<a id="m10-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** Why must outreach be personal rather than a blast?
 
@@ -3483,27 +3684,39 @@ One line for the module. Reach real people personally and honestly, open the con
 
 **Answer:** B. Reach people personally, open with their challenge, handle price by pointing to approved materials and the application, follow up with value, and hand off cleanly
 
-**Explanation:** Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior. --- ## 22.
+**Explanation:** Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior.
+
 
 ---
 
-### Module 11: Operating the System and Your First 90 Days
+<a id="m11"></a>
+## Module 11: Operating the System and Your First 90 Days
 
-- **Slug:** `operations`
-- **Order:** 11
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m11-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 11 |
+| Slug | `operations` |
+| Title | Operating the System and Your First 90 Days |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 10 is passed (sequential gating). |
 
 **Summary.** Operating the system day to day and running your first weeks: the Panel, meaningful updates, and disciplined follow through.
 
-#### Lesson (rich content)
-
-Knowing the program and reaching prospects is not enough if you cannot operate the system day to day. This module is the practical mechanics: how you run your work through the Partner Panel, what your first ninety days actually look like, how you keep accounts alive, and how to get help when you need it. A clean, active pipeline is itself a form of honesty: it shows the company exactly what you are really working.
-
-#### What you will be able to do
+<a id="m11-obj"></a>
+### Learning objectives
 
 - Run your whole operation through the Partner Panel, the single source of truth.
 - Register an opportunity correctly, with every real field filled in, before substantive contact.
@@ -3511,9 +3724,24 @@ Knowing the program and reaching prospects is not enough if you cannot operate t
 - Follow the first ninety days as a sequence, from the Activation Gate to the day ninety review.
 - Get help the right way, and know how a dispute over the same account is decided.
 
-#### What you need to understand
+<a id="m11-lesson"></a>
+### Full lesson body (rich content)
 
-##### The Partner Panel in daily practice
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+Knowing the program and reaching prospects is not enough if you cannot operate the system day to day. This module is the practical mechanics: how you run your work through the Partner Panel, what your first ninety days actually look like, how you keep accounts alive, and how to get help when you need it. A clean, active pipeline is itself a form of honesty: it shows the company exactly what you are really working.
+
+##### What you will be able to do
+
+- Run your whole operation through the Partner Panel, the single source of truth.
+- Register an opportunity correctly, with every real field filled in, before substantive contact.
+- Keep an account protected by logging meaningful updates, not by holding it quietly.
+- Follow the first ninety days as a sequence, from the Activation Gate to the day ninety review.
+- Get help the right way, and know how a dispute over the same account is decided.
+
+##### What you need to understand
+
+###### The Partner Panel in daily practice
 
 The Panel is where your operation lives. In practice you use it for a handful of things:
 
@@ -3524,7 +3752,7 @@ The Panel is where your operation lives. In practice you use it for a handful of
 
 Treat the Panel as your operating discipline, not a chore. An account with no updates is an account losing its protection.
 
-##### The first ninety days, as a sequence
+###### The first ninety days, as a sequence
 
 - **Before any outreach:** complete the Activation Gate and wait for confirmation.
 - **First two weeks:** build and register at least three realistic target accounts or channels.
@@ -3534,25 +3762,19 @@ Treat the Panel as your operating discipline, not a chore. An account with no up
 
 None of this is busywork. It is the rhythm that turns a new partner into a producing one, and it is exactly what the company looks at.
 
-##### Keeping accounts alive on purpose
+###### Keeping accounts alive on purpose
 
 Protection is neither permanent nor automatic. It rewards real activity, so every account you hold should show movement on the Panel. If you are holding an account you are not actually working, you are blocking it from someone who would, and you will lose it anyway when the protection lapses. Hold what you are truly pursuing, and let go of what you are not.
 
-#### How to use it correctly
+##### How to use it correctly
 
 The same instinct that makes you a good partner in a conversation, detection rather than persuasion, makes you a good operator here. You register the accounts where there is a real, multipliable opportunity, and you let go of the ones where there is not. A pipeline full of accounts you are not working is the operational version of trying to convince someone they are a Pro when they are not: it looks like activity and produces nothing. Keep it honest and the Panel will reflect work you can defend.
 
->
->
 > **Say this (to yourself, before acting):** I am unsure whether this is allowed, so I will treat the doubt as a no and confirm on the Panel or with my partner contact before I do anything.
->
 
->
->
 > **Do not say this:** I will just do it and apologize later, or I will guess based on what feels right, or I will hold this account quietly even though I am not working it.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Question or doubt | How to answer it |
 | --- | --- |
@@ -3562,24 +3784,30 @@ The same instinct that makes you a good partner in a conversation, detection rat
 | I am not sure a claim in my message is allowed. | Treat the doubt as a no and confirm before acting. Ask your partner manager or designated contact rather than sending it to see. |
 | Does anything carry over when the year changes? | Yes. Confidentiality, non circumvention, non solicitation, and clawback on commission already paid continue regardless of the year change. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The opportunity registration form: the entity or person, the country, the business unit, the contact, the offering, the estimated seats and value, your role, and your route in. You complete this before substantive contact.
 
 > **Form preview:**
-> Form preview, placeholder
+> The account update view
+
+<img src="/academy/screens/accounts.png" alt="The account update view" loading="lazy" />
 
 The account update view, where you log a meeting, a documented next step, a customer response, a proposal path, or conversion evidence to keep the account protected.
 
 > **Form preview:**
-> Form preview, placeholder
+> Commission statements
+
+<img src="/academy/screens/commission-statements.png" alt="Commission statements" loading="lazy" />
 
 The commission statements view, where you check what you are owed and raise a query within thirty days if something looks wrong.
 
-#### Talking points
+##### Talking points
 
 - The Panel is the single source of truth: registration, target list, updates, and statements all live there.
 - Meaningful updates are the discipline that keeps an account protected.
@@ -3587,12 +3815,9 @@ The commission statements view, where you check what you are owed and raise a qu
 - First confirmed registration decides any dispute, resolved on the Panel.
 - Survival obligations continue across the year change, even as terms renew through the site.
 
->
->
 > **Mistakes to avoid:** holding accounts you are not working, treating Panel updates as an optional chore, guessing in silence when you are unsure, improvising an answer about a deal or rule, missing the thirty day window to query a statement, and ignoring the yearly renewal so your operating terms lapse.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can register an opportunity with every real field before substantive contact.
 - I can keep an account protected by logging a meaningful update.
@@ -3601,15 +3826,16 @@ The commission statements view, where you check what you are owed and raise a qu
 - I can resolve a doubt by treating it as a no and asking before acting.
 - I can name the survival obligations that continue across the year change.
 
-#### A real scenario
+##### A real scenario
 
 Marco is a new partner in his first month. He completes the Activation Gate and waits for confirmation, then registers three realistic target accounts in his first two weeks, filling in every field. By day thirty he has one confirmed qualified lead with a logged meeting on the Panel. He is tempted to register two more accounts he is not really pursuing, to look busy, but he holds only what he is working, because he knows inactive accounts lapse and block other partners. When a question comes up about a commission statement, he raises a query within thirty days rather than guessing. At day ninety, his clean, active pipeline is exactly what the review wants to see.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 The exam checks that you know what the Panel is used for, why updates keep an account protected, the day thirty and day sixty targets and the day ninety review outcomes, how a dispute over the same account is decided, and which survival obligations continue after the year changes. Answer from this material and you will pass.
 
-#### Lesson (plain prose and audio text)
+<a id="m11-plain"></a>
+### Lesson body (plain prose / audio text)
 
 Knowing the program and reaching prospects is not enough if you cannot operate the system day to day. This module is the practical mechanics: how you run your work through the Partner Panel, what your first ninety days actually look like, how you keep accounts alive, and how to get help when you need it.
 
@@ -3626,7 +3852,8 @@ Stay aware of the calendar. The terms and commission structure are valid for the
 One line for the module. Run everything through the Panel with real updates, follow the ninety day rhythm, keep only the accounts you are truly working, ask for help early, and stay aware of the yearly renewal.
 
 
-#### Exercises (6)
+<a id="m11-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** In practice, what keeps a registered account protected?
 
@@ -3694,7 +3921,8 @@ One line for the module. Run everything through the Panel with real updates, fol
 
 **Explanation:** Watch for and accept the new year's terms to keep operating. Assuming no change, stopping permanently, or ignoring renewal are all wrong.
 
-#### Final exam pool (12)
+<a id="m11-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** What is the Partner Panel used for in day to day operation?
 
@@ -3826,27 +4054,39 @@ One line for the module. Run everything through the Panel with real updates, fol
 
 **Answer:** B. Run everything through the Panel with real updates, follow the ninety day rhythm, keep only what you work, ask for help early, and watch the yearly renewal
 
-**Explanation:** It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid. --- ## 23.
+**Explanation:** It comes down to Panel discipline, the ninety day rhythm, an active pipeline, asking early, and renewal awareness. The others describe exactly what to avoid.
+
 
 ---
 
-### Module 12: How the Twelve Weeks Work, in Full
+<a id="m12"></a>
+## Module 12: How the Twelve Weeks Work, in Full
 
-- **Slug:** `mechanics`
-- **Order:** 12
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m12-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 12 |
+| Slug | `mechanics` |
+| Title | How the Twelve Weeks Work, in Full |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 11 is passed (sequential gating). |
 
 **Summary.** How the twelve weeks actually work, week by week, so you can set accurate expectations.
 
-#### Lesson (rich content)
-
-A serious professional will ask practical questions about the twelve weeks, and a vague answer costs you the sale while a made up one costs you more when it turns out to be wrong. This module gives you the full mechanics: the fixed structure you state with confidence, and the operational details you take from the current official source rather than inventing. That discipline is what keeps every promise you make true.
-
-#### What you will be able to do
+<a id="m12-obj"></a>
+### Learning objectives
 
 - Explain the fixed twelve week structure, the four phases, the eight assets, and the dossier, without checking anything.
 - Describe what the participant produces at each of the four gates.
@@ -3854,9 +4094,24 @@ A serious professional will ask practical questions about the twelve weeks, and 
 - Recognize which details are operational, and take those from the current official source.
 - Say honestly when the program is not the right fit, for example for a true beginner with no field.
 
-#### What you need to understand
+<a id="m12-lesson"></a>
+### Full lesson body (rich content)
 
-##### The shape that never changes
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+A serious professional will ask practical questions about the twelve weeks, and a vague answer costs you the sale while a made up one costs you more when it turns out to be wrong. This module gives you the full mechanics: the fixed structure you state with confidence, and the operational details you take from the current official source rather than inventing. That discipline is what keeps every promise you make true.
+
+##### What you will be able to do
+
+- Explain the fixed twelve week structure, the four phases, the eight assets, and the dossier, without checking anything.
+- Describe what the participant produces at each of the four gates.
+- Name the three review outcomes and what each one means.
+- Recognize which details are operational, and take those from the current official source.
+- Say honestly when the program is not the right fit, for example for a true beginner with no field.
+
+##### What you need to understand
+
+###### The shape that never changes
 
 The program runs twelve weeks, in four phases, and this backbone you can always explain with full confidence:
 
@@ -3867,7 +4122,7 @@ The program runs twelve weeks, in four phases, and this backbone you can always 
 
 Across these phases the participant builds eight connected assets and assembles them into one reviewed Living AI Solution Dossier with twelve sections. There is no week that is just watching: every week has a defined focus, a piece of work to create, and a milestone badge that marks it done, and at the end of each phase the participant earns the phase rank.
 
-##### The four gates, as worked examples
+###### The four gates, as worked examples
 
 Think of the twelve weeks as four gates, because that is how the work stacks. Each gate is real work finished, not a box ticked. Here is exactly what is produced by the end of each one, drawn straight from the program structure.
 
@@ -3878,25 +4133,19 @@ Think of the twelve weeks as four gates, because that is how the work stacks. Ea
 | Prove (weeks nine and ten) | An honestly run evaluation, the AI Value and Economics Case | Adoption and proof sections |
 | Foresee (weeks eleven and twelve) | Final Portfolio, ninety day Roadmap, foresight plan | Complete dossier submitted for review |
 
-##### Review, outcomes, and what the participant carries
+###### Review, outcomes, and what the participant carries
 
 When the dossier is submitted at the end of Foresee, it is reviewed against the eight public criteria, and the participant receives one of three outcomes: **Certified**, **Strong Draft**, or **Completed**. A Strong Draft returns specific revisions before certification, so it is not a failure, it is a path to the credential. Once earned, the credential is verifiable and field specific: verification shows the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier. During the program the participant accumulates weekly badges and phase ranks, and after it, if certified, they hold a field specific credential and a living dossier they can keep updating as their work evolves.
 
-#### How to use it correctly
+##### How to use it correctly
 
 The structure multiplies a method onto expertise the participant already brings. Ten times zero is still zero, so the program is built for experienced professionals with a real problem and a real field, and an absolute beginner with no field to work from is not the fit. That is a detection question, not a persuasion one: the real prerequisite is professional judgment and genuine domain expertise, not coding. When you describe the mechanics, separate the fixed structure, which you state with confidence, from the operational specifics like format, hours, support model, deadlines, tools, and review time, which you take from the current official details. When you do not know a current operational answer, you say you will confirm it, and you do.
 
->
->
 > **Say this:** The structure is fixed: four phases over twelve weeks, eight assets built into one reviewed dossier, with three outcomes at the end. For the exact hours per week and the support model I will give you the current official figures, and if I am not certain of one I will confirm it and come back to you.
->
 
->
->
 > **Do not say this:** It is probably around a few hours a week and you get unlimited one to one coaching. (You may not invent an operational number or promise support the program has not stated.)
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -3906,19 +4155,23 @@ The structure multiplies a method onto expertise the participant already brings.
 | Is a Strong Draft a failure? | No. It is a near miss with specific revisions returned, on the path to the credential. |
 | I have no real field yet, can I still join? | The program needs genuine domain expertise and a real problem to work on. Without that there is nothing to multiply, so it is not the right fit, and it is honest to say so. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The dossier submission screen
+
+<img src="/academy/screens/dossier-submission.png" alt="The dossier submission screen" loading="lazy" />
 
 The dossier submission screen at the end of Foresee, where the participant submits the complete Living AI Solution Dossier with its twelve sections for review against the eight public criteria.
 
 > **Form preview:**
-> Form preview, placeholder
+> Public credential verification
+
+<img src="/academy/screens/verification.png" alt="Public credential verification" loading="lazy" />
 
 The public verification view, showing the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.
 
-#### Talking points
+##### Talking points
 
 - Twelve weeks, four phases: Frame, Design, Prove, Foresee. Fixed, and stateable to anyone.
 - Eight connected assets assembled into one reviewed dossier with twelve sections.
@@ -3926,12 +4179,9 @@ The public verification view, showing the recipient, the status, the issue date,
 - Three outcomes: Certified, Strong Draft, Completed. Strong Draft is a path, not a failure.
 - Fixed structure you state with confidence, operational details you quote from the current official source.
 
->
->
 > **Mistakes to avoid:** estimating an operational number like the weekly hours, inventing a support model, promising flexibility that is not offered, describing a Strong Draft as a failure, telling a true beginner with no field that the program is for them, or filling a silence with a guess instead of saying you will confirm.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can name the four phases, the weeks they cover, and the question each one answers.
 - I can list what the participant produces at each of the four gates.
@@ -3940,15 +4190,16 @@ The public verification view, showing the recipient, the status, the issue date,
 - I can tell a true beginner honestly that the program is not the right fit.
 - I can say I will confirm an operational figure, and then do it, rather than guessing.
 
-#### A real scenario
+##### A real scenario
 
 Priya is a senior specialist in finance, weighing the program. She asks what she will actually have at the end. You explain the fixed structure with full confidence: by the end of Frame she has the Personal AI Strategy Brief, the AI Use Case Portfolio, and the first dossier sections; by Design, the decision kit, the knowledge pack, the rubric and test set, and a working system; by Prove, an honestly run evaluation and the Value and Economics Case; by Foresee, the Final Portfolio, the ninety day Roadmap, and the submitted dossier. When she asks the exact weekly hours, you give the current official figure, and where you are not certain, you tell her you will confirm it and you do.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 The exam checks that you can state the fixed four phase structure and what is produced at each gate, name the three outcomes and explain a Strong Draft, identify which details are operational and must come from the current official source, and give the honest answer to a beginner with no field. Answer from this material and you will pass.
 
-#### Lesson (plain prose and audio text)
+<a id="m12-plain"></a>
+### Lesson body (plain prose / audio text)
 
 A partner who sells this program has to answer the practical questions a serious professional will ask about the twelve weeks, clearly and without guessing. A vague answer here costs you the sale and your credibility, and a made up answer costs you more when it turns out to be wrong. So this module gives you the full mechanics: what the structure is, what happens when, what the participant produces, how they are supported, and how it ends. Where a specific operational detail depends on the current program setup, you use the official current answer, and you never invent one.
 
@@ -3975,7 +4226,8 @@ Finally, the discipline that protects you through all of this. The structure, th
 One line for the module. Know the fixed twelve week structure cold and explain it with full confidence, and for every operational detail use the current official answer rather than guessing, so a prospect never hears a vague or invented response.
 
 
-#### Exercises (6)
+<a id="m12-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** Which part of the twelve weeks is fixed and can be stated with full confidence?
 
@@ -4043,7 +4295,8 @@ One line for the module. Know the fixed twelve week structure cold and explain i
 
 **Explanation:** The support model is an operational detail that comes from current official details. The number of phases, the outcomes, and the assets are fixed structure.
 
-#### Final exam pool (12)
+<a id="m12-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** A partner can always explain which of the following without checking anything?
 
@@ -4175,27 +4428,39 @@ One line for the module. Know the fixed twelve week structure cold and explain i
 
 **Answer:** B. Explain the fixed twelve week structure with confidence and use the current official answer for every operational detail rather than guessing
 
-**Explanation:** Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust. --- ## 24.
+**Explanation:** Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust.
+
 
 ---
 
-### Module 13: Selling to Organizations and to Individuals
+<a id="m13"></a>
+## Module 13: Selling to Organizations and to Individuals
 
-- **Slug:** `motions`
-- **Order:** 13
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m13-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 13 |
+| Slug | `motions` |
+| Title | Selling to Organizations and to Individuals |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 12 is passed (sequential gating). |
 
 **Summary.** Selling to organizations and to individuals: the two motions, the unit of sale, and how each is handled.
 
-#### Lesson (rich content)
-
-The same twelve week certification is sold two very different ways, and a partner who blurs them loses both. Selling to one professional who enrolls themselves is the B2C Charter. Selling seats to an organization that wants to develop its people is the B2B Engagement. The product does not change. The buyer, the motivation, the conversation, and the path to a decision all do. This module puts the two motions side by side so you can run whichever one the situation calls for.
-
-#### What you will be able to do
+<a id="m13-obj"></a>
+### Learning objectives
 
 - Tell, within the first minutes of a conversation, whether you are in a B2C Charter or a B2B Engagement.
 - Run the individual sale on personal relevance and trust, and guide the prospect to apply.
@@ -4204,39 +4469,49 @@ The same twelve week certification is sold two very different ways, and a partne
 - Run land and expand with a pilot cohort, register the opportunity at its real scope, and respect the scope rule.
 - Spot the moment a strong individual prospect is actually the door to a whole team, and shift without losing their trust.
 
-#### What you need to understand
+<a id="m13-lesson"></a>
+### Full lesson body (rich content)
 
-##### The B2C Charter: buyer and participant are the same person
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+The same twelve week certification is sold two very different ways, and a partner who blurs them loses both. Selling to one professional who enrolls themselves is the B2C Charter. Selling seats to an organization that wants to develop its people is the B2B Engagement. The product does not change. The buyer, the motivation, the conversation, and the path to a decision all do. This module puts the two motions side by side so you can run whichever one the situation calls for.
+
+##### What you will be able to do
+
+- Tell, within the first minutes of a conversation, whether you are in a B2C Charter or a B2B Engagement.
+- Run the individual sale on personal relevance and trust, and guide the prospect to apply.
+- Frame the organizational sale as a business case in the leader's own terms, never as a personal credential.
+- Count the unit of sale correctly: a seat is one enrolled professional, so a team deal is a number of seats.
+- Run land and expand with a pilot cohort, register the opportunity at its real scope, and respect the scope rule.
+- Spot the moment a strong individual prospect is actually the door to a whole team, and shift without losing their trust.
+
+##### What you need to understand
+
+###### The B2C Charter: buyer and participant are the same person
 
 Here the person deciding and the person enrolling are one experienced professional investing in their own standing. Their motivation is personal: to move from using AI to leading it in their field, to hold a defensible, verifiable credential built on their own real work, and to be ahead of peers who are still improvising. This is the multiplier in action. The program multiplies an AI method onto expertise the person already has, so the input has to be real. Ten times zero is still zero. A senior professional with a real field is exactly the input that multiplies. The decision is theirs alone, so the sale turns on personal relevance and trust, and your commission follows the B2C Charter rates by function.
 
-##### The B2B Engagement: the buyer is not the participant
+###### The B2B Engagement: the buyer is not the participant
 
 The buyer is usually a leader responsible for capability, risk, or transformation: a head of learning and development, an HR or talent leader, a transformation or innovation lead, a department head, or an executive sponsor. They are not buying a personal credential. They are buying an outcome for the organization, a group of their people who can lead AI adoption responsibly, with a consistent method, documented governance, and defensible work, instead of a scattered set of individuals each improvising on their own. The unit is the seat: one enrolled professional. A B2B engagement is simply a number of seats bought for a team, and your commission follows the B2B Engagement rates and the per deal cap.
 
-##### The business case, framed in the leader's terms
+###### The business case, framed in the leader's terms
 
 The problem you solve for a leader is that inconsistent and risky AI use across their team becomes a shared, governed standard. People who were improvising start producing reviewed, defensible work. The organization builds real internal capability instead of depending on outside help for every AI decision. And the leader can see proof, because every participant produces a dossier reviewed against public criteria. You never promise a specific business result or a return figure you cannot stand behind, but you can honestly describe the capability, the consistency, and the governance the program builds. That is exactly what a responsible leader is trying to buy.
 
-##### The organizational decision and land and expand
+###### The organizational decision and land and expand
 
 The B2B decision runs through several stakeholders: the sponsor who wants the outcome, the people who will participate, and often a procurement or finance step. The motion that works is land and expand. You propose a small first group, a pilot cohort, so the organization can see the quality of the work and the credential before committing more seats, and then you grow from there. You register the opportunity on the Panel at its real scope, keep it active with documented progress, and respect the scope rule: a registered account covers only the confirmed scope, so other departments, affiliates, or countries are not included unless the company expressly adds them.
 
-#### How to use it
+##### How to use it
 
 Identify the buyer before you position anything. If the person in front of you is deciding for themselves, run the B2C conversation you already know: open with their challenge, match their field story, give the honest mini pitch, point to the current approved details and the application, and guide them to apply, since payment follows acceptance. If the buyer is responsible for other people, switch to the business case, propose a pilot, and register the opportunity. Your job in detection here is the same as everywhere else: detection, not persuasion. You are reading which motion is true, not talking someone into a buyer role they do not occupy.
 
->
->
 > **Say this:** "If a few people on your team are each improvising with AI in different ways, a pilot cohort gives you a shared method, reviewed work, and documented governance you can actually point to. Start with a small group, see the quality, then decide on more seats."
->
 
->
->
 > **Do not say this:** "Enroll the whole department now and you will see a return of USD 1,200 per person in productivity." You never promise a result or a return figure, the deal size does not relax that rule, and demanding full commitment before a pilot is the wrong motion.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -4246,19 +4521,23 @@ Identify the buyer before you position anything. If the person in front of you i
 | "I am just one person, why are you talking about my team?" | Only raise the team if they raise it. When a senior prospect mentions colleagues who share the problem, it is honest to ask whether a small group should explore it together. |
 | "Can we skip the pilot to save time?" | The pilot is what lets you see the quality of the work and the credential before committing more seats. It builds confidence rather than slowing the deal for no reason. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 The Panel deal registration screen, where you log a B2B opportunity at its real scope: the legal entity, the country, the business unit, the contact, the estimated seats and value, and your route in. The opportunity is protected only once the company confirms it.
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application a B2C prospect completes themselves, where they describe their expertise and the real problem they want to work on. Acceptance comes first, and only then is there a payment decision.
 
-#### Talking points
+##### Talking points
 
 - Same product, different buyer: the twelve week certification does not change between the two motions.
 - B2C turns on personal relevance and trust; B2B turns on a business case run through several stakeholders.
@@ -4267,12 +4546,9 @@ The application a B2C prospect completes themselves, where they describe their e
 - A senior, enthusiastic individual is often the door to their whole team.
 - The limits never relax for a bigger deal.
 
->
->
 > **Mistakes to avoid:** Treating every conversation as the same sale. Pitching a personal credential to a leader who wants a team outcome. Forgetting to switch when an individual mentions a team of ten. Assuming a single department registration covers the whole company. Relaxing any guardrail because the deal is large: you still never bind the company, quote outside approved materials, discount, promise results, accept payment, or issue invoices.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can tell whether a conversation is a B2C Charter or a B2B Engagement.
 - I can run the individual sale on personal relevance and guide the prospect to apply.
@@ -4282,15 +4558,16 @@ The application a B2C prospect completes themselves, where they describe their e
 - I can recognize when an individual is the door to a team, and shift without losing trust.
 - I hold every limit identically in both motions.
 
-#### A real scenario
+##### A real scenario
 
 Priya is a head of learning and development at a mid size insurer. She reaches out after a colleague enrolled as an individual and produced a dossier she could actually read and judge. She does not want a personal credential. She wants twelve of her people, who are each using AI loosely and inconsistently, to share one method with documented governance, because compliance is watching. You do not promise her a number. You describe the shared standard, the reviewed work, and the internal capability the program builds, and you propose a pilot of three first so she can see the quality. You register the opportunity at that confirmed scope, and you leave the rest of the company out until she expressly adds it.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 The exam checks that you can name the core difference between the two motions (same product, different buyer, motivation, and decision path), identify the B2B buyer and what they are purchasing, count seats correctly, and confirm that no limit changes for a larger deal. Expect a question on when a B2C conversation becomes a B2B door and why a pilot cohort comes first.
 
-#### Lesson (plain prose and audio text)
+<a id="m13-plain"></a>
+### Lesson body (plain prose / audio text)
 
 The program is sold two very different ways, and a partner who blurs them loses both. Selling to one experienced professional who enrolls themselves is a business to consumer sale, the B2C Charter. Selling seats to an organization that wants to develop its people is a business to business sale, the B2B Engagement. The product is the same twelve week certification, but the buyer, the motivation, the conversation, and the path to a decision are different. This module is the two motions side by side, so you can run whichever one the situation calls for.
 
@@ -4309,7 +4586,8 @@ Keep the limits the same in both motions, because the rules do not relax for a b
 One line for the module. A B2C Charter sale is to an individual investing in their own credential and turns on personal relevance, a B2B Engagement is seats sold to an organization and turns on a business case run through several stakeholders with a pilot first, and a strong individual prospect is often the door to a whole team.
 
 
-#### Exercises (6)
+<a id="m13-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** In a B2C Charter sale, who is the buyer?
 
@@ -4377,7 +4655,8 @@ One line for the module. A B2C Charter sale is to an individual investing in the
 
 **Explanation:** A senior, enthusiastic individual is often the door to their team, which turns it into a B2B opportunity. It is not always separate, not gated on certification, and not dependent on procurement calling.
 
-#### Final exam pool (12)
+<a id="m13-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** What is the core difference between the B2C and B2B motions?
 
@@ -4509,27 +4788,39 @@ One line for the module. A B2C Charter sale is to an individual investing in the
 
 **Answer:** B. B2C turns on personal relevance, B2B turns on a business case run through several stakeholders with a pilot first, and a strong individual is often the door to a whole team
 
-**Explanation:** The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module. --- ## 25.
+**Explanation:** The essence is two distinct motions plus the individual to team door. Treating all sales alike, guaranteeing returns, and relaxing rules are the opposite of the module.
+
 
 ---
 
-### Module 14: Customizing for Any Industry, Organization, or Person
+<a id="m14"></a>
+## Module 14: Customizing for Any Industry, Organization, or Person
 
-- **Slug:** `customize`
-- **Order:** 14
-- **Pass mark:** 80%
-- **Exam size:** 10 questions per sitting
-- **Exercises:** 6
-- **Exam pool:** 12
-- **Content version:** v1
+<a id="m14-meta"></a>
+### Metadata
+
+| Field | Value |
+| --- | --- |
+| Module number | 14 |
+| Slug | `customize` |
+| Title | Customizing for Any Industry, Organization, or Person |
+| Pass mark | 80% |
+| Exam size (questions per sitting) | 10 |
+| Exam cooldown | 24 hours after a failed attempt |
+| Content version | v1 |
+| Published | Yes |
+| Exercise questions | 6 |
+| Exam questions | 12 |
+| Last edited | Original seed (not edited) |
+| Badge | No per-module badge. Contributes to the Partner Academy certificate, awarded when all published modules are passed. |
+| Rank | Not applicable to the Partner Academy. Ranks belong to the 12-week program (see appendix). |
+| Related certificates | Partner Academy certificate (verifiable, annual). Teaches the program credentials in the appendix. |
+| Dependencies | Unlocks after Module 13 is passed (sequential gating). |
 
 **Summary.** Customizing the approach for any industry, while keeping the method and the standard the same.
 
-#### Lesson (rich content)
-
-The ten field stories in the explorer are examples, not the limit. You will meet prospects in industries and roles that are not on the list, and the skill that makes you genuinely effective is customizing the program's value for anyone, in any field, in any kind of organization, on your own. This module is that method. It is repeatable, it works for a buyer you have never seen before, and it keeps you honest while you do it.
-
-#### What you will be able to do
+<a id="m14-obj"></a>
+### Learning objectives
 
 - Translate the fixed program into any prospect's world without ever changing a fact.
 - Run a discovery conversation that uncovers a prospect's real problems, constraints, and confidential boundaries.
@@ -4538,13 +4829,29 @@ The ten field stories in the explorer are examples, not the limit. You will meet
 - Choose the right emphasis by organization type, from enterprise to startup to regulated environment.
 - Hold every guardrail during customization, which is exactly where an eager partner is most tempted to drift.
 
-#### What you need to understand
+<a id="m14-lesson"></a>
+### Full lesson body (rich content)
 
-##### The value is fixed, which is what makes customizing safe
+_This is the complete production lesson, converted from the stored HTML to Markdown. It contains every callout, table, checklist, talking point, example, objection and answer, scenario, form-preview description, and the exam-alignment section, in place._
+
+The ten field stories in the explorer are examples, not the limit. You will meet prospects in industries and roles that are not on the list, and the skill that makes you genuinely effective is customizing the program's value for anyone, in any field, in any kind of organization, on your own. This module is that method. It is repeatable, it works for a buyer you have never seen before, and it keeps you honest while you do it.
+
+##### What you will be able to do
+
+- Translate the fixed program into any prospect's world without ever changing a fact.
+- Run a discovery conversation that uncovers a prospect's real problems, constraints, and confidential boundaries.
+- Name both the highest value, lowest risk AI opportunity and the hard boundary in a field you have never sold into before.
+- Map that opportunity to Frame, Design, Prove, and Foresee, and build the prospect's own field story.
+- Choose the right emphasis by organization type, from enterprise to startup to regulated environment.
+- Hold every guardrail during customization, which is exactly where an eager partner is most tempted to drift.
+
+##### What you need to understand
+
+###### The value is fixed, which is what makes customizing safe
 
 You never change what the program is. The method (Frame, Design, Prove, Foresee), the eight assets, the reviewed dossier, the public criteria, and the credential are constant for everyone. What you customize is the translation: how you express that fixed value in the language, the problems, and the constraints of the person in front of you. You are not inventing a new program for each prospect. You are putting the same program into their words. Hold that distinction and you can tailor freely without ever drifting into a false claim. This is also why the screen never moves: the program multiplies a method onto real expertise the person already has, and ten times zero is still zero. A beginner with no field is a zero, and no amount of tailoring changes that. Your job is detection, not persuasion. If you have to convince someone that they are a Pro, they almost always are not.
 
-##### The five step method
+###### The five step method
 
 1. **Discover their world.** Before you position anything, ask enough to understand what they actually do, where AI is already showing up in their field, what their real problems are, who is affected, and what constraints they live under, especially anything regulated or confidential. You cannot customize what you do not understand, so this step is mostly listening.
 2. **Find their highest value, lowest risk opportunity and their hard boundary.** Every field has a place where AI clearly helps and a place where a human must stay in control. Naming both, in their domain, is the core of a credible tailored pitch, and the boundary matters as much as the opportunity, because that is the judgment a serious professional respects.
@@ -4552,7 +4859,7 @@ You never change what the program is. The method (Frame, Design, Prove, Foresee)
 4. **Build their field story.** Walk their specific situation through the twelve weeks the way the explorer does for the ten examples, so they see their own profession, their own problem, and the dossier they would produce.
 5. **Present it in their language.** Connect it to what they care about: the personal credential for an individual or the organizational capability for a team.
 
-##### The discovery toolkit
+###### The discovery toolkit
 
 Carry these questions in your head and use them like a real conversation, not an interrogation:
 
@@ -4565,25 +4872,19 @@ Carry these questions in your head and use them like a real conversation, not an
 
 Good answers give you everything you need to tailor the rest, and asking them well already signals that you understand their world.
 
-##### Emphasis by organization type
+###### Emphasis by organization type
 
 It is the same program every time, with a different emphasis chosen to fit who you are talking to. For a large enterprise, lead with consistency, governance, and risk across many people. For a small or medium business, lead with building real internal capability without depending on expensive outside help for every decision. For a startup, lead with speed and defensible decisions made under pressure. For a regulated environment, lead with the boundaries, the governance, and the confidentiality discipline the program builds, because that is precisely their worry. For a technical team, the credibility is in the evaluation rubric and the working system. For a non technical team, the credibility is in the method and the judgment, since no coding is required.
 
-#### How to use it
+##### How to use it
 
 Run the five steps in order, every time, regardless of the field. Listen first, name the opportunity and boundary second, then map to the four phases and build the field story. For a serious prospect, especially an organization, assemble a short tailored summary you can leave behind: their problem in their own words, the highest value opportunity and the boundary you identified together, how the four phases would handle it, what they or their people would produce, and the next step, which is to apply or to discuss a pilot. Keep it honest, keep it specific to them, and use only approved materials and current details. This is not a generic brochure. It is their situation reflected back through the program, and that is what makes it land.
 
->
->
 > **Say this:** "In your work, the highest value, lowest risk place for AI looks like drafting and synthesis, and the hard boundary is the final judgment that has to stay with a qualified human. Frame would scope exactly that, and Prove would test it with evidence you could defend."
->
 
->
->
 > **Do not say this:** "For your industry we can guarantee this cuts your review time in half." You never promise a result, a number, or an outcome, no matter how tailored the story sounds, and you never invent a program fact to fit a case.
->
 
-#### Common objections and honest answers
+##### Common objections and honest answers
 
 | Objection | How to answer |
 | --- | --- |
@@ -4593,19 +4894,21 @@ Run the five steps in order, every time, regardless of the field. Listen first, 
 | "Can you tailor the price for our case?" | You never quote a price or offer a discount outside approved materials. You customize the language and emphasis, not the commercial terms. |
 | "This only works if you can promise us a specific outcome." | Then this prospect is not a fit. A true tailored pitch never needs a false promise, and customization never makes one acceptable. |
 
-#### Forms and screens you will reference
+##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The Field Journey Explorer
+
+<img src="/academy/screens/field-journey-explorer.png" alt="The Field Journey Explorer" loading="lazy" />
 
 The explorer's field story view, which walks one profession through the twelve weeks. You use it as the model for building a prospect's own story, in their domain, for a field that is not on the list.
 
 > **Form preview:**
-> Form preview, placeholder
+> Leave-behind summary
 
 A tailored leave behind summary, assembled from approved materials: the prospect's problem in their own words, the opportunity and boundary, how the four phases handle it, what their people would produce, and the next step.
 
-#### Talking points
+##### Talking points
 
 - The program is fixed; only the translation into the prospect's world is customized.
 - Discovery is mostly listening, because you cannot customize what you do not understand.
@@ -4614,12 +4917,9 @@ A tailored leave behind summary, assembled from approved materials: the prospect
 - The right emphasis depends on the organization type, but the program does not change.
 - The multiplier needs real expertise as its input; detection comes before any tailoring.
 
->
->
 > **Mistakes to avoid:** Pitching before you have listened. Naming an opportunity but skipping the hard boundary. Inventing a program fact to fit a case. Promising a result, a number, or an outcome because the story sounds tailored. Quoting a price or offering a discount outside approved materials. Trying to talk a beginner with no field into being a Pro: that is persuasion, not detection, and the input does not multiply.
->
 
-#### Summary checklist
+##### Summary checklist
 
 - I can run discovery as a conversation and uncover real problems and confidential boundaries.
 - I can name the highest value, lowest risk opportunity and the hard boundary in an unfamiliar field.
@@ -4628,15 +4928,16 @@ A tailored leave behind summary, assembled from approved materials: the prospect
 - I can assemble an honest, specific leave behind summary from approved materials.
 - I never change a fact or promise a result while customizing, and I recognize when a prospect is not a fit.
 
-#### A real scenario
+##### A real scenario
 
 Tomas runs operations for a regional logistics firm, a field not in the ten examples. You spend most of the conversation listening: he is already using AI to draft customer updates, but routing decisions feel risky, and some shipment data cannot leave his systems. Together you name the opportunity (faster, clearer customer communication) and the hard boundary (a human owns any routing decision that affects safety or contracts). You map it to the phases, build his field story for the twelve weeks, and leave behind a summary in his words. You never promise a delivery time saved, and because he has a real problem that must pass his leadership's judgment, he is a Pro, and detection, not persuasion, is what closed it.
 
-#### How this maps to your exam
+##### How this maps to your exam
 
 The exam checks that you know why customization is safe (the program is fixed and only the translation changes), the five steps in order, that discovery is mostly listening, and that naming the opportunity and the boundary is what makes a pitch credible. Expect questions on the emphasis for each organization type and on recognizing that a pitch needing a false promise means the prospect is not a fit.
 
-#### Lesson (plain prose and audio text)
+<a id="m14-plain"></a>
+### Lesson body (plain prose / audio text)
 
 The ten field stories in the explorer are examples, not the limit. A partner will meet prospects in industries and roles that are not on the list, and the skill that makes you genuinely effective is being able to customize the program's value for anyone, in any field, in any kind of organization, on your own. This module is that method. It is repeatable, it works for a buyer you have never seen before, and it keeps you honest while you do it.
 
@@ -4655,7 +4956,8 @@ Hold the guardrails the whole time you customize, because customization is exact
 One line for the module. Customize by translating the fixed program into the prospect's world: discover their reality, find their highest value opportunity and their hard boundary, map it to the four phases, build their field story, and present it in their language, while never changing a single fact or promising a single result.
 
 
-#### Exercises (6)
+<a id="m14-ex"></a>
+### Exercises (6)
 
 **Exercise 1.** When customizing for a prospect, what stays fixed?
 
@@ -4723,7 +5025,8 @@ One line for the module. Customize by translating the fixed program into the pro
 
 **Explanation:** If a pitch needs an untrue claim, the prospect is not a fit. Customization never makes a false claim acceptable, and you never promise quietly or invent facts.
 
-#### Final exam pool (12)
+<a id="m14-exam"></a>
+### Final exam pool (12)
 
 **Exam 1.** Why is customization safe to do freely?
 
@@ -4855,60 +5158,319 @@ One line for the module. Customize by translating the fixed program into the pro
 
 **Answer:** B. Translate the fixed program into the prospect's world through discovery, opportunity and boundary, mapping to the phases, a field story, and their language, while never changing a fact or promising a result
 
-**Explanation:** The core is translating a fixed program into the prospect's world without changing facts or promising results. Reshaping the program, promising outcomes, or using one generic pitch are all wrong. --- ## 26. The Partner Toolkit: ready to use templates Seed these as a Partner Toolkit resource inside the Academy, viewable and downloadable. They are starting points, not scripts to send blindly. Every message a partner sends must still use approved messaging and pass the truth test. Keep placeholders in square brackets so the partner personalizes each one. None of these contain a price or a promise of results, by design. **Warm reconnect, a former colleague or past client** > Subject: A quick thought for you, [first name] > > Hi [first name], it has been a while since [shared context, for example our time at [company] or the [project] work]. I have been close to how experienced professionals in [their field] are moving from just using AI to actually leading its adoption, and you came to mind. If it is useful, I would value a short conversation to share what I am seeing. No pressure either way. How is the next couple of weeks looking for you? **Introduction through a mutual contact** > Subject: [mutual contact] suggested we connect > > Hi [first name], [mutual contact] thought it would be worth us talking. I work with experienced professionals in [their field] who want to lead AI adoption in their work, not just use the tools, and [mutual contact] felt that might be relevant to what you are focused on right now. Would a short call in the next week or two be welcome? Happy to work around your schedule. **Reaching someone in a shared professional circle** > Hi [first name], we are both part of [shared group or community], and I noticed your work on [specific, real detail]. I spend a lot of time on how professionals in [field] build defensible, reviewed AI work in their own domain. If that is something you are thinking about, I would be glad to compare notes over a short call. If not, no problem at all. **Follow up one, adds value** > Hi [first name], following up on my note. I mentioned I would share an example of how someone in [their field] works through this, so here it is in brief: [one or two sentences from the matching field story, framed as an example, not a promise]. If it is worth a short conversation, I am happy to set one up. If the timing is not right, just let me know and I will leave it there. **Follow up two, gracious close** > Hi [first name], I do not want to crowd your inbox, so this is my last note for now. If leading AI adoption in [their field] becomes a priority, I am easy to reach and glad to help. Wishing you well either way. **Guiding a qualified prospect to apply** > It sounds like this could genuinely fit what you are working on. The next step is simple and there is no payment involved yet: you apply and describe your expertise and the real problem you want to work on, and the team reviews it. Acceptance comes first, and only then is there any payment decision. I can point you to the current details and the application whenever you are ready. Would you like me to do that now? **Objection one liners, honest and short** > Is this just another AI course. No. Most courses teach tools and prompts. This is built around one real problem and a reviewed dossier, so you leave with evidence you can defend, not a completion certificate. > > Is it accredited. No. It is a private professional certification. Its credibility comes from the reviewed dossier, the public criteria, and the verifiable credential, not from a university stamp. > > Do I need to code. No. The core requirement is professional judgment in your field, not coding. > > Will I definitely get certified. No. Certification depends on whether your dossier meets the review standard. The three outcomes are Certified, Strong Draft, and Completed. > > Can I join as a regulated professional. Yes, as long as you protect confidential and regulated data and use redacted or fictionalized examples unless you have the rights and safeguards to use real data. **Prospect qualification checklist, run it in your head before you register** > Does this person have real depth in their field. Do they already use AI and feel the gap between using and leading it. Do they have one real problem worth solving. Can they commit focused hours over twelve weeks. Do they want reviewed, defensible work rather than a quick certificate. Do they accept that outcomes are earned, not guaranteed. If the answer to most of these is yes, they are worth registering. If they are an absolute beginner with no domain, or they want a guarantee, they are not a fit, and the honest move is to say so. **Deal registration field checklist, before you submit on the Panel** > The legal entity or individual. The country. The business unit. The contact. The offering. The estimated seats and value. Your role on this opportunity. Your concrete route in, meaning a warm contact, a shared circle, or a real reason you can reach them. Submit only when you can fill each field honestly, and remember it is protected only when the company confirms it. --- ## 27. Quick reference: glossary, brand use, and getting help Seed these as short reference pages inside the Academy.
+**Explanation:** The core is translating a fixed program into the prospect's world without changing facts or promising results. Reshaping the program, promising outcomes, or using one generic pitch are all wrong.
+
 
 ---
 
-## Glossary
+<a id="appendix"></a>
+# Appendix: global reference
+
+<a id="pro-vs-tenxpro"></a>
+## Pro vs TenXPro (canonical definition)
+
+**A Pro is a real expert. A TenXPro is what they become.**
+
+**A Pro.** A Pro is an expert in a field who already uses AI in a loose, occasional way.
+
+**A TenXPro.** A TenXPro is that same expert, now leading AI adoption with a method, with evidence, and with governance, holding a body of work they can defend. The credential certifies exactly that jump. It does not certify learning AI.
+
+**The multiplier.**
+
+TenX means a multiplier. This program multiplies an AI method onto something you already have. It does not start you from nothing.
+
+Ten times zero is still zero, so the input has to be real. A beginner with no field is a zero: there is nothing to multiply. That is the structural reason the program does not work for a beginner, and it is exactly what the promise says. You bring the expertise. We bring the method.
+
+So the first question of any screening is simple: does this person have a real, multipliable expertise.
+
+**Who this is for.**
+
+- **The department or team lead.** Runs a function in a mid-size or large organization and is being asked what our AI plan is.
+- **The consultant or advisor.** Has clients who now ask about AI and needs an approach they can stand behind.
+- **The founder or small-business owner.** Makes real build-or-buy AI decisions and lives with the result.
+- **The senior specialist in a high-stakes field.** Works in law, medicine, finance, compliance, or HR, where AI is both exciting and dangerous.
+- **The researcher or educator.** Needs to bring rigor and discipline to how AI is used.
+
+**The screen.** Does this person have a real problem in their own field that they could spend twelve weeks proving an AI approach against, and does the result have to pass the judgment of someone who matters to them? If the answer is yes to both, they are a Pro.
+
+**For partners.** Your job is detection, not persuasion. This definition is a detection tool. If you have to convince someone that they are a Pro, they almost always are not.
+
+<a id="partner-rules"></a>
+## Partner rules referenced by the Academy
+
+Module 3 ("The Rules") is the canonical source. Its scope, verbatim from the module summary:
+
+> Where your right to earn comes from: the five part formula, the Partner Panel as single source of truth, commission by function, tiers, clawback, annual validity, and survival clauses.
+
+The full rules text, with examples and exam, is in [Module 3](#m3). Key principles the Academy enforces throughout:
+
+- Detection, not persuasion: Your job is detection, not persuasion. This definition is a detection tool. If you have to convince someone that they are a Pro, they almost always are not.
+- Never promise a job, income, certification, or any outcome a partner cannot control.
+- The Partner Panel is the single source of truth for registrations and commissions.
+- Commission is earned by function, within caps, and is subject to clawback and annual validity.
+
+<a id="journey"></a>
+## Journey explanation (the 12-week program the Academy teaches)
+
+The partner-facing walkthrough is [Module 5](#m5). The canonical program structure (eleven core modules plus the final dossier and capstone review, grouped into four phases):
+
+| Week | Phase | Module | Core question | Milestone badge |
+| --- | --- | --- | --- | --- |
+| 1 | FRAME | AI Readiness & TenXPro Mindset | Where do I stand, and what kind of AI-adopted professional am I becoming? | TenX Mindset Badge |
+| 2 | FRAME | Practical AI Literacy & Hands-On Tool Fluency | What can AI realistically do, and how do I use it responsibly in real work? | AI Core Badge |
+| 3 | FRAME | Responsible AI & Professional Boundaries | What should I not automate, disclose, or delegate? | Responsible AI Badge |
+| 4 | FRAME | Problem Discovery & Structured Framing | Which problem is worth solving with AI? | Problem Framing Badge |
+| 5 | DESIGN | Context, Stakeholder & Initial Foresight Mapping | Who is affected, and what changes around this solution over time? | Context Mapper Badge |
+| 6 | DESIGN | Data, Evidence & Verification Discipline | What evidence can be trusted enough to guide an AI-supported workflow? | Evidence Discipline Badge |
+| 7 | DESIGN | Workflow, Task & Human-AI Allocation | What should the human do, what should AI assist, and where does judgment remain? | Workflow Designer Badge |
+| 8 | DESIGN | Responsible AI Solution Design | How do I design a solution that is useful, safe, and accountable? | Responsible Solution Badge |
+| 9 | PROVE | Adoption, Communication & Change Design | How will people understand, trust, and adopt the solution? | Adoption Designer Badge |
+| 10 | PROVE | Value, Roadmap & Proof Plan | How will I prove the solution is worth continuing? | Value Proof Badge |
+| 11 | FORESEE | AI Foresight, Scenario Planning & Future-Proofing | How do I keep this solution relevant as AI, work, and risk change? | Foresight Strategist Badge |
+| 12 | FORESEE | Final Dossier & Capstone Review | Is the work certifiable? | Capstone Review |
+
+<a id="badges-ranks"></a>
+## Badges, ranks, and certificates
+
+### Module milestone badges
+
+| Order | Badge | Awarded for |
+| --- | --- | --- |
+| 1 | TenX Mindset Badge | Issued when Module 1, AI Readiness & TenXPro Mindset, is passed. |
+| 2 | AI Core Badge | Issued when Module 2, Practical AI Literacy & Hands-On Tool Fluency, is passed. |
+| 3 | Responsible AI Badge | Issued when Module 3, Responsible AI & Professional Boundaries, is passed. |
+| 4 | Problem Framing Badge | Issued when Module 4, Problem Discovery & Structured Framing, is passed. |
+| 5 | Context Mapper Badge | Issued when Module 5, Context, Stakeholder & Initial Foresight Mapping, is passed. |
+| 6 | Evidence Discipline Badge | Issued when Module 6, Data, Evidence & Verification Discipline, is passed. |
+| 7 | Workflow Designer Badge | Issued when Module 7, Workflow, Task & Human-AI Allocation, is passed. |
+| 8 | Responsible Solution Badge | Issued when Module 8, Responsible AI Solution Design, is passed. |
+| 9 | Adoption Designer Badge | Issued when Module 9, Adoption, Communication & Change Design, is passed. |
+| 10 | Value Proof Badge | Issued when Module 10, Value, Roadmap & Proof Plan, is passed. |
+| 11 | Foresight Strategist Badge | Issued when Module 11, AI Foresight, Scenario Planning & Future-Proofing, is passed. |
+
+### Ranks
+
+| Rank | Meaning |
+| --- | --- |
+| AI-Ready Professional | Rank 1 credential for completing the Frame phase. |
+| AI Problem Solver & Solution Designer | Rank 2 credential for completing the Design phase. |
+| Future-Ready AI Solution Designer | Rank 3 credential for completing the Prove and Foresee phases. |
+
+### Capstone and special
+
+- **Certified TenXPro Capstone Seal.** Issued when a participant is certified after capstone review.
+- **Founding Charter Member.** Special badge for the first Founding Charter cohort.
+- **Early Charter Member.** Special badge for Early Charter participants.
+- **Late Charter Member.** Special badge for Late Charter participants.
+- **Final Charter Member.** Special badge for Final Charter participants.
+
+### Partner Academy completion certificate
+
+Issued to a partner when every published Academy module is passed. Carries a unique serial and the calendar year, is verifiable on a public page, and is renewed annually.
+
+<a id="glossary"></a>
+## Glossary and canonical terminology
 
 **Pro.** A Pro is an expert in a field who already uses AI in a loose, occasional way.
 
 **TenXPro.** A TenXPro is that same expert, now leading AI adoption with a method, with evidence, and with governance, holding a body of work they can defend. The credential certifies exactly that jump. It does not certify learning AI.
 
-**TenX (the multiplier).** TenX means a multiplier. The program multiplies an AI method onto expertise the person already has. Ten times zero is still zero, so a real, multipliable expertise is required: a beginner with no field is a zero, and there is nothing to multiply.
+**TenX (the multiplier).** TenX means a multiplier. This program multiplies an AI method onto something you already have. It does not start you from nothing. Ten times zero is still zero, so the input has to be real. A beginner with no field is a zero: there is nothing to multiply. That is the structural reason the program does not work for a beginner, and it is exactly what the promise says. You bring the expertise. We bring the method. So the first question of any screening is simple: does this person have a real, multipliable expertise.
 
-**Detection, not persuasion.** The partner's job. The Pro definition is a detection tool, not a sales script. If you have to convince someone that they are a Pro, they almost always are not.
+**Detection, not persuasion.** Your job is detection, not persuasion. This definition is a detection tool. If you have to convince someone that they are a Pro, they almost always are not.
 
 **The one-sentence screen.** Does this person have a real problem in their own field that they could spend twelve weeks proving an AI approach against, and does the result have to pass the judgment of someone who matters to them? If the answer is yes to both, they are a Pro.
 
-**Frame (phase).** Weeks 1 to 4. Where does AI actually belong in the work? Produces the problem definition and an AI suitability assessment.
+**Frame (phase).** Weeks 1 to 4. Where does AI belong in the work? Produces the problem definition and an AI suitability assessment.
 
-**Design (phase).** Weeks 5 to 8. How is a responsible solution built? Produces a prototype with guardrails, a workflow allocation, and a grounded knowledge pack.
+**Design (phase).** Weeks 5 to 8. How is a responsible solution built? Produces a prototype with guardrails and a workflow allocation.
 
-**Prove (phase).** Weeks 9 to 10. Can the value be shown with evidence? Produces an evaluation rubric, a test set, a value case, and an adoption plan.
+**Prove (phase).** Weeks 9 to 10. Can the value be shown with evidence? Produces an evaluation rubric, a test set, and a value case.
 
 **Foresee (phase).** Weeks 11 to 12. How is the solution kept relevant as AI, work, and risk change? Produces a foresight plan and the final dossier.
 
-**Living AI Solution Dossier.** The reviewed body of work a participant assembles across the twelve weeks: eight connected assets covering a focused professional challenge, from framing to a 90 day roadmap. It is the basis of the certification decision.
+**Living AI Solution Dossier.** The reviewed body of work assembled across the twelve weeks: connected assets from framing to a 90 day roadmap. It is the basis of certification.
 
-**Capstone review.** The final review of the dossier against the published criteria, producing one of three honest outcomes (certified, conditionally certified, or completed without certification).
+**Capstone review.** The final review of the dossier against published criteria, producing certified, conditionally certified, or completed without certification.
 
-**Module milestone badge.** A per-week badge marking a small, earned win (for example TenX Mindset in week one, Evidence Discipline in week six).
+**Partner Academy.** The fourteen module training that certifies a partner to represent the program honestly.
 
-**Rank.** A phase-level credential: AI-Ready Professional (Frame), AI Problem Solver and Solution Designer (Design), Future-Ready AI Solution Designer (Prove and Foresee).
+**Partner Academy certificate.** The partner's own credential, issued when every published module is passed; carries a serial and year, is verifiable, and is renewed annually.
 
-**Certified TenXPro Capstone Seal.** The flagship credential, issued when a participant is certified after capstone review. It certifies reviewed AI adoption work, not course attendance.
+**Content version.** Per module integer that increments when a superadmin edits a lesson. Passed partners keep their certificate for the year and are notified; not-yet-passed partners take the latest version.
 
-**Field Journey Explorer.** The tool a partner uses to tell the twelve week journey in the prospect's own profession, walking the four phases in their language and ending on a field specific credential.
+**Pass mark / exam size / cooldown.** The percent required to pass (80%), the number of questions per sitting, and the wait after a failed attempt.
 
-**Partner Academy.** The fourteen module training that certifies a partner to represent the program honestly. A partner passes a lesson, exercises, and a final exam per module to earn the Partner Academy certificate.
+**Activation Gate.** The onboarding checklist a partner completes before any outreach using the TenXPros name; confirmed by the company on the Partner Panel.
 
-**Partner Academy certificate (badge).** The partner's own credential, issued when every published module is passed. It carries a serial and a calendar year, is verifiable on a public page, and is renewed annually.
+**Deal registration.** Registering a prospect in the Partner Panel before pursuing it, which establishes the commission claim.
 
-**Content version.** Per module integer that increments whenever a superadmin edits a lesson. Partners who already passed keep their certificate for the calendar year and are notified; partners who have not passed take the latest version.
+**B2C Charter / B2B Engagement.** The individual professional motion, and the organizational motion (counted by seats).
 
-**Pass mark.** The percentage required to pass a module's final exam (80 percent across the Academy).
+**Partner Panel.** The partner's console for registering opportunities and tracking accounts and commissions.
 
-**Exam size / cooldown.** The number of questions drawn for one exam sitting, and the wait imposed after a failed attempt before the next sitting.
+**Commission by function.** Commission paid for the function performed (introduction, qualified origination, strong origination, closing, delivery), by basis points, from two-layer config.
 
-**Activation Gate.** The onboarding checklist a partner completes before any outreach using the TenXPros name; the company confirms it on the Partner Panel.
+<a id="snippets"></a>
+## Reusable snippets (say / avoid / talking points, extracted per module)
 
-**Deal registration.** Registering a prospect or opportunity in the Partner Panel before pursuing it, which establishes the partner's claim to commission on that work.
+_These are pulled verbatim from each module's callouts and talking-point lists, for reuse and review. They also appear in place in each module's lesson body._
 
-**B2C Charter.** The individual professional motion: a single Pro enrolls to earn the credential.
+### Module 1: The Mission
 
-**B2B Engagement.** The organizational motion: an organization sponsors a cohort of its professionals, counted by seats.
+- SAY: **Say this:** You already use AI every day, so the question is not access. The question is whether you can lead it: build something in your own field that survives a hard question from a board or a regulator. That is the gap this credential is built to close.
+- AVOID/NOTE: **Do not say this:** Finish the twelve weeks and you are automatically certified, and it will get you promoted.
+- AVOID/NOTE: **Mistakes to avoid:** Do not pitch the program as easy or fast. Do not promise certification, a job, a raise, or any outcome you cannot control. Do not hide the review standard to make it sound simpler, and do not imply it is an accredited degree. Each of those quietly breaks the trust that gives your introduction its weight.
+- TALKING POINT: Access to AI is universal now. Judgment is the dividing line.
+- TALKING POINT: You bring the expertise. We bring the AI method.
+- TALKING POINT: The credential is earned by reviewed work, not attendance.
+- TALKING POINT: Productive effort, real success: proof over hype, every time.
+- TALKING POINT: I am opening a door for someone who is ready, not talking anyone into anything.
 
-**Partner Panel.** The partner's operational console for registering opportunities, tracking accounts and commissions, and confirming the Activation Gate.
+### Module 2: Your Partner Identity
 
-**Commission by function.** Commission is paid for the function performed (introduction, qualified origination, strong origination, closing, delivery), by basis points, resolved from program and partner level configuration.
+- SAY: **Say this:** This is a strong fit because you already have deep expertise and one real problem worth solving. The credential is earned through a reviewed dossier, so the work is real, and that is exactly why it carries weight.
+- AVOID/NOTE: **Do not say this:** Pay me directly to speed up enrollment, and once you finish the twelve weeks your income will rise.
+- AVOID/NOTE: **Mistakes to avoid:** Promising a job, a raise, leads, or a guaranteed pass. Implying the credential is an accredited degree. Accepting payment off official channels or using messaging that is not approved. Using the TenXPros name before the Activation Gate. Using bought or scraped lists. Claiming exclusivity that is not confirmed in writing on the Panel. Any one of these can end a partnership.
+- TALKING POINT: I am a trust builder, not a shortcut seller.
+- TALKING POINT: I get paid for the function I actually performed, not for being in the room.
+- TALKING POINT: I protect the brand, the prospect, the standard, and my own right to earn.
+- TALKING POINT: Certification is earned through a reviewed dossier. I cannot promise it.
+- TALKING POINT: If a sentence is not true, not backable, or routes money or data wrongly, I do not say it.
+
+### Module 3: The Rules
+
+- SAY: **Say this:** I will register this opportunity before we go further, so your account and my role are recorded and protected on the Panel. Pricing comes from our approved current materials, not from me.
+- AVOID/NOTE: **Do not say this:** I can knock USD 500 off and lock your whole company group in under one registration, and we will sort the paperwork later.
+- AVOID/NOTE: **Mistakes to avoid:** Treating a verbal or pending nod as approval. Contacting a prospect with the TenXPros name before the Activation Gate is confirmed. Assuming a registration covers the parent or other departments. Quoting prices or giving discounts on your own authority. Forgetting that clawback, confidentiality, non circumvention, and non solicitation survive the year end and the partnership.
+- TALKING POINT: Five parts make a right: registered, performed, cleared, timed, managed.
+- TALKING POINT: The Panel is the single source of truth. Silence is not a yes.
+- TALKING POINT: Register before substantive contact, and respect exact scope.
+- TALKING POINT: Paid on cleared money, by function, up to a cap.
+- TALKING POINT: Clawback and survival clauses outlast a refund and the year end.
+
+### Module 4: What TenXPros Is
+
+- SAY: **Say this:** TenXPros is a selective twelve week certification. You bring one real problem from your field, run it through a structured method, and finish with a reviewed dossier you can defend to anyone who matters to you.
+- AVOID/NOTE: **Do not say this:** It is an easy AI certificate you finish in twelve weeks, and you are guaranteed to pass. That promises an outcome only the review can decide, and it misnames a selective program as an easy one.
+- AVOID/NOTE: **Mistakes to avoid:** calling it a video library or a prompt course, promising the Certified outcome, pitching it to a beginner with no domain, implying the review bar is hidden, or describing the credential as a generic AI certificate. Each one trades the truth of the product for a weaker, riskier story.
+- TALKING POINT: One real problem, run through a structured method, ending in reviewed proof.
+- TALKING POINT: Four phases that each answer one question: Frame, Design, Prove, Foresee.
+- TALKING POINT: Eight assets assemble into one Living AI Solution Dossier.
+- TALKING POINT: Eight public review criteria, so the bar is never a secret.
+- TALKING POINT: A field specific credential that names the participant's actual domain.
+
+### Module 5: The Twelve Week Journey
+
+- SAY: **Say this:** In week four you would land on the one problem worth twelve weeks of your time, and by week twelve you would hold a reviewed dossier you can defend in your own field. Let me walk it through the way it would look for you.
+- AVOID/NOTE: **Do not say this:** Other people in your field cut their review time by forty percent, so you will too. Any number from a field story is illustrative of how value gets proven, never a promise of what anyone will achieve.
+- AVOID/NOTE: **Mistakes to avoid:** reciting the generic twelve weeks to a specific person, presenting an illustrative number as a guaranteed result, leading with AI capability instead of the boundary that keeps a human in control, or inventing weeks, badges, or outcomes that are not on the map.
+- TALKING POINT: Eleven core modules plus a final dossier and capstone review, one stretch of work per week.
+- TALKING POINT: Four phases: Frame, Design, Prove, Foresee, each answering one real question.
+- TALKING POINT: A badge every week, each tied to a concrete deliverable.
+- TALKING POINT: The same method, retold in the prospect's own field.
+- TALKING POINT: Lead with the boundary as much as the benefit.
+
+### Module 6: Ranks, Badges, and Credentials
+
+- SAY: **Say this:** The weekly badges mark real work as you go, the four ranks mark real capability, and at the top sits one verifiable, field specific credential reviewed against a public standard.
+- AVOID/NOTE: **Do not say this:** Collect the badges and you are basically certified, and it is like a university qualification. The badges are not the credential, and this is a professional credential, never an academic one.
+- AVOID/NOTE: **Mistakes to avoid:** letting the badges sound like the point, implying badges add up to certification, calling the rank or credential an academic qualification, describing it as a generic AI certificate, or rounding a Design level practitioner up to certified professional.
+- TALKING POINT: Two layers: small weekly badges, four phase ranks.
+- TALKING POINT: A badge is shorthand for a concrete deliverable, not a decoration.
+- TALKING POINT: A rank signals capability, not attendance.
+- TALKING POINT: The flagship credential is verifiable, field specific, evidence based, and defensible.
+- TALKING POINT: Sell the proof, not the stickers.
+
+### Module 7: From Top Student to Coach
+
+- SAY: **Say this:** The coach pathway is real and it is selective. Certification does not guarantee a coaching role, but top performers may be invited to apply, complete a real screening, and earn their way up a six stage ladder. If you perform at the highest level, you could become the person who coaches others in your field.
+- AVOID/NOTE: **Do not say this:** Finish the program and you will become a coach, or, I can get you a coaching role. That promises an outcome you do not control, breaks the rule, and sets the person up to feel cheated.
+- AVOID/NOTE: **Mistakes to avoid:** promising or implying a coaching role, describing the pathway as automatic after the program, naming only the top stage and skipping how it is earned, or treating the screening as a rubber stamp. Each of these breaks trust the moment reality arrives.
+- TALKING POINT: The pathway is a ladder of demonstrated capability, not a promotion handed out after the program.
+- TALKING POINT: For a senior doctor, engineer, or educator, the bigger motivation is leading and coaching others in their own field, and that is true, so you may say it.
+- TALKING POINT: The screening exists to protect the quality of coaching in every field, which is why the standard is high.
+- TALKING POINT: Recommending your own graduates and co delivering future cohorts with them is how you stop trading time for single referrals.
+- TALKING POINT: The best students you bring in can become co builders of your own practice.
+
+### Module 8: Selling With Integrity
+
+- SAY: **Say this:** What is the biggest challenge you are facing right now around AI in your work? Tell me where you are stuck, and I will tell you honestly whether this program is built for that, or whether it is not the right fit.
+- AVOID/NOTE: **Do not say this:** This will make you certified and ten times more valuable, trust me. That promises an outcome you do not control, replaces the reviewed standard with hype, and breaks the truth test on the first sentence.
+- AVOID/NOTE: **Mistakes to avoid:** opening by reciting the program, leading with price, promising certification, inflating a private certification into an accreditation or degree, pushing someone toward payment before acceptance, or selling to a poor fit just to close. Each one fails the truth test and costs you the long game.
+- TALKING POINT: Open with the person, listen first, and respond to their real situation.
+- TALKING POINT: Use a matched field story to make the program concrete, because real beats impressive.
+- TALKING POINT: Keep the mini pitch to sixty to ninety seconds with no hype.
+- TALKING POINT: Say plainly that no one pays before being accepted, which removes the pressure to sell payment first.
+- TALKING POINT: The acceptance step signals the program is serious and only admits people who are genuinely ready.
+- TALKING POINT: Graduates who earn a field specific credential remember who opened the door, and that builds your reputation for years.
+
+### Module 9: Finding and Qualifying the Right Prospects
+
+- SAY: **Say this:** Who in your field already has a real problem worth twelve weeks of work and would value reviewed, defensible evidence? If that is you, let us talk. If it is not quite you yet, I would rather tell you straight than enroll you into something that is not the right fit.
+- AVOID/NOTE: **Do not say this:** I can guarantee you will pass and probably get hired after, just send me a deposit to hold your spot. That promises an outcome you do not control and routes money off the official channel, which are both hard rule breaks.
+- AVOID/NOTE: **Mistakes to avoid:** buying or scraping a list, blasting strangers, padding a list with unreachable names, enrolling a poor fit to hit a number, promising certification or income, taking off channel payment, or accepting confidential data without rights and safeguards. Each one breaks a rule or wastes the time you should spend on real fits.
+- TALKING POINT: The right prospects are usually in your trusted network, not on a purchased list.
+- TALKING POINT: A warm introduction from someone who respects you beats a hundred cold messages.
+- TALKING POINT: A strong fit has real expertise, the using versus leading gap, one real problem, and real time.
+- TALKING POINT: Declining a poor fit kindly protects the prospect, the standard, and your name.
+- TALKING POINT: Three real, reachable prospects beat thirty names you cannot reach.
+- TALKING POINT: Register on the Partner Panel before substantive contact, and pursue only after confirmation.
+
+### Module 10: Outreach and the Conversation in Practice
+
+- SAY: **Say this:** What is the biggest challenge you are facing around AI in your work right now? I thought of you because of the work you do in your field, and I want to understand the problem before I say anything about how the program might fit.
+- AVOID/NOTE: **Do not say this:** This program will make you an AI leader and get you results. The price is a special number just for you, and you can pay today to lock it in.
+- AVOID/NOTE: **Mistakes to avoid:** quoting a price outside approved materials, offering a discount, promising a result, blasting a generic message to a list, chasing a prospect who is clearly not a fit, or following up by repeating the same ask with more pressure. Each one breaks a rule or wastes the time the right prospect deserves.
+- TALKING POINT: Lead with the boundary as much as the benefit: a serious professional respects the limits you name.
+- TALKING POINT: Payment only after acceptance, so no one is ever sold into paying before they are accepted.
+- TALKING POINT: The application is a quality gate, not a sales form, and it is the natural next step.
+- TALKING POINT: You bring the expertise, the program brings the method: that is the whole multiplier idea, said plainly.
+- TALKING POINT: Your role ends at a clean handoff: the company handles acceptance, payment, and delivery.
+
+### Module 11: Operating the System and Your First 90 Days
+
+- SAY: **Say this (to yourself, before acting):** I am unsure whether this is allowed, so I will treat the doubt as a no and confirm on the Panel or with my partner contact before I do anything.
+- AVOID/NOTE: **Do not say this:** I will just do it and apologize later, or I will guess based on what feels right, or I will hold this account quietly even though I am not working it.
+- AVOID/NOTE: **Mistakes to avoid:** holding accounts you are not working, treating Panel updates as an optional chore, guessing in silence when you are unsure, improvising an answer about a deal or rule, missing the thirty day window to query a statement, and ignoring the yearly renewal so your operating terms lapse.
+- TALKING POINT: The Panel is the single source of truth: registration, target list, updates, and statements all live there.
+- TALKING POINT: Meaningful updates are the discipline that keeps an account protected.
+- TALKING POINT: The ninety day sequence starts with the Activation Gate and ends with a real review.
+- TALKING POINT: First confirmed registration decides any dispute, resolved on the Panel.
+- TALKING POINT: Survival obligations continue across the year change, even as terms renew through the site.
+
+### Module 12: How the Twelve Weeks Work, in Full
+
+- SAY: **Say this:** The structure is fixed: four phases over twelve weeks, eight assets built into one reviewed dossier, with three outcomes at the end. For the exact hours per week and the support model I will give you the current official figures, and if I am not certain of one I will confirm it and come back to you.
+- AVOID/NOTE: **Do not say this:** It is probably around a few hours a week and you get unlimited one to one coaching. (You may not invent an operational number or promise support the program has not stated.)
+- AVOID/NOTE: **Mistakes to avoid:** estimating an operational number like the weekly hours, inventing a support model, promising flexibility that is not offered, describing a Strong Draft as a failure, telling a true beginner with no field that the program is for them, or filling a silence with a guess instead of saying you will confirm.
+- TALKING POINT: Twelve weeks, four phases: Frame, Design, Prove, Foresee. Fixed, and stateable to anyone.
+- TALKING POINT: Eight connected assets assembled into one reviewed dossier with twelve sections.
+- TALKING POINT: Every week produces something and earns a badge, so progress is visible the whole way.
+- TALKING POINT: Three outcomes: Certified, Strong Draft, Completed. Strong Draft is a path, not a failure.
+- TALKING POINT: Fixed structure you state with confidence, operational details you quote from the current official source.
+
+### Module 13: Selling to Organizations and to Individuals
+
+- SAY: **Say this:** "If a few people on your team are each improvising with AI in different ways, a pilot cohort gives you a shared method, reviewed work, and documented governance you can actually point to. Start with a small group, see the quality, then decide on more seats."
+- AVOID/NOTE: **Do not say this:** "Enroll the whole department now and you will see a return of USD 1,200 per person in productivity." You never promise a result or a return figure, the deal size does not relax that rule, and demanding full commitment before a pilot is the wrong motion.
+- AVOID/NOTE: **Mistakes to avoid:** Treating every conversation as the same sale. Pitching a personal credential to a leader who wants a team outcome. Forgetting to switch when an individual mentions a team of ten. Assuming a single department registration covers the whole company. Relaxing any guardrail because the deal is large: you still never bind the company, quote outside approved materials, discount, promise results, accept payment, or issue invoices.
+- TALKING POINT: Same product, different buyer: the twelve week certification does not change between the two motions.
+- TALKING POINT: B2C turns on personal relevance and trust; B2B turns on a business case run through several stakeholders.
+- TALKING POINT: A seat is one enrolled professional, so fifteen people is fifteen seats, not one license.
+- TALKING POINT: Land and expand: a pilot cohort first, then growth once the organization has seen the quality.
+- TALKING POINT: A senior, enthusiastic individual is often the door to their whole team.
+- TALKING POINT: The limits never relax for a bigger deal.
+
+### Module 14: Customizing for Any Industry, Organization, or Person
+
+- SAY: **Say this:** "In your work, the highest value, lowest risk place for AI looks like drafting and synthesis, and the hard boundary is the final judgment that has to stay with a qualified human. Frame would scope exactly that, and Prove would test it with evidence you could defend."
+- AVOID/NOTE: **Do not say this:** "For your industry we can guarantee this cuts your review time in half." You never promise a result, a number, or an outcome, no matter how tailored the story sounds, and you never invent a program fact to fit a case.
+- AVOID/NOTE: **Mistakes to avoid:** Pitching before you have listened. Naming an opportunity but skipping the hard boundary. Inventing a program fact to fit a case. Promising a result, a number, or an outcome because the story sounds tailored. Quoting a price or offering a discount outside approved materials. Trying to talk a beginner with no field into being a Pro: that is persuasion, not detection, and the input does not multiply.
+- TALKING POINT: The program is fixed; only the translation into the prospect's world is customized.
+- TALKING POINT: Discovery is mostly listening, because you cannot customize what you do not understand.
+- TALKING POINT: Name both the opportunity and the boundary; the boundary is what a serious professional respects.
+- TALKING POINT: Map every tailored pitch to Frame, Design, Prove, and Foresee.
+- TALKING POINT: The right emphasis depends on the organization type, but the program does not change.
+- TALKING POINT: The multiplier needs real expertise as its input; detection comes before any tailoring.
+

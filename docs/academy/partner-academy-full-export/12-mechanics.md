@@ -95,12 +95,16 @@ The structure multiplies a method onto expertise the participant already brings.
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The dossier submission screen
+
+<img src="/academy/screens/dossier-submission.png" alt="The dossier submission screen" loading="lazy" />
 
 The dossier submission screen at the end of Foresee, where the participant submits the complete Living AI Solution Dossier with its twelve sections for review against the eight public criteria.
 
 > **Form preview:**
-> Form preview, placeholder
+> Public credential verification
+
+<img src="/academy/screens/verification.png" alt="Public credential verification" loading="lazy" />
 
 The public verification view, showing the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.
 
@@ -358,4 +362,4 @@ One line for the module. Know the fixed twelve week structure cold and explain i
 
 **Answer:** B. Explain the fixed twelve week structure with confidence and use the current official answer for every operational detail rather than guessing
 
-**Explanation:** Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust. --- ## 24.
+**Explanation:** Hold it as confident structure plus official answers for operational details. Improvising, promising any schedule, or avoiding the topic all undercut trust.

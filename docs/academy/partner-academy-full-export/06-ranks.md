@@ -94,7 +94,7 @@ Lead with the credential and the dossier, then explain the badges and ranks as t
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The progress view
 
 The progress view shows where a participant sits right now: accepted member, a phase rank, dossier candidate, or one of the three review outcomes. Use it to describe status honestly rather than rounding up.
 
@@ -341,4 +341,4 @@ So, the whole module in one breath. Small weekly badges mark real work. Four pha
 
 **Answer:** B. Small weekly badges mark real work, four ranks mark real capability, and one defensible credential sits at the top
 
-**Explanation:** The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it. --- ## 18.
+**Explanation:** The summary is badges for work, ranks for capability, and one credential at the top. The others invert the message or misstate it.

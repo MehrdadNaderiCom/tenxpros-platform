@@ -90,12 +90,12 @@ This is detection, not persuasion. The pathway only lands with people who alread
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The coach pathway
 
 The coach pathway view, showing the six stages from Certified TenXPro to Lead Domain Coach, with the bar described at each stage so a prospect can see exactly where recognition, training, supporting, and leading begin.
 
 > **Form preview:**
-> Form preview, placeholder
+> The coach screening checklist
 
 The coach screening checklist, listing the ethics and confidentiality interview, sample coaching review, dossier audit, communication assessment, domain expertise check, methodology exam, and brand and boundary agreement.
 
@@ -343,4 +343,4 @@ So hold the whole module in one careful breath. The coach pathway is a real, sel
 
 **Answer:** B. The coach pathway is a real, selective ladder you may describe honestly and never promise
 
-**Explanation:** The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway. --- ## 19.
+**Explanation:** The one line is a real, selective ladder, described honestly and never promised. The others overstate or misstate the pathway.

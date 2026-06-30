@@ -90,12 +90,16 @@ This program multiplies an AI method onto expertise the person already has. Ten 
 ##### Forms and screens you will reference
 
 > **Form preview:**
-> Form preview, placeholder
+> The application screen
+
+<img src="/academy/screens/application.png" alt="The application screen" loading="lazy" />
 
 The application screen the prospect fills in: a description of their expertise, the real problem they want to work on for twelve weeks, and their field. This is the first quality gate, and acceptance happens here before any payment.
 
 > **Form preview:**
-> Form preview, placeholder
+> The Partner Panel deal registration
+
+<img src="/academy/screens/deal-registration.png" alt="The Partner Panel deal registration" loading="lazy" />
 
 Your opportunity registration in the Partner Panel, where you record the prospect and your route in, so the conversation you started is logged and protected.
 
@@ -345,4 +349,4 @@ One line for the module. Reach real people personally and honestly, open the con
 
 **Answer:** B. Reach people personally, open with their challenge, handle price by pointing to approved materials and the application, follow up with value, and hand off cleanly
 
-**Explanation:** Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior. --- ## 22.
+**Explanation:** Put simply, it is personal outreach, a challenge first conversation, correct price handling, value follow up, and a clean handoff. The others describe prohibited or pushy behavior.
