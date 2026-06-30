@@ -33,8 +33,8 @@ export function ConfirmButton({
       }}
       className={
         (className ??
-          "rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40") +
-        " inline-flex items-center active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60"
+          "h-9 rounded-md bg-red-600 px-3 text-sm font-medium text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:ring-offset-2") +
+        " inline-flex items-center justify-center active:scale-[0.97] disabled:pointer-events-none disabled:opacity-60"
       }
     >
       {pending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 flex-none animate-spin" aria-hidden="true" /> : null}

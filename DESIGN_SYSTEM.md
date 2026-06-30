@@ -39,3 +39,15 @@ Rules:
 Write like a person, not a generator. No em or en dashes (use a comma, colon,
 parentheses, or split the sentence). Avoid filler ("in today's fast-paced world",
 "unlock", "leverage", "seamless", "robust"). Short, concrete, specific.
+
+## Tables, alerts, filters
+
+- Data tables: use `Table` + `THead`/`Th`/`TBody`/`TR`/`Td`/`TableEmpty` from
+  `@/components/ui/table`. Do not hand-roll `<table>` with a navy header. The
+  container scrolls on small screens; empty tables render `TableEmpty`.
+- Status banners: use `Alert` from `@/components/ui/alert` with `tone` of
+  `info | success | warning | error | neutral`. Do not hand-roll colored boxes.
+- List filters and tabs: use `FilterPill` from `@/components/ui/filter-pill`.
+- Inputs: use `Input`, `Select`, `Textarea`, `Field` from
+  `@/components/ui/form-fields` (height `h-11`), never raw `<input>`.
+- Empty states: use `EmptyState` from `@/components/shared/page-shell`.

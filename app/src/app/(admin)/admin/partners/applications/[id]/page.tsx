@@ -16,7 +16,7 @@ function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{value || ", "}</p>
+      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{value || "-"}</p>
     </div>
   );
 }

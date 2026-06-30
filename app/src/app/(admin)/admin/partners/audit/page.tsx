@@ -49,7 +49,7 @@ export default async function PartnerAuditPage() {
                 </td>
                 <td className="max-w-md px-4 py-3">
                   <pre className="whitespace-pre-wrap break-words text-xs text-slate-500">
-                    {e.changes ? JSON.stringify(e.changes) : ", "}
+                    {e.changes ? JSON.stringify(e.changes) : "-"}
                   </pre>
                 </td>
               </tr>

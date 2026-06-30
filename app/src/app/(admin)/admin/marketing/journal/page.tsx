@@ -345,7 +345,7 @@ export default async function MarketingJournalPage() {
         <h2 className="text-sm font-semibold text-navy-900">This week</h2>
         <p className="text-sm text-slate-600">
           {week.length} attempt{week.length === 1 ? "" : "s"} · {weekMinutes} min total · avg rating{" "}
-          {week.length ? weekAvg.toFixed(1) : ", "}/5
+          {week.length ? weekAvg.toFixed(1) : "-"}/5
           {weekWeak > 0 ? ` · ${weekWeak} rated 2 or lower - worth a look below` : ""}
         </p>
         <p className="text-xs text-slate-500">

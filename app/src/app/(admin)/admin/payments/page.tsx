@@ -6,6 +6,7 @@ import { PAYMENT_STATUSES, formatPaymentMethod, formatPaymentStatus } from "@/li
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
+import { FilterPill } from "@/components/ui/filter-pill";
 
 export const dynamic = "force-dynamic";
 
@@ -61,9 +62,9 @@ export default async function PaymentsPage({
 
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
-          <FilterChip label="All" href="/admin/payments" active={!statusFilter && !follow} />
+          <FilterPill label="All" href="/admin/payments" active={!statusFilter && !follow} />
           {PAYMENT_STATUSES.map((status) => (
-            <FilterChip
+            <FilterPill
               key={status}
               label={formatPaymentStatus(status)}
               href={`/admin/payments?status=${status}`}
@@ -74,7 +75,7 @@ export default async function PaymentsPage({
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-slate-400">Follow-up</span>
           {Object.entries(FOLLOW_LABELS).map(([key, label]) => (
-            <FilterChip key={key} label={label} href={`/admin/payments?follow=${key}`} active={follow === key} />
+            <FilterPill key={key} label={label} href={`/admin/payments?follow=${key}`} active={follow === key} />
           ))}
         </div>
       </div>
@@ -156,17 +157,3 @@ export default async function PaymentsPage({
   );
 }
 
-function FilterChip({ label, href, active }: { label: string; href: string; active: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={
-        active
-          ? "rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold text-white"
-          : "rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-neutral-50"
-      }
-    >
-      {label}
-    </Link>
-  );
-}

@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 
 export const dynamic = "force-dynamic";
 
@@ -39,48 +40,42 @@ export default async function PartnerAcademyAdminPage() {
         ))}
       </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[760px] text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Partner</th>
-              <th className="px-4 py-3">Modules passed</th>
-              <th className="px-4 py-3">Certificate</th>
-              <th className="px-4 py-3">Manage</th>
-            </tr>
-          </thead>
-          <tbody>
-            {partners.map((p) => {
-              const passed = passedBy.get(p.id) ?? 0;
-              const badge = badgeBy.get(p.id);
-              return (
-                <tr key={p.id} className="border-b border-neutral-100">
-                  <td className="px-4 py-3 font-medium text-navy-900">{p.displayName}</td>
-                  <td className="px-4 py-3">
-                    <span className={passed >= total ? "font-medium text-emerald-700" : "text-slate-600"}>{passed} / {total}</span>
-                  </td>
-                  <td className="px-4 py-3">
-                    {badge ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Badge status="PASSED">{badge.year}</Badge>
-                        <Link href={absoluteUrl(`/academy/verify/${badge.serial}`)} className="text-xs text-navy-600 underline" target="_blank">{badge.serial}</Link>
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">Not issued</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <ButtonLink href={`/admin/partners/academy/${p.id}`} variant="secondary" size="sm">Manage</ButtonLink>
-                  </td>
-                </tr>
-              );
-            })}
-            {partners.length === 0 ? (
-              <tr><td colSpan={4} className="px-4 py-6 text-center text-sm text-slate-500">No partners yet.</td></tr>
-            ) : null}
-          </tbody>
-        </table>
-      </Card>
+      <Table minWidth="min-w-[760px]">
+        <THead>
+          <Th>Partner</Th>
+          <Th>Modules passed</Th>
+          <Th>Certificate</Th>
+          <Th>Manage</Th>
+        </THead>
+        <TBody>
+          {partners.map((p) => {
+            const passed = passedBy.get(p.id) ?? 0;
+            const badge = badgeBy.get(p.id);
+            return (
+              <TR key={p.id}>
+                <Td className="font-medium text-navy-900">{p.displayName}</Td>
+                <Td>
+                  <span className={passed >= total ? "font-medium text-emerald-700" : "text-slate-600"}>{passed} / {total}</span>
+                </Td>
+                <Td>
+                  {badge ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Badge status="PASSED">{badge.year}</Badge>
+                      <Link href={absoluteUrl(`/academy/verify/${badge.serial}`)} className="text-xs text-navy-600 underline" target="_blank">{badge.serial}</Link>
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400">Not issued</span>
+                  )}
+                </Td>
+                <Td>
+                  <ButtonLink href={`/admin/partners/academy/${p.id}`} variant="secondary" size="sm">Manage</ButtonLink>
+                </Td>
+              </TR>
+            );
+          })}
+          {partners.length === 0 ? <TableEmpty colSpan={4}>No partners yet.</TableEmpty> : null}
+        </TBody>
+      </Table>
     </div>
   );
 }

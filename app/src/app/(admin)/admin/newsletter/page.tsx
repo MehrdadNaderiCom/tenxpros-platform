@@ -4,6 +4,7 @@ import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert } from "@/components/ui/alert";
 import { NewsletterEditor } from "@/components/admin/newsletter-editor";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import { createCampaign, deleteCampaign } from "@/lib/actions/newsletter";
@@ -27,7 +28,7 @@ export default async function NewsletterComposePage({ searchParams }: { searchPa
       </div>
 
       {searchParams.error === "empty" ? (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">A campaign needs both a subject and a body before it can be saved.</p>
+        <Alert tone="warning">A campaign needs both a subject and a body before it can be saved.</Alert>
       ) : null}
 
       <Card>

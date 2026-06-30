@@ -8,6 +8,8 @@ import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert } from "@/components/ui/alert";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { sendTestCampaign, sendCampaign } from "@/lib/actions/newsletter";
 
 export const dynamic = "force-dynamic";
@@ -114,34 +116,28 @@ export default async function CampaignPage({
 
         <EmailPreview html={campaign.sentBodyHtml ?? campaign.bodyHtml} text={campaign.sentText ?? ""} />
 
-        <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-navy-900 text-left text-white">
-              <tr>
-                <th className="px-4 py-3">Recipient</th>
-                <th className="px-4 py-3">Result</th>
-                <th className="px-4 py-3">Sent at</th>
-                <th className="px-4 py-3">Current status</th>
-              </tr>
-            </thead>
-            <tbody>
+        <Table minWidth="min-w-[640px]">
+          <THead>
+            <Th>Recipient</Th>
+            <Th>Result</Th>
+            <Th>Sent at</Th>
+            <Th>Current status</Th>
+          </THead>
+          <TBody>
               {campaign.deliveries.map((d) => (
-                <tr key={d.id} className="border-b border-neutral-100">
-                  <td className="px-4 py-3 text-navy-900">{d.email}</td>
-                  <td className="px-4 py-3">
+                <TR key={d.id}>
+                  <Td className="text-navy-900">{d.email}</Td>
+                  <Td>
                     <Badge status={d.status === "sent" ? "PASSED" : "NOT_COMPLETED"}>{d.status === "sent" ? "Delivered" : "Failed"}</Badge>
                     {d.error ? <span className="ml-2 text-xs text-red-600">{d.error}</span> : null}
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{d.sentAt ? d.sentAt.toISOString() : "Not sent"}</td>
-                  <td className="px-4 py-3 text-slate-500">{d.subscriber ? d.subscriber.status : "removed"}</td>
-                </tr>
+                  </Td>
+                  <Td className="text-slate-600">{d.sentAt ? d.sentAt.toISOString() : "Not sent"}</Td>
+                  <Td className="text-slate-500">{d.subscriber ? d.subscriber.status : "removed"}</Td>
+                </TR>
               ))}
-              {campaign.deliveries.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-6 text-center text-sm text-slate-500">No deliveries recorded.</td></tr>
-              ) : null}
-            </tbody>
-          </table>
-        </Card>
+              {campaign.deliveries.length === 0 ? <TableEmpty colSpan={4}>No deliveries recorded.</TableEmpty> : null}
+          </TBody>
+        </Table>
       </div>
     );
   }
@@ -173,13 +169,13 @@ export default async function CampaignPage({
       </ol>
 
       {searchParams.test === "sent" ? (
-        <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">Test sent to {searchParams.to}. Check that inbox before sending for real.</p>
+        <Alert tone="success">Test sent to {searchParams.to}. Check that inbox before sending for real.</Alert>
       ) : null}
       {searchParams.test === "error" ? (
-        <p className="rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">The test could not be sent to {searchParams.to}. Check the address and mail settings.</p>
+        <Alert tone="error">The test could not be sent to {searchParams.to}. Check the address and mail settings.</Alert>
       ) : null}
       {searchParams.test === "invalid" ? (
-        <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800">That test email address looked invalid.</p>
+        <Alert tone="warning">That test email address looked invalid.</Alert>
       ) : null}
 
       <Card>
@@ -215,9 +211,9 @@ export default async function CampaignPage({
           count below, then confirm.
         </p>
         {confirmError ? (
-          <p className="mt-3 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+          <Alert tone="error" className="mt-3">
             The number did not match the current recipient count ({searchParams.expected ?? stats.subscribed}). Nothing was sent. Re-check and type the exact number to confirm.
-          </p>
+          </Alert>
         ) : null}
         {stats.subscribed === 0 ? (
           <p className="mt-3 text-sm text-amber-700">There are no subscribed recipients in this target set, so there is nothing to send.</p>

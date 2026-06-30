@@ -44,4 +44,4 @@ export const aiExperienceLabel = (value?: string | null) => labelOf(AI_EXPERIENC
 export const dataSensitivityLabel = (value?: string | null) => labelOf(DATA_SENSITIVITY_OPTIONS, value);
 export const weeklyAvailabilityLabel = (value?: string | null) => labelOf(WEEKLY_AVAILABILITY_OPTIONS, value);
 export const applicationStatusLabel = (value?: string | null) =>
-  value ? APPLICATION_STATUS_LABELS[value] ?? value : ", ";
+  value ? APPLICATION_STATUS_LABELS[value] ?? value : "-";

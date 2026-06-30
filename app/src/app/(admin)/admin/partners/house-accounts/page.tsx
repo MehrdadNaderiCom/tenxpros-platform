@@ -48,8 +48,8 @@ export default async function HouseAccountsPage() {
             {accounts.map((a, i) => (
               <tr key={a.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
                 <td className="px-4 py-3 font-medium text-navy-900">{a.entityName}</td>
-                <td className="px-4 py-3 text-slate-600">{a.domain ?? ", "}</td>
-                <td className="px-4 py-3 text-slate-600">{a.note ?? ", "}</td>
+                <td className="px-4 py-3 text-slate-600">{a.domain ?? "-"}</td>
+                <td className="px-4 py-3 text-slate-600">{a.note ?? "-"}</td>
                 <td className="px-4 py-3 text-slate-600">{a.createdAt.toLocaleDateString()}</td>
                 <td className="px-4 py-3 text-right">
                   <form action={removeHouseAccount}>

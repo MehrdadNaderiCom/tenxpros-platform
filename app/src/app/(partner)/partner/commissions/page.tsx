@@ -69,7 +69,7 @@ export default async function PartnerCommissionsPage() {
           <tbody>
             {entries.map((e, i) => (
               <tr key={e.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3 text-slate-700">{e.closedDeal.registeredAccount?.legalEntity ?? ", "}</td>
+                <td className="px-4 py-3 text-slate-700">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</td>
                 <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
                 <td className="px-4 py-3">{e.isFlat ? ", " : formatBp(e.rateBp)}</td>
                 <td className="px-4 py-3 font-medium text-navy-900">
@@ -80,7 +80,7 @@ export default async function PartnerCommissionsPage() {
                 <td className="px-4 py-3">
                   <Badge status={STATUS_BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge>
                 </td>
-                <td className="px-4 py-3 text-slate-600">{e.payableOn?.toLocaleDateString() ?? ", "}</td>
+                <td className="px-4 py-3 text-slate-600">{e.payableOn?.toLocaleDateString() ?? "-"}</td>
                 <td className="px-4 py-3">
                   {e.queryFlag ? (
                     <span className="text-xs font-medium text-amber-700">Queried</span>

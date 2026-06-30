@@ -53,7 +53,7 @@ export default async function PartnerTenXOpsPage() {
                   <Badge status={BADGE[e.status]}>{ENGAGEMENT_STATUS_LABELS[e.status]}</Badge>
                 </td>
                 <td className="px-4 py-3 text-slate-600">{e.createdAt.toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-slate-600">{e.decidedAt?.toLocaleDateString() ?? ", "}</td>
+                <td className="px-4 py-3 text-slate-600">{e.decidedAt?.toLocaleDateString() ?? "-"}</td>
               </tr>
             ))}
             {engagements.length === 0 ? (
