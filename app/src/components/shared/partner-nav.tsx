@@ -7,6 +7,7 @@ import type { PartnerStatus } from "@prisma/client";
 
 const partnerItems: Array<[string, string]> = [
   ["Dashboard", "/partner"],
+  ["Notifications", "/partner/notifications"],
   ["Academy", "/partner/academy"],
   ["Onboarding", "/partner/onboarding"],
   ["Deal Registrations", "/partner/deals"],
@@ -16,7 +17,7 @@ const partnerItems: Array<[string, string]> = [
   ["Profile", "/partner/profile"],
 ];
 
-export function PartnerNav({ name, status }: { name?: string | null; status?: PartnerStatus }) {
+export function PartnerNav({ name, status, unread = 0 }: { name?: string | null; status?: PartnerStatus; unread?: number }) {
   return (
     <aside className="border-b border-neutral-200 bg-white p-5 md:min-h-screen md:w-72 md:shrink-0 md:border-b-0 md:border-r">
       <div className="space-y-6">
@@ -31,9 +32,14 @@ export function PartnerNav({ name, status }: { name?: string | null; status?: Pa
             <Link
               key={href}
               href={href}
-              className="rounded-md px-3 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
+              className="flex items-center justify-between rounded-md px-3 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
             >
-              {label}
+              <span>{label}</span>
+              {href === "/partner/notifications" && unread > 0 ? (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-navy-900 px-1.5 text-xs font-semibold text-white">
+                  {unread}
+                </span>
+              ) : null}
             </Link>
           ))}
         </nav>

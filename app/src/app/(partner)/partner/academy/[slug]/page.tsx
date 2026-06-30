@@ -6,6 +6,7 @@ import { markLessonRead } from "@/lib/actions/academy";
 import { EXERCISE_MAX_ATTEMPTS } from "@/lib/academy/engine";
 import { AudioReader } from "@/components/academy/audio-reader";
 import { LessonReader } from "@/components/academy/lesson-reader";
+import { sanitizeLessonHtml } from "@/lib/academy/lesson-html";
 import { ExercisePlayer } from "@/components/academy/exercise-player";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
   }
 
   const lesson = m.lessons[0];
+  const lessonHtml = lesson?.bodyHtml ? sanitizeLessonHtml(lesson.bodyHtml) : null;
   const paragraphs = lesson ? lesson.body.split("\n\n") : [];
 
   // Exercise completion from recorded attempts.
@@ -71,7 +73,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
       <AudioReader text={lesson?.audioText ?? ""} />
 
       <Card>
-        <LessonReader paragraphs={paragraphs} />
+        <LessonReader paragraphs={paragraphs} html={lessonHtml} />
         {!preview && !lessonRead ? (
           <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
             <input type="hidden" name="slug" value={m.slug} />

@@ -62,15 +62,17 @@ export async function setModuleCompletion(formData: FormData) {
   const done = String(formData.get("done") ?? "") === "1";
   if (!partnerId || !moduleId) return;
   if (done) {
+    const mod = await prisma.academyModule.findUnique({ where: { id: moduleId }, select: { contentVersion: true } });
+    const data = { ...COMPLETE, lessonReadAt: new Date(), passedContentVersion: mod?.contentVersion ?? 1 };
     await prisma.academyProgress.upsert({
       where: { partnerId_moduleId: { partnerId, moduleId } },
-      update: { ...COMPLETE, lessonReadAt: new Date() },
-      create: { partnerId, moduleId, ...COMPLETE, lessonReadAt: new Date() },
+      update: data,
+      create: { partnerId, moduleId, ...data },
     });
   } else {
     await prisma.academyProgress.updateMany({
       where: { partnerId, moduleId },
-      data: { examPassed: false, exercisesDone: false, lessonReadAt: null, status: "available", bestExamScore: 0 },
+      data: { examPassed: false, exercisesDone: false, lessonReadAt: null, status: "available", bestExamScore: 0, passedContentVersion: null },
     });
   }
   revalidatePath(`/admin/partners/academy/${partnerId}`);
@@ -81,12 +83,13 @@ export async function markAllModulesComplete(formData: FormData) {
   await requireSuperAdmin();
   const partnerId = String(formData.get("partnerId") ?? "");
   if (!partnerId) return;
-  const modules = await prisma.academyModule.findMany({ where: { isPublished: true }, select: { id: true } });
+  const modules = await prisma.academyModule.findMany({ where: { isPublished: true }, select: { id: true, contentVersion: true } });
   for (const m of modules) {
+    const data = { ...COMPLETE, lessonReadAt: new Date(), passedContentVersion: m.contentVersion };
     await prisma.academyProgress.upsert({
       where: { partnerId_moduleId: { partnerId, moduleId: m.id } },
-      update: { ...COMPLETE, lessonReadAt: new Date() },
-      create: { partnerId, moduleId: m.id, ...COMPLETE, lessonReadAt: new Date() },
+      update: data,
+      create: { partnerId, moduleId: m.id, ...data },
     });
   }
   revalidatePath(`/admin/partners/academy/${partnerId}`);

@@ -237,7 +237,7 @@ export async function submitExam(input: { sittingId: string; selections: number[
     data: {
       examAttempts: { increment: 1 },
       ...(result.passed
-        ? { examPassed: true, status: "passed", lockedUntil: null }
+        ? { examPassed: true, status: "passed", lockedUntil: null, passedContentVersion: m.contentVersion }
         : { lockedUntil: cooldownUntil(new Date(), m.examCooldownHours) }),
     },
   });

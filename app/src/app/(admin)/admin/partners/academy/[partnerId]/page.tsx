@@ -18,7 +18,7 @@ export default async function PartnerAcademyManagePage({ params }: { params: { p
   if (!partner) notFound();
 
   const [modules, progress, badge] = await Promise.all([
-    prisma.academyModule.findMany({ where: { isPublished: true }, orderBy: { order: "asc" }, select: { id: true, order: true, title: true } }),
+    prisma.academyModule.findMany({ where: { isPublished: true }, orderBy: { order: "asc" }, select: { id: true, order: true, title: true, contentVersion: true } }),
     prisma.academyProgress.findMany({ where: { partnerId: partner.id } }),
     prisma.partnerAcademyBadge.findUnique({ where: { partnerId: partner.id } }),
   ]);
@@ -76,6 +76,7 @@ export default async function PartnerAcademyManagePage({ params }: { params: { p
           {modules.map((m) => {
             const p = progBy.get(m.id);
             const passed = Boolean(p?.examPassed);
+            const stale = passed && (p?.passedContentVersion ?? 1) < m.contentVersion;
             return (
               <div key={m.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-neutral-200 p-3">
                 <div>
@@ -84,6 +85,11 @@ export default async function PartnerAcademyManagePage({ params }: { params: { p
                     <span>{p?.lessonReadAt ? "Lesson read" : "Lesson not read"}</span>
                     <span>{p?.exercisesDone ? "Exercises done" : "Exercises pending"}</span>
                     <span>{passed ? `Exam passed (${p?.bestExamScore ?? 0}%)` : "Exam not passed"}</span>
+                    {passed ? (
+                      <span className={stale ? "text-amber-700" : "text-slate-400"}>
+                        {stale ? `Passed v${p?.passedContentVersion ?? 1}, now v${m.contentVersion}` : `On current v${m.contentVersion}`}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
