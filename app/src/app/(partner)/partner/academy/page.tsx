@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-shell";
-import { Bar } from "@/components/admin/dashboard-ui";
+import { ProgressBar } from "@/components/ui/timeline";
 import { ProDetectionPanel } from "@/components/partner/pro-detection-panel";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +44,7 @@ export default async function AcademyHome() {
             <ButtonLink href={`/partner/academy/${overview.resumeSlug}`}>Resume</ButtonLink>
           ) : null}
         </div>
-        <Bar pct={pct} className="bg-emerald-500" />
+        <ProgressBar value={pct} barClassName="bg-emerald-500" />
         {overview.badge ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-gold-500 bg-gold-50 p-4">
             <div>

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/form-fields";
 import { Timeline } from "@/components/ui/timeline";
+import { SectionCard } from "@/components/ui/stat-card";
 import { LessonEditor } from "@/components/admin/academy/lesson-editor";
 
 export const dynamic = "force-dynamic";
@@ -94,28 +95,25 @@ export default async function EditLessonPage({ params }: { params: { lessonId: s
         </form>
       </Card>
 
-      <Card>
-        <h2 className="text-lg font-semibold text-navy-900">Change history</h2>
+      <SectionCard title="Change history" description="Every saved edit is snapshotted here.">
         {lesson.versions.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">No edits yet. The first save will appear here as version 2.</p>
+          <p className="text-sm text-slate-500">No edits yet. The first save will appear here as version 2.</p>
         ) : (
-          <div className="mt-4">
-            <Timeline
-              items={lesson.versions.map((v, i) => ({
-                title: `Version ${v.version}`,
-                meta: v.createdAt.toLocaleString(),
-                state: i === 0 ? "current" : "done",
-                body: (
-                  <div className="text-sm text-slate-600">
-                    {v.note ? <p>{v.note}</p> : <p className="text-slate-400">No note.</p>}
-                    {v.editedByEmail ? <p className="text-xs text-slate-400">by {v.editedByEmail}</p> : null}
-                  </div>
-                ),
-              }))}
-            />
-          </div>
+          <Timeline
+            items={lesson.versions.map((v, i) => ({
+              title: `Version ${v.version}`,
+              meta: v.createdAt.toLocaleString(),
+              state: i === 0 ? "current" : "done",
+              body: (
+                <div className="text-sm text-slate-600">
+                  {v.note ? <p>{v.note}</p> : <p className="text-slate-400">No note.</p>}
+                  {v.editedByEmail ? <p className="text-xs text-slate-400">by {v.editedByEmail}</p> : null}
+                </div>
+              ),
+            }))}
+          />
         )}
-      </Card>
+      </SectionCard>
     </div>
   );
 }

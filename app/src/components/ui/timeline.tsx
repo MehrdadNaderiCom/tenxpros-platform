@@ -41,8 +41,19 @@ export function Timeline({ items, className }: { items: TimelineItem[]; classNam
   );
 }
 
-/** A labelled horizontal progress bar (0-100). */
-export function ProgressBar({ value, label, className }: { value: number; label?: ReactNode; className?: string }) {
+/** A labelled horizontal progress bar (0-100). `barClassName` colors the fill
+ * (default brand navy; pass `bg-emerald-500` for a success/completion bar). */
+export function ProgressBar({
+  value,
+  label,
+  className,
+  barClassName = "bg-navy-600",
+}: {
+  value: number;
+  label?: ReactNode;
+  className?: string;
+  barClassName?: string;
+}) {
   const pct = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <div className={className}>
@@ -53,7 +64,7 @@ export function ProgressBar({ value, label, className }: { value: number; label?
         </div>
       ) : null}
       <div className="h-2 w-full overflow-hidden rounded-full bg-neutral-200" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-        <div className="h-full rounded-full bg-navy-600 transition-all" style={{ width: `${pct}%` }} />
+        <div className={cn("h-full rounded-full transition-all", barClassName)} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

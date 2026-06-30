@@ -10,6 +10,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
 import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
+import { Input, Field } from "@/components/ui/form-fields";
 import { sendTestCampaign, sendCampaign } from "@/lib/actions/newsletter";
 
 export const dynamic = "force-dynamic";
@@ -197,7 +198,7 @@ export default async function CampaignPage({
         <p className="mt-1 text-sm text-slate-600">Enter any email and send just that one copy. It uses the exact same rendering as the real send. Open it, check it in a real inbox, and only then confirm the bulk send below. A test never touches subscribers or the send history.</p>
         <form action={sendTestCampaign} className="mt-3 flex flex-wrap items-end gap-2">
           <input type="hidden" name="id" value={campaign.id} />
-          <input name="testEmail" type="email" required placeholder="you@example.com" className="h-10 w-72 rounded-md border border-neutral-300 px-3 text-sm" />
+          <Input name="testEmail" type="email" required placeholder="you@example.com" className="w-72" />
           <Button type="submit">Send one test</Button>
         </form>
       </Card>
@@ -220,10 +221,9 @@ export default async function CampaignPage({
         ) : (
           <form action={sendCampaign} className="mt-4 flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={campaign.id} />
-            <div>
-              <label htmlFor="confirm" className="block text-sm font-medium text-navy-900">Type the recipient count to confirm</label>
-              <input id="confirm" name="confirm" inputMode="numeric" autoComplete="off" required placeholder={String(stats.subscribed)} className="mt-1 h-10 w-40 rounded-md border border-neutral-300 px-3 text-sm" />
-            </div>
+            <Field label="Type the recipient count to confirm">
+              <Input name="confirm" inputMode="numeric" autoComplete="off" required placeholder={String(stats.subscribed)} className="w-40" />
+            </Field>
             <Button type="submit" className="bg-gold-800 hover:bg-gold-800/90">Yes, send to {stats.subscribed} subscribers</Button>
           </form>
         )}

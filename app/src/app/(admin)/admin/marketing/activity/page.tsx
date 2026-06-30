@@ -90,7 +90,8 @@ export default async function MarketingActivityPage() {
               (it counts the numbers here for you). Then check{" "}
               <Link href="/admin/marketing" className="font-medium text-navy-600 hover:underline">Command</Link> for progress.
             </p>
-            <table className="w-full text-sm">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] text-sm">
               <tbody className="divide-y divide-neutral-100">
                 {[
                   ["I messaged someone NEW", "Prospects → Quick add them (if not there) → press “Approached ✓”. Then write it in Journal (auto +1 Messages)."],
@@ -109,6 +110,7 @@ export default async function MarketingActivityPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         </details>
       </Card>

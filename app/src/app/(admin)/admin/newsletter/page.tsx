@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert } from "@/components/ui/alert";
+import { Input, Field } from "@/components/ui/form-fields";
 import { NewsletterEditor } from "@/components/admin/newsletter-editor";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import { createCampaign, deleteCampaign } from "@/lib/actions/newsletter";
@@ -37,10 +38,9 @@ export default async function NewsletterComposePage({ searchParams }: { searchPa
           <span className="text-xs text-slate-500">{subscribedCount} subscribed</span>
         </div>
         <form action={createCampaign} className="mt-4 space-y-4">
-          <div>
-            <label htmlFor="subject" className="block text-sm font-medium text-navy-900">Subject</label>
-            <input id="subject" name="subject" required className="mt-1 h-10 w-full rounded-md border border-neutral-300 px-3 text-sm" />
-          </div>
+          <Field label="Subject">
+            <Input name="subject" required />
+          </Field>
           <div>
             <span className="block text-sm font-medium text-navy-900">Body</span>
             <p className="mb-1 text-xs text-slate-500">Compose like a blog post: headings, bold, lists, quotes, links, CTA buttons, callouts, dividers, and images. The output is compiled to email-safe HTML (MJML) for reliable rendering in Gmail, Outlook, and Apple Mail.</p>

@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "standalone",
+  // The container runs `next start` off the full build tree (full node_modules are
+  // copied), so the standalone output bundle is not used. Leaving output:standalone
+  // set only prints a boot warning, so it is omitted.
   poweredByHeader: false,
   experimental: {
     serverActions: {

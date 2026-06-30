@@ -68,7 +68,7 @@ export default async function AdminCommissionsPage() {
               </Td>
               <Td className="text-slate-600">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</Td>
               <Td>{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</Td>
-              <Td>{e.isFlat ? ", " : formatBp(e.rateBp)}</Td>
+              <Td>{e.isFlat ? "Flat" : formatBp(e.rateBp)}</Td>
               <Td className="font-medium text-navy-900">
                 {formatCents(e.amountCents - e.reversedCents, e.currency)}
                 {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}

@@ -3,6 +3,9 @@ import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input, Field } from "@/components/ui/form-fields";
+import { StatCard, StatGrid } from "@/components/ui/stat-card";
+import { Pagination } from "@/components/ui/pagination";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import {
   adminAddSubscriber,
@@ -15,13 +18,23 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function NewsletterSubscribersPage() {
-  const [subscribers, groups, subscribedCount, unsubscribedCount] = await Promise.all([
-    prisma.newsletterSubscriber.findMany({ orderBy: { createdAt: "desc" }, include: { groups: true, _count: { select: { deliveries: true } } } }),
+const PAGE_SIZE = 25;
+
+export default async function NewsletterSubscribersPage({ searchParams }: { searchParams: { page?: string } }) {
+  const page = Math.max(1, Number(searchParams.page) || 1);
+  const [total, subscribers, groups, subscribedCount, unsubscribedCount] = await Promise.all([
+    prisma.newsletterSubscriber.count(),
+    prisma.newsletterSubscriber.findMany({
+      orderBy: { createdAt: "desc" },
+      include: { groups: true, _count: { select: { deliveries: true } } },
+      take: PAGE_SIZE,
+      skip: (page - 1) * PAGE_SIZE,
+    }),
     prisma.newsletterGroup.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { subscribers: true } } } }),
     prisma.newsletterSubscriber.count({ where: { status: "subscribed" } }),
     prisma.newsletterSubscriber.count({ where: { status: "unsubscribed" } }),
   ]);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <div className="space-y-8">
@@ -30,29 +43,22 @@ export default async function NewsletterSubscribersPage() {
         <ButtonLink href="/admin/newsletter" variant="secondary" size="sm">Compose & campaigns</ButtonLink>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-        {[
-          ["Subscribed", subscribedCount],
-          ["Unsubscribed", unsubscribedCount],
-          ["Groups", groups.length],
-        ].map(([label, value]) => (
-          <Card key={label as string} className="text-center">
-            <p className="text-2xl font-semibold text-navy-900">{value as number}</p>
-            <p className="text-xs uppercase tracking-wide text-slate-500">{label as string}</p>
-          </Card>
-        ))}
-      </div>
+      <StatGrid cols={3}>
+        <StatCard label="Subscribed" value={subscribedCount} tone="positive" />
+        <StatCard label="Unsubscribed" value={unsubscribedCount} />
+        <StatCard label="Groups" value={groups.length} />
+      </StatGrid>
 
       <Card>
         <h2 className="text-lg font-semibold text-navy-900">Groups</h2>
         <form action={createNewsletterGroup} className="mt-4 flex flex-wrap items-end gap-3">
-          <div>
-            <label htmlFor="g-name" className="block text-sm font-medium text-navy-900">Name</label>
-            <input id="g-name" name="name" required className="mt-1 h-10 w-56 rounded-md border border-neutral-300 px-3 text-sm" />
-          </div>
+          <Field label="Name">
+            <Input name="name" required className="w-56" />
+          </Field>
           <div className="flex-1">
-            <label htmlFor="g-desc" className="block text-sm font-medium text-navy-900">Description</label>
-            <input id="g-desc" name="description" className="mt-1 h-10 w-full rounded-md border border-neutral-300 px-3 text-sm" />
+            <Field label="Description">
+              <Input name="description" />
+            </Field>
           </div>
           <Button type="submit" size="sm">Add group</Button>
         </form>
@@ -70,7 +76,7 @@ export default async function NewsletterSubscribersPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-navy-900">Subscribers</h2>
           <form action={adminAddSubscriber} className="flex items-end gap-2">
-            <input name="email" type="email" required placeholder="add@example.com" className="h-9 w-56 rounded-md border border-neutral-300 px-3 text-sm" />
+            <Input name="email" type="email" required placeholder="add@example.com" className="w-56" />
             <Button type="submit" size="sm">Add</Button>
           </form>
         </div>
@@ -109,7 +115,12 @@ export default async function NewsletterSubscribersPage() {
                           <input type="hidden" name="subscriberId" value={s.id} />
                           <input type="hidden" name="groupId" value={g.id} />
                           <input type="hidden" name="add" value={isMember ? "0" : "1"} />
-                          <button type="submit" className={`rounded-full px-2.5 py-0.5 text-xs transition ${isMember ? "bg-navy-900 text-white" : "border border-neutral-300 text-slate-600 hover:bg-neutral-50"}`}>
+                          {/* Compact multi-select group toggle (a form submit, so not a FilterPill link). */}
+                          <button
+                            type="submit"
+                            aria-pressed={isMember}
+                            className={`rounded-full px-2.5 py-0.5 text-xs transition ${isMember ? "bg-navy-900 text-white" : "border border-neutral-300 text-slate-600 hover:bg-neutral-50"}`}
+                          >
                             {g.name}
                           </button>
                         </form>
@@ -121,6 +132,12 @@ export default async function NewsletterSubscribersPage() {
             );
           })}
         </div>
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          hrefForPage={(p) => `/admin/newsletter/subscribers?page=${p}`}
+          className="mt-6"
+        />
       </Card>
     </div>
   );

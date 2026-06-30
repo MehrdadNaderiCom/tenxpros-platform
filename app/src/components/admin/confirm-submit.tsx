@@ -1,14 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/dialog";
 
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 /**
- * A form-submit button that asks for confirmation before running its server
- * action. Uses the shared Button so destructive actions look consistent across
- * the admin. Defaults to the red "danger" variant for deletes.
+ * A form-submit control that asks for confirmation before running its server
+ * action. Renders the shared modal ConfirmDialog (not a native window.confirm),
+ * so every destructive action across the admin uses the same polished, accessible
+ * confirmation. Defaults to the red "danger" variant for deletes.
  */
 export function ConfirmSubmit({
   action,
@@ -26,18 +27,15 @@ export function ConfirmSubmit({
   size?: Size;
 }) {
   return (
-    <form
+    <ConfirmDialog
       action={action}
-      onSubmit={(e) => {
-        if (!window.confirm(message)) e.preventDefault();
-      }}
-    >
-      {Object.entries(hidden).map(([k, v]) => (
-        <input key={k} type="hidden" name={k} value={v} />
-      ))}
-      <Button type="submit" variant={variant} size={size}>
-        {label}
-      </Button>
-    </form>
+      hidden={hidden}
+      triggerLabel={label}
+      title="Please confirm"
+      description={message}
+      confirmLabel={label}
+      triggerVariant={variant}
+      triggerSize={size}
+    />
   );
 }

@@ -36,7 +36,7 @@ const APPLICATION_STATUS_LABELS: Record<string, string> = {
 };
 
 function labelOf(options: LabeledOption[], value?: string | null): string {
-  if (!value) return ", ";
+  if (!value) return "-";
   return options.find((option) => option.value === value)?.label ?? value;
 }
 

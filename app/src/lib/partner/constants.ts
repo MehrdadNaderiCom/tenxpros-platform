@@ -245,7 +245,7 @@ export const CONFIG_GROUPS = Array.from(new Set(CONFIG_FIELD_META.map((f) => f.g
 
 /** Human-readable rendering of a config value given its unit. */
 export function formatConfigValue(value: number | string | boolean | null | undefined, unit: ConfigUnit): string {
-  if (value === null || value === undefined) return ", ";
+  if (value === null || value === undefined) return "-";
   switch (unit) {
     case "bp":
       return `${(Number(value) / 100).toFixed(Number(value) % 100 === 0 ? 0 : 2)}%`;
@@ -281,6 +281,6 @@ export function formatCents(minor: number | null | undefined, currency = "USD"):
 
 /** Format basis points as a percent string. */
 export function formatBp(bp: number | null | undefined): string {
-  if (bp === null || bp === undefined) return ", ";
+  if (bp === null || bp === undefined) return "-";
   return `${(bp / 100).toFixed(bp % 100 === 0 ? 0 : 2)}%`;
 }

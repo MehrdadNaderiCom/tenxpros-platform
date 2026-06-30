@@ -266,12 +266,13 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
 
               {/* Commission lines */}
               <p className="mt-3 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Commission lines</p>
-              <table className="mt-1 w-full text-sm">
+              <div className="mt-1 overflow-x-auto">
+              <table className="w-full min-w-[360px] text-sm">
                 <tbody>
                   {deal.commissions.map((c) => (
                     <tr key={c.id} className="border-b border-neutral-100">
                       <td className="py-1 pr-2">{PARTNER_FUNCTION_LABELS[c.function]}{c.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
-                      <td className="py-1 pr-2 text-slate-500">{c.isFlat ? ", " : formatBp(c.rateBp)}</td>
+                      <td className="py-1 pr-2 text-slate-500">{c.isFlat ? "Flat" : formatBp(c.rateBp)}</td>
                       <td className="py-1 pr-2 font-medium text-navy-900">
                         {formatCents(c.amountCents - c.reversedCents, c.currency)}
                         {c.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(c.reversedCents, c.currency)})</span> : null}
@@ -281,6 +282,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                   ))}
                 </tbody>
               </table>
+              </div>
               <div className="mt-2 flex flex-wrap items-end gap-2">
                 <form action={addCommissionLine} className="flex items-end gap-2">
                   <input type="hidden" name="closedDealId" value={deal.id} />

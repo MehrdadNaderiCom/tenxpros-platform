@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/shared/page-shell";
 import { applicationCounts, certificationCounts } from "@/lib/admin-metrics";
 
 function pct(n: number, of: number): string {
-  if (!of) return ", ";
+  if (!of) return "-";
   return `${Math.round((n / of) * 1000) / 10}%`;
 }
 
