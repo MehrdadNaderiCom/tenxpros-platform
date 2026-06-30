@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
-import { COUNTRIES } from "@/lib/countries";
+import { CountrySelect } from "@/components/ui/country-select";
 import { PartnerTermsDialog } from "@/components/marketing/partner-terms-modal";
 
 const defaultValues: Partial<PartnerApplicationInput> = {
@@ -115,7 +115,7 @@ export function PartnerApplicationForm() {
               <Input {...register("phone")} type="tel" autoComplete="tel" placeholder="+44 7700 900123" />
             </Field>
             <Field label="Country" error={errors.country?.message}>
-              <Input {...register("country")} list="partner-country-options" placeholder="Start typing… e.g. United States" />
+              <CountrySelect {...register("country")} />
             </Field>
             <Field label="Region / city" optional error={errors.region?.message}>
               <Input {...register("region")} placeholder="e.g. Dubai, UAE" />
@@ -124,11 +124,6 @@ export function PartnerApplicationForm() {
               <Input {...register("linkedinUrl")} type="url" placeholder="https://www.linkedin.com/in/..." />
             </Field>
           </div>
-          <datalist id="partner-country-options">
-            {COUNTRIES.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </section>
 
         <section className="space-y-4">

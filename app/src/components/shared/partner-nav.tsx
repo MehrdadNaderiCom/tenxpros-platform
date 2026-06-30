@@ -19,7 +19,7 @@ const partnerItems: Array<[string, string]> = [
 
 export function PartnerNav({ name, status, unread = 0 }: { name?: string | null; status?: PartnerStatus; unread?: number }) {
   return (
-    <aside className="border-b border-neutral-200 bg-white p-5 md:min-h-screen md:w-72 md:shrink-0 md:border-b-0 md:border-r">
+    <aside className="border-b border-neutral-200 bg-white p-5 md:min-h-screen md:w-72 md:shrink-0 md:border-b-0 md:border-r print:hidden">
       <div className="space-y-6">
         <Logo />
         <div className="space-y-2">

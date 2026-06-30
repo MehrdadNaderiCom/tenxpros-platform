@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { cooldownUntil, FINAL_EXAM_COOLDOWN_HOURS } from "@/lib/academy/engine";
 
 export type AcademyStatus = "locked" | "available" | "in_progress" | "exercises_done" | "passed";
 
@@ -30,6 +31,8 @@ export interface AcademyOverview {
   /** The next module to act on (first not-passed unlocked module), for resume. */
   resumeSlug: string | null;
   badge: { serial: string; year: number; awardedAt: Date } | null;
+  /** The comprehensive final exam (unlocks once every module is passed). */
+  finalExam: { unlocked: boolean; passed: boolean; lockedUntil: Date | null; attempts: number };
 }
 
 /**
@@ -38,11 +41,15 @@ export interface AcademyOverview {
  * the previous module being passed (the first module is always open).
  */
 export async function getAcademyOverview(partnerId: string): Promise<AcademyOverview> {
-  const [modules, progressRows, exerciseCounts, badge] = await Promise.all([
+  const [modules, progressRows, exerciseCounts, badge, finalSittings] = await Promise.all([
     prisma.academyModule.findMany({ where: { isPublished: true }, orderBy: { order: "asc" } }),
     prisma.academyProgress.findMany({ where: { partnerId } }),
     prisma.academyQuestion.groupBy({ by: ["moduleId"], where: { pool: "EXERCISE" }, _count: { _all: true } }),
     prisma.partnerAcademyBadge.findUnique({ where: { partnerId } }),
+    prisma.academyExamSitting.findMany({
+      where: { partnerId, isFinal: true, submittedAt: { not: null } },
+      orderBy: { submittedAt: "desc" },
+    }),
   ]);
 
   const progressByModule = new Map(progressRows.map((p) => [p.moduleId, p]));
@@ -90,14 +97,29 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
   const passedCount = views.filter((v) => v.examPassed).length;
   const totalCount = views.length;
   const resume = views.find((v) => v.unlocked && !v.examPassed) ?? null;
+  const allPassed = totalCount > 0 && passedCount === totalCount;
+
+  const finalPassed = finalSittings.some((s) => s.passed);
+  const lastFinal = finalSittings[0]; // most recent submitted
+  let finalLockedUntil: Date | null = null;
+  if (!finalPassed && lastFinal?.submittedAt) {
+    const until = cooldownUntil(lastFinal.submittedAt, FINAL_EXAM_COOLDOWN_HOURS);
+    if (until.getTime() > Date.now()) finalLockedUntil = until;
+  }
 
   return {
     modules: views,
     passedCount,
     totalCount,
-    allPassed: totalCount > 0 && passedCount === totalCount,
+    allPassed,
     resumeSlug: resume?.slug ?? null,
     badge: badge ? { serial: badge.serial, year: badge.year, awardedAt: badge.awardedAt } : null,
+    finalExam: {
+      unlocked: allPassed,
+      passed: finalPassed,
+      lockedUntil: finalLockedUntil,
+      attempts: finalSittings.length,
+    },
   };
 }
 

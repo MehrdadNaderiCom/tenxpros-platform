@@ -22,7 +22,7 @@ export default async function ExamPage({ params }: { params: { slug: string } })
   if (current.preview) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Final exam" description="Admin preview" />
+        <PageHeader title="Module exam" description="Admin preview" />
         <Card>
           <p className="text-sm text-slate-600">Exams are taken by partners. They are not available in admin preview.</p>
           <ButtonLink href={`/partner/academy/${params.slug}`} variant="secondary" size="sm" className="mt-4">Back to the lesson</ButtonLink>
@@ -39,7 +39,7 @@ export default async function ExamPage({ params }: { params: { slug: string } })
         : "";
     return (
       <div className="space-y-6">
-        <PageHeader title="Final exam" description="" />
+        <PageHeader title="Module exam" description="" />
         <Card>
           <p className="text-sm text-slate-600">{(REASONS[result.reason] ?? "This exam is not available right now.") + cooldownNote}</p>
           <ButtonLink href={`/partner/academy/${params.slug}`} variant="secondary" size="sm" className="mt-4">Back to the lesson</ButtonLink>
@@ -51,10 +51,10 @@ export default async function ExamPage({ params }: { params: { slug: string } })
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Final exam"
+        title="Module exam"
         description={`One sitting, ${result.questions.length} questions, ${result.passMark}% to pass. Answers are shown only after you submit.`}
       />
-      <ExamPlayer sittingId={result.sittingId} questions={result.questions} passMark={result.passMark} moduleSlug={params.slug} />
+      <ExamPlayer sittingId={result.sittingId} questions={result.questions} passMark={result.passMark} failHref={`/partner/academy/${params.slug}`} />
     </div>
   );
 }

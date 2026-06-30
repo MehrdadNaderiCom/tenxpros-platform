@@ -253,6 +253,16 @@ function prospectData(formData: FormData) {
     contacts[quickChannel as (typeof CONTACT_FIELDS)[number]] = quickHandle;
   }
 
+  // Light format guards: keep the email and the clearly-URL LinkedIn field
+  // clean. Free handles (whatsapp/telegram/instagram/twitter/phone) are left as
+  // typed. Empty values stay allowed.
+  if (contacts.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(contacts.email)) {
+    throw new Error("Enter a valid contact email, or leave it blank.");
+  }
+  if (contacts.linkedin && !/^https?:\/\/\S+$/i.test(contacts.linkedin)) {
+    throw new Error("LinkedIn should be a full URL starting with http or https, or leave it blank.");
+  }
+
   return {
     assetsSent: assets.length > 0 ? assets.join(",") : null,
     name,

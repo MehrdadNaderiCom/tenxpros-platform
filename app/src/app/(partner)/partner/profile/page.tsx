@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
+import { CountrySelect } from "@/components/ui/country-select";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,7 @@ export default async function PartnerProfilePage() {
               <Input name="contactEmail" type="email" defaultValue={partner.contactEmail} />
             </Field>
             <Field label="Country" optional>
-              <Input name="country" defaultValue={partner.country ?? ""} />
+              <CountrySelect name="country" defaultValue={partner.country ?? ""} />
             </Field>
           </div>
           <Button type="submit">Save profile</Button>

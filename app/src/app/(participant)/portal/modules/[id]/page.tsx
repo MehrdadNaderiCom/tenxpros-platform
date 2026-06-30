@@ -43,7 +43,7 @@ export default async function ModulePage({ params }: { params: { id: string } })
         <form action={submitModuleArtifact} className="space-y-4">
           <input type="hidden" name="participantModuleId" value={item.id} />
           <Field label="Artifact content">
-            <Textarea name="artifactContent" defaultValue={item.artifactContent ?? ""} />
+            <Textarea name="artifactContent" defaultValue={item.artifactContent ?? ""} required minLength={80} />
           </Field>
           <Field label="Artifact URL">
             <Input name="artifactUrl" type="url" defaultValue={item.artifactUrl ?? ""} />

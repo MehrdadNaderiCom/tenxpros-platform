@@ -40,6 +40,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/form-fields";
+import { CountrySelect } from "@/components/ui/country-select";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -126,7 +127,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           </label>
           <label className="space-y-1">
             <span className="text-xs font-medium text-slate-600">Country</span>
-            <Input name="country" defaultValue={partner.country ?? ""} />
+            <CountrySelect name="country" defaultValue={partner.country ?? ""} />
           </label>
           <div className="md:col-span-3">
             <Button type="submit" size="sm">Save profile</Button>

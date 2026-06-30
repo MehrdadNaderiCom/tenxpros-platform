@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
+import { CountrySelect } from "@/components/ui/country-select";
 
 const defaults: Partial<DealRegistrationInput> = { productLine: "TENXPROS", offering: "B2B_ENGAGEMENT", functionsIntended: [] };
 
@@ -86,7 +87,7 @@ export function PartnerDealForm() {
             <Input {...register("legalEntity")} placeholder="e.g. Global Bank Ltd" />
           </Field>
           <Field label="Country" error={errors.country?.message}>
-            <Input {...register("country")} placeholder="e.g. United Arab Emirates" />
+            <CountrySelect {...register("country")} />
           </Field>
           <Field label="Business unit or department" optional error={errors.businessUnit?.message}>
             <Input {...register("businessUnit")} placeholder="e.g. Human Resources" />

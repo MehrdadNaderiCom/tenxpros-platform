@@ -2516,19 +2516,23 @@ model AcademyExerciseAttempt {
 }
 
 model AcademyExamSitting {
-  id          String        @id @default(cuid())
+  id          String         @id @default(cuid())
   partnerId   String
-  partner     Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  moduleId    String
-  module      AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  partner     Partner        @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  // Null for the comprehensive final exam, which draws from every module's pool.
+  moduleId    String?
+  module      AcademyModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  // True for the final exam (cross-module, 20 questions, gates the certificate).
+  isFinal     Boolean        @default(false)
   questionIds Json
   answers     Json
   score       Int
   passed      Boolean
-  startedAt   DateTime      @default(now())
+  startedAt   DateTime       @default(now())
   submittedAt DateTime?
 
   @@index([partnerId, moduleId])
+  @@index([partnerId, isFinal])
 }
 
 model PartnerAcademyBadge {

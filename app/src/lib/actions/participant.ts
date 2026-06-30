@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { assertParticipantCanEditDossierSection } from "@/lib/dossier";
 import { prisma } from "@/lib/prisma";
@@ -177,32 +178,61 @@ export async function addTicketMessage(formData: FormData) {
   safeRevalidatePath(`/portal/tickets/${parsed.ticketId}`);
 }
 
+// Light, friendly validation: empty optional fields stay allowed; the public
+// slug is built from displayName, so it needs at least 2 characters. URL fields
+// accept either an empty string or a valid http(s) URL.
+const urlOrEmpty = z
+  .string()
+  .trim()
+  .max(300)
+  .refine((value) => value === "" || /^https?:\/\/\S+$/i.test(value), "Enter a full URL starting with http or https.");
+
+const directoryProfileSchema = z.object({
+  displayName: z.string().trim().min(2, "Add a display name of at least 2 characters.").max(80, "Keep the display name under 80 characters."),
+  title: z.string().trim().max(120, "Keep the title under 120 characters.").optional().default(""),
+  domain: z.string().trim().max(120, "Keep the domain under 120 characters.").optional().default(""),
+  location: z.string().trim().max(120, "Keep the location under 120 characters.").optional().default(""),
+  bio: z.string().trim().max(2000, "Keep the bio under 2000 characters.").optional().default(""),
+  linkedinUrl: urlOrEmpty.optional().default(""),
+  websiteUrl: urlOrEmpty.optional().default(""),
+});
+
 export async function updateDirectoryProfile(formData: FormData) {
   const profile = await requireParticipant();
-  const displayName = String(formData.get("displayName") ?? profile.user.name ?? "TenXPro");
+  const parsed = directoryProfileSchema.safeParse({
+    displayName: formData.get("displayName") ?? profile.user.name ?? "TenXPro",
+    title: formData.get("title") ?? "",
+    domain: formData.get("domain") ?? "",
+    location: formData.get("location") ?? "",
+    bio: formData.get("bio") ?? "",
+    linkedinUrl: formData.get("linkedinUrl") ?? "",
+    websiteUrl: formData.get("websiteUrl") ?? "",
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Please check the profile fields.");
+  const { displayName, title, domain, location, bio, linkedinUrl, websiteUrl } = parsed.data;
   const slug = displayName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   await prisma.directoryProfile.upsert({
     where: { userId: profile.userId },
     update: {
       displayName,
-      title: String(formData.get("title") ?? ""),
-      domain: String(formData.get("domain") ?? ""),
-      bio: String(formData.get("bio") ?? ""),
-      location: String(formData.get("location") ?? ""),
-      linkedinUrl: String(formData.get("linkedinUrl") ?? "") || null,
-      websiteUrl: String(formData.get("websiteUrl") ?? "") || null,
+      title,
+      domain,
+      bio,
+      location,
+      linkedinUrl: linkedinUrl || null,
+      websiteUrl: websiteUrl || null,
       isPublic: formData.get("isPublic") === "on",
     },
     create: {
       userId: profile.userId,
       slug: `${slug}-${profile.id.slice(0, 6)}`,
       displayName,
-      title: String(formData.get("title") ?? ""),
-      domain: String(formData.get("domain") ?? ""),
-      bio: String(formData.get("bio") ?? ""),
-      location: String(formData.get("location") ?? ""),
-      linkedinUrl: String(formData.get("linkedinUrl") ?? "") || null,
-      websiteUrl: String(formData.get("websiteUrl") ?? "") || null,
+      title,
+      domain,
+      bio,
+      location,
+      linkedinUrl: linkedinUrl || null,
+      websiteUrl: websiteUrl || null,
       isPublic: formData.get("isPublic") === "on",
     },
   });

@@ -100,6 +100,10 @@ export async function approvePath(formData: FormData) {
 export async function saveModuleLibraryItem(formData: FormData) {
   await requireAdmin();
   const moduleId = String(formData.get("moduleId") ?? "");
+  // Light guard: a blank/NaN/negative estimate falls back to the default, and
+  // an absurd value is clamped into a sane range.
+  const hoursRaw = Number(formData.get("estimatedHours") ?? 4);
+  const estimatedHours = Number.isFinite(hoursRaw) ? Math.min(1000, Math.max(0, hoursRaw)) : 4;
   await prisma.module.update({
     where: { id: moduleId },
     data: {
@@ -108,7 +112,7 @@ export async function saveModuleLibraryItem(formData: FormData) {
       description: String(formData.get("description") ?? ""),
       artifactTemplate: String(formData.get("artifactTemplate") ?? ""),
       passCriteria: String(formData.get("passCriteria") ?? ""),
-      estimatedHours: Number(formData.get("estimatedHours") ?? 4),
+      estimatedHours,
     },
   });
   safeRevalidatePath("/admin/modules");

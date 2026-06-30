@@ -9,6 +9,7 @@ import {
 import { requirePartner } from "@/lib/partner/auth";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
+import { notifyOwner } from "@/lib/services/owner-notify";
 
 function usdToCents(usd: number | undefined): number | null {
   if (usd == null || !Number.isFinite(usd)) return null;
@@ -32,6 +33,20 @@ export async function setActivationItem(formData: FormData) {
     data: { completed, completedAt: completed ? new Date() : null },
   });
   await prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: new Date() } });
+
+  // When the partner finishes the last item and is still awaiting confirmation,
+  // tell the owner so they can confirm the Activation Gate.
+  if (completed && !partner.activationGatePassedAt) {
+    const items = await prisma.activationGateItem.findMany({ where: { partnerId: partner.id }, select: { completed: true } });
+    if (items.length > 0 && items.every((i) => i.completed)) {
+      await notifyOwner({
+        subject: `Partner ready for activation: ${partner.displayName}`,
+        template: "owner_partner_activation_ready",
+        body: `${partner.displayName} has completed every Activation Gate item and is awaiting your Panel Confirmation.`,
+        href: `/admin/partners/${partner.id}`,
+      });
+    }
+  }
 
   await recordAudit({
     actorId: partner.userId,
@@ -99,6 +114,13 @@ export async function submitDealRegistration(formData: FormData) {
     after: { legalEntity: data.legalEntity, country: data.country, offering: data.offering },
   });
 
+  await notifyOwner({
+    subject: `New deal registration: ${partner.displayName}`,
+    template: "owner_deal_registration",
+    body: `${partner.displayName} registered a deal (${data.legalEntity}, ${data.country}). It is awaiting your review and confirmation.`,
+    href: "/admin/partners/deal-registrations",
+  });
+
   safeRevalidatePath("/partner/deals");
   safeRevalidatePath("/admin/partners/deal-registrations");
   return { ok: true, id: registration.id };
@@ -140,6 +162,12 @@ export async function requestTenXOpsEngagement(formData: FormData) {
     entity: "TenXOpsEngagement",
     entityId: engagement.id,
     after: { organisation: data.organisation },
+  });
+  await notifyOwner({
+    subject: `New TenXOps request: ${partner.displayName}`,
+    template: "owner_tenxops_request",
+    body: `${partner.displayName} requested a TenXOps engagement for ${data.organisation}. It is awaiting your decision.`,
+    href: "/admin/partners/deal-registrations",
   });
   safeRevalidatePath("/partner/tenxops");
   safeRevalidatePath("/admin/partners/deal-registrations");

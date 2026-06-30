@@ -10,6 +10,14 @@ export const DEFAULT_EXAM_SIZE = 10;
 export const DEFAULT_COOLDOWN_HOURS = 24;
 export const EXERCISE_MAX_ATTEMPTS = 3;
 
+// The comprehensive final exam, taken after every module is passed. It draws a
+// shuffled set of questions from all fourteen modules' exam pools and gates the
+// certificate. It has no parent module, so its size, pass mark, and cooldown are
+// constants here rather than read from an AcademyModule row.
+export const FINAL_EXAM_SIZE = 20;
+export const FINAL_EXAM_PASS_MARK = 80;
+export const FINAL_EXAM_COOLDOWN_HOURS = 24;
+
 /** Deterministic 32-bit PRNG (mulberry32). Returns a function yielding [0, 1). */
 export function makeRng(seed: number): () => number {
   let a = seed >>> 0;

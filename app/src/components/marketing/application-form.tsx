@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { Field } from "@/components/ui/form-field";
-import { COUNTRIES } from "@/lib/countries";
+import { CountrySelect } from "@/components/ui/country-select";
 import {
   AI_EXPERIENCE_OPTIONS,
   DATA_SENSITIVITY_OPTIONS,
@@ -125,12 +125,7 @@ export function ApplicationForm() {
               error={errors.country?.message}
               hint="The country where you are currently based. Start typing to search the list and pick your country."
             >
-              <Input
-                {...register("country")}
-                list="country-options"
-                autoComplete="country-name"
-                placeholder="Start typing… e.g. United States"
-              />
+              <CountrySelect {...register("country")} />
             </Field>
             <Field
               label="Phone number"
@@ -175,11 +170,6 @@ export function ApplicationForm() {
               />
             </Field>
           </div>
-          <datalist id="country-options">
-            {COUNTRIES.map((name) => (
-              <option key={name} value={name} />
-            ))}
-          </datalist>
         </section>
 
         <section className="space-y-4">

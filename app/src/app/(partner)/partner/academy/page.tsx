@@ -29,7 +29,7 @@ export default async function AcademyHome() {
     <div className="space-y-8">
       <PageHeader
         title="Partner Academy"
-        description="A step by step training that turns the program into something you can explain and represent with confidence. Read each lesson, work the exercises, and pass the final exam to unlock the next module."
+        description="A step by step training that turns the program into something you can explain and represent with confidence. Read each lesson, work the exercises, and pass the module exam to unlock the next one. A comprehensive final exam at the end earns your certificate."
       />
 
       <Card className="space-y-4">
@@ -55,6 +55,26 @@ export default async function AcademyHome() {
           </div>
         ) : null}
       </Card>
+
+      {overview.finalExam.unlocked && !overview.finalExam.passed ? (
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-gold-500 bg-gold-50">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-gold-800">Final step</p>
+            <h2 className="mt-1 text-lg font-semibold text-navy-900">The comprehensive final exam</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+              You have passed every module. The final exam draws 20 questions from across all fourteen modules. Pass it to earn your Partner Academy certificate.
+            </p>
+            {overview.finalExam.lockedUntil ? (
+              <p className="mt-1 text-sm text-amber-700">
+                On cooldown after a failed attempt. Available again after {overview.finalExam.lockedUntil.toLocaleString()}.
+              </p>
+            ) : null}
+          </div>
+          {overview.finalExam.lockedUntil ? null : (
+            <ButtonLink href="/partner/academy/final-exam">Start the final exam</ButtonLink>
+          )}
+        </Card>
+      ) : null}
 
       <ProDetectionPanel />
 

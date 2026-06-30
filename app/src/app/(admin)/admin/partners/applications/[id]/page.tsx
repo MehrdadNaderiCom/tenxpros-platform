@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import { Input, Textarea } from "@/components/ui/form-fields";
+import { CountrySelect } from "@/components/ui/country-select";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -76,7 +77,7 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
           </label>
           <label className="space-y-1">
             <span className="text-xs font-medium text-slate-600">Country</span>
-            <Input name="country" defaultValue={a.country} />
+            <CountrySelect name="country" defaultValue={a.country} />
           </label>
           <label className="space-y-1">
             <span className="text-xs font-medium text-slate-600">Region / city</span>

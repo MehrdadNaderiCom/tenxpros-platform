@@ -13,7 +13,12 @@ import {
   cooldownUntil,
   academyBadgeSerial,
   ACADEMY_MODULE_COUNT,
+  FINAL_EXAM_SIZE,
+  FINAL_EXAM_PASS_MARK,
+  FINAL_EXAM_COOLDOWN_HOURS,
 } from "@/lib/academy/engine";
+import { safeSendEmail } from "@/lib/services/email";
+import { superAdminEmail } from "@/lib/authz";
 
 function randomSeed(): number {
   return Math.floor(Math.random() * 2 ** 31);
@@ -216,6 +221,7 @@ export async function submitExam(input: { sittingId: string; selections: number[
     where: { id: input.sittingId, partnerId: partner.id },
   });
   if (sitting.submittedAt) throw new Error("This exam sitting is already submitted.");
+  if (sitting.isFinal || !sitting.moduleId) throw new Error("This is the final exam. Use submitFinalExam.");
   const m = await prisma.academyModule.findUniqueOrThrow({ where: { id: sitting.moduleId } });
   const served = sitting.questionIds as unknown as ServedQuestion[];
   const questions = await prisma.academyQuestion.findMany({ where: { id: { in: served.map((s) => s.questionId) } } });
@@ -248,23 +254,10 @@ export async function submitExam(input: { sittingId: string; selections: number[
     data: { bestExamScore: result.percent },
   });
 
-  // Award the badge if every published module is now passed.
-  let badgeAwarded = false;
-  if (result.passed) {
-    const publishedCount = await prisma.academyModule.count({ where: { isPublished: true } });
-    const passedCount = await prisma.academyProgress.count({ where: { partnerId: partner.id, examPassed: true } });
-    if (publishedCount >= ACADEMY_MODULE_COUNT && passedCount >= publishedCount) {
-      const existing = await prisma.partnerAcademyBadge.findUnique({ where: { partnerId: partner.id } });
-      if (!existing) {
-        const year = new Date().getUTCFullYear();
-        const seq = (await prisma.partnerAcademyBadge.count()) + 1;
-        await prisma.partnerAcademyBadge.create({
-          data: { partnerId: partner.id, serial: academyBadgeSerial(year, seq), year },
-        });
-        badgeAwarded = true;
-      }
-    }
-  }
+  // Passing a module no longer issues the certificate. The certificate is gated
+  // on the comprehensive final exam (see submitFinalExam), which unlocks once
+  // every module is passed.
+  const badgeAwarded = false;
 
   const review = served.map((s, i) => {
     const q = qById.get(s.questionId)!;
@@ -280,6 +273,158 @@ export async function submitExam(input: { sittingId: string; selections: number[
 
   safeRevalidatePath(`/partner/academy/${m.slug}`);
   safeRevalidatePath("/partner/academy");
+  return {
+    passed: result.passed,
+    percent: result.percent,
+    correctCount: result.correctCount,
+    total: result.total,
+    review,
+    badgeAwarded,
+  };
+}
+
+/** True once every published module's exam is passed (the final-exam gate). */
+async function allModulesPassedFor(partnerId: string): Promise<boolean> {
+  const [publishedCount, passedCount] = await Promise.all([
+    prisma.academyModule.count({ where: { isPublished: true } }),
+    prisma.academyProgress.count({ where: { partnerId, examPassed: true } }),
+  ]);
+  return publishedCount >= ACADEMY_MODULE_COUNT && passedCount >= publishedCount;
+}
+
+/**
+ * Create or resume the comprehensive final exam. It unlocks only once every
+ * module is passed, draws FINAL_EXAM_SIZE questions shuffled from all modules'
+ * exam pools, and is the sole automatic gate for the certificate. A failed
+ * attempt sets a cooldown derived from the sitting's submit time.
+ */
+export async function startOrResumeFinalExam(): Promise<
+  | { ok: false; reason: string; lockedUntil?: string }
+  | { ok: true; sittingId: string; questions: { id: string; stem: string; options: string[] }[]; passMark: number }
+> {
+  const { partner } = await requirePartner();
+
+  const passedFinal = await prisma.academyExamSitting.findFirst({
+    where: { partnerId: partner.id, isFinal: true, passed: true },
+  });
+  if (passedFinal) return { ok: false, reason: "already_passed" };
+
+  if (!(await allModulesPassedFor(partner.id))) return { ok: false, reason: "not_ready" };
+
+  // Cooldown from the most recent submitted (failed) final sitting.
+  const lastFinal = await prisma.academyExamSitting.findFirst({
+    where: { partnerId: partner.id, isFinal: true, submittedAt: { not: null } },
+    orderBy: { submittedAt: "desc" },
+  });
+  if (lastFinal?.submittedAt) {
+    const until = cooldownUntil(lastFinal.submittedAt, FINAL_EXAM_COOLDOWN_HOURS);
+    if (until.getTime() > Date.now()) return { ok: false, reason: "cooldown", lockedUntil: until.toISOString() };
+  }
+
+  // The pool is every published module's EXAM questions, combined.
+  const examQuestions = await prisma.academyQuestion.findMany({
+    where: { pool: "EXAM", module: { isPublished: true } },
+  });
+
+  const open = await prisma.academyExamSitting.findFirst({
+    where: { partnerId: partner.id, isFinal: true, submittedAt: null },
+    orderBy: { startedAt: "desc" },
+  });
+
+  let served: ServedQuestion[];
+  let sittingId: string;
+  if (open) {
+    served = open.questionIds as unknown as ServedQuestion[];
+    sittingId = open.id;
+  } else {
+    const seenIds = new Set(
+      (
+        await prisma.academyExamSitting.findMany({
+          where: { partnerId: partner.id, isFinal: true },
+          select: { questionIds: true },
+        })
+      ).flatMap((s) => (s.questionIds as unknown as ServedQuestion[]).map((q) => q.questionId)),
+    );
+    const rng = makeRng(randomSeed());
+    const poolIds = examQuestions.map((q) => q.id);
+    const chosen = selectExamQuestionIds(poolIds, FINAL_EXAM_SIZE, seenIds, rng);
+    served = chosen.map((id) => {
+      const q = examQuestions.find((x) => x.id === id)!;
+      const layout = shuffleOptions((q.options as string[]).length, q.correctIndex, rng);
+      return { questionId: id, optionOrder: layout.order };
+    });
+    const created = await prisma.academyExamSitting.create({
+      data: { partnerId: partner.id, moduleId: null, isFinal: true, questionIds: served as object, answers: [], score: 0, passed: false },
+    });
+    sittingId = created.id;
+  }
+
+  const qById = new Map(examQuestions.map((q) => [q.id, q]));
+  const questions = served.map((s) => {
+    const q = qById.get(s.questionId)!;
+    const opts = q.options as string[];
+    return { id: s.questionId, stem: q.stem, options: s.optionOrder.map((i) => opts[i]) };
+  });
+  return { ok: true, sittingId, questions, passMark: FINAL_EXAM_PASS_MARK };
+}
+
+/** Grade and close the final exam. A pass issues the certificate and emails the owner. */
+export async function submitFinalExam(input: { sittingId: string; selections: number[] }): Promise<ExamSubmitResult> {
+  const { partner } = await requirePartner();
+  const sitting = await prisma.academyExamSitting.findFirstOrThrow({
+    where: { id: input.sittingId, partnerId: partner.id, isFinal: true },
+  });
+  if (sitting.submittedAt) throw new Error("This exam sitting is already submitted.");
+
+  const served = sitting.questionIds as unknown as ServedQuestion[];
+  const questions = await prisma.academyQuestion.findMany({ where: { id: { in: served.map((s) => s.questionId) } } });
+  const qById = new Map(questions.map((q) => [q.id, q]));
+  const gradeInput = served.map((s) => {
+    const q = qById.get(s.questionId)!;
+    return { correctIndex: s.optionOrder.indexOf(q.correctIndex) };
+  });
+  const result = gradeSitting(gradeInput, input.selections, FINAL_EXAM_PASS_MARK);
+
+  await prisma.academyExamSitting.update({
+    where: { id: sitting.id },
+    data: { answers: input.selections as object, score: result.percent, passed: result.passed, submittedAt: new Date() },
+  });
+
+  let badgeAwarded = false;
+  if (result.passed) {
+    const existing = await prisma.partnerAcademyBadge.findUnique({ where: { partnerId: partner.id } });
+    if (!existing) {
+      const year = new Date().getUTCFullYear();
+      const seq = (await prisma.partnerAcademyBadge.count()) + 1;
+      const badge = await prisma.partnerAcademyBadge.create({
+        data: { partnerId: partner.id, serial: academyBadgeSerial(year, seq), year },
+      });
+      badgeAwarded = true;
+      // Let the owner know a partner finished the Academy and earned a certificate.
+      await safeSendEmail({
+        to: superAdminEmail(),
+        subject: `Partner Academy certificate earned: ${partner.displayName}`,
+        template: "owner_academy_certificate",
+        text: `${partner.displayName} passed the comprehensive final exam and earned Partner Academy certificate ${badge.serial} (${year}). Score ${result.percent}%. Review: /admin/partners/academy/${partner.id}`,
+      });
+    }
+  }
+
+  const review = served.map((s, i) => {
+    const q = qById.get(s.questionId)!;
+    const opts = q.options as string[];
+    return {
+      stem: q.stem,
+      options: s.optionOrder.map((idx) => opts[idx]),
+      correctOption: s.optionOrder.indexOf(q.correctIndex),
+      selected: input.selections[i] ?? -1,
+      explanation: q.explanation,
+    };
+  });
+
+  safeRevalidatePath("/partner/academy");
+  safeRevalidatePath("/partner/academy/final-exam");
+  safeRevalidatePath("/partner/academy/certificate");
   return {
     passed: result.passed,
     percent: result.percent,

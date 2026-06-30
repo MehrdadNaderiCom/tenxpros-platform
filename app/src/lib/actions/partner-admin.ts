@@ -41,6 +41,17 @@ import { safeRevalidatePath } from "@/lib/partner/revalidate";
 
 type Admin = Awaited<ReturnType<typeof requireAdminUser>>;
 
+/**
+ * Light guard for an operator-entered amount/count: rejects NaN, negatives and
+ * absurd values, then returns the clean number. Empty input becomes 0.
+ */
+function safeNonNegative(raw: FormDataEntryValue | null, label: string, max: number): number {
+  const value = Number(raw ?? 0);
+  if (!Number.isFinite(value) || value < 0) throw new Error(`Enter a valid ${label} (a number of 0 or more).`);
+  if (value > max) throw new Error(`That ${label} looks too large. Please re-check the amount.`);
+  return value;
+}
+
 // ===========================================================================
 // Applications
 // ===========================================================================
@@ -416,7 +427,10 @@ export async function recordClosedDeal(formData: FormData) {
   // units), stored as that currency's minor units. The conversion rate to the
   // payout currency is captured at the cleared date (clause 14.2A).
   const dealCurrency = normalizeCurrencyCode(String(formData.get("currency") ?? payoutCurrency), payoutCurrency);
-  const netReceiptsCents = toMinorUnits(Number(formData.get("netReceipts") ?? 0), dealCurrency);
+  // Net receipts are entered in major units; reject NaN/negative and cap the
+  // amount so a fat-fingered entry cannot record an absurd deal.
+  const netReceipts = safeNonNegative(formData.get("netReceipts"), "net receipts amount", 1e10);
+  const netReceiptsCents = toMinorUnits(netReceipts, dealCurrency);
   const sameCurrency = dealCurrency === payoutCurrency;
   const conversionRate = sameCurrency ? 1 : Math.max(0, Number(formData.get("conversionRate") ?? 0)) || 1;
 
@@ -462,7 +476,7 @@ export async function recordSeats(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
-  const count = Math.max(0, Math.round(Number(formData.get("count") ?? 0)));
+  const count = Math.round(safeNonNegative(formData.get("count"), "seat count", 100000));
   const status = String(formData.get("status") ?? "PAID_COLLECTED") as "PENDING" | "PAID_COLLECTED" | "REFUNDED" | "CANCELLED";
   const industryOrRegion = String(formData.get("industryOrRegion") ?? "").trim() || deal.industryOrRegion || null;
   const sourcedByPartner = formData.get("sourcedByPartner") !== "false";
@@ -490,11 +504,14 @@ export async function addCommissionLine(formData: FormData) {
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
   const fn = String(formData.get("function") ?? "") as PartnerFunction;
-  const rateBp = Math.max(0, Math.round(Number(formData.get("rateBp") ?? 0)));
+  // A rate is in basis points: clamp NaN/negatives to 0 and cap at 10000 (100%).
+  const rateRaw = Number(formData.get("rateBp") ?? 0);
+  const rateBp = Math.min(10000, Math.max(0, Number.isFinite(rateRaw) ? Math.round(rateRaw) : 0));
   // A fixed fee is entered in the deal's currency (major units).
   const flatRaw = formData.get("flatFee");
   const isFlat = flatRaw != null && String(flatRaw).trim() !== "";
-  const flatCents = isFlat ? toMinorUnits(Math.max(0, Number(flatRaw)), deal.currency) : null;
+  const flatMajor = isFlat ? safeNonNegative(flatRaw, "fixed fee", 1e10) : 0;
+  const flatCents = isFlat ? toMinorUnits(flatMajor, deal.currency) : null;
   const amountCents = isFlat ? (flatCents as number) : Math.round((deal.netReceiptsCents * rateBp) / 10000);
 
   const entry = await prisma.commissionEntry.create({
@@ -625,8 +642,8 @@ export async function applyRefund(formData: FormData) {
   const type = String(formData.get("type") ?? "REFUND") as "REFUND" | "CHARGEBACK" | "CANCELLATION" | "CREDIT" | "REVERSAL";
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId }, include: { commissions: true } });
   const cfg = await resolvePartnerConfig(deal.partnerId);
-  const refundCents = toMinorUnits(Math.max(0, Number(formData.get("amount") ?? 0)), deal.currency);
-  const seatsRefunded = Math.max(0, Math.round(Number(formData.get("seatsRefunded") ?? 0)));
+  const refundCents = toMinorUnits(safeNonNegative(formData.get("amount"), "refund amount", 1e10), deal.currency);
+  const seatsRefunded = Math.round(safeNonNegative(formData.get("seatsRefunded"), "refunded seat count", 100000));
 
   const priorAgg = await prisma.refundEvent.aggregate({ where: { closedDealId }, _sum: { amountCents: true } });
   const priorRefunded = priorAgg._sum.amountCents ?? 0;

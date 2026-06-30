@@ -11,10 +11,10 @@ export default function NewTicketPage() {
       <Card>
         <form action={createTicket} className="space-y-4">
           <Field label="Subject">
-            <Input name="subject" />
+            <Input name="subject" required minLength={5} />
           </Field>
           <Field label="Category">
-            <Select name="category" defaultValue="MODULE_QUESTION">
+            <Select name="category" defaultValue="MODULE_QUESTION" required>
               <option value="MODULE_QUESTION">Module question</option>
               <option value="DOSSIER_HELP">Dossier help</option>
               <option value="AI_SUITABILITY">AI suitability</option>
@@ -27,7 +27,7 @@ export default function NewTicketPage() {
             </Select>
           </Field>
           <Field label="Message">
-            <Textarea name="body" />
+            <Textarea name="body" required minLength={20} />
           </Field>
           <Button type="submit">Create ticket</Button>
         </form>

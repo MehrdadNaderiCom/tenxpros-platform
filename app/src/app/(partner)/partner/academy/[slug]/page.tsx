@@ -77,7 +77,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         {!preview && !lessonRead ? (
           <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
             <input type="hidden" name="slug" value={m.slug} />
-            <p className="mb-3 text-sm text-slate-600">When you have read the full lesson, mark it complete to open the exercises and the final exam.</p>
+            <p className="mb-3 text-sm text-slate-600">When you have read the full lesson, mark it complete to open the exercises and the module exam.</p>
             <Button type="submit">I have read this lesson</Button>
           </form>
         ) : lessonRead ? (
@@ -106,7 +106,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
 
       <Card className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold text-navy-900">Final exam</h2>
+          <h2 className="text-lg font-semibold text-navy-900">Module exam</h2>
           <p className="mt-1 text-sm text-slate-600">
             {examPassed
               ? `Passed with ${progress?.bestExamScore ?? 0}%.`
@@ -116,7 +116,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         {examPassed ? (
           <span className="text-sm font-medium text-emerald-700">Module complete</span>
         ) : canExam && !preview ? (
-          <ButtonLink href={`/partner/academy/${m.slug}/exam`}>Start final exam</ButtonLink>
+          <ButtonLink href={`/partner/academy/${m.slug}/exam`}>Start module exam</ButtonLink>
         ) : (
           <span className="text-sm text-slate-500">{lessonRead ? "Finish the exercises" : "Read the lesson"} to unlock the exam.</span>
         )}

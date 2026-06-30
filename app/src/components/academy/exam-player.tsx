@@ -5,21 +5,35 @@ import { useRouter } from "next/navigation";
 import { submitExam, type ExamSubmitResult } from "@/lib/actions/academy";
 import { cn } from "@/lib/utils";
 
+type SubmitAction = (input: { sittingId: string; selections: number[] }) => Promise<ExamSubmitResult>;
+
 /**
- * One exam sitting. Answers and explanations are never shown during the exam.
- * Submitting ends the sitting and shows the score, which questions were missed,
- * and the explanations, so a failed attempt is still a learning moment.
+ * One exam sitting (module exam or the comprehensive final exam). Answers and
+ * explanations are never shown during the exam. Submitting ends the sitting and
+ * shows the score, which questions were missed, and the explanations, so a failed
+ * attempt is still a learning moment. The submit action and the pass/fail routing
+ * are injected so the same player drives both exam types.
  */
 export function ExamPlayer({
   sittingId,
   questions,
   passMark,
-  moduleSlug,
+  submitAction = submitExam,
+  passHref = "/partner/academy",
+  passLabel = "Continue",
+  failHref,
+  failLabel = "Review the lesson",
+  completionMessage = "You have completed the Partner Academy. Your certificate has been issued.",
 }: {
   sittingId: string;
   questions: { id: string; stem: string; options: string[] }[];
   passMark: number;
-  moduleSlug: string;
+  submitAction?: SubmitAction;
+  passHref?: string;
+  passLabel?: string;
+  failHref: string;
+  failLabel?: string;
+  completionMessage?: string;
 }) {
   const router = useRouter();
   const [selections, setSelections] = useState<(number | null)[]>(() => questions.map(() => null));
@@ -29,7 +43,7 @@ export function ExamPlayer({
 
   const submit = () => {
     startTransition(async () => {
-      const r = await submitExam({ sittingId, selections: selections.map((s) => (s == null ? -1 : s)) });
+      const r = await submitAction({ sittingId, selections: selections.map((s) => (s == null ? -1 : s)) });
       setResult(r);
       window.scrollTo({ top: 0 });
     });
@@ -45,16 +59,16 @@ export function ExamPlayer({
             {result.correctCount} of {result.total} correct. The pass mark is {passMark}%.
           </p>
           {result.badgeAwarded ? (
-            <p className="mt-2 text-sm font-medium text-gold-800">You have completed the Partner Academy. Your badge has been awarded.</p>
+            <p className="mt-2 text-sm font-medium text-gold-800">{completionMessage}</p>
           ) : null}
           <div className="mt-4 flex flex-wrap gap-3">
             {result.passed ? (
-              <button type="button" onClick={() => router.push("/partner/academy")} className="inline-flex h-10 items-center rounded-md bg-navy-900 px-4 text-sm font-medium text-white hover:bg-navy-700">
-                Continue
+              <button type="button" onClick={() => router.push(passHref)} className="inline-flex h-10 items-center rounded-md bg-navy-900 px-4 text-sm font-medium text-white hover:bg-navy-700">
+                {passLabel}
               </button>
             ) : (
-              <button type="button" onClick={() => router.push(`/partner/academy/${moduleSlug}`)} className="inline-flex h-10 items-center rounded-md bg-navy-900 px-4 text-sm font-medium text-white hover:bg-navy-700">
-                Review the lesson
+              <button type="button" onClick={() => router.push(failHref)} className="inline-flex h-10 items-center rounded-md bg-navy-900 px-4 text-sm font-medium text-white hover:bg-navy-700">
+                {failLabel}
               </button>
             )}
           </div>

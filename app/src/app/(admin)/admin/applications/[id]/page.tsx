@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, Input, Select, Textarea } from "@/components/ui/form-fields";
+import { CountrySelect } from "@/components/ui/country-select";
 import { InfoTip } from "@/components/ui/form-field";
 import { PageHeader } from "@/components/shared/page-shell";
 import { formatCurrency } from "@/lib/utils";
@@ -166,7 +167,7 @@ export default async function ApplicationDetailPage({ params }: { params: { id: 
                   <Input name="email" type="email" defaultValue={application.email} required />
                 </Field>
                 <Field label="Country">
-                  <Input name="country" defaultValue={application.country} required />
+                  <CountrySelect name="country" defaultValue={application.country} required />
                 </Field>
                 <Field label="Phone number">
                   <Input name="phone" type="tel" defaultValue={application.phone ?? ""} />

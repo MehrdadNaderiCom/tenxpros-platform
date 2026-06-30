@@ -90,6 +90,7 @@ export default async function AdminDashboardPage() {
     qFuReminded,
     qFuOverdue,
     qFuNotified,
+    partnersAwaitingGate,
   ] = await Promise.all([
     applicationCounts(),
     participantCounts(),
@@ -124,7 +125,16 @@ export default async function AdminDashboardPage() {
     prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null, reminderSentAt: { not: null } } }),
     prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null, dueAt: { lt: now } } }),
     prisma.paymentRecord.count({ where: { status: "INSTRUCTIONS_SENT", paidAt: null, waivedAt: null, cancelledAt: null, expiryNoticeSentAt: { not: null } } }),
+    // Partners who finished every onboarding item but are not yet gate-confirmed.
+    prisma.partner.findMany({
+      where: { activationGatePassedAt: null, terminatedAt: null },
+      select: { id: true, activationItems: { select: { completed: true } } },
+    }),
   ]);
+
+  const qActivation = partnersAwaitingGate.filter(
+    (p) => p.activationItems.length > 0 && p.activationItems.every((i) => i.completed),
+  ).length;
 
   // ---- Pulse KPIs ----
   const activeParticipants =
@@ -159,6 +169,7 @@ export default async function AdminDashboardPage() {
     { label: "Payment recovery", count: qPayRecovery, href: "/admin/payments", weight: 100, sev: "red" },
     { label: "Support tickets", count: qTickets, href: "/admin/tickets", weight: 90, sev: "amber" },
     { label: "Applications to review", count: qAppReview, href: "/admin/applications", weight: 80, sev: "amber" },
+    { label: "Partner activation", count: qActivation, href: "/admin/partners", weight: 78, sev: "amber" },
     { label: "Deal registrations", count: qDeals, href: "/admin/partners/deal-registrations", weight: 70, sev: "blue" },
     { label: "TenXOps decisions", count: qTenxops, href: "/admin/partners/deal-registrations", weight: 65, sev: "blue" },
     { label: "Module feedback", count: qModules, href: "/admin/modules", weight: 50, sev: "amber" },
