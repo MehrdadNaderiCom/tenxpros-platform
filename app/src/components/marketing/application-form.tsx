@@ -123,7 +123,7 @@ export function ApplicationForm() {
             <Field
               label="Country"
               error={errors.country?.message}
-              hint="The country where you are currently based. Start typing to search the list and pick your country."
+              hint="The country where you are currently based. Choose it from the list."
             >
               <CountrySelect {...register("country")} />
             </Field>
