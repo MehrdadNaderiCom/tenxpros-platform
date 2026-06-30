@@ -15,11 +15,11 @@ export function PageHeader({
       {eyebrow ? (
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gold-800">{eyebrow}</p>
       ) : null}
-      <div className="max-w-3xl space-y-4">
-        <h1 className="text-4xl font-semibold leading-tight tracking-normal text-navy-900 md:text-5xl">
+      <div className="max-w-3xl space-y-2">
+        <h1 className="text-2xl font-semibold leading-tight tracking-tight text-navy-900 md:text-3xl">
           {title}
         </h1>
-        {description ? <p className="text-lg leading-relaxed text-slate-600">{description}</p> : null}
+        {description ? <p className="text-base leading-relaxed text-slate-600">{description}</p> : null}
       </div>
     </div>
   );
@@ -39,9 +39,9 @@ export function RouteShell({
       <PageHeader title={title} description={description} />
       {children ?? (
         <Card>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-800">Minimal launch view</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-gold-800">Coming soon</p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            This area is wired into the TenXPros architecture. Deeper controls can be added after the core launch workflow is stable.
+            This section is being built. Check back shortly.
           </p>
         </Card>
       )}
@@ -50,7 +50,7 @@ export function RouteShell({
 }
 
 export function EmptyState({
-  eyebrow = "Launch state",
+  eyebrow = "Nothing yet",
   title,
   description,
   actionLabel,
