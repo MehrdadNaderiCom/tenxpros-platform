@@ -40,7 +40,7 @@ export function Button({ className, variant = "primary", size = "md", children, 
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
+        "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-md font-medium transition active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-60",
         variants[variant],
         sizes[size],
         className,
@@ -74,7 +74,7 @@ export function ButtonLink({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium transition active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2",
+        "inline-flex shrink-0 items-center justify-center whitespace-nowrap rounded-md font-medium transition active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2",
         variants[variant],
         sizes[size],
         className,

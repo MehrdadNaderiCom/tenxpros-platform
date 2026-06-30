@@ -141,24 +141,25 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           Eligibility (necessary, not sufficient, promotion is your Panel Confirmation): {paidSeats}/{effective.tier2SeatThreshold} paid seats toward Tier 2
           {partner.tier !== "TIER1" ? ` · Tier 3 needs ${effective.tier3FocusSeatThreshold} paid focus seats in one industry/region` : ""}.
         </p>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
           {!partner.activationGatePassedAt ? (
-            <form action={confirmActivationGate}>
+            <form action={confirmActivationGate} className="space-y-1">
               <input type="hidden" name="partnerId" value={partner.id} />
-              <Button type="submit" size="sm">Confirm Activation Gate</Button>
+              <span className="block text-xs font-medium text-slate-600">Activation gate</span>
+              <Button type="submit" size="md">Confirm Activation Gate</Button>
             </form>
           ) : null}
           <form action={setPartnerTier} className="flex items-end gap-2">
             <input type="hidden" name="partnerId" value={partner.id} />
             <label className="space-y-1">
               <span className="block text-xs font-medium text-slate-600">Set tier</span>
-              <Select name="tier" defaultValue={partner.tier}>
+              <Select name="tier" defaultValue={partner.tier} className="w-32">
                 <option value="TIER1">Tier 1</option>
                 <option value="TIER2">Tier 2</option>
                 <option value="TIER3">Tier 3</option>
               </Select>
             </label>
-            <Button type="submit" size="sm" variant="secondary">Apply tier</Button>
+            <Button type="submit" size="md" variant="secondary">Apply tier</Button>
           </form>
         </div>
         <p className="text-xs text-slate-500">
@@ -177,11 +178,11 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                 <Badge status={c.met ? "PASSED" : "PENDING"}>{c.met ? "Met" : "Pending"}</Badge>
               </div>
               <p className="mt-1 text-xs text-slate-600">{c.requiredEvidence}</p>
-              <form action={setScorecardCheckpoint} className="mt-2 flex items-center gap-2">
+              <form action={setScorecardCheckpoint} className="mt-3 flex items-center gap-2">
                 <input type="hidden" name="checkpointId" value={c.id} />
                 <input type="hidden" name="met" value={c.met ? "false" : "true"} />
-                <Input name="reviewerNote" placeholder="Note" className="h-8 text-xs" defaultValue={c.reviewerNote ?? ""} />
-                <Button type="submit" size="sm" variant="ghost">{c.met ? "Unset" : "Mark met"}</Button>
+                <Input name="reviewerNote" placeholder="Note" className="h-9 flex-1 min-w-0 text-xs" defaultValue={c.reviewerNote ?? ""} />
+                <Button type="submit" size="sm" variant={c.met ? "ghost" : "secondary"}>{c.met ? "Unset" : "Mark met"}</Button>
               </form>
             </div>
           ))}
@@ -337,9 +338,9 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
               ))}
             </ul>
           ) : <p className="mt-2 text-sm text-slate-500">No focus granted.</p>}
-          <form action={grantFocus} className="mt-3 flex items-end gap-2">
+          <form action={grantFocus} className="mt-3 flex items-center gap-2">
             <input type="hidden" name="partnerId" value={partner.id} />
-            <Input name="industryOrRegion" placeholder="Industry or region" className="h-9" />
+            <Input name="industryOrRegion" placeholder="Industry or region" className="h-9 flex-1 min-w-0" />
             <Button type="submit" size="sm" variant="secondary" disabled={partner.tier !== "TIER3"}>Grant focus</Button>
           </form>
           {partner.tier !== "TIER3" ? <p className="mt-1 text-xs text-slate-400">Partner must be Tier 3 to hold a focus.</p> : null}
@@ -358,7 +359,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             <input type="hidden" name="partnerId" value={partner.id} />
             <Input name="reason" placeholder="Reason" className="h-9" />
             <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" name="disregardForTargets" className="h-4 w-4" /> Disregard affected sales for targets/bonuses</label>
-            <Button type="submit" size="sm" variant="ghost">Add flag</Button>
+            <div><Button type="submit" size="sm" variant="secondary">Add flag</Button></div>
           </form>
         </Card>
       </div>
