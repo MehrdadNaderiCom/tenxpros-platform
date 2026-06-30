@@ -92,7 +92,7 @@ export default async function PlaybookPage({
 }: {
   searchParams: { q?: string | string[]; cat?: string | string[] };
 }) {
-  // The layout also gates this, but the page does seed writes — never run them
+  // The layout also gates this, but the page does seed writes, never run them
   // for a non-super admin.
   const session = await auth();
   if (session?.user?.role !== "ADMIN" || !isSuperAdmin(session.user.email)) notFound();
@@ -191,7 +191,7 @@ export default async function PlaybookPage({
         ) : null}
         {(q || cat) && matches.length === 0 ? (
           <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-slate-600">
-            Nothing here yet — add an item with “+ Add item” below, or{" "}
+            Nothing here yet, add an item with “+ Add item” below, or{" "}
             <Link href="/admin/marketing/playbook" className="font-medium text-navy-600 hover:underline">
               clear the filters
             </Link>
@@ -316,7 +316,7 @@ export default async function PlaybookPage({
               {category.note ? <p className="text-xs text-slate-500">{category.note}</p> : null}
             </div>
             {items.length === 0 ? (
-              <p className="text-sm text-slate-400">No items yet — add one with “+ Add item” above.</p>
+              <p className="text-sm text-slate-400">No items yet, add one with “+ Add item” above.</p>
             ) : (
               <div className="grid gap-3">
                 {items.map((template) => (

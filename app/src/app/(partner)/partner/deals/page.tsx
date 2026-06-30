@@ -31,7 +31,7 @@ export default async function PartnerDealsPage() {
     <div className="space-y-8">
       <PageHeader
         title="Deal Registrations"
-        description="Register each opportunity before substantive contact. Deal Registration is the only source of protection — and it is effective only on Panel Confirmation."
+        description="Register each opportunity before substantive contact. Deal Registration is the only source of protection, and it is effective only on Panel Confirmation."
       />
 
       {!activated ? (
@@ -68,8 +68,8 @@ export default async function PartnerDealsPage() {
                 <td className="px-4 py-3">
                   <Badge status={STATUS_BADGE[reg.status]}>{DEAL_REG_STATUS_LABELS[reg.status]}</Badge>
                 </td>
-                <td className="px-4 py-3 text-slate-600">{reg.confirmedScope ?? (reg.declineReason ? `Declined: ${reg.declineReason}` : "—")}</td>
-                <td className="px-4 py-3 text-slate-600">{reg.pipelineProtectionExpiresAt?.toLocaleDateString() ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-600">{reg.confirmedScope ?? (reg.declineReason ? `Declined: ${reg.declineReason}` : ", ")}</td>
+                <td className="px-4 py-3 text-slate-600">{reg.pipelineProtectionExpiresAt?.toLocaleDateString() ?? ", "}</td>
                 <td className="px-4 py-3 text-slate-600">{reg.submittedAt.toLocaleDateString()}</td>
               </tr>
             ))}

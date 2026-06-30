@@ -14,7 +14,7 @@ import {
 } from "@/components/marketing/program-instrument";
 
 export const metadata: Metadata = {
-  title: "The Method — Frame · Design · Prove · Foresee",
+  title: "The Method, Frame · Design · Prove · Foresee",
   description:
     "The TenX Method: a 12-week applied path organized into 4 phases, with 11 core modules plus a final dossier and capstone review. Bring your expertise, build eight connected assets, and assemble a reviewed Living AI Solution Dossier.",
 };

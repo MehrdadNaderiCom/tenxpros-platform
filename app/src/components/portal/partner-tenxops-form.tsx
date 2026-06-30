@@ -54,7 +54,7 @@ export function PartnerTenXOpsForm({ accounts }: { accounts: { id: string; legal
       </p>
       <form action={onSubmit} className="mt-5 space-y-5">
         {error ? <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-        {done ? <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Request submitted — pending Panel Confirmation.</p> : null}
+        {done ? <p className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">Request submitted, pending Panel Confirmation.</p> : null}
         <Field label="Account you coach">
           <Select name="registeredAccountId" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
             <option value="" disabled>

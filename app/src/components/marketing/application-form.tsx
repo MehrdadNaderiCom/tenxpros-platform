@@ -116,7 +116,7 @@ export function ApplicationForm() {
             <Field
               label="Email"
               error={errors.email?.message}
-              hint="Use an address you check regularly — acceptance and next steps are sent here."
+              hint="Use an address you check regularly, acceptance and next steps are sent here."
             >
               <Input {...register("email")} type="email" autoComplete="email" placeholder="you@example.com" />
             </Field>
@@ -142,14 +142,14 @@ export function ApplicationForm() {
             <Field
               label="Role / job function"
               error={errors.professionalRole?.message}
-              hint="Your current job title or main professional role — e.g. Founder, HR Director, Operations Manager, Consultant, Legal Counsel."
+              hint="Your current job title or main professional role, e.g. Founder, HR Director, Operations Manager, Consultant, Legal Counsel."
             >
               <Input {...register("professionalRole")} placeholder="e.g. Operations Manager" />
             </Field>
             <Field
               label="Field / industry context"
               error={errors.domain?.message}
-              hint="The industry or sector you work in — e.g. healthcare, finance, legal services, education, logistics, public sector."
+              hint="The industry or sector you work in, e.g. healthcare, finance, legal services, education, logistics, public sector."
             >
               <Input {...register("domain")} placeholder="e.g. Healthcare" />
             </Field>
@@ -186,14 +186,14 @@ export function ApplicationForm() {
           <div>
             <h2 className="text-xl font-semibold text-navy-900">Program fit</h2>
             <p className="mt-1 text-sm text-slate-600">
-              Choose the closest option for each. These help us tailor the program — there are no wrong answers.
+              Choose the closest option for each. These help us tailor the program, there are no wrong answers.
             </p>
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             <Field
               label="AI familiarity"
               error={errors.aiExperience?.message}
-              hint="Your familiarity with AI in your professional work today. Pick the closest option — this tailors the program, it does not screen you out."
+              hint="Your familiarity with AI in your professional work today. Pick the closest option, this tailors the program, it does not screen you out."
             >
               <Select {...register("aiExperience")} defaultValue="">
                 <option value="" disabled>
@@ -244,7 +244,7 @@ export function ApplicationForm() {
         <Field
           label="What would make these 12 weeks professionally valuable for you?"
           error={errors.whyTenXPros?.message}
-          description="A rough direction is enough — a few sentences. You do not need a finished AI idea or solution."
+          description="A rough direction is enough, a few sentences. You do not need a finished AI idea or solution."
         >
           <Textarea
             {...register("whyTenXPros")}
@@ -255,7 +255,7 @@ export function ApplicationForm() {
         <Field
           label="What work situations, workflows, decisions, or opportunities should we explore with you?"
           error={errors.realProblemBrief?.message}
-          description="Share 1–2 concrete examples from your work. Please avoid confidential or sensitive details."
+          description="Share 1-2 concrete examples from your work. Please avoid confidential or sensitive details."
         >
           <Textarea
             {...register("realProblemBrief")}

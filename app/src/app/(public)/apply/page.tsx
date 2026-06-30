@@ -11,7 +11,7 @@ import {
 import { Card } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Apply — Founding Charter",
+  title: "Apply, Founding Charter",
   description:
     "Tell us about your expertise and the challenges you want to explore with AI. TenXPros is selective because the work is reviewed. No payment details required, and you pay only after acceptance.",
 };
@@ -22,7 +22,7 @@ export default function ApplyPage() {
       {/* 1 Hero · 2 Form (moved up) · 3 What happens after · 4 Proof · 5 Final CTA */}
       <ApplyHero />
       <ApplyFormShell>
-        {/* Existing application form — fields, validation, and server action unchanged */}
+        {/* Existing application form, fields, validation, and server action unchanged */}
         <Suspense fallback={<Card>Loading application form...</Card>}>
           <ApplicationForm />
         </Suspense>

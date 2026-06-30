@@ -38,7 +38,7 @@ export function superAdminEmails(): string[] {
     .filter(Boolean);
 }
 
-/** The primary super admin — the recipient for owner notifications. */
+/** The primary super admin, the recipient for owner notifications. */
 export function superAdminEmail(): string {
   return superAdminEmails()[0] ?? "mail@mehrdadnaderi.com";
 }
@@ -56,7 +56,7 @@ export function isSuperAdmin(email?: string | null): boolean {
 }
 
 /**
- * Marketing (Command) is restricted to the super admin only — a regular ADMIN
+ * Marketing (Command) is restricted to the super admin only, a regular ADMIN
  * session is not enough. Used by the marketing layout and every marketing
  * server action.
  */

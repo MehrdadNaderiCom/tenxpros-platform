@@ -16,7 +16,7 @@ function Detail({ label, value }: { label: string; value?: string | null }) {
   return (
     <div>
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">{label}</p>
-      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{value || "—"}</p>
+      <p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{value || ", "}</p>
     </div>
   );
 }
@@ -26,7 +26,7 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
     where: { id: params.id },
     include: {
       partner: true,
-      // Metadata only — never load the file bytes into the page.
+      // Metadata only, never load the file bytes into the page.
       documents: { select: { kind: true, filename: true, size: true } },
     },
   });
@@ -121,7 +121,7 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
 
       {a.partner ? (
         <Card className="border-emerald-200 bg-emerald-50">
-          <p className="text-sm font-semibold text-navy-900">Approved — partner created.</p>
+          <p className="text-sm font-semibold text-navy-900">Approved, partner created.</p>
           <Link href={`/admin/partners/${a.partner.id}`} className="mt-1 inline-block text-sm font-medium text-navy-600 hover:underline">
             Open partner record →
           </Link>

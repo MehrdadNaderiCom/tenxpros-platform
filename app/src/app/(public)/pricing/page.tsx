@@ -16,7 +16,7 @@ import {
 } from "@/components/marketing/pricing-instrument";
 
 export const metadata: Metadata = {
-  title: "Pricing — Founding Charter",
+  title: "Pricing, Founding Charter",
   description:
     "Apply first, pay only after acceptance. The Founding Charter ($997 USD) is open during a limited founding review-capacity window. Future standard pricing is higher; earn a reviewed Living AI Solution Dossier and preview the sample before you apply.",
 };

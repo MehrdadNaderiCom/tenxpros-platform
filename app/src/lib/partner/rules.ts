@@ -3,13 +3,13 @@ import type { EffectiveConfig } from "./config";
 import { pipelineProtectionDaysForTier, quietAccountLapseDaysForTier } from "./config";
 
 /**
- * Time-window and eligibility rules — pure functions. The "now" is always passed
+ * Time-window and eligibility rules, pure functions. The "now" is always passed
  * in so the logic is deterministic and unit-testable (the wall clock is never
  * read inside these functions; callers inject the current time).
  */
 
 // ---------------------------------------------------------------------------
-// Date math — ALL in UTC so windows compute identically regardless of server
+// Date math, ALL in UTC so windows compute identically regardless of server
 // timezone or DST. Partners are global; dates must be unambiguous. Every
 // function uses the getUTC*/setUTC* family (never local-time setDate/getDay),
 // so a deal in São Paulo, Tehran or Tokyo is treated identically.

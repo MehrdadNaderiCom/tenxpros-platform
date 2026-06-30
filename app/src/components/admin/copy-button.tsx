@@ -15,7 +15,7 @@ export function CopyButton({ text, label = "Copy" }: { text: string; label?: str
           setCopied(true);
           setTimeout(() => setCopied(false), 1500);
         } catch {
-          // Clipboard unavailable (permissions/http) — fail quietly.
+          // Clipboard unavailable (permissions/http), fail quietly.
         }
       }}
       className="inline-flex items-center gap-1 rounded-md border border-neutral-200 px-2 py-1 text-xs font-medium text-slate-600 transition hover:bg-navy-50 hover:text-navy-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/40"

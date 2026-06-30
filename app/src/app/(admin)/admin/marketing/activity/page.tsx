@@ -115,7 +115,7 @@ export default async function MarketingActivityPage() {
       <AiSuggestCard
         campaignId={campaign.id}
         area="activity"
-        hint="Plans TODAY for you: which follow-ups (by name), how many new messages per channel within your caps, what to post, and one engagement block — ordered by impact, based on your real pace."
+        hint="Plans TODAY for you: which follow-ups (by name), how many new messages per channel within your caps, what to post, and one engagement block, ordered by impact, based on your real pace."
       />
 
       {/* Today's targets at a glance */}

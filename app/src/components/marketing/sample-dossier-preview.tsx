@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
  * SampleDossierPreview
  * --------------------------------------------------------------------------
  * A narrow, reusable marketing block that previews the standalone, illustrative
- * sample dossier proof asset. Pure presentational server component — it renders
+ * sample dossier proof asset. Pure presentational server component, it renders
  * static links to the public assets under /samples and changes no app logic.
  *
  * Public assets (served from app/public/samples):
@@ -44,7 +44,7 @@ const COPY: Record<SampleDossierVariant, VariantCopy> = {
     eyebrow: "Proof asset",
     headline: "See what “reviewed work” looks like.",
     body:
-      "Preview an illustrative Living AI Solution Dossier — the artifact at the center of TenXPros. It shows the structure, reviewer notes, evidence gaps, and review standard behind the credential.",
+      "Preview an illustrative Living AI Solution Dossier, the artifact at the center of TenXPros. It shows the structure, reviewer notes, evidence gaps, and review standard behind the credential.",
     primaryCta: "Preview a sample dossier",
   },
   dossier: {
@@ -189,7 +189,7 @@ function SampleThumb({ href, src, label }: { href: string; src: string; label: s
     >
       <img
         src={src}
-        alt={`Illustrative sample dossier — ${label} page (fictional participant Maya R.)`}
+        alt={`Illustrative sample dossier, ${label} page (fictional participant Maya R.)`}
         width={1000}
         height={1415}
         loading="lazy"

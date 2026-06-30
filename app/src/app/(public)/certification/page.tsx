@@ -14,9 +14,9 @@ import {
 } from "@/components/marketing/certification-instrument";
 
 export const metadata: Metadata = {
-  title: "Certification — Earned, not attended",
+  title: "Certification, Earned, not attended",
   description:
-    "TenXPros certification is earned when your Living AI Solution Dossier meets an explicit, public review standard — reviewed evidence, three honest outcomes, and a verifiable credential. Not a university degree or accreditation.",
+    "TenXPros certification is earned when your Living AI Solution Dossier meets an explicit, public review standard, reviewed evidence, three honest outcomes, and a verifiable credential. Not a university degree or accreditation.",
 };
 
 export default function CertificationPage() {

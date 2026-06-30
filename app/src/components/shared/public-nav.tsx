@@ -80,7 +80,7 @@ export function PublicNav() {
         </div>
       </header>
 
-      {/* Full-screen mobile menu — rendered outside <header> so the header's
+      {/* Full-screen mobile menu, rendered outside <header> so the header's
           backdrop-blur (a containing block for fixed elements) doesn't trap it. */}
       {open ? (
         <div className="fixed inset-0 z-50 flex flex-col bg-white lg:hidden">

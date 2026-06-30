@@ -13,7 +13,7 @@ import {
 export const metadata: Metadata = {
   title: "Living AI Solution Dossier",
   description:
-    "The Living AI Solution Dossier is the reviewed proof artifact behind the TenXPros credential — 12 structured sections, eight assembled assets, and an explicit review standard. Preview the illustrative sample.",
+    "The Living AI Solution Dossier is the reviewed proof artifact behind the TenXPros credential, 12 structured sections, eight assembled assets, and an explicit review standard. Preview the illustrative sample.",
 };
 
 export default function DossierPage() {

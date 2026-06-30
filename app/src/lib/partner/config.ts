@@ -9,7 +9,7 @@ import type { PartnerTier, ProgramConfig } from "@prisma/client";
  * `ProgramConfig` (a single "singleton" row) holds the global defaults. Each
  * `Partner` may have a `PartnerConfig` whose non-null fields override the global
  * value. {@link resolvePartnerConfig} merges the two and is the ONLY way the
- * commission engine and rules read commercial numbers — there are no hard-coded
+ * commission engine and rules read commercial numbers, there are no hard-coded
  * rates anywhere else.
  *
  * Money is integer CENTS; rates and caps are integer BASIS POINTS (1% = 100 bp).

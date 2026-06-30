@@ -206,7 +206,7 @@ export async function removeChannel(formData: FormData) {
   const id = text(formData, "channelId");
   const existing = await prisma.marketingChannel.findUnique({ where: { id } });
   if (!existing) {
-    // Stale/double submit: already gone — nothing to do.
+    // Stale/double submit: already gone, nothing to do.
     refresh();
     return;
   }
@@ -322,7 +322,7 @@ export async function changeProspectStage(formData: FormData) {
     await prisma.prospectTouch.create({ data: { prospectId: id, type: "reply", summary: "Reply received" } });
   }
   if (stage === "PAID" || stage === "LOST" || stage === "DROPPED") {
-    // Terminal stages end the reminder cadence — never nag a won or closed prospect.
+    // Terminal stages end the reminder cadence, never nag a won or closed prospect.
     data.followupNextDue = null;
     data.followupStatus = stage === "PAID" ? "PARKED" : "DROPPED";
   }
@@ -1120,7 +1120,7 @@ async function setCoachError(adminId: string, message: string | null) {
  * Ask the LLM coach: builds the live campaign context, calls OpenRouter, and
  * stores the advice. Expected failures (bad key, bad model id, timeout,
  * provider error) are persisted and shown inline on the Command page instead
- * of throwing — production redacts server-action errors, so a throw would
+ * of throwing, production redacts server-action errors, so a throw would
  * surface as an unreadable full-page error.
  */
 export async function askAiCoach(formData: FormData) {
@@ -1167,7 +1167,7 @@ export async function askAiCoach(formData: FormData) {
 
 /**
  * Per-area AI suggestion (channels / activity / prospects / playbook).
- * Failures are stored as status="error" rows so the message renders inline —
+ * Failures are stored as status="error" rows so the message renders inline, 
  * production redacts thrown server-action errors.
  */
 export async function askAiSuggestion(formData: FormData) {

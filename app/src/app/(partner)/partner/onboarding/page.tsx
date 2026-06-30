@@ -33,7 +33,7 @@ export default async function PartnerOnboardingPage() {
             <p className="text-sm font-semibold text-navy-900">Gate status</p>
             <p className="mt-1 text-sm text-slate-600">
               {gatePassed
-                ? "Confirmed on the panel — you may register and pursue opportunities."
+                ? "Confirmed on the panel, you may register and pursue opportunities."
                 : allDone
                   ? "All steps complete. Awaiting the company's Panel Confirmation."
                   : "Complete the steps below."}

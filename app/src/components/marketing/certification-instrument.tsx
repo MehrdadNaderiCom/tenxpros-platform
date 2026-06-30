@@ -3,7 +3,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Certification — "The Instrument" direction
+ * Certification, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public
  * Certification page. Shares the Home / Dossier / Pricing / Apply Instrument
@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  *
  * Renders static content and links only. Changes no app logic, server actions,
  * auth, database, or the real verification/badge/certificate routes. The
- * verification panel here is ILLUSTRATIVE and non-clickable — the live
+ * verification panel here is ILLUSTRATIVE and non-clickable, the live
  * verification routes (/verify/[code], /certificate/[id]) are untouched and
  * require a real code, so nothing here invents real participant data.
  */
@@ -77,7 +77,7 @@ export function CertHero() {
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
             TenXPros certification is awarded when your Living AI Solution Dossier meets an explicit
-            review standard. The credential reflects reviewed AI adoption work — not video
+            review standard. The credential reflects reviewed AI adoption work, not video
             completion.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -110,7 +110,7 @@ export function CertHero() {
           </ul>
         </div>
 
-        {/* Credential instrument panel — a gold seal moment */}
+        {/* Credential instrument panel, a gold seal moment */}
         <div className="flex items-center">
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -165,7 +165,7 @@ export function CertSignals() {
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
           A Certified TenXPro credential is a practical signal: it says specific, reviewable work
-          was done — not that lessons were watched.
+          was done, not that lessons were watched.
         </p>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2">
@@ -201,7 +201,7 @@ export function CertNot() {
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-slate-300">
             A credible credential is clear about its limits. TenXPros certification is a private,
-            evidence-based professional credential — and nothing more than that.
+            evidence-based professional credential, and nothing more than that.
           </p>
         </div>
         <ul className="rounded-xl border border-white/10 bg-[#0B1120] p-6 sm:p-8">
@@ -240,7 +240,7 @@ export function CertCriteria() {
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
           Every dossier is reviewed against the same explicit, public criteria. The standard is
-          visible before you apply — and it is the same standard that earns the credential.
+          visible before you apply, and it is the same standard that earns the credential.
         </p>
       </div>
       <div className="mt-12 rounded-2xl border border-[#C9A961]/30 bg-[#0B1120] p-7 ring-1 ring-[#C9A961]/10 md:p-10">
@@ -357,7 +357,7 @@ export function CertMilestones() {
           <MonoLabel className="text-slate-400">Module milestones</MonoLabel>
           <p className="mt-3 text-2xl font-semibold text-white">11</p>
           <p className="mt-2 text-sm leading-6 text-slate-300">
-            One per core module, earned through the work you submit — not for watching or attending.
+            One per core module, earned through the work you submit, not for watching or attending.
           </p>
         </div>
 
@@ -378,7 +378,7 @@ export function CertMilestones() {
         </div>
       </div>
 
-      {/* Capstone seal — gold credential moment */}
+      {/* Capstone seal, gold credential moment */}
       <div className="mt-4 flex flex-col gap-4 rounded-xl border border-[#C9A961]/30 bg-[#0B1120] p-6 ring-1 ring-[#C9A961]/10 sm:flex-row sm:items-center sm:gap-6 md:p-8">
         <span
           className="flex h-12 w-12 flex-none items-center justify-center rounded-full border"
@@ -393,7 +393,7 @@ export function CertMilestones() {
           </p>
           <h3 className="mt-1 text-lg font-semibold text-white">Certified TenXPro Capstone Seal</h3>
           <p className="mt-1.5 text-sm leading-6 text-slate-300">
-            The seal belongs to certified dossier work — earned when the reviewed dossier meets the
+            The seal belongs to certified dossier work, earned when the reviewed dossier meets the
             standard. Verification confirms credential metadata without exposing the confidential
             contents of your work.
           </p>
@@ -465,7 +465,7 @@ function SampleThumb({ src, label }: { src: string; label: string }) {
     >
       <img
         src={src}
-        alt={`Illustrative sample dossier — ${label} page (fictional participant Maya R.)`}
+        alt={`Illustrative sample dossier, ${label} page (fictional participant Maya R.)`}
         width={1000}
         height={1415}
         loading="lazy"
@@ -496,7 +496,7 @@ const VERIFY_POINTS = [
 ];
 
 const REVIEW_MECHANICS = [
-  "Your dossier is assessed against the eight public criteria — the same standard shown before you apply.",
+  "Your dossier is assessed against the eight public criteria, the same standard shown before you apply.",
   "The review is performed by a qualified human reviewer using the TenXPros review standard.",
   "For the founding cohort, review is handled directly by the TenXPros review team and program architect.",
   "Outcomes are Certified, Strong Draft, or Completed.",
@@ -513,7 +513,7 @@ export function CertReviewMechanics() {
           How dossier review works.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          Review is a human judgment against an explicit standard — not a quiz and not attendance.
+          Review is a human judgment against an explicit standard, not a quiz and not attendance.
         </p>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2">
@@ -551,7 +551,7 @@ export function CertVerification() {
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
             A credential is only as good as the ability to check it. When a credential is earned, it
-            is issued with a public verification page — confirming the credential without revealing
+            is issued with a public verification page, confirming the credential without revealing
             the work behind it.
           </p>
           <ul className="mt-6 space-y-3">
@@ -612,7 +612,7 @@ export function CertVerification() {
             })}
           </dl>
           <p className="mt-4 border-t border-white/10 pt-4 text-[0.7rem] leading-5 text-slate-500">
-            Illustrative verification panel — not a real record. Live credentials are verified on a
+            Illustrative verification panel, not a real record. Live credentials are verified on a
             public page; no real personal data is shown here.
           </p>
         </div>

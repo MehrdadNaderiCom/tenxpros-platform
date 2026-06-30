@@ -18,7 +18,7 @@ export default async function PartnerAuditPage() {
     <div className="space-y-8">
       <PageHeader
         title="Partner Program Audit Log"
-        description="Every Panel Confirmation, approval, tier change and configuration change — who, what, and when. PANEL_* actions are the authoritative confirmations."
+        description="Every Panel Confirmation, approval, tier change and configuration change, who, what, and when. PANEL_* actions are the authoritative confirmations."
       />
       <Card className="overflow-x-auto p-0">
         <table className="w-full min-w-[860px] border-collapse text-sm">
@@ -49,7 +49,7 @@ export default async function PartnerAuditPage() {
                 </td>
                 <td className="max-w-md px-4 py-3">
                   <pre className="whitespace-pre-wrap break-words text-xs text-slate-500">
-                    {e.changes ? JSON.stringify(e.changes) : "—"}
+                    {e.changes ? JSON.stringify(e.changes) : ", "}
                   </pre>
                 </td>
               </tr>

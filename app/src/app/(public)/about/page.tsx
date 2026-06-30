@@ -11,7 +11,7 @@ import {
 } from "@/components/marketing/about-instrument";
 
 export const metadata: Metadata = {
-  title: "About — Why TenXPros exists",
+  title: "About, Why TenXPros exists",
   description:
     "TenXPros exists because AI adoption is now professional judgment work. It helps experienced professionals turn their expertise into reviewed AI adoption work, built around an explicit, public standard, not attendance.",
 };

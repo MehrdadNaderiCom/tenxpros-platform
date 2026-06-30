@@ -3,14 +3,14 @@ import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * About — "The Instrument" direction
+ * About, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public About page.
  * Shares the Instrument language used across the rebuilt pages: near-black
  * base, cool indigo action accent, gold reserved for review / credential /
  * seal moments, hairline rules, monospace metadata.
  *
- * Renders static content and links only — no app logic, server actions, auth,
+ * Renders static content and links only, no app logic, server actions, auth,
  * database, or application/payment flows. Founder credibility is a restrained
  * trust layer, not the category definition. Only repo-verified founder claims
  * are published (see the round-1 report); the unsourced "19,000+ hours" figure
@@ -132,7 +132,7 @@ export function AboutProblem() {
         <p className="mt-6 max-w-3xl text-lg leading-relaxed text-slate-300">
           Most courses teach tools, prompts, or concepts. The harder work starts after: deciding
           where AI belongs, what must remain human-led, how risks are bounded, and how value is
-          actually proven. That is the work a serious professional is accountable for — and where
+          actually proven. That is the work a serious professional is accountable for, and where
           TenXPros begins.
         </p>
       </div>
@@ -192,7 +192,7 @@ export function AboutAnswer() {
 const STANDARD_ELEMENTS: Array<[string, string]> = [
   ["Eight review criteria", "The same explicit, public criteria for every dossier."],
   ["A public sample dossier", "The standard is visible before anyone applies."],
-  ["Clear review outcomes", "Certified · Strong Draft · Completed — honest, not pass/fail theatre."],
+  ["Clear review outcomes", "Certified · Strong Draft · Completed, honest, not pass/fail theatre."],
   ["Public verification", "Each credential is checkable on a public page."],
   ["Confidentiality boundaries", "Verification confirms the credential without exposing the work."],
 ];
@@ -208,7 +208,7 @@ export function AboutStandard() {
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
             TenXPros is not built around attendance. It is built around an explicit, inspectable
-            standard — the criteria, the sample, the outcomes, and the verification that make the
+            standard, the criteria, the sample, the outcomes, and the verification that make the
             credential mean something.
           </p>
         </div>
@@ -250,19 +250,19 @@ export function AboutFounder() {
           <p className="text-base leading-7 text-slate-300">
             <span className="font-medium text-white">TenXPros was created by Mehrdad Naderi</span>,
             the creator and architect of the TenX Method and the review standard behind the
-            credential. He built it because AI adoption has become professional judgment work —
+            credential. He built it because AI adoption has become professional judgment work, 
             deciding where AI belongs, where it must stay human-led, and how to prove value
-            responsibly — and experienced professionals needed a rigorous way to do that, not more
+            responsibly, and experienced professionals needed a rigorous way to do that, not more
             tips.
           </p>
           <p className="text-base leading-7 text-slate-300">
             He kept meeting capable professionals who could already use AI but had no defensible way
-            to show they could lead its adoption. TenXPros is his answer to that gap — a standard to
+            to show they could lead its adoption. TenXPros is his answer to that gap, a standard to
             work toward, not another course to sit through.
           </p>
           <p className="text-sm leading-6 text-slate-400">
-            His work sits at the intersection of professional learning and applied AI — AI adoption,
-            human–AI collaboration, AI training, and product thinking.{" "}
+            His work sits at the intersection of professional learning and applied AI, AI adoption,
+            human-AI collaboration, AI training, and product thinking.{" "}
             <a
               href="https://www.linkedin.com/in/mehrdad-naderi/"
               target="_blank"
@@ -274,8 +274,8 @@ export function AboutFounder() {
             .
           </p>
           <p className="text-sm leading-6 text-slate-400">
-            The credential rests on the public standard — the sample dossier, the eight review
-            criteria, the review outcomes, and verification — not on the name behind it.
+            The credential rests on the public standard, the sample dossier, the eight review
+            criteria, the review outcomes, and verification, not on the name behind it.
           </p>
         </div>
       </div>
@@ -292,7 +292,7 @@ const PRINCIPLES: Array<[string, string]> = [
   ["Confidentiality by design", "Redacted or fictionalized examples; sensitive data stays out."],
   ["Review standards before credentials", "The criteria are public and fixed before anyone is certified."],
   ["Practical value over AI hype", "What holds up to review, not what sounds impressive."],
-  ["Clear limits over exaggerated claims", "We say plainly what this is — and what it is not."],
+  ["Clear limits over exaggerated claims", "We say plainly what this is, and what it is not."],
 ];
 
 export function AboutPrinciples() {
@@ -352,7 +352,7 @@ export function AboutNot() {
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
             Clarity is part of the trust. TenXPros is a private, evidence-based professional
-            certification — and it is careful about what it does not claim to be.
+            certification, and it is careful about what it does not claim to be.
           </p>
         </div>
         <ul className="rounded-xl border border-white/10 bg-[#0B1120] p-6 sm:p-8">
@@ -386,7 +386,7 @@ export function AboutTrust() {
           You can inspect the standard before you apply.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          Nothing here asks for blind trust. The proof is public — and you can read it before you
+          Nothing here asks for blind trust. The proof is public, and you can read it before you
           spend anything.
         </p>
       </div>
@@ -409,7 +409,7 @@ export function AboutTrust() {
         </ButtonLink>
       </div>
       <p className="mt-6 max-w-3xl text-xs leading-5 text-slate-500">
-        To be clear about what it is: TenXPros is a private professional certification — not a
+        To be clear about what it is: TenXPros is a private professional certification, not a
         university degree, academic accreditation, or a guarantee of job, income, or business
         outcomes. The credential reflects reviewed work.
       </p>

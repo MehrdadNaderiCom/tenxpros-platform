@@ -1,7 +1,7 @@
 /**
  * Provider-agnostic payment-link resolution.
  *
- * A payment link is just a URL — it can point at Stripe, Wise, or any manual
+ * A payment link is just a URL, it can point at Stripe, Wise, or any manual
  * checkout/instructions page. Configuration is resolved in this order:
  *   1. generic   PAYMENT_LINK_<TIER>            (preferred, provider-agnostic)
  *   2. legacy    STRIPE_PAYMENT_LINK_<TIER>     (backward compatible)

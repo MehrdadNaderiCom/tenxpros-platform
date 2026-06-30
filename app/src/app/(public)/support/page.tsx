@@ -12,7 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "Support & Contact",
   description:
-    "Contact TenXPros technical support for help with technical questions, payment issues, access problems, or questions about your account. We aim to respond within 1–2 business days.",
+    "Contact TenXPros technical support for help with technical questions, payment issues, access problems, or questions about your account. We aim to respond within 1-2 business days.",
 };
 
 const contactDetails: Array<{ label: string; value: string; href?: string; note?: string }> = [
@@ -35,7 +35,7 @@ const contactDetails: Array<{ label: string; value: string; href?: string; note?
     note: "Direct line to the program manager.",
   },
   { label: "Website", value: "https://tenxpros.com", href: "https://tenxpros.com" },
-  { label: "Expected response time", value: "Within 1–2 business days" },
+  { label: "Expected response time", value: "Within 1-2 business days" },
 ];
 
 export default function SupportPage() {
@@ -44,7 +44,7 @@ export default function SupportPage() {
       <PageHeader
         eyebrow="Technical Support"
         title="Support & Contact"
-        description="If you have any technical questions, payment-related issues, access problems, or questions about your TenXPros account or service, please contact our support team. We aim to respond within 1–2 business days."
+        description="If you have any technical questions, payment-related issues, access problems, or questions about your TenXPros account or service, please contact our support team. We aim to respond within 1-2 business days."
       />
 
       <Card>
@@ -52,7 +52,7 @@ export default function SupportPage() {
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Our team is here to help with technical questions, payment-related issues, access
           problems, or any questions about your TenXPros account or service. We aim to respond
-          within 1–2 business days.
+          within 1-2 business days.
         </p>
 
         <dl className="mt-6 divide-y divide-neutral-200 border-t border-neutral-200">
@@ -79,7 +79,7 @@ export default function SupportPage() {
         <p className="mt-3 text-sm leading-6 text-slate-600">
           TenXPros never asks for payment before acceptance. If you are accepted, the official payment
           link is sent to you by email. Before paying any link, you can verify it against the official
-          details below — and if anything looks unexpected, contact us first.
+          details below, and if anything looks unexpected, contact us first.
         </p>
 
         <dl className="mt-6 divide-y divide-neutral-200 border-t border-neutral-200">
@@ -103,7 +103,7 @@ export default function SupportPage() {
         <p className="mt-4 text-sm leading-6 text-slate-600">
           TenXPros is operated by {LEGAL_OPERATOR}. Secure payments are processed by {PAYMENT_PROCESSOR},
           so your {PAYMENT_PROCESSOR} checkout or card statement may show {LEGAL_OPERATOR} as the legal
-          payee — this is expected and legitimate. For your security, please do not pay any link unless it
+          payee, this is expected and legitimate. For your security, please do not pay any link unless it
           is sent through an official TenXPros/{LEGAL_OPERATOR.split(" ")[0]} channel and matches these
           details. To confirm whether a payment request is legitimate, email{" "}
           <a href="mailto:support@tenxpros.com" className="font-medium text-indigo-600 hover:text-indigo-500">
@@ -117,8 +117,8 @@ export default function SupportPage() {
         <h2 className="text-xl font-semibold text-navy-900">What to include</h2>
         <p className="mt-3 text-sm leading-6 text-slate-600">
           To help us resolve your request quickly, please include the email address associated with
-          your TenXPros application or account, a short description of the issue, and — for
-          payment-related questions — the date and method of payment. You can reach us any time at{" "}
+          your TenXPros application or account, a short description of the issue, and, for
+          payment-related questions, the date and method of payment. You can reach us any time at{" "}
           <a href="mailto:support@tenxpros.com" className="font-medium text-indigo-600 hover:text-indigo-500">
             support@tenxpros.com
           </a>

@@ -8,7 +8,7 @@ import { isSuperAdmin } from "@/lib/authz";
  * Partner Panel access control. A Partner Panel user is a logged-in account whose
  * `User` is linked to a `Partner` that is approved (not a bare applicant and not
  * terminated). Every partner server action resolves the partner FROM THE SESSION
- * — never from a client-supplied id — so a partner can only ever act on their own
+ *, never from a client-supplied id, so a partner can only ever act on their own
  * records (no IDOR).
  *
  * A super admin may additionally PREVIEW a partner's panel read-only via the
@@ -74,7 +74,7 @@ export async function getCurrentPartner(): Promise<
 /**
  * Require an approved partner FROM THE SESSION. Throws if the caller is not a
  * partner or is only an applicant / terminated. Used by every partner-portal
- * server action — it ignores the preview cookie, so a previewing super admin can
+ * server action, it ignores the preview cookie, so a previewing super admin can
  * never mutate the viewed partner's records.
  */
 export async function requirePartner(): Promise<{ user: SessionUser; partner: Partner }> {

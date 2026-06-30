@@ -44,7 +44,7 @@ export type NavSection = { title: string; items: NavItem[] };
 const NAV_PANEL_ID = "admin-nav-panel";
 const FOCUS_RING = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-navy-500/40";
 
-/** One icon per admin destination — keeps the sidebar scannable and professional. */
+/** One icon per admin destination, keeps the sidebar scannable and professional. */
 const ICONS: Record<string, LucideIcon> = {
   "/admin": LayoutDashboard,
   "/admin/applications": Inbox,

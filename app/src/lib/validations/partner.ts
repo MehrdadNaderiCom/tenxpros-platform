@@ -9,7 +9,7 @@ const optionalUrl = z.union([z.string().trim().url("Enter a valid URL."), z.lite
 export const partnerApplicationSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name."),
   email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  // International-friendly: +, digits, spaces, hyphens, dots, parentheses; 6–25 chars.
+  // International-friendly: +, digits, spaces, hyphens, dots, parentheses; 6-25 chars.
   phone: z
     .union([
       z

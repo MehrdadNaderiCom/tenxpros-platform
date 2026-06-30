@@ -108,7 +108,6 @@ export default async function NewsletterComposePage({ searchParams }: { searchPa
                     hidden={{ id: c.id }}
                     message={`Delete the campaign "${c.subject}"? This also removes its send history.`}
                     label="Delete"
-                    className="rounded-md border border-neutral-300 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-neutral-50"
                   />
                 </div>
               </div>

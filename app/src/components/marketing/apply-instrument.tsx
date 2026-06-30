@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { PAYEE_NOTICE, SAFETY_WARNING } from "@/lib/payment-disclosure";
 
 /**
- * Apply — "The Instrument" direction
+ * Apply, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public Apply page.
  * Shares the Home / Dossier / Pricing Instrument language: near-black base,
@@ -110,7 +110,7 @@ export function ApplyHero() {
           </ul>
         </div>
 
-        {/* Application path readout — process, not a guarantee */}
+        {/* Application path readout, process, not a guarantee */}
         <div className="flex items-center">
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -161,7 +161,7 @@ export function ApplyHero() {
 /* ------------------------------------------------- 2. Strong applications */
 
 const STRONG = [
-  ["A real professional problem", "Something from your actual work — not a hypothetical exercise."],
+  ["A real professional problem", "Something from your actual work, not a hypothetical exercise."],
   ["A clear field / context", "The domain and constraints the problem lives in."],
   ["A human decision or workflow affected by AI", "Where judgment, not just output, is at stake."],
   ["Permission to work with safe, non-confidential examples", "Redacted or fictionalized material you are allowed to use."],
@@ -246,13 +246,13 @@ export function ApplyFormShell({ children }: { children: React.ReactNode }) {
             acceptance.
           </p>
 
-          {/* Compact pre-form panel — server-rendered, visible before the form hydrates */}
+          {/* Compact pre-form panel, server-rendered, visible before the form hydrates */}
           <div className="mt-7 grid gap-5 rounded-xl border border-white/10 bg-[#0B1120] p-5 sm:grid-cols-2 sm:p-6">
             <div>
               <MonoLabel>Before you apply</MonoLabel>
               <ul className="mt-3 space-y-2 text-sm leading-6 text-slate-300">
                 {[
-                  "About 3–5 minutes.",
+                  "About 3-5 minutes.",
                   "No payment details required.",
                   "Do not include confidential client, employer, patient, or regulated data. Keep examples general or redacted.",
                   "You will receive a response by email within 48 hours.",
@@ -379,8 +379,8 @@ export function ApplyProof() {
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
             The credential is earned against a public review standard. Read an illustrative Living
-            AI Solution Dossier — the 12-section structure, reviewer notes, an intentional evidence
-            gap, and how the work maps to the rubric — before you commit anything.
+            AI Solution Dossier, the 12-section structure, reviewer notes, an intentional evidence
+            gap, and how the work maps to the rubric, before you commit anything.
           </p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:max-w-md">
             <SampleThumb src={SAMPLE_SNAPSHOT_URL} label="Executive Snapshot" />
@@ -412,7 +412,7 @@ function SampleThumb({ src, label }: { src: string; label: string }) {
     >
       <img
         src={src}
-        alt={`Illustrative sample dossier — ${label} page (fictional participant Maya R.)`}
+        alt={`Illustrative sample dossier, ${label} page (fictional participant Maya R.)`}
         width={1000}
         height={1415}
         loading="lazy"

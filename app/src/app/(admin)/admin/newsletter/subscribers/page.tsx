@@ -60,7 +60,7 @@ export default async function NewsletterSubscribersPage() {
           {groups.map((g) => (
             <div key={g.id} className="flex items-center justify-between rounded-md border border-neutral-200 px-4 py-2">
               <span className="text-sm text-navy-900">{g.name} <span className="text-xs text-slate-400">({g._count.subscribers})</span></span>
-              <ConfirmSubmit action={deleteNewsletterGroup} hidden={{ id: g.id }} message={`Delete the group "${g.name}"? Subscribers are kept; only the group is removed.`} label="Delete" className="rounded-md border border-neutral-300 px-2.5 py-1 text-xs font-medium text-slate-600 transition hover:bg-neutral-50" />
+              <ConfirmSubmit action={deleteNewsletterGroup} hidden={{ id: g.id }} message={`Delete the group "${g.name}"? Subscribers are kept; only the group is removed.`} label="Delete" />
             </div>
           ))}
         </div>

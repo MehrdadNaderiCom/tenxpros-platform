@@ -3,7 +3,7 @@
  * computes live metrics. Goal progress ("paid") counts applications SUBMITTED
  * on or after the campaign start that are enrolled or have a successful
  * payment (whenever the payment lands), plus the campaign's off-platform
- * count — so goals track money, not just pipeline labels.
+ * count, so goals track money, not just pipeline labels.
  */
 import { prisma } from "@/lib/prisma";
 import { LIVE_STAGES, prospectScore } from "@/lib/marketing/constants";

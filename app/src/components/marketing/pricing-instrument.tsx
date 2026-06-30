@@ -5,14 +5,14 @@ import { usd, usdPlain, LADDER_DESC, type PricingTierView } from "@/lib/pricing"
 import { PAYEE_NOTICE, SAFETY_WARNING } from "@/lib/payment-disclosure";
 
 /**
- * Pricing — "The Instrument" direction
+ * Pricing, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public Pricing
  * page. Shares the Home / Dossier Instrument language: near-black base, cool
  * indigo action accent, gold reserved for credential / charter-seal moments,
  * hairline rules, monospace metadata.
  *
- * Renders static content and links only — no app logic, server actions, auth,
+ * Renders static content and links only, no app logic, server actions, auth,
  * database, or application/payment flows. Payment timing is described, not
  * implemented; the CTA links to the existing /apply route. Sample-dossier
  * assets are reused from /public/samples (the same files SampleDossierPreview
@@ -104,7 +104,7 @@ export function PricingHero({ founding, standard }: { founding: number; standard
           </ul>
         </div>
 
-        {/* Price instrument readout — headline number + status, not the full card */}
+        {/* Price instrument readout, headline number + status, not the full card */}
         <div className="flex items-center">
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -288,7 +288,7 @@ export function PricingLadder({ tiers }: { tiers: PricingTierView[] }) {
       </ul>
       <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-400">
         The program structure stays the same; the entry price changes by charter window. No
-        countdowns and no pressure mechanics — the Founding Charter simply stays open while founding
+        countdowns and no pressure mechanics, the Founding Charter simply stays open while founding
         review capacity remains.
       </p>
     </SectionShell>
@@ -298,7 +298,7 @@ export function PricingLadder({ tiers }: { tiers: PricingTierView[] }) {
 /* ------------------------------------------------------- 4. What you pay for */
 
 const VALUE_STACK: Array<[string, string]> = [
-  ["A reviewed professional asset", "Not watched lessons — a dossier reviewed against explicit criteria."],
+  ["A reviewed professional asset", "Not watched lessons, a dossier reviewed against explicit criteria."],
   ["A focused challenge from your field", "You bring the work; the program makes it defensible."],
   ["Guided 12-week method", "Frame · Design · Prove · Foresee, with coaching checkpoints."],
   ["Dossier review against criteria", "Eight explicit review criteria, applied to your work."],
@@ -400,7 +400,7 @@ const COMPARE_COLUMNS = [
 
 function compareRows(founding: number): Array<{ label: string; tools: string; uni: string; tenx: string }> {
   return [
-    { label: "Typical price", tools: "Free – ~$500", uni: "Often many thousands, depending on provider and format", tenx: `${usdPlain(founding)} (Founding Charter)` },
+    { label: "Typical price", tools: "Free, ~$500", uni: "Often many thousands, depending on provider and format", tenx: `${usdPlain(founding)} (Founding Charter)` },
     { label: "Main focus", tools: "Features and prompts", uni: "Institutional strategy & networks", tenx: "Your real work, made defensible" },
     { label: "Personalization", tools: "Generic, one-size-fits-all", uni: "Cohort case method", tenx: "Your role, domain, and problem" },
     { label: "Output", tools: "Completion certificate", uni: "Executive certificate", tenx: "Reviewed Living AI Solution Dossier" },
@@ -557,7 +557,7 @@ function SampleThumb({ src, label }: { src: string; label: string }) {
     >
       <img
         src={src}
-        alt={`Illustrative sample dossier — ${label} page (fictional participant Maya R.)`}
+        alt={`Illustrative sample dossier, ${label} page (fictional participant Maya R.)`}
         width={1000}
         height={1415}
         loading="lazy"
@@ -574,7 +574,7 @@ function SampleThumb({ src, label }: { src: string; label: string }) {
 
 const STEPS: Array<[string, string]> = [
   ["Apply with your expertise", "Tell us your field, goals, and the challenges you want to explore."],
-  ["We review fit and seriousness", "A reviewed application — we look for a real problem and real commitment."],
+  ["We review fit and seriousness", "A reviewed application, we look for a real problem and real commitment."],
   ["If accepted, you receive the payment link", "Acceptance comes first; only then do we send a Stripe payment link."],
   ["You pay, then begin onboarding", "Payment happens only after acceptance, and onboarding starts right after."],
 ];
@@ -612,16 +612,16 @@ export function PricingPayment() {
 /* ------------------------------------------------------------------- 8. FAQ */
 
 const FAQS: Array<[string, string]> = [
-  ["Why do I need to apply?", "TenXPros is selective. Applying keeps the cohort serious — we accept people with a real problem and the commitment to do reviewed work."],
+  ["Why do I need to apply?", "TenXPros is selective. Applying keeps the cohort serious, we accept people with a real problem and the commitment to do reviewed work."],
   ["Why is payment after acceptance?", "You should only pay once we have confirmed fit. Applying creates no payment obligation, and no payment details are required to apply."],
-  ["Is this a university certificate?", "No. It is a private certification earned through reviewed work — not a university degree or an accredited academic program."],
+  ["Is this a university certificate?", "No. It is a private certification earned through reviewed work, not a university degree or an accredited academic program."],
   ["Is the credential recognized?", "It is a verifiable credential backed by a public review rubric and a reviewed dossier. Its weight comes from the evidence behind it, not from an accreditation body."],
   ["What if I am not accepted?", "You pay nothing. Where we can, we explain the fit gap and point you toward a more suitable next step."],
-  ["What if I cannot finish in 12 weeks?", "The 12 weeks are guided, but the dossier is the goal. We work with you on reasonable timing — certification is based on the work, not the clock."],
+  ["What if I cannot finish in 12 weeks?", "The 12 weeks are guided, but the dossier is the goal. We work with you on reasonable timing, certification is based on the work, not the clock."],
   ["Is this for non-technical professionals?", "Yes. It is built for experienced professionals across fields. You bring the expertise; we bring the AI method. No coding is required."],
   ["What exactly will I produce?", "A reviewed Living AI Solution Dossier: eight connected assets covering a focused professional challenge, from framing to a 90-day roadmap."],
   ["Can I expense this through my company?", "Many participants do. We provide an itemized receipt after payment; check your employer's professional-development policy."],
-  ["I'm applying from outside the US — anything I should know?", "Prices are listed in USD, and payment is requested only after acceptance. The path is designed to be async-friendly for international professionals, and the review language is English unless otherwise stated. You can request an invoice or receipt after acceptance and payment. As always, do not submit confidential or regulated data — use redacted or fictionalized examples."],
+  ["I'm applying from outside the US, anything I should know?", "Prices are listed in USD, and payment is requested only after acceptance. The path is designed to be async-friendly for international professionals, and the review language is English unless otherwise stated. You can request an invoice or receipt after acceptance and payment. As always, do not submit confidential or regulated data, use redacted or fictionalized examples."],
   ["Is my data safe?", "You control what you bring, and the program emphasizes confidentiality and governance. The public sample dossier uses fictional data only."],
 ];
 

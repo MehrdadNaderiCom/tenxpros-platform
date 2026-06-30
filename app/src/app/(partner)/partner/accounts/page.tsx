@@ -46,7 +46,7 @@ export default async function PartnerAccountsPage() {
                 <td className="px-4 py-3">{OFFERING_LABELS[a.offering]}</td>
                 <td className="px-4 py-3 text-slate-600">{a.scope}</td>
                 <td className="px-4 py-3">{a.closedDeals.length}</td>
-                <td className="px-4 py-3 text-slate-600">{a.protectionExpiresAt?.toLocaleDateString() ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-600">{a.protectionExpiresAt?.toLocaleDateString() ?? ", "}</td>
                 <td className="px-4 py-3">
                   <Badge status={a.lapsedAt ? "CLOSED" : "ACTIVE"}>{a.lapsedAt ? "Lapsed" : "Active"}</Badge>
                 </td>

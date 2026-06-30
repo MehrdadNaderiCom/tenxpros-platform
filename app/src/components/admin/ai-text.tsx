@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
  * Renders constrained AI output (the coach/suggestion text) as clean HTML:
  * "**Heading**" lines become headings, "- " lines become bullet lists,
  * "1." lines become numbered lists, and inline **bold** is bolded.
- * Pure string parsing into React nodes — no HTML injection is possible.
+ * Pure string parsing into React nodes, no HTML injection is possible.
  */
 
 function inline(text: string, keyBase: string): ReactNode[] {

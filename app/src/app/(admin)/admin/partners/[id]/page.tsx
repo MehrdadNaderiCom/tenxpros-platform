@@ -137,7 +137,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
       <Card className="space-y-4">
         <h2 className="text-lg font-semibold text-navy-900">Lifecycle &amp; Panel Confirmations</h2>
         <p className="text-xs text-slate-500">
-          Eligibility (necessary, not sufficient — promotion is your Panel Confirmation): {paidSeats}/{effective.tier2SeatThreshold} paid seats toward Tier 2
+          Eligibility (necessary, not sufficient, promotion is your Panel Confirmation): {paidSeats}/{effective.tier2SeatThreshold} paid seats toward Tier 2
           {partner.tier !== "TIER1" ? ` · Tier 3 needs ${effective.tier3FocusSeatThreshold} paid focus seats in one industry/region` : ""}.
         </p>
         <div className="flex flex-wrap gap-3">
@@ -210,7 +210,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           <datalist id="currency-options">{COMMON_CURRENCIES.map((c) => <option key={c} value={c} />)}</datalist>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Registered account</span>
             <Select name="registeredAccountId" defaultValue="">
-              <option value="">— none —</option>
+              <option value="">, none, </option>
               {partner.registeredAccounts.map((a) => <option key={a.id} value={a.id}>{a.legalEntity}</option>)}
             </Select>
           </label>
@@ -270,7 +270,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                   {deal.commissions.map((c) => (
                     <tr key={c.id} className="border-b border-neutral-100">
                       <td className="py-1 pr-2">{PARTNER_FUNCTION_LABELS[c.function]}{c.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
-                      <td className="py-1 pr-2 text-slate-500">{c.isFlat ? "—" : formatBp(c.rateBp)}</td>
+                      <td className="py-1 pr-2 text-slate-500">{c.isFlat ? ", " : formatBp(c.rateBp)}</td>
                       <td className="py-1 pr-2 font-medium text-navy-900">
                         {formatCents(c.amountCents - c.reversedCents, c.currency)}
                         {c.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(c.reversedCents, c.currency)})</span> : null}
@@ -322,7 +322,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {partner.focusGrants.map((g) => (
                 <li key={g.id} className="flex items-center justify-between gap-2">
-                  <span>{g.industryOrRegion} — {g.status}, {formatBp(g.currentBonusBp)} bonus, expires {g.expiresAt.toLocaleDateString()}</span>
+                  <span>{g.industryOrRegion}, {g.status}, {formatBp(g.currentBonusBp)} bonus, expires {g.expiresAt.toLocaleDateString()}</span>
                   {g.status === "ACTIVE" ? (
                     <form action={endFocus}>
                       <input type="hidden" name="focusGrantId" value={g.id} />
@@ -347,7 +347,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           {partner.qualityFlags.length ? (
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {partner.qualityFlags.map((q) => (
-                <li key={q.id}>{q.reason}{q.disregardForTargets ? " — disregarded for targets" : ""}</li>
+                <li key={q.id}>{q.reason}{q.disregardForTargets ? ", disregarded for targets" : ""}</li>
               ))}
             </ul>
           ) : <p className="mt-2 text-sm text-slate-500">No flags.</p>}

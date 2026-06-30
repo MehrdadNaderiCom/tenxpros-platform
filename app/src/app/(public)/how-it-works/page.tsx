@@ -119,7 +119,7 @@ export default function HowItWorksPage() {
             </ButtonLink>
           </div>
           <p className="mt-6 max-w-2xl text-xs leading-5 text-slate-500">
-            For questions or support — or to verify whether a payment link is legitimate — contact
+            For questions or support, or to verify whether a payment link is legitimate, contact
             support@tenxpros.com. For your security, never pay a link unless it comes through an official
             TenXPros/Naprolity channel and matches our official payment details. A directory profile is
             published only after certification and your opt-in.

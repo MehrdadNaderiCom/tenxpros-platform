@@ -25,8 +25,8 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 /**
- * Shared button with built-in action feedback: a tactile press effect, and —
- * for submit buttons inside a form action — an automatic spinner + disabled
+ * Shared button with built-in action feedback: a tactile press effect, and, 
+ * for submit buttons inside a form action, an automatic spinner + disabled
  * state while the action runs (via useFormStatus, no call-site changes needed).
  */
 export function Button({ className, variant = "primary", size = "md", children, disabled, ...props }: ButtonProps) {

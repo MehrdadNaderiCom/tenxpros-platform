@@ -4,7 +4,7 @@ import { modules } from "@/lib/program-data";
 import { cn } from "@/lib/utils";
 
 /**
- * Program / Method — "The Instrument" direction
+ * Program / Method, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public Program /
  * Method page. Shares the Home / Dossier / Pricing / Apply / Certification
@@ -36,10 +36,10 @@ const GOLD = "#C9A961";
 // Phase metadata. Week ranges follow the Instrument convention used across the
 // rebuilt pages; module→phase membership comes from the canonical data.
 const PHASES: Array<{ key: "FRAME" | "DESIGN" | "PROVE" | "FORESEE"; label: string; weeks: string; blurb: string }> = [
-  { key: "FRAME", label: "Frame", weeks: "Weeks 1–4", blurb: "Define the problem, context, boundaries, and AI fit." },
-  { key: "DESIGN", label: "Design", weeks: "Weeks 5–8", blurb: "Build responsible workflows, knowledge packs, and guardrails." },
-  { key: "PROVE", label: "Prove", weeks: "Weeks 9–10", blurb: "Test quality, usability, value, and risk." },
-  { key: "FORESEE", label: "Foresee", weeks: "Weeks 11–12", blurb: "Create the roadmap and defend what comes next." },
+  { key: "FRAME", label: "Frame", weeks: "Weeks 1-4", blurb: "Define the problem, context, boundaries, and AI fit." },
+  { key: "DESIGN", label: "Design", weeks: "Weeks 5-8", blurb: "Build responsible workflows, knowledge packs, and guardrails." },
+  { key: "PROVE", label: "Prove", weeks: "Weeks 9-10", blurb: "Test quality, usability, value, and risk." },
+  { key: "FORESEE", label: "Foresee", weeks: "Weeks 11-12", blurb: "Create the roadmap and defend what comes next." },
 ];
 
 function MonoLabel({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -110,7 +110,7 @@ export function ProgramHero() {
           </ul>
         </div>
 
-        {/* Method instrument panel — four phases + dossier output */}
+        {/* Method instrument panel, four phases + dossier output */}
         <div className="flex items-center">
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -166,10 +166,10 @@ export function ProgramWhy() {
 /* ----------------------------------------------------------- 3. Four phases */
 
 const PHASE_DETAIL: Array<[string, string, string]> = [
-  ["Frame", "Weeks 1–4", "Define the problem, context, boundaries, and AI fit."],
-  ["Design", "Weeks 5–8", "Build responsible workflows, knowledge packs, and guardrails."],
-  ["Prove", "Weeks 9–10", "Test quality, usability, value, and risk."],
-  ["Foresee", "Weeks 11–12", "Create the roadmap and defend what comes next."],
+  ["Frame", "Weeks 1-4", "Define the problem, context, boundaries, and AI fit."],
+  ["Design", "Weeks 5-8", "Build responsible workflows, knowledge packs, and guardrails."],
+  ["Prove", "Weeks 9-10", "Test quality, usability, value, and risk."],
+  ["Foresee", "Weeks 11-12", "Create the roadmap and defend what comes next."],
 ];
 
 export function ProgramPhases() {
@@ -203,7 +203,7 @@ const FORMAT: Array<[string, string]> = [
   ["Duration", "12 guided weeks"],
   ["Structure", "11 core modules + final dossier & capstone review"],
   ["Built for", "Working professionals"],
-  ["Weekly commitment", "Approximately 3–5 hours per week"],
+  ["Weekly commitment", "Approximately 3-5 hours per week"],
   ["Format", "Async-first"],
   ["Checkpoints", "Tied to the dossier, not video attendance"],
 ];
@@ -291,7 +291,7 @@ export function ProgramModules() {
           );
         })}
 
-        {/* Week 12 — final dossier + capstone review (a gold review moment) */}
+        {/* Week 12, final dossier + capstone review (a gold review moment) */}
         <div className="flex flex-col gap-4 rounded-xl border border-[#C9A961]/30 bg-[#0B1120] p-6 ring-1 ring-[#C9A961]/10 sm:flex-row sm:items-center sm:gap-6 md:p-8">
           <span
             className="flex h-12 w-12 flex-none items-center justify-center rounded-full border"
@@ -307,7 +307,7 @@ export function ProgramModules() {
             <h3 className="mt-1 text-lg font-semibold text-white">Final dossier &amp; capstone review</h3>
             <p className="mt-1.5 text-sm leading-6 text-slate-300">
               The eleven modules assemble into the Living AI Solution Dossier, which is reviewed
-              against the public criteria — the capstone that earns the credential.
+              against the public criteria, the capstone that earns the credential.
             </p>
           </div>
         </div>
@@ -324,7 +324,7 @@ const ASSETS: Array<[string, string]> = [
   ["Interaction & Decision Kit", "Prompts, checks, and human-in-the-loop rules."],
   ["Grounded Domain Knowledge Pack", "The trusted sources your AI work stands on."],
   ["AI Evaluation Rubric & Test Set", "How you measure whether it actually works."],
-  ["Custom Assistants & AI Workflows", "The working system — not a demo."],
+  ["Custom Assistants & AI Workflows", "The working system, not a demo."],
   ["AI Value & Economics Case", "The evidence that it is worth doing."],
   ["Final Portfolio & 90-Day Roadmap", "What you ship next, and how you lead it."],
 ];
@@ -338,7 +338,7 @@ export function ProgramAssets() {
           Eight assets, one dossier.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          The weekly work is not busywork — each phase produces a connected asset. Assembled
+          The weekly work is not busywork, each phase produces a connected asset. Assembled
           together, the eight assets become the reviewed Living AI Solution Dossier.
         </p>
       </div>
@@ -354,7 +354,7 @@ export function ProgramAssets() {
       <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B1120] p-5">
         <FileText className="h-5 w-5 flex-none text-indigo-300" aria-hidden="true" />
         <p className="text-sm leading-6 text-slate-300">
-          Assembled together, the eight assets form the reviewed Living AI Solution Dossier — the
+          Assembled together, the eight assets form the reviewed Living AI Solution Dossier, the
           artifact at the center of the credential.
         </p>
       </div>
@@ -383,7 +383,7 @@ export function ProgramPersonalization() {
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
           The diagnostic shapes your path around your field, risk level, stakeholders, evidence,
-          output type, and time — but the review standard stays the same for everyone. Personal,
+          output type, and time, but the review standard stays the same for everyone. Personal,
           not random.
         </p>
       </div>
@@ -403,10 +403,10 @@ export function ProgramPersonalization() {
 /* ------------------------------------------------------- 7. Review checkpoints */
 
 const CHECKPOINTS: Array<[string, string, string]> = [
-  ["Frame checkpoint", "Weeks 1–4", "Problem, boundaries, and AI fit are reviewable before you build."],
-  ["Design checkpoint", "Weeks 5–8", "Workflow, knowledge pack, and guardrails take shape."],
-  ["Prove checkpoint", "Weeks 9–10", "Evaluation, value evidence, and adoption plan are tested."],
-  ["Final dossier checkpoint", "Weeks 11–12", "Foresight, roadmap, and the assembled dossier go to review."],
+  ["Frame checkpoint", "Weeks 1-4", "Problem, boundaries, and AI fit are reviewable before you build."],
+  ["Design checkpoint", "Weeks 5-8", "Workflow, knowledge pack, and guardrails take shape."],
+  ["Prove checkpoint", "Weeks 9-10", "Evaluation, value evidence, and adoption plan are tested."],
+  ["Final dossier checkpoint", "Weeks 11-12", "Foresight, roadmap, and the assembled dossier go to review."],
 ];
 
 export function ProgramReview() {
@@ -452,11 +452,11 @@ export function ProgramReview() {
 /* ------------------------------------------------ 8. What makes the work defensible */
 
 const DEFENSIBLE: Array<[string, string]> = [
-  ["Starts from a real problem", "Work from your actual field and constraints — not a sandbox exercise."],
+  ["Starts from a real problem", "Work from your actual field and constraints, not a sandbox exercise."],
   ["Designs responsible AI use", "Explicit boundaries, governance, and the judgment that stays with a human."],
-  ["Tests outputs against a rubric", "An evaluation rubric and a test set — not a claim that it simply works."],
+  ["Tests outputs against a rubric", "An evaluation rubric and a test set, not a claim that it simply works."],
   ["Documents risks and value", "Risk, ethics, and the value case written down where they can be reviewed."],
-  ["Becomes reviewed evidence", "A dossier assessed against the eight public criteria — work you can stand behind."],
+  ["Becomes reviewed evidence", "A dossier assessed against the eight public criteria, work you can stand behind."],
 ];
 
 export function ProgramNotTools() {
@@ -468,7 +468,7 @@ export function ProgramNotTools() {
           Built to hold up to review.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          The difference is not which tools you touch — it is whether the work holds up when
+          The difference is not which tools you touch, it is whether the work holds up when
           someone asks how you decided. Every phase of the TenX Method leaves evidence you can
           defend.
         </p>
@@ -530,7 +530,7 @@ export function ProgramProof() {
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-300">
             The sample dossier shows how the method turns a professional problem into a structured,
-            reviewed artifact — the four phases, the eight assets, reviewer notes, and the rubric
+            reviewed artifact, the four phases, the eight assets, reviewer notes, and the rubric
             mapping, in one document.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">

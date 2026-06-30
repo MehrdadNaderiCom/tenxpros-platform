@@ -1,6 +1,6 @@
 /**
  * Shared marketing (TenXPros Command) constants: pipeline stages, warmth
- * weights, channels, and assets. Pure data — safe for client and server.
+ * weights, channels, and assets. Pure data, safe for client and server.
  */
 
 export const PROSPECT_STAGES = [
@@ -29,7 +29,7 @@ export const LIVE_STAGES: ProspectStageValue[] = [
 ];
 
 export const WARMTH_OPTIONS = [
-  { value: "WARM", label: "Warm — knows you", weight: 4 },
+  { value: "WARM", label: "Warm, knows you", weight: 4 },
   { value: "REFERRAL", label: "Referral", weight: 3 },
   { value: "COLD_ENGAGED", label: "Cold (engaged)", weight: 2 },
   { value: "COLD", label: "Cold", weight: 1 },
@@ -65,7 +65,7 @@ export const TOUCH_TYPES = [
 /**
  * Journal entry kinds. Each kind maps to the daily-log counter it should
  * bump (null = journal-only), so logging an attempt once updates the daily
- * stats automatically — no double entry.
+ * stats automatically, no double entry.
  */
 export const ATTEMPT_KINDS = [
   { value: "outreach", label: "New outreach message", counter: "messages" },
@@ -80,7 +80,7 @@ export const ATTEMPT_KINDS = [
 export type AttemptKindValue = (typeof ATTEMPT_KINDS)[number]["value"];
 
 export function attemptKindLabel(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return ", ";
   return ATTEMPT_KINDS.find((k) => k.value === value)?.label ?? value;
 }
 
@@ -177,12 +177,12 @@ export const SATISFACTION_OPTIONS = [
 ] as const;
 
 export function stageLabel(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return ", ";
   return PROSPECT_STAGES.find((s) => s.value === value)?.label ?? value;
 }
 
 export function warmthLabel(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return ", ";
   return WARMTH_OPTIONS.find((w) => w.value === value)?.label ?? value;
 }
 
@@ -191,7 +191,7 @@ export function warmthWeight(value?: string | null): number {
 }
 
 export function channelLabel(value?: string | null): string {
-  if (!value) return "—";
+  if (!value) return ", ";
   return MARKETING_CHANNELS.find((c) => c.value === value)?.label ?? value;
 }
 

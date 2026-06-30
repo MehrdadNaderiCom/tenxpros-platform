@@ -64,7 +64,7 @@ const VIEWS = [
 
 const TIPS = {
   quickName: "Just the name is enough to capture someone. Add details later from the row's Edit.",
-  quickWarmth: "How they know you — it multiplies the priority score. Warm x4, Referral x3, Cold engaged x2, Cold x1.",
+  quickWarmth: "How they know you, it multiplies the priority score. Warm x4, Referral x3, Cold engaged x2, Cold x1.",
   quickChannel: "Where you'll reach them. The handle is saved on the matching contact field.",
   quickHandle: "Their handle/address on that channel (e.g. the LinkedIn URL, phone number, or email).",
   quickContext: "Optional but powerful: role + industry makes your first line personal.",
@@ -458,7 +458,7 @@ export default async function ProspectsPage({
       <AiSuggestCard
         campaignId={campaign.id}
         area="prospects"
-        hint="Reads your live pipeline (stages, scores, cadence state, notes) and names the 5 prospects to act on right now, with a suggested angle for each — plus who to stop chasing."
+        hint="Reads your live pipeline (stages, scores, cadence state, notes) and names the 5 prospects to act on right now, with a suggested angle for each, plus who to stop chasing."
       />
 
       {/* Pipeline bar */}
@@ -510,7 +510,7 @@ export default async function ProspectsPage({
       <div className="space-y-2">
         {view === "today" && !stageFilter && rows.length > 0 ? (
           <p className="text-xs text-slate-500">
-            {dueCount > 0 ? `${dueCount} follow-up${dueCount === 1 ? "" : "s"} due first, then the highest-scored contacts to approach.` : "No follow-ups due — approach the highest-scored contacts below."}
+            {dueCount > 0 ? `${dueCount} follow-up${dueCount === 1 ? "" : "s"} due first, then the highest-scored contacts to approach.` : "No follow-ups due, approach the highest-scored contacts below."}
           </p>
         ) : null}
         {rows.map((p) => (
@@ -519,7 +519,7 @@ export default async function ProspectsPage({
         {rows.length === 0 ? (
           <Card className="p-6 text-center text-sm text-slate-500">
             {view === "today" && !stageFilter
-              ? "All clear. Nothing due and nobody waiting — add new contacts above."
+              ? "All clear. Nothing due and nobody waiting, add new contacts above."
               : "Nothing here yet."}
           </Card>
         ) : null}

@@ -11,7 +11,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const session = await auth();
   if (!isSuperAdmin(session?.user?.email)) return new Response("Forbidden", { status: 403 });
 
-  // Relative Location (proxy-safe — see the partner impersonate route).
+  // Relative Location (proxy-safe, see the partner impersonate route).
   const res = new NextResponse(null, { status: 307, headers: { Location: "/portal" } });
   res.cookies.set(PARTICIPANT_VIEW_COOKIE, params.id, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 7200 });
   res.cookies.delete(PARTNER_VIEW_COOKIE);

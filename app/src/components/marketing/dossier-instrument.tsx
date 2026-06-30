@@ -3,10 +3,10 @@ import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Dossier — "The Instrument" direction
+ * Dossier, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public Dossier
- * page — the site's primary proof / trust page. Shares the Home Instrument
+ * page, the site's primary proof / trust page. Shares the Home Instrument
  * design language: near-black / deep-navy base, cool indigo accent, gold
  * reserved for credential / review-standard moments, hairline rules, and
  * monospace metadata.
@@ -111,7 +111,7 @@ export function DossierHero() {
           <p className="mt-6 max-w-xl text-xs leading-5 text-slate-500">{SAMPLE_DISCLAIMER}</p>
         </div>
 
-        {/* Hero visual — the real artifact, cover + two excerpt thumbnails */}
+        {/* Hero visual, the real artifact, cover + two excerpt thumbnails */}
         <div className="flex items-center">
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -172,7 +172,7 @@ function HeroThumb({ src, label }: { src: string; label: string }) {
     >
       <img
         src={src}
-        alt={`Illustrative sample dossier — ${label} page (fictional participant Maya R.)`}
+        alt={`Illustrative sample dossier, ${label} page (fictional participant Maya R.)`}
         width={1000}
         height={1415}
         loading="lazy"
@@ -198,7 +198,7 @@ const PROOF_PILLARS: Array<[string, string]> = [
   ],
   [
     "Evidence-based value case",
-    "An evaluation rubric, a test set, and a value argument — not a claim that it simply works.",
+    "An evaluation rubric, a test set, and a value argument, not a claim that it simply works.",
   ],
 ];
 
@@ -234,12 +234,12 @@ export function DossierProves() {
 const ANATOMY: Array<{ phase: string; weeks: string; sections: string[] }> = [
   {
     phase: "Frame",
-    weeks: "Weeks 1–4",
+    weeks: "Weeks 1-4",
     sections: ["Professional Context", "Problem Definition", "AI Suitability Assessment"],
   },
   {
     phase: "Design",
-    weeks: "Weeks 5–8",
+    weeks: "Weeks 5-8",
     sections: [
       "Context, Stakeholder & Initial Foresight Analysis",
       "Data & Evidence Review",
@@ -250,12 +250,12 @@ const ANATOMY: Array<{ phase: string; weeks: string; sections: string[] }> = [
   },
   {
     phase: "Prove",
-    weeks: "Weeks 9–10",
+    weeks: "Weeks 9-10",
     sections: ["Adoption & Communication Plan", "Value, Roadmap & Proof Plan"],
   },
   {
     phase: "Foresee",
-    weeks: "Weeks 11–12",
+    weeks: "Weeks 11-12",
     sections: ["Personal AI Foresight Plan", "Final Recommendation"],
   },
 ];
@@ -270,7 +270,7 @@ export function DossierAnatomy() {
           Twelve sections, organized by the TenX Method.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          Each section moves the work forward through Frame, Design, Prove, and Foresee — from
+          Each section moves the work forward through Frame, Design, Prove, and Foresee, from
           defining the problem to leading what comes next.
         </p>
       </div>
@@ -329,7 +329,7 @@ const ASSETS: Array<[string, string]> = [
   ["Interaction & Decision Kit", "Prompts, checks, and human-in-the-loop rules."],
   ["Grounded Domain Knowledge Pack", "The trusted sources your AI work stands on."],
   ["AI Evaluation Rubric & Test Set", "How you measure whether it actually works."],
-  ["Custom Assistants & AI Workflows", "The working system — not a demo."],
+  ["Custom Assistants & AI Workflows", "The working system, not a demo."],
   ["AI Value & Economics Case", "The evidence that it is worth doing."],
   ["Final Portfolio & 90-Day Roadmap", "What you ship next, and how you lead it."],
 ];
@@ -344,7 +344,7 @@ export function DossierAssetsMap() {
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
           Each asset is built during the program and assembled into the Living AI Solution
-          Dossier — so the final artifact is the sum of reviewed, real work.
+          Dossier, so the final artifact is the sum of reviewed, real work.
         </p>
       </div>
       <ul className="mt-12 grid gap-px overflow-hidden rounded-xl border border-white/10 bg-white/10 sm:grid-cols-2 lg:grid-cols-4">
@@ -364,7 +364,7 @@ export function DossierAssetsMap() {
       <div className="mt-6 flex items-center gap-3 rounded-xl border border-white/10 bg-[#0B1120] p-5">
         <ShieldCheck className="h-5 w-5 flex-none text-indigo-300" aria-hidden="true" />
         <p className="text-sm leading-6 text-slate-300">
-          Assembled together, the eight assets form the reviewed Living AI Solution Dossier — the
+          Assembled together, the eight assets form the reviewed Living AI Solution Dossier, the
           artifact at the center of the credential.
         </p>
       </div>
@@ -396,7 +396,7 @@ export function DossierReviewStandard() {
           </h2>
           <p className="mt-5 text-lg leading-relaxed text-slate-300">
             A dossier is not graded for effort or attendance. It is reviewed against explicit
-            criteria — for clarity, boundaries, prioritization, evaluation, usability, value
+            criteria, for clarity, boundaries, prioritization, evaluation, usability, value
             evidence, governance, and roadmap realism.
           </p>
         </div>
@@ -438,14 +438,14 @@ export function DossierSample() {
         </p>
       </div>
 
-      {/* Curated proof gallery — equal-aspect artifacts, cover featured */}
+      {/* Curated proof gallery, equal-aspect artifacts, cover featured */}
       <div className="mt-12 grid gap-5 sm:grid-cols-3">
         <SampleGalleryItem
           src={SAMPLE_COVER_URL}
           alt={SAMPLE_COVER_ALT}
           eyebrow="Cover"
           label="Living AI Solution Dossier"
-          note="The full reviewed artifact — 12 sections in one document."
+          note="The full reviewed artifact, 12 sections in one document."
           featured
         />
         <SampleGalleryItem
@@ -512,7 +512,7 @@ function SampleGalleryItem({
       href={SAMPLE_PDF_URL}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label={`${eyebrow} — preview the sample dossier (opens PDF in a new tab)`}
+      aria-label={`${eyebrow}, preview the sample dossier (opens PDF in a new tab)`}
       className={cn(
         "group flex flex-col rounded-xl border bg-[#0B1120] p-3 transition focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2 focus:ring-offset-[#070B14]",
         featured
@@ -523,7 +523,7 @@ function SampleGalleryItem({
       <div className="overflow-hidden rounded-md border border-white/10 bg-white/[0.03]">
         <img
           src={src}
-          alt={alt ?? `Illustrative sample dossier — ${eyebrow} page (fictional participant Maya R.)`}
+          alt={alt ?? `Illustrative sample dossier, ${eyebrow} page (fictional participant Maya R.)`}
           width={1000}
           height={1415}
           loading="lazy"

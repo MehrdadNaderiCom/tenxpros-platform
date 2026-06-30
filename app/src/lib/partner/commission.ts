@@ -2,7 +2,7 @@ import type { PartnerFunction, PartnerTier, SeatStatus } from "@prisma/client";
 import type { EffectiveConfig } from "./config";
 
 /**
- * The commission engine — pure functions only. No database, no I/O, no clock.
+ * The commission engine, pure functions only. No database, no I/O, no clock.
  * Every commercial number comes from the resolved {@link EffectiveConfig}, never
  * a hard-coded constant. Money is integer CENTS; rates/caps are integer BASIS
  * POINTS (1% = 100 bp). All rounding is explicit and deterministic.
@@ -33,7 +33,7 @@ export function basicIntroRateBp(cfg: EffectiveConfig): number {
 /**
  * Origination rate. B2B strong is always available; B2C strong only unlocks
  * after `strongOriginationUnlockSeats` paid seats OR an explicit Panel
- * Confirmation — otherwise B2C strong falls back to the qualified B2C rate.
+ * Confirmation, otherwise B2C strong falls back to the qualified B2C rate.
  */
 export function originationRateBp(
   args: {
@@ -158,10 +158,10 @@ function scaleToTarget(amounts: number[], target: number): number[] {
 /**
  * Compute every commission line for a deal and clamp total partner compensation
  * (across all partners and functions, including override and bonuses) to the
- * deal cap — an ABSOLUTE ceiling (25% B2C / 30% B2B; a Tier-3 focus account may
+ * deal cap, an ABSOLUTE ceiling (25% B2C / 30% B2B; a Tier-3 focus account may
  * reach 35%). Fixed-fee lines are treated as committed (counted toward the cap
  * but never scaled, so recompute is idempotent); only percentage lines are
- * scaled down — cents-exact — to fit the remaining headroom under the cap.
+ * scaled down, cents-exact, to fit the remaining headroom under the cap.
  * Amounts are in the DEAL's currency minor units (the engine is scale-agnostic).
  */
 export function computeDealCommission(args: {
@@ -208,7 +208,7 @@ export function computeDealCommission(args: {
 
 /**
  * The commission to reverse when `refundedCents` of a deal's `baseCents` net
- * receipts is refunded/charged back/cancelled — proportional to the refund.
+ * receipts is refunded/charged back/cancelled, proportional to the refund.
  */
 export function proportionalReversalCents(
   commissionCents: number,

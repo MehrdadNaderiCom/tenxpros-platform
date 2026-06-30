@@ -134,7 +134,7 @@ export default async function DealRegistrationsPage() {
                 <td className="px-4 py-3">
                   <Badge status={reg.status === "CONFIRMED" ? "APPROVED" : "NOT_COMPLETED"}>{DEAL_REG_STATUS_LABELS[reg.status]}</Badge>
                 </td>
-                <td className="px-4 py-3 text-slate-600">{reg.decidedAt?.toLocaleDateString() ?? "—"}</td>
+                <td className="px-4 py-3 text-slate-600">{reg.decidedAt?.toLocaleDateString() ?? ", "}</td>
               </tr>
             ))}
           </tbody>

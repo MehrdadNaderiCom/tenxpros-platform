@@ -10,7 +10,7 @@ import { ButtonLink } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Home — "The Instrument" direction
+ * Home, "The Instrument" direction
  * --------------------------------------------------------------------------
  * Marketing-only, presentational server components for the public Home page.
  * Near-black / deep-navy base, cool indigo accent, restrained gold reserved
@@ -87,16 +87,16 @@ const QUICK_FACTS = [
 ];
 
 const METHOD_READOUT = [
-  ["Frame", "Weeks 1–4"],
-  ["Design", "Weeks 5–8"],
-  ["Prove", "Weeks 9–10"],
-  ["Foresee", "Weeks 11–12"],
+  ["Frame", "Weeks 1-4"],
+  ["Design", "Weeks 5-8"],
+  ["Prove", "Weeks 9-10"],
+  ["Foresee", "Weeks 11-12"],
 ];
 
 export function HomeHero() {
   return (
     <section className="relative overflow-hidden">
-      {/* restrained indigo glow — engineered, not flashy */}
+      {/* restrained indigo glow, engineered, not flashy */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -top-40 right-0 h-[480px] w-[480px] rounded-full bg-indigo-600/20 blur-[140px]"
@@ -155,7 +155,7 @@ export function HomeHero() {
           </dl>
         </div>
 
-        {/* Instrument panel — real artifact framed by method / review metadata */}
+        {/* Instrument panel, real artifact framed by method / review metadata */}
         <div className="flex items-center">
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -242,7 +242,7 @@ const ASSETS: Array<[string, string]> = [
   ["Interaction & Decision Kit", "Prompts, checks, and human-in-the-loop rules."],
   ["Grounded Domain Knowledge Pack", "The trusted sources your AI work stands on."],
   ["AI Evaluation Rubric & Test Set", "How you measure whether it actually works."],
-  ["Custom Assistants & AI Workflows", "The working system — not a demo."],
+  ["Custom Assistants & AI Workflows", "The working system, not a demo."],
   ["AI Value & Economics Case", "The evidence that it is worth doing."],
   ["Final Portfolio & 90-Day Roadmap", "What you ship next, and how you lead it."],
 ];
@@ -282,10 +282,10 @@ export function HomeAssets() {
 /* ------------------------------------------------------------- 4. The method */
 
 const METHOD: Array<[string, string, string]> = [
-  ["Frame", "Where does AI actually belong in my work?", "Weeks 1–4"],
-  ["Design", "How do I build it responsibly?", "Weeks 5–8"],
-  ["Prove", "Can I show the value with evidence?", "Weeks 9–10"],
-  ["Foresee", "How do I lead what comes next?", "Weeks 11–12"],
+  ["Frame", "Where does AI actually belong in my work?", "Weeks 1-4"],
+  ["Design", "How do I build it responsibly?", "Weeks 5-8"],
+  ["Prove", "Can I show the value with evidence?", "Weeks 9-10"],
+  ["Foresee", "How do I lead what comes next?", "Weeks 11-12"],
 ];
 
 export function HomeMethod() {
@@ -348,7 +348,7 @@ export function HomeSampleProof() {
             See what reviewed work looks like.
           </h2>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-400">
-            Preview an illustrative Living AI Solution Dossier — the artifact at the center of
+            Preview an illustrative Living AI Solution Dossier, the artifact at the center of
             TenXPros. It shows the structure, reviewer notes, evidence gaps, and review standard
             behind the credential.
           </p>
@@ -437,7 +437,7 @@ export function HomeAudience() {
 
 const OUTCOMES: Array<[string, string]> = [
   ["Certified", "The work meets the review standard and earns the credential."],
-  ["Strong draft", "Close — specific revisions are returned before certification."],
+  ["Strong draft", "Close, specific revisions are returned before certification."],
   ["Completed", "The program is finished; the credential is not yet earned."],
 ];
 
@@ -462,7 +462,7 @@ export function HomeCertification() {
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
           The credential is earned by submitting a dossier that meets an explicit review
-          standard — not by finishing lessons or showing up.
+          standard, not by finishing lessons or showing up.
         </p>
       </div>
 

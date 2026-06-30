@@ -1,7 +1,7 @@
 /**
  * The Command coach (pure): a verdict on the campaign plus prioritized nudges.
  * Thresholds follow the original TenXPros Command design: reply-rate target
- * 15–25%, pivot after `pivotMessagesThreshold` messages with fewer than
+ * 15-25%, pivot after `pivotMessagesThreshold` messages with fewer than
  * `pivotCallsThreshold` calls, quit at 1.5x the message threshold with <2 calls
  * and ≥70% of the window gone.
  */

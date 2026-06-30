@@ -9,7 +9,7 @@ import { isSuperAdmin } from "@/lib/authz";
  * The portal pages resolve "the current participant" by this userId. A super
  * admin with an active preview cookie (set by the admin "Open portal" button)
  * reads the targeted participant; everyone else reads themselves. Mutating
- * participant actions do NOT use this — they read the raw session — so the
+ * participant actions do NOT use this, they read the raw session, so the
  * preview is strictly read-only and a real participant never sees any change.
  */
 

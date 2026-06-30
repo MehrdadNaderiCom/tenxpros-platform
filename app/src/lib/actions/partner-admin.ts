@@ -85,7 +85,7 @@ export async function reviewPartnerApplication(formData: FormData) {
     return;
   }
 
-  // APPROVE — idempotent if already approved.
+  // APPROVE, idempotent if already approved.
   if (application.partner) {
     safeRevalidatePath(`/admin/partners/applications/${applicationId}`);
     return;
@@ -532,7 +532,7 @@ export async function recomputeDealCommissions(formData: FormData) {
   }
 
   // The Tier-3 focus 35% ceiling applies ONLY to a deal in the partner's active
-  // focus industry/region — never to ordinary deals (which keep the 25%/30% cap).
+  // focus industry/region, never to ordinary deals (which keep the 25%/30% cap).
   const grant = deal.industryOrRegion
     ? await prisma.focusGrant.findFirst({
         where: { partnerId: deal.partnerId, status: "ACTIVE", industryOrRegion: { equals: deal.industryOrRegion, mode: "insensitive" } },

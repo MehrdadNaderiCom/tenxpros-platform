@@ -1,5 +1,5 @@
 /**
- * Currency helpers — pure, no DB. The Partner Program is global, so money is
+ * Currency helpers, pure, no DB. The Partner Program is global, so money is
  * stored as integer MINOR UNITS in a named currency, and the number of minor-unit
  * digits varies (USD/EUR = 2, JPY/KRW = 0, BHD/KWD = 3). Never assume 2 decimals
  * and never assume USD. Conversion uses the rate captured on the date final
