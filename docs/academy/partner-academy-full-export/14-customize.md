@@ -135,6 +135,70 @@ A tailored leave behind summary, assembled from approved materials: the prospect
 
 Tomas runs operations for a regional logistics firm, a field not in the ten examples. You spend most of the conversation listening: he is already using AI to draft customer updates, but routing decisions feel risky, and some shipment data cannot leave his systems. Together you name the opportunity (faster, clearer customer communication) and the hard boundary (a human owns any routing decision that affects safety or contracts). You map it to the phases, build his field story for the twelve weeks, and leave behind a summary in his words. You never promise a delivery time saved, and because he has a real problem that must pass his leadership's judgment, he is a Pro, and detection, not persuasion, is what closed it.
 
+##### Partner Toolkit: ready to use templates
+
+> These are starting points, not scripts to send blindly. Every message you send must still use approved messaging and pass the truth test. Keep the placeholders in square brackets so you personalize each one. None of these contain a price or a promise of results, by design.
+
+###### Warm reconnect: a former colleague or past client
+
+> **Subject:** A quick thought for you, [first name]Hi [first name], it has been a while since [shared context, for example our time at [company] or the [project] work]. I have been close to how experienced professionals in [their field] are moving from just using AI to actually leading its adoption, and you came to mind. If it is useful, I would value a short conversation to share what I am seeing. No pressure either way. How is the next couple of weeks looking for you?
+
+###### Introduction through a mutual contact
+
+> **Subject:** [mutual contact] suggested we connectHi [first name], [mutual contact] thought it would be worth us talking. I work with experienced professionals in [their field] who want to lead AI adoption in their work, not just use the tools, and [mutual contact] felt that might be relevant to what you are focused on right now. Would a short call in the next week or two be welcome? Happy to work around your schedule.
+
+###### Reaching someone in a shared professional circle
+
+> Hi [first name], we are both part of [shared group or community], and I noticed your work on [specific, real detail]. I spend a lot of time on how professionals in [field] build defensible, reviewed AI work in their own domain. If that is something you are thinking about, I would be glad to compare notes over a short call. If not, no problem at all.
+
+###### Follow up one, adds value
+
+> Hi [first name], following up on my note. I mentioned I would share an example of how someone in [their field] works through this, so here it is in brief: [one or two sentences from the matching field story, framed as an example, not a promise]. If it is worth a short conversation, I am happy to set one up. If the timing is not right, just let me know and I will leave it there.
+
+###### Follow up two, gracious close
+
+> Hi [first name], I do not want to crowd your inbox, so this is my last note for now. If leading AI adoption in [their field] becomes a priority, I am easy to reach and glad to help. Wishing you well either way.
+
+###### Guiding a qualified prospect to apply
+
+> It sounds like this could genuinely fit what you are working on. The next step is simple and there is no payment involved yet: you apply and describe your expertise and the real problem you want to work on, and the team reviews it. Acceptance comes first, and only then is there any payment decision. I can point you to the current details and the application whenever you are ready. Would you like me to do that now?
+
+###### Objection one liners, honest and short
+
+> Is this just another AI course? No. Most courses teach tools and prompts. This is built around one real problem and a reviewed dossier, so you leave with evidence you can defend, not a completion certificate.
+
+> Is it accredited? No. It is a private professional certification. Its credibility comes from the reviewed dossier, the public criteria, and the verifiable credential, not from a university stamp.
+
+> Do I need to code? No. The core requirement is professional judgment in your field, not coding.
+
+> Will I definitely get certified? No. Certification depends on whether your dossier meets the review standard. The three outcomes are Certified, Strong Draft, and Completed.
+
+> Can I join as a regulated professional? Yes, as long as you protect confidential and regulated data and use redacted or fictionalized examples unless you have the rights and safeguards to use real data.
+
+###### Prospect qualification checklist, run it in your head before you register
+
+- Does this person have real depth in their field?
+- Do they already use AI and feel the gap between using and leading it?
+- Do they have one real problem worth solving?
+- Can they commit focused hours over twelve weeks?
+- Do they want reviewed, defensible work rather than a quick certificate?
+- Do they accept that outcomes are earned, not guaranteed?
+
+If the answer to most of these is yes, they are worth registering. If they are an absolute beginner with no domain, or they want a guarantee, they are not a fit, and the honest move is to say so.
+
+###### Deal registration field checklist, before you submit on the Panel
+
+- The legal entity or individual
+- The country
+- The business unit
+- The contact
+- The offering
+- The estimated seats and value
+- Your role on this opportunity
+- Your concrete route in: a warm contact, a shared circle, or a real reason you can reach them
+
+Submit only when you can fill each field honestly, and remember it is protected only once the company confirms it.
+
 ##### How this maps to your exam
 
 The exam checks that you know why customization is safe (the program is fixed and only the translation changes), the five steps in order, that discovery is mostly listening, and that naming the opportunity and the boundary is what makes a pitch credible. Expect questions on the emphasis for each organization type and on recognizing that a pitch needing a false promise means the prospect is not a fit.

@@ -1719,7 +1719,16 @@ Slug `customize` | Pass mark 80% | 6 exercises | 12 exam questions | Content ver
 - [ ] Needs legal review
 - Notes: 
 
-#### 14.9 Section: How this maps to your exam
+#### 14.9 Section: Partner Toolkit: ready to use templates
+
+- [ ] Keep
+- [ ] Rewrite
+- [ ] Remove
+- [ ] Needs screenshot
+- [ ] Needs legal review
+- Notes: 
+
+#### 14.10 Section: How this maps to your exam
 
 - [ ] Keep
 - [ ] Rewrite
