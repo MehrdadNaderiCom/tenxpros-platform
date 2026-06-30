@@ -8,6 +8,98 @@ export const m02: ModuleSeed = {
   passMark: 80,
   examSize: 10,
   lesson: "A partner is a trust builder, not a shortcut seller. Keep that sentence at the center of everything in this module, because the rest is just detail that flows from it.\n\nYou can play several roles in a single deal, or just one. The program recognizes five functions, and it pays you for the function you actually performed, not for being nearby when something happened. The five are these. A basic introduction, where you introduce a relevant contact. A qualified origination, where you source an opportunity that can realistically close. A strong origination, where you create a higher quality opportunity, often at scale or with confirmed strategic value. A closing, where you carry the opportunity through to a signed, binding agreement. And delivery or coaching, where you help deliver, coach, or support the offering when you are approved to do so. You will see exactly how each one pays in the Rules module. For now, learn the names and what each means, because you will describe your own role honestly when you register a deal.\n\nThe mindset underneath all five is simple and it protects you as much as it protects the company. A partner protects the brand. A partner protects the prospect. A partner protects the standard. And a partner protects their own right to earn by following the process. Those four hold together. Drop one and the others get weaker. Protect the prospect, for instance, and you protect the brand at the same time, because an honest introduction is what makes the brand trustworthy in the first place.\n\nNow the part that matters most for keeping you safe and keeping the program clean: the things a partner must never do. Read these slowly, because crossing any of them can end a partnership and, in some cases, expose you personally.\n\nNever promise certification. The credential is earned through a reviewed dossier, and no one can guarantee the outcome of a review. Never promise income, employment, promotion, leads, or business results. You are introducing a learning program, not selling a job or a raise. Never imply TenXPros is a university degree or an accredited academic program, because it is a private professional certification and saying otherwise is a false claim. Never ask for or accept payment outside official channels, and never use messaging that has not been approved. Never contact a prospect using the TenXPros name before you have completed the Activation Gate. Never use spam, scraped lists, or bought lists. Never submit, or encourage anyone to submit, confidential client, employer, patient, or regulated data without the rights and safeguards to handle it. And never claim exclusive authority over an industry, a country, or a territory unless it is confirmed in writing on the Partner Panel.\n\nThose are not arbitrary restrictions. Each one exists because breaking it damages a real person or a real obligation. Promise a job and you set up a participant for a betrayal that lands on your name. Imply accreditation and you mislead someone making a serious decision. Mishandle regulated data and you create legal exposure for the participant, the company, and yourself. The rule protects the people in the room.\n\nHere is how to think on your feet in the field. Before you say a sentence to a prospect, run it through a quick test. Is it true. Can I back it up. Does it promise an outcome I cannot control. Does it route money or data the wrong way. If a sentence fails any of those, do not say it. If you are not sure, treat that doubt as a no until you confirm on the Partner Panel.\n\nA short example of the judgment you will use constantly. Saying, this is a strong fit because you already have deep expertise and one real problem worth solving, is approved. It qualifies on genuine readiness, which is exactly your job. Saying, join and you will be certified automatically after twelve weeks, is prohibited, because certification is earned through review, not attendance, and you cannot promise it. The difference between those two sentences is the whole module in miniature. One protects the standard and the prospect. The other quietly breaks both.\n\nSo your identity, in one breath: you are the person who recognizes the right professional, tells them the truth, registers your real role honestly, and protects the standard even when bending it would be easier. That is what earns you the long term trust that makes this worth doing.",
+  bodyHtml: `<p class="lead">A partner is a trust builder, not a shortcut seller. Keep that one sentence at the center of everything here, because the rest is detail that flows from it. This module is about who you are when you speak for a real standard: the role you played, the four things you protect, the lines you must never cross, and the quick test that keeps you safe in the field.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+  <li>Name the five partner functions and describe your own role honestly when you register a deal.</li>
+  <li>State the four things a partner protects and why they hold together.</li>
+  <li>Run any sentence through the quick test before you say it, and recognize prohibited claims on sight.</li>
+</ul>
+
+<h2>What you need to understand</h2>
+
+<h3>The five functions, and getting paid for what you did</h3>
+<p>You can play several roles in a single deal, or just one. The program recognizes five functions and pays you for the function you actually performed, not for being nearby when something happened. Learn the names now, because you will describe your role honestly when you register a deal. (The exact pay for each lives in the Rules module.)</p>
+<ul>
+  <li><strong>Basic introduction:</strong> you introduce a relevant contact.</li>
+  <li><strong>Qualified origination:</strong> you source an opportunity that can realistically close.</li>
+  <li><strong>Strong origination:</strong> you create a higher quality opportunity, often at scale or with confirmed strategic value.</li>
+  <li><strong>Closing:</strong> you carry the opportunity through to a signed, binding agreement.</li>
+  <li><strong>Delivery or coaching:</strong> you help deliver, coach, or support the offering when you are approved to do so.</li>
+</ul>
+
+<h3>The four things a partner protects</h3>
+<p>The mindset under all five functions protects you as much as it protects the company. A partner protects the brand, protects the prospect, protects the standard, and protects their own right to earn by following the process. Those four hold together: drop one and the others weaken. Protect the prospect, for instance, and you protect the brand at the same time, because an honest introduction is what makes the brand trustworthy in the first place.</p>
+
+<h3>Detection, not persuasion</h3>
+<p>Your job is detection, not persuasion. A Pro is a real expert in a field who already uses AI loosely. A TenXPro is that same expert leading AI adoption with method, evidence, and governance. You are looking for the first so the program can build the second. If you have to convince someone they are a Pro, they almost always are not. That is why qualifying on genuine readiness is honest work and pushing volume is not.</p>
+
+<h3>The lines you must never cross</h3>
+<p>Read these slowly. Crossing any of them can end a partnership and, in some cases, expose you personally.</p>
+<ul>
+  <li>Never promise certification. The credential is earned through a reviewed dossier, and no one can guarantee the outcome of a review.</li>
+  <li>Never promise income, employment, promotion, leads, or business results. You are introducing a learning program, not selling a job or a raise.</li>
+  <li>Never imply TenXPros is a university degree or an accredited academic program. It is a private professional certification, and saying otherwise is a false claim.</li>
+  <li>Never ask for or accept payment outside official channels, and never use messaging that has not been approved.</li>
+  <li>Never contact a prospect using the TenXPros name before you have completed the Activation Gate.</li>
+  <li>Never use spam, scraped lists, or bought lists.</li>
+  <li>Never submit, or encourage anyone to submit, confidential client, employer, patient, or regulated data without the rights and safeguards to handle it.</li>
+  <li>Never claim exclusive authority over an industry, a country, or a territory unless it is confirmed in writing on the Partner Panel.</li>
+</ul>
+<p>These are not arbitrary. Promise a job and you set up a participant for a betrayal that lands on your name. Imply accreditation and you mislead someone making a serious decision. Mishandle regulated data and you create legal exposure for the participant, the company, and yourself. The rule protects the people in the room.</p>
+
+<h3>The quick test</h3>
+<p>Before you say a sentence to a prospect, run it through four questions. Is it true. Can I back it up. Does it promise an outcome I cannot control. Does it route money or data the wrong way. If a sentence fails any of those, do not say it. If you are not sure, treat that doubt as a no until you confirm on the Partner Panel.</p>
+
+<h2>How to sell it honestly</h2>
+<p>Honest selling here is mostly listening and naming. You qualify on genuine readiness, you describe the standard plainly, and you register the role you actually played. Saying "this is a strong fit because you already have deep expertise and one real problem worth solving" is approved: it qualifies on readiness, which is exactly your job. Saying "join and you will be certified automatically after twelve weeks" is prohibited: certification is earned through review, not attendance, and you cannot promise it. The gap between those two sentences is this whole module in miniature.</p>
+
+<div class="callout callout-success"><p><strong>Say this:</strong> This is a strong fit because you already have deep expertise and one real problem worth solving. The credential is earned through a reviewed dossier, so the work is real, and that is exactly why it carries weight.</p></div>
+<div class="callout callout-warning"><p><strong>Do not say this:</strong> Pay me directly to speed up enrollment, and once you finish the twelve weeks your income will rise.</p></div>
+
+<h2>Common objections and honest answers</h2>
+<table>
+  <thead>
+    <tr><th>Objection</th><th>How to answer</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Can you just guarantee I will be certified.</td><td>No. The credential is earned through a reviewed dossier, and no one can guarantee the outcome of a review.</td></tr>
+    <tr><td>Can I pay you directly to move faster.</td><td>No. Payment must go through official channels. I cannot accept payment outside them, even for a first installment.</td></tr>
+    <tr><td>Is this basically an accredited university qualification.</td><td>No. It is a private professional certification. Saying otherwise would be a false claim, and I will not make it.</td></tr>
+    <tr><td>Do you own this whole industry or region.</td><td>Only if it is confirmed in writing on the Partner Panel. I will not claim exclusivity that is not recorded there.</td></tr>
+    <tr><td>I bought a contact list, can we use it.</td><td>No. Bought, scraped, and spam lists are prohibited, with no relevance or timing exception.</td></tr>
+  </tbody>
+</table>
+
+<h2>Forms and screens you will reference</h2>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The deal registration form on the Partner Panel, where you record your real role for an opportunity. It captures the function you performed (introduction, qualified origination, strong origination, closing, or delivery and coaching) and the account details, so you are paid for what you actually did rather than for being nearby.</p></div>
+
+<h2>Talking points</h2>
+<ul>
+  <li>I am a trust builder, not a shortcut seller.</li>
+  <li>I get paid for the function I actually performed, not for being in the room.</li>
+  <li>I protect the brand, the prospect, the standard, and my own right to earn.</li>
+  <li>Certification is earned through a reviewed dossier. I cannot promise it.</li>
+  <li>If a sentence is not true, not backable, or routes money or data wrongly, I do not say it.</li>
+</ul>
+
+<div class="callout callout-warning"><p><strong>Mistakes to avoid:</strong> Promising a job, a raise, leads, or a guaranteed pass. Implying the credential is an accredited degree. Accepting payment off official channels or using messaging that is not approved. Using the TenXPros name before the Activation Gate. Using bought or scraped lists. Claiming exclusivity that is not confirmed in writing on the Panel. Any one of these can end a partnership.</p></div>
+
+<h2>Summary checklist</h2>
+<ul class="checklist">
+  <li>I can name the five functions and register the role I actually performed.</li>
+  <li>I can state the four things a partner protects and why they reinforce each other.</li>
+  <li>I can list the prohibited claims and explain who each rule protects.</li>
+  <li>I can run any sentence through the quick test before I speak.</li>
+  <li>I can tell an approved readiness statement from a prohibited promise.</li>
+</ul>
+
+<h2>A real scenario</h2>
+<p>A prospect you respect says, "Just take my payment now so we skip the queue, and tell me I am certified the day I finish." You like him, and the deal is right in front of you. You still say no to both: payment must go through official channels, and certification is earned through review, not attendance. Then you give him the sentence you can stand behind: he is a strong fit because of his expertise and one real problem worth solving, and you will register your role honestly on the Panel. You protected the standard, and you protected him.</p>
+
+<h2>How this maps to your exam</h2>
+<p>Your exam checks that you can match each function to its meaning, recall the four things a partner protects, identify prohibited claims (certification, income, accreditation, off-channel payment, bought lists, unconfirmed exclusivity), and apply the quick test to tell an approved sentence from a prohibited one.</p>`,
   exercises: [
     {
       stem: "How many functions can a partner perform in a single deal?",

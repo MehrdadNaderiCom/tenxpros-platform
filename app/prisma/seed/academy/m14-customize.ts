@@ -8,6 +8,97 @@ export const m14: ModuleSeed = {
   passMark: 80,
   examSize: 10,
   lesson: "The ten field stories in the explorer are examples, not the limit. A partner will meet prospects in industries and roles that are not on the list, and the skill that makes you genuinely effective is being able to customize the program's value for anyone, in any field, in any kind of organization, on your own. This module is that method. It is repeatable, it works for a buyer you have never seen before, and it keeps you honest while you do it.\n\nThe value you are customizing is fixed, and that is exactly what makes customization safe. You are never changing what the program is. The method, Frame, Design, Prove, Foresee, the eight assets, the reviewed dossier, the public criteria, and the credential are constant for everyone. What you customize is the translation: how you express that fixed value in the language, the problems, and the constraints of the person in front of you. You are not inventing a new program for each prospect. You are putting the same program into their words. Hold that distinction and you can tailor freely without ever drifting into a false claim.\n\nThe method has five steps. First, discover their world. Before you position anything, you ask enough to understand what they actually do, where AI is already showing up in their field, what their real problems are, who is affected, and what constraints they live under, especially anything regulated or confidential. You cannot customize what you do not understand, so this step is mostly listening. Second, find their highest value, lowest risk AI opportunity and their hard boundary. Every field has a place where AI clearly helps and a place where a human absolutely must stay in control. Naming both, in their domain, is the core of a credible tailored pitch, and the boundary matters as much as the opportunity, because that is the judgment a serious professional respects. Third, map it to the program. Show how Frame would scope that opportunity and rule out the dangerous uses, how Design would build a responsible workflow for it, how Prove would test its value with evidence, and how Foresee would turn it into a plan they could lead. Fourth, build their field story. Walk their specific situation through the twelve weeks the way the explorer does for the ten examples, so they see their own profession, their own problem, and the dossier they would produce. Fifth, present it in their language and connect it to what they care about, the personal credential for an individual or the organizational capability for a team.\n\nTo do the first step well, carry a discovery toolkit in your head and use it like a real conversation, not an interrogation. What are the core tasks and decisions in your work. Where are you already using AI, and where does it feel risky or unreliable. What is one real problem that would be worth solving properly. Who else is affected if you change how this works. What can never leave your control or your systems, for legal, ethical, or confidentiality reasons. What would proof look like to you, or to your leadership. Good answers to these give you everything you need to tailor the rest, and asking them well already signals that you understand their world.\n\nCustomizing by the type of organization sharpens it further. For a large enterprise, lead with consistency, governance, and risk across many people. For a small or medium business, lead with building real internal capability without depending on expensive outside help for every decision. For a startup, lead with speed and defensible decisions made under pressure. For a regulated environment, lead with the boundaries, the governance, and the confidentiality discipline the program builds, because that is precisely their worry. For a technical team, the credibility is in the evaluation rubric and the working system. For a non technical team, the credibility is in the method and the judgment, since no coding is required. It is the same program every time, with a different emphasis chosen to fit who you are talking to.\n\nFor a serious prospect, especially an organization, it helps to assemble a short tailored summary you can leave behind: their problem in their own words, the highest value opportunity and the boundary you identified together, how the four phases would handle it, what they or their people would produce, and the next step, which is to apply or to discuss a pilot. Keep it honest, keep it specific to them, and use only approved materials and current details. This is not a generic brochure, it is their situation reflected back through the program, and that is what makes it land.\n\nHold the guardrails the whole time you customize, because customization is exactly where an eager partner is most tempted to drift. You never promise a result, a number, or an outcome, no matter how tailored the story sounds. You never invent a program fact to fit their case, you use the real structure and the current official details. You never quote a price or offer a discount outside approved materials. Customizing the language is your job. Changing the truth is not, and the moment a tailored pitch needs an untrue claim to work, it means the prospect is not a fit, not that the claim is acceptable.\n\nOne line for the module. Customize by translating the fixed program into the prospect's world: discover their reality, find their highest value opportunity and their hard boundary, map it to the four phases, build their field story, and present it in their language, while never changing a single fact or promising a single result.",
+  bodyHtml: `<p class="lead">The ten field stories in the explorer are examples, not the limit. You will meet prospects in industries and roles that are not on the list, and the skill that makes you genuinely effective is customizing the program's value for anyone, in any field, in any kind of organization, on your own. This module is that method. It is repeatable, it works for a buyer you have never seen before, and it keeps you honest while you do it.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+  <li>Translate the fixed program into any prospect's world without ever changing a fact.</li>
+  <li>Run a discovery conversation that uncovers a prospect's real problems, constraints, and confidential boundaries.</li>
+  <li>Name both the highest value, lowest risk AI opportunity and the hard boundary in a field you have never sold into before.</li>
+  <li>Map that opportunity to Frame, Design, Prove, and Foresee, and build the prospect's own field story.</li>
+  <li>Choose the right emphasis by organization type, from enterprise to startup to regulated environment.</li>
+  <li>Hold every guardrail during customization, which is exactly where an eager partner is most tempted to drift.</li>
+</ul>
+
+<h2>What you need to understand</h2>
+
+<h3>The value is fixed, which is what makes customizing safe</h3>
+<p>You never change what the program is. The method (Frame, Design, Prove, Foresee), the eight assets, the reviewed dossier, the public criteria, and the credential are constant for everyone. What you customize is the translation: how you express that fixed value in the language, the problems, and the constraints of the person in front of you. You are not inventing a new program for each prospect. You are putting the same program into their words. Hold that distinction and you can tailor freely without ever drifting into a false claim. This is also why the screen never moves: the program multiplies a method onto real expertise the person already has, and ten times zero is still zero. A beginner with no field is a zero, and no amount of tailoring changes that. Your job is detection, not persuasion. If you have to convince someone that they are a Pro, they almost always are not.</p>
+
+<h3>The five step method</h3>
+<ol>
+  <li><strong>Discover their world.</strong> Before you position anything, ask enough to understand what they actually do, where AI is already showing up in their field, what their real problems are, who is affected, and what constraints they live under, especially anything regulated or confidential. You cannot customize what you do not understand, so this step is mostly listening.</li>
+  <li><strong>Find their highest value, lowest risk opportunity and their hard boundary.</strong> Every field has a place where AI clearly helps and a place where a human must stay in control. Naming both, in their domain, is the core of a credible tailored pitch, and the boundary matters as much as the opportunity, because that is the judgment a serious professional respects.</li>
+  <li><strong>Map it to the program.</strong> Show how Frame would scope the opportunity and rule out the dangerous uses, how Design would build a responsible workflow, how Prove would test its value with evidence, and how Foresee would turn it into a plan they could lead.</li>
+  <li><strong>Build their field story.</strong> Walk their specific situation through the twelve weeks the way the explorer does for the ten examples, so they see their own profession, their own problem, and the dossier they would produce.</li>
+  <li><strong>Present it in their language.</strong> Connect it to what they care about: the personal credential for an individual or the organizational capability for a team.</li>
+</ol>
+
+<h3>The discovery toolkit</h3>
+<p>Carry these questions in your head and use them like a real conversation, not an interrogation:</p>
+<ul>
+  <li>What are the core tasks and decisions in your work?</li>
+  <li>Where are you already using AI, and where does it feel risky or unreliable?</li>
+  <li>What is one real problem that would be worth solving properly?</li>
+  <li>Who else is affected if you change how this works?</li>
+  <li>What can never leave your control or your systems, for legal, ethical, or confidentiality reasons?</li>
+  <li>What would proof look like to you, or to your leadership?</li>
+</ul>
+<p>Good answers give you everything you need to tailor the rest, and asking them well already signals that you understand their world.</p>
+
+<h3>Emphasis by organization type</h3>
+<p>It is the same program every time, with a different emphasis chosen to fit who you are talking to. For a large enterprise, lead with consistency, governance, and risk across many people. For a small or medium business, lead with building real internal capability without depending on expensive outside help for every decision. For a startup, lead with speed and defensible decisions made under pressure. For a regulated environment, lead with the boundaries, the governance, and the confidentiality discipline the program builds, because that is precisely their worry. For a technical team, the credibility is in the evaluation rubric and the working system. For a non technical team, the credibility is in the method and the judgment, since no coding is required.</p>
+
+<h2>How to use it</h2>
+<p>Run the five steps in order, every time, regardless of the field. Listen first, name the opportunity and boundary second, then map to the four phases and build the field story. For a serious prospect, especially an organization, assemble a short tailored summary you can leave behind: their problem in their own words, the highest value opportunity and the boundary you identified together, how the four phases would handle it, what they or their people would produce, and the next step, which is to apply or to discuss a pilot. Keep it honest, keep it specific to them, and use only approved materials and current details. This is not a generic brochure. It is their situation reflected back through the program, and that is what makes it land.</p>
+
+<div class="callout callout-success"><p><strong>Say this:</strong> "In your work, the highest value, lowest risk place for AI looks like drafting and synthesis, and the hard boundary is the final judgment that has to stay with a qualified human. Frame would scope exactly that, and Prove would test it with evidence you could defend."</p></div>
+
+<div class="callout callout-warning"><p><strong>Do not say this:</strong> "For your industry we can guarantee this cuts your review time in half." You never promise a result, a number, or an outcome, no matter how tailored the story sounds, and you never invent a program fact to fit a case.</p></div>
+
+<h2>Common objections and honest answers</h2>
+<table>
+  <thead><tr><th>Objection</th><th>How to answer</th></tr></thead>
+  <tbody>
+    <tr><td>"My field is not one of your ten examples."</td><td>The ten are examples, not the limit. Discovery lets you build a field story for your exact situation using the same fixed method.</td></tr>
+    <tr><td>"We are regulated, so AI is too risky for us."</td><td>That is precisely why the program fits. It is built around naming the hard boundary and the confidentiality discipline, with redacted or fictionalized examples where needed.</td></tr>
+    <tr><td>"My team does not code, so this is not for us."</td><td>No coding is required. For a non technical team the credibility sits in the method and the judgment, not in writing software.</td></tr>
+    <tr><td>"Can you tailor the price for our case?"</td><td>You never quote a price or offer a discount outside approved materials. You customize the language and emphasis, not the commercial terms.</td></tr>
+    <tr><td>"This only works if you can promise us a specific outcome."</td><td>Then this prospect is not a fit. A true tailored pitch never needs a false promise, and customization never makes one acceptable.</td></tr>
+  </tbody>
+</table>
+
+<h2>Forms and screens you will reference</h2>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The explorer's field story view, which walks one profession through the twelve weeks. You use it as the model for building a prospect's own story, in their domain, for a field that is not on the list.</p></div>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>A tailored leave behind summary, assembled from approved materials: the prospect's problem in their own words, the opportunity and boundary, how the four phases handle it, what their people would produce, and the next step.</p></div>
+
+<h2>Talking points</h2>
+<ul>
+  <li>The program is fixed; only the translation into the prospect's world is customized.</li>
+  <li>Discovery is mostly listening, because you cannot customize what you do not understand.</li>
+  <li>Name both the opportunity and the boundary; the boundary is what a serious professional respects.</li>
+  <li>Map every tailored pitch to Frame, Design, Prove, and Foresee.</li>
+  <li>The right emphasis depends on the organization type, but the program does not change.</li>
+  <li>The multiplier needs real expertise as its input; detection comes before any tailoring.</li>
+</ul>
+
+<div class="callout callout-warning"><p><strong>Mistakes to avoid:</strong> Pitching before you have listened. Naming an opportunity but skipping the hard boundary. Inventing a program fact to fit a case. Promising a result, a number, or an outcome because the story sounds tailored. Quoting a price or offering a discount outside approved materials. Trying to talk a beginner with no field into being a Pro: that is persuasion, not detection, and the input does not multiply.</p></div>
+
+<h2>Summary checklist</h2>
+<ul class="checklist">
+  <li>I can run discovery as a conversation and uncover real problems and confidential boundaries.</li>
+  <li>I can name the highest value, lowest risk opportunity and the hard boundary in an unfamiliar field.</li>
+  <li>I can map that opportunity to the four phases and build the prospect's own field story.</li>
+  <li>I can choose the right emphasis for an enterprise, an SME, a startup, a regulated environment, and technical or non technical teams.</li>
+  <li>I can assemble an honest, specific leave behind summary from approved materials.</li>
+  <li>I never change a fact or promise a result while customizing, and I recognize when a prospect is not a fit.</li>
+</ul>
+
+<h2>A real scenario</h2>
+<p>Tomas runs operations for a regional logistics firm, a field not in the ten examples. You spend most of the conversation listening: he is already using AI to draft customer updates, but routing decisions feel risky, and some shipment data cannot leave his systems. Together you name the opportunity (faster, clearer customer communication) and the hard boundary (a human owns any routing decision that affects safety or contracts). You map it to the phases, build his field story for the twelve weeks, and leave behind a summary in his words. You never promise a delivery time saved, and because he has a real problem that must pass his leadership's judgment, he is a Pro, and detection, not persuasion, is what closed it.</p>
+
+<h2>How this maps to your exam</h2>
+<p>The exam checks that you know why customization is safe (the program is fixed and only the translation changes), the five steps in order, that discovery is mostly listening, and that naming the opportunity and the boundary is what makes a pitch credible. Expect questions on the emphasis for each organization type and on recognizing that a pitch needing a false promise means the prospect is not a fit.</p>`,
   exercises: [
     {
       stem: "When customizing for a prospect, what stays fixed?",

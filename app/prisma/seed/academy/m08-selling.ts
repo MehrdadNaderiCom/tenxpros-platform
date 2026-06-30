@@ -8,6 +8,86 @@ export const m08: ModuleSeed = {
   passMark: 80,
   examSize: 10,
   lesson: "You know the mission, the rules, the product, the journey, the recognition, and the coach pathway. This module turns all of it into a real conversation that converts the right people and honestly turns away the wrong ones. Selling with integrity is not a softer way to sell. It is a sharper one, because the people you bring in actually belong, and they remember who opened the door.\n\nStart the first conversation with the person, not the program. Do not open by describing TenXPros. Open with one question. What is the biggest challenge you are facing right now around AI in your work. Then listen. Most professionals give you one of three answers, and all three are perfect entry points. They say, I do not know where to start. Or they say, I have tried some tools but nothing feels systematic. Or they say, I am worried about falling behind but I am not sure what to do. Each of those points straight at what the program addresses, and now you are responding to their real situation instead of reciting a pitch at them.\n\nThen match the example to the person. This is where the Field Journey Explorer earns its place. If you are talking to a doctor, walk them through the radiologist's twelve weeks. A lawyer, the legal counsel's. An engineer, the civil engineer's. A finance leader, a marketer, an educator, a product manager, a clinic operations manager, a consultant, each has a field story that shows exactly what the weeks produce and what they would walk away holding. The story makes the program real in their mind, and real beats impressive every time.\n\nHave a clean mini pitch ready, sixty to ninety seconds, no hype, that you can say in your sleep. Something like this. TenXPros is a selective twelve week certification for experienced professionals who want to lead AI adoption in their field, not just use AI tools. You bring one real professional problem. The program gives you a structured method, Frame, Design, Prove, Foresee, to decide where AI belongs, design a responsible workflow, test value and risk, and assemble the work into a reviewed Living AI Solution Dossier. The credential is earned through reviewed evidence, not attendance. If your dossier meets the public standard, you earn a verifiable certified credential. That is the whole thing, said straight.\n\nYou will hear the same objections, so be ready with honest answers. Is this just another AI course. No, generic AI courses teach tools and prompts, while this is built around one real problem and a reviewed dossier, so the outcome is evidence you can defend, not a completion certificate. Is it accredited. No, it is a private professional certification, not a university degree or academic accreditation, and its credibility comes from the reviewed dossier, the public criteria, and the verifiable credential. Do participants need to code. No, it is built for experienced professionals across fields, and the core requirement is professional judgment, not coding. Will I definitely get certified. No, certification depends on whether the dossier meets the review standard, and the three outcomes are Certified, Strong Draft, and Completed. Can regulated professionals join. Yes, but they must protect confidential and regulated data, and the program expects redacted or fictionalized examples unless they have the rights and safeguards to use real data. What do participants actually leave with. Eight connected assets assembled into a Living AI Solution Dossier, plus a ninety day adoption roadmap, and if the dossier meets the standard, a verifiable credential. Notice that every honest answer is also persuasive, because it respects the intelligence of the person asking.\n\nThen point them to the real next step. Interested professionals apply at the site. The application is the first quality gate, where they describe their expertise and the challenge they want to explore, and payment happens only after acceptance. Say this plainly, because it takes the pressure out of the whole conversation. You never have to sell anyone into paying before they are accepted. The acceptance step itself signals that the program is serious. And only people who are genuinely ready get in. That structure does your qualifying for you.\n\nFinally, think past the single deal. As your referrals complete the program and earn their credentials, they become advocates for you. The professional who earns a field specific credential remembers who opened the door. That referral becomes a relationship, and the relationship builds your reputation as someone who opens doors, not someone who sells programs. This is the long game, and it is the one worth playing. Bring in people who belong, tell them the truth, and let the rigor of the program make you look good for years.\n\nOne last reminder that ties the whole Academy together. Everything you say should pass the same test from the identity module. Is it true. Can you back it up. Does it avoid promising what you cannot control. Does it route money and data correctly. Selling with integrity is just that test, applied out loud, in front of a real person, every time.",
+  bodyHtml: `<p class="lead">Selling with integrity is not a softer way to sell. It is a sharper one. When you qualify honestly and turn away the people the program does not fit, the people you do bring in actually belong, and they remember who opened the door. Your job here is detection, not persuasion. If you have to convince someone the program is for them, it usually is not.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+  <li>Open a first conversation with the person and their real challenge, not a pitch.</li>
+  <li>Match a field story to the prospect so the program becomes real in their mind.</li>
+  <li>Deliver a clean sixty to ninety second mini pitch with no hype.</li>
+  <li>Answer the standard objections honestly, in a way that is also persuasive.</li>
+  <li>Route the prospect to apply first and pay only after acceptance.</li>
+  <li>Run every sentence through the truth test before you say it.</li>
+</ul>
+
+<h2>What you need to understand</h2>
+
+<h3>Start with the person, not the program</h3>
+<p>Do not open by describing TenXPros. Open with one question: what is the biggest challenge you are facing right now around AI in your work. Then listen. Most professionals give one of three answers, and all three are perfect entry points: I do not know where to start, or, I have tried some tools but nothing feels systematic, or, I am worried about falling behind but I am not sure what to do. Each points straight at what the program addresses, so now you are responding to a real situation instead of reciting at someone.</p>
+
+<h3>Match the example to the person</h3>
+<p>This is where the Field Journey Explorer earns its place. Talking to a doctor, walk them through the radiologist's twelve weeks. A lawyer, the legal counsel's. An engineer, the civil engineer's. A finance leader, marketer, educator, product manager, clinic operations manager, or consultant each has a field story that shows what the weeks produce and what they would walk away holding. The story makes the program real, and real beats impressive every time.</p>
+
+<h3>The mini pitch, sixty to ninety seconds</h3>
+<p>Have it ready so you can say it in your sleep: TenXPros is a selective twelve week certification for experienced professionals who want to lead AI adoption in their field, not just use AI tools. You bring one real professional problem. The program gives you a structured method, Frame, Design, Prove, Foresee, to decide where AI belongs, design a responsible workflow, test value and risk, and assemble the work into a reviewed Living AI Solution Dossier. The credential is earned through reviewed evidence, not attendance. If your dossier meets the public standard, you earn a verifiable certified credential. That is the whole thing, said straight.</p>
+
+<h3>Detection beats persuasion</h3>
+<p>The program multiplies a method onto expertise the person already has. Ten times zero is still zero, so the input has to be real. A professional with a real problem and the judgment to defend their work is someone you detect, not someone you talk into it. If you find yourself working hard to convince a prospect they belong, treat that effort as a signal that they probably do not.</p>
+
+<h2>How to sell it honestly</h2>
+<p>Every honest answer is also persuasive, because it respects the intelligence of the person asking. You never trade accuracy for a close. The structure of the program, apply first and pay only after acceptance, does your qualifying for you and takes the pressure out of the whole conversation.</p>
+
+<div class="callout callout-success"><p><strong>Say this:</strong> What is the biggest challenge you are facing right now around AI in your work? Tell me where you are stuck, and I will tell you honestly whether this program is built for that, or whether it is not the right fit.</p></div>
+
+<div class="callout callout-warning"><p><strong>Do not say this:</strong> This will make you certified and ten times more valuable, trust me. That promises an outcome you do not control, replaces the reviewed standard with hype, and breaks the truth test on the first sentence.</p></div>
+
+<h2>Common objections and honest answers</h2>
+<table>
+  <thead>
+    <tr><th>Objection</th><th>How to answer</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Is this just another AI course?</td><td>No. Generic courses teach tools and prompts. This is built around one real problem and a reviewed dossier, so the outcome is evidence you can defend, not a completion certificate.</td></tr>
+    <tr><td>Is it accredited?</td><td>No. It is a private professional certification, not a university degree or academic accreditation. Its credibility comes from the reviewed dossier, the public criteria, and the verifiable credential.</td></tr>
+    <tr><td>Do I need to code?</td><td>No. It is built for experienced professionals across fields. The core requirement is professional judgment, not coding.</td></tr>
+    <tr><td>Will I definitely get certified?</td><td>No. Certification depends on whether the dossier meets the review standard. The three outcomes are Certified, Strong Draft, and Completed.</td></tr>
+    <tr><td>Can a regulated professional join?</td><td>Yes, but they must protect confidential and regulated data and use redacted or fictionalized examples unless they have the rights and safeguards to use real data.</td></tr>
+    <tr><td>What do I actually leave with?</td><td>Eight connected assets assembled into a Living AI Solution Dossier, a ninety day adoption roadmap, and, if the dossier meets the standard, a verifiable credential.</td></tr>
+  </tbody>
+</table>
+
+<h2>Forms and screens you will reference</h2>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The Field Journey Explorer, where you pick the prospect's field and walk through that profession's twelve weeks, showing what each phase produces and what they hold at the end.</p></div>
+
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The application screen, the first quality gate, where the professional describes their expertise and the challenge they want to explore. Payment happens only after acceptance, never before.</p></div>
+
+<h2>Talking points</h2>
+<ul>
+  <li>Open with the person, listen first, and respond to their real situation.</li>
+  <li>Use a matched field story to make the program concrete, because real beats impressive.</li>
+  <li>Keep the mini pitch to sixty to ninety seconds with no hype.</li>
+  <li>Say plainly that no one pays before being accepted, which removes the pressure to sell payment first.</li>
+  <li>The acceptance step signals the program is serious and only admits people who are genuinely ready.</li>
+  <li>Graduates who earn a field specific credential remember who opened the door, and that builds your reputation for years.</li>
+</ul>
+
+<div class="callout callout-warning"><p><strong>Mistakes to avoid:</strong> opening by reciting the program, leading with price, promising certification, inflating a private certification into an accreditation or degree, pushing someone toward payment before acceptance, or selling to a poor fit just to close. Each one fails the truth test and costs you the long game.</p></div>
+
+<h2>Summary checklist</h2>
+<ul class="checklist">
+  <li>I can open with a question about the person's real AI challenge and then listen.</li>
+  <li>I can match a field story to the prospect in front of me.</li>
+  <li>I can deliver the mini pitch in sixty to ninety seconds with no hype.</li>
+  <li>I can answer the six standard objections honestly and accurately.</li>
+  <li>I can route the prospect to apply first and pay only after acceptance.</li>
+  <li>I can run every sentence through: is it true, can I back it up, does it avoid promising what I cannot control, does it route money and data correctly.</li>
+</ul>
+
+<h2>A real scenario</h2>
+<p>You are sitting with a hospital finance leader who says she has tried a few AI tools but nothing feels systematic. You do not pitch. You ask what decision she is trying to make better, listen, then walk her through a finance field journey so she can see what twelve weeks would produce. She asks if it is accredited. You say no, it is a private professional certification whose credibility is the reviewed dossier and public criteria, and you watch her trust go up, not down, because you told her the truth. You point her to apply, and you mention that she pays nothing until she is accepted.</p>
+
+<h2>How this maps to your exam</h2>
+<p>Expect questions on why you open with the person rather than the program, the three common opening answers, the honest replies to is this just another AI course, is it accredited, do I need to code, and will I definitely get certified, when payment happens, and the four part truth test every sentence must pass.</p>`,
   exercises: [
     {
       stem: "How should a partner open the first conversation?",

@@ -8,6 +8,89 @@ export const m10: ModuleSeed = {
   passMark: 80,
   examSize: 10,
   lesson: "You have a list of real, qualified prospects, each one registered and confirmed. This module is how you actually reach them and run the conversation, in practice, without breaking a rule and without sounding like a script.\n\nStart with the principles of good outreach, because they apply to every message you send. Outreach is personal, honest, specific, and short. Personal means it is clearly written to this person, referencing something real about them or your connection, not a blast. Honest means no hype and no promises. Specific means you name the one thing you think is relevant to them, not a wall of features. Short means you respect their time and make the next step easy. And every message must still use approved messaging and pass the same truth test from the identity module: is it true, can you back it up, does it avoid promising what you cannot control, does it route money and data correctly.\n\nThe first message depends on whether it is warm or comes through a mutual contact. A warm message, where you already have a relationship, can be direct: remind them who you are, say briefly why you thought of them, and suggest a short conversation. A message through a mutual contact leads with that person's name and the reason for the introduction, because the trust is being lent to you. There is no genuinely cold outreach here in the sense of strangers from a bought list, since that is prohibited. The closest you get is reaching someone in a shared circle, and even then you lead with the real connection, not a pitch.\n\nWhen you get the conversation, do not pitch. Run it the way the selling module taught. Open with their challenge, not your program: ask what the biggest challenge they are facing around AI in their work is, and then listen. Most people hand you one of the three classic openings, and each points straight at the program. Then match the field story to who they are, using the explorer, so they see their own profession walking through the twelve weeks. Place your mini pitch where it fits naturally, sixty to ninety seconds, no hype, and lead with the boundary as much as the benefit, because that is what a serious professional respects.\n\nHandle the price question honestly and inside the rules, because this is where partners most often slip. You may not quote a price unless you are using approved current materials, and you may not give discounts or promise results. So when price comes up, point them to the current approved information and to the application, and be straight that payment happens only after they apply and are accepted. This is not evasion, it is the structure, and it actually removes pressure, because you are not selling anyone into paying before they are accepted.\n\nGuide them to the real next step, which is to apply. The application is the first quality gate, where they describe their expertise and the problem they want to work on, and acceptance comes before any payment. Make that step clear and easy. Then follow up like a professional, not a pest. A good follow up adds something: a relevant thought, an answer to a question they raised, or the field story you promised to send. Space your follow ups, keep them useful, and know when to stop. If someone is clearly not a fit or not interested, thank them and move on, because chasing the wrong prospect costs you the time the right one deserves.\n\nFinally, know the handoff. Your job is to bring the right professional to the door honestly and register the opportunity. The company handles acceptance, payment, and delivery. You do not bind the company, quote outside approved materials, accept payment, or issue invoices. Knowing where your role ends is part of doing it well.\n\nOne line for the module. Reach real people personally and honestly, open the conversation with their challenge and match their field, handle price by pointing to approved materials and the application, guide them to apply, follow up with value, and hand off cleanly.",
+  bodyHtml: `<p class="lead">You already have a list of real, qualified prospects, each one registered and confirmed. This module is how you actually reach them and run the conversation in practice, without breaking a rule and without sounding like a script. The goal is detection, not persuasion: you are finding the professional who already has a real problem worth twelve weeks, not talking anyone into being someone they are not.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+  <li>Write a first message that is personal, honest, specific, and short, and that passes the truth test every time.</li>
+  <li>Open the conversation with the prospect's challenge instead of your program, then listen.</li>
+  <li>Match the field story to the person in front of you, so they see their own profession walking through the twelve weeks.</li>
+  <li>Handle the price question inside the rules, by pointing to approved materials and the application.</li>
+  <li>Guide a qualified prospect to apply, follow up with value, and hand off cleanly to the company.</li>
+</ul>
+
+<h2>What you need to understand</h2>
+
+<h3>The four qualities of good outreach</h3>
+<p>Every message you send, warm or through a mutual contact, lives or dies on four qualities. They are not style preferences, they are the difference between outreach and spam.</p>
+<ul>
+  <li><strong>Personal.</strong> Clearly written to this person, referencing something real about them or your connection. Not a blast.</li>
+  <li><strong>Honest.</strong> No hype and no promises.</li>
+  <li><strong>Specific.</strong> You name the one thing you think is relevant to them, not a wall of features.</li>
+  <li><strong>Short.</strong> You respect their time and make the next step easy.</li>
+</ul>
+<p>On top of those four, every message must still use approved messaging and pass the truth test from the identity module: is it true, can you back it up, does it avoid promising what you cannot control, does it route money and data correctly.</p>
+
+<h3>Warm, introduced, and the absence of cold</h3>
+<ul>
+  <li>A <strong>warm</strong> message, where you already have a relationship, can be direct: remind them who you are, say briefly why you thought of them, and suggest a short conversation.</li>
+  <li>A message <strong>through a mutual contact</strong> leads with that person's name and the reason for the introduction, because their trust is being lent to you.</li>
+  <li>There is no genuinely <strong>cold</strong> outreach here. Strangers from bought or scraped lists are prohibited. The closest you get is reaching someone in a shared circle, and even then you lead with the real connection, not a pitch.</li>
+</ul>
+
+<h3>Running the conversation, not pitching it</h3>
+<p>When you get the conversation, do not pitch. Open with their challenge, not your program: ask what the biggest challenge they are facing around AI in their work is, and then listen. Most people hand you one of the three classic openings, and each one points straight at the program. Then match the field story to who they are, using the explorer, so they recognize themselves. Place your mini pitch where it fits naturally, sixty to ninety seconds, no hype, and lead with the boundary as much as the benefit, because that is what a serious professional respects.</p>
+
+<h2>How to sell it honestly</h2>
+<p>This program multiplies an AI method onto expertise the person already has. Ten times zero is still zero, so if there is nothing real to multiply, the program is not for them, and your job in the conversation is to find that out, not to paper over it. That is why you open with their challenge and listen: a real challenge in their own field is the signal that they have something multipliable. If you find yourself working hard to convince someone that they belong, that is the signal that they probably do not, and an honest partner names it kindly and moves on.</p>
+
+<div class="callout callout-success"><p><strong>Say this:</strong> What is the biggest challenge you are facing around AI in your work right now? I thought of you because of the work you do in your field, and I want to understand the problem before I say anything about how the program might fit.</p></div>
+<div class="callout callout-warning"><p><strong>Do not say this:</strong> This program will make you an AI leader and get you results. The price is a special number just for you, and you can pay today to lock it in.</p></div>
+
+<h2>Common objections and honest answers</h2>
+<table>
+  <thead>
+    <tr><th>Objection</th><th>How to answer</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>What does it cost?</td><td>Point them to the current approved information and to the application, and be straight that payment happens only after they apply and are accepted. Do not quote outside approved materials.</td></tr>
+    <tr><td>Can you give me a discount?</td><td>No. You may not give discounts or change the price. The structure is the same for everyone, and acceptance comes before payment.</td></tr>
+    <tr><td>Can you guarantee this works for me?</td><td>No promises of results. You can describe the fixed structure and what participants produce, and let the application and the work speak.</td></tr>
+    <tr><td>Why do I have to apply instead of just paying?</td><td>The application is the first quality gate, where you describe your expertise and the problem you want to work on. Acceptance comes before any payment, which actually removes pressure.</td></tr>
+    <tr><td>Is this for beginners learning AI?</td><td>No. The real prerequisite is professional judgment and genuine domain expertise. An absolute beginner with no field to work from is not the fit, and it is honest to say so.</td></tr>
+  </tbody>
+</table>
+
+<h2>Forms and screens you will reference</h2>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The application screen the prospect fills in: a description of their expertise, the real problem they want to work on for twelve weeks, and their field. This is the first quality gate, and acceptance happens here before any payment.</p></div>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>Your opportunity registration in the Partner Panel, where you record the prospect and your route in, so the conversation you started is logged and protected.</p></div>
+
+<h2>Talking points</h2>
+<ul>
+  <li>Lead with the boundary as much as the benefit: a serious professional respects the limits you name.</li>
+  <li>Payment only after acceptance, so no one is ever sold into paying before they are accepted.</li>
+  <li>The application is a quality gate, not a sales form, and it is the natural next step.</li>
+  <li>You bring the expertise, the program brings the method: that is the whole multiplier idea, said plainly.</li>
+  <li>Your role ends at a clean handoff: the company handles acceptance, payment, and delivery.</li>
+</ul>
+
+<div class="callout callout-warning"><p><strong>Mistakes to avoid:</strong> quoting a price outside approved materials, offering a discount, promising a result, blasting a generic message to a list, chasing a prospect who is clearly not a fit, or following up by repeating the same ask with more pressure. Each one breaks a rule or wastes the time the right prospect deserves.</p></div>
+
+<h2>Summary checklist</h2>
+<ul class="checklist">
+  <li>I can write a first message that is personal, honest, specific, and short.</li>
+  <li>I can lead a mutual contact introduction with their name and the reason for it.</li>
+  <li>I can open the conversation with the prospect's challenge and then listen.</li>
+  <li>I can handle price by pointing to approved materials and the application.</li>
+  <li>I can guide a qualified prospect to apply, and follow up by adding value.</li>
+  <li>I can thank a poor fit and move on, and hand off cleanly to the company.</li>
+</ul>
+
+<h2>A real scenario</h2>
+<p>Dr. Lena Okafor is a compliance lead at a mid-size insurer, introduced to you by a former colleague. You lead with that colleague's name and the reason for the introduction, then ask what her biggest challenge around AI is. She says leadership keeps asking what the AI plan is and she has nothing she can defend. That is a real, multipliable problem in her own field. You match the field story, give a sixty second mini pitch that leads with governance and limits, and when she asks the price you point her to the approved information and the application, noting payment only follows acceptance. You guide her to apply, and you hand off cleanly.</p>
+
+<h2>How this maps to your exam</h2>
+<p>The exam checks that you know the four qualities of outreach, how to open the conversation with the prospect's challenge, the correct way to handle a price question without approved materials, what a value adding follow up looks like, and where your role ends at handoff. Answer from this material and you will pass.</p>`,
   exercises: [
     {
       stem: "What are the four qualities of good outreach?",

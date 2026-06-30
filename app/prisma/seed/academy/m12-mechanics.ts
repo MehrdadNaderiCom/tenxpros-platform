@@ -8,6 +8,112 @@ export const m12: ModuleSeed = {
   passMark: 80,
   examSize: 10,
   lesson: "A partner who sells this program has to answer the practical questions a serious professional will ask about the twelve weeks, clearly and without guessing. A vague answer here costs you the sale and your credibility, and a made up answer costs you more when it turns out to be wrong. So this module gives you the full mechanics: what the structure is, what happens when, what the participant produces, how they are supported, and how it ends. Where a specific operational detail depends on the current program setup, you use the official current answer, and you never invent one.\n\nStart with the shape that never changes, because this is the backbone you can always explain with full confidence. The program runs twelve weeks, in four phases. Frame is weeks one to four and answers where AI belongs in the participant's work. Design is weeks five to eight and answers how to build it responsibly. Prove is weeks nine and ten and answers whether the value can be shown with evidence. Foresee is weeks eleven and twelve and answers how to lead what comes next. Across these phases the participant builds eight connected assets and assembles them into one reviewed Living AI Solution Dossier with twelve sections. That structure is fixed, and you can state it to anyone without checking.\n\nNow the weekly rhythm, described by what the participant produces, because that is what a prospect really wants to understand. There is no week that is just watching. Every week has a defined focus, a piece of work to create, and a milestone badge that marks it done, and by the end of each phase the participant has finished that phase's assets and earned the phase rank. The progress is visible the whole way, which matters to a busy professional who wants to know their effort is adding up to something real.\n\nLook at it as four gates, because that is how the work stacks. By the end of Frame, the participant has produced the Personal AI Strategy Brief and the AI Use Case Portfolio, and the first dossier sections covering their professional context, their problem definition, and their AI suitability assessment. By the end of Design, they have built the Interaction and Decision Kit, the Grounded Domain Knowledge Pack, the AI Evaluation Rubric and Test Set, and a working set of Custom Assistants and Workflows, plus the Design dossier sections on stakeholders, evidence, the before and after workflow, risk and compliance, and the responsible solution design. By the end of Prove, they have run their evaluation honestly and built the AI Value and Economics Case, with the adoption and proof sections of the dossier. By the end of Foresee, they have the Final Portfolio and the ninety day Roadmap and their foresight plan, and they submit the complete dossier for review. Each gate is real work finished, not a box ticked.\n\nThe format and the time commitment. The program is delivered as [CONFIRM: state the format, for example async first with optional live sessions, or a scheduled cohort]. The expected time commitment is [CONFIRM: state the hours per week]. Enrollment works as [CONFIRM: rolling, or fixed cohort start dates]. You quote the current official figures here, always, never an estimate of your own. If a prospect asks and you are not certain of the current number, you say you will confirm it, and you do.\n\nHow participants are supported through the twelve weeks. Participants receive [CONFIRM: describe the support and coaching model, for example group coaching sessions, one to one reviews, office hours, peer review, and the expected response times]. Describe this specifically and from the current setup, because for a serious professional the support model is often the deciding factor, and a confident, accurate answer here closes deals.\n\nDeadlines, pace, and flexibility. The program expects [CONFIRM: state the pacing and deadline policy]. If a participant falls behind, [CONFIRM: state the extension or flexibility policy]. Do not promise flexibility the program does not offer, and do not deny flexibility it does offer. Use the current policy and nothing else.\n\nTools and prerequisites. Participants need [CONFIRM: state any required tools or accounts]. The real prerequisite is professional judgment and genuine domain expertise, not coding. The program is built for experienced professionals, and an absolute beginner with no field to work from is not the fit, which is something you can and should say honestly.\n\nThe review and certification timeline. When the dossier is submitted, it is reviewed against the eight public criteria, and the participant receives one of three outcomes: Certified, Strong Draft, or Completed. [CONFIRM: state the review turnaround time]. A Strong Draft returns specific revisions before certification, so it is not a failure, it is a path to the credential. Once earned, the credential is verifiable and field specific, and verification shows the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.\n\nWhat the participant carries during and after. During the program they accumulate the weekly badges and the phase ranks, so their progress is visible at every step. After it, if certified, they hold a field specific credential and a living dossier they can keep updating as their work evolves, plus [CONFIRM: state any alumni access or ongoing benefit]. They also understand that program details and terms are set for the current year and may be refreshed each year, with notice given through the site.\n\nFinally, the discipline that protects you through all of this. The structure, the phases, the assets, the dossier, the criteria, and the outcomes are fixed, and you state them with confidence. The operational specifics, the hours, the format, the support model, the deadlines, the tools, and the review time, come from the current official details, and you quote those, never a guess. When you do not know a current operational answer, you say you will confirm it and you do, rather than filling the silence with something invented. That habit is exactly what keeps every promise you make true, and it is what separates a partner a prospect trusts from one they do not.\n\nOne line for the module. Know the fixed twelve week structure cold and explain it with full confidence, and for every operational detail use the current official answer rather than guessing, so a prospect never hears a vague or invented response.",
+  bodyHtml: `<p class="lead">A serious professional will ask practical questions about the twelve weeks, and a vague answer costs you the sale while a made up one costs you more when it turns out to be wrong. This module gives you the full mechanics: the fixed structure you state with confidence, and the operational details you take from the current official source rather than inventing. That discipline is what keeps every promise you make true.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+  <li>Explain the fixed twelve week structure, the four phases, the eight assets, and the dossier, without checking anything.</li>
+  <li>Describe what the participant produces at each of the four gates.</li>
+  <li>Name the three review outcomes and what each one means.</li>
+  <li>Recognize which details are operational, and take those from the current official source.</li>
+  <li>Say honestly when the program is not the right fit, for example for a true beginner with no field.</li>
+</ul>
+
+<h2>What you need to understand</h2>
+
+<h3>The shape that never changes</h3>
+<p>The program runs twelve weeks, in four phases, and this backbone you can always explain with full confidence:</p>
+<ul>
+  <li><strong>Frame</strong>, weeks one to four, answers where AI belongs in the participant's work.</li>
+  <li><strong>Design</strong>, weeks five to eight, answers how to build it responsibly.</li>
+  <li><strong>Prove</strong>, weeks nine and ten, answers whether the value can be shown with evidence.</li>
+  <li><strong>Foresee</strong>, weeks eleven and twelve, answers how to lead what comes next.</li>
+</ul>
+<p>Across these phases the participant builds eight connected assets and assembles them into one reviewed Living AI Solution Dossier with twelve sections. There is no week that is just watching: every week has a defined focus, a piece of work to create, and a milestone badge that marks it done, and at the end of each phase the participant earns the phase rank.</p>
+
+<h3>The four gates, as worked examples</h3>
+<p>Think of the twelve weeks as four gates, because that is how the work stacks. Each gate is real work finished, not a box ticked. Here is exactly what is produced by the end of each one, drawn straight from the program structure.</p>
+<table>
+  <thead>
+    <tr><th>Gate</th><th>Assets produced</th><th>Dossier sections added</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Frame (weeks one to four)</td>
+      <td>Personal AI Strategy Brief, AI Use Case Portfolio</td>
+      <td>Professional context, problem definition, AI suitability assessment</td>
+    </tr>
+    <tr>
+      <td>Design (weeks five to eight)</td>
+      <td>Interaction and Decision Kit, Grounded Domain Knowledge Pack, AI Evaluation Rubric and Test Set, a working set of Custom Assistants and Workflows</td>
+      <td>Stakeholders, evidence, before and after workflow, risk and compliance, responsible solution design</td>
+    </tr>
+    <tr>
+      <td>Prove (weeks nine and ten)</td>
+      <td>An honestly run evaluation, the AI Value and Economics Case</td>
+      <td>Adoption and proof sections</td>
+    </tr>
+    <tr>
+      <td>Foresee (weeks eleven and twelve)</td>
+      <td>Final Portfolio, ninety day Roadmap, foresight plan</td>
+      <td>Complete dossier submitted for review</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Review, outcomes, and what the participant carries</h3>
+<p>When the dossier is submitted at the end of Foresee, it is reviewed against the eight public criteria, and the participant receives one of three outcomes: <strong>Certified</strong>, <strong>Strong Draft</strong>, or <strong>Completed</strong>. A Strong Draft returns specific revisions before certification, so it is not a failure, it is a path to the credential. Once earned, the credential is verifiable and field specific: verification shows the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier. During the program the participant accumulates weekly badges and phase ranks, and after it, if certified, they hold a field specific credential and a living dossier they can keep updating as their work evolves.</p>
+
+<h2>How to use it correctly</h2>
+<p>The structure multiplies a method onto expertise the participant already brings. Ten times zero is still zero, so the program is built for experienced professionals with a real problem and a real field, and an absolute beginner with no field to work from is not the fit. That is a detection question, not a persuasion one: the real prerequisite is professional judgment and genuine domain expertise, not coding. When you describe the mechanics, separate the fixed structure, which you state with confidence, from the operational specifics like format, hours, support model, deadlines, tools, and review time, which you take from the current official details. When you do not know a current operational answer, you say you will confirm it, and you do.</p>
+
+<div class="callout callout-success"><p><strong>Say this:</strong> The structure is fixed: four phases over twelve weeks, eight assets built into one reviewed dossier, with three outcomes at the end. For the exact hours per week and the support model I will give you the current official figures, and if I am not certain of one I will confirm it and come back to you.</p></div>
+<div class="callout callout-warning"><p><strong>Do not say this:</strong> It is probably around a few hours a week and you get unlimited one to one coaching. (You may not invent an operational number or promise support the program has not stated.)</p></div>
+
+<h2>Common objections and honest answers</h2>
+<table>
+  <thead>
+    <tr><th>Objection</th><th>How to answer</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>How many hours per week is it?</td><td>That is an operational figure. Give the current official number, and if you are not certain, say you will confirm it and then do.</td></tr>
+    <tr><td>What is the support model?</td><td>Describe it from the current official details. Do not invent a model that sounds good or promise unlimited coaching.</td></tr>
+    <tr><td>What if I fall behind?</td><td>Use the current pacing and flexibility policy. Do not promise flexibility the program does not offer, and do not deny flexibility it does offer.</td></tr>
+    <tr><td>Is a Strong Draft a failure?</td><td>No. It is a near miss with specific revisions returned, on the path to the credential.</td></tr>
+    <tr><td>I have no real field yet, can I still join?</td><td>The program needs genuine domain expertise and a real problem to work on. Without that there is nothing to multiply, so it is not the right fit, and it is honest to say so.</td></tr>
+  </tbody>
+</table>
+
+<h2>Forms and screens you will reference</h2>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The dossier submission screen at the end of Foresee, where the participant submits the complete Living AI Solution Dossier with its twelve sections for review against the eight public criteria.</p></div>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The public verification view, showing the recipient, the status, the issue date, and the badge metadata, without exposing the confidential dossier.</p></div>
+
+<h2>Talking points</h2>
+<ul>
+  <li>Twelve weeks, four phases: Frame, Design, Prove, Foresee. Fixed, and stateable to anyone.</li>
+  <li>Eight connected assets assembled into one reviewed dossier with twelve sections.</li>
+  <li>Every week produces something and earns a badge, so progress is visible the whole way.</li>
+  <li>Three outcomes: Certified, Strong Draft, Completed. Strong Draft is a path, not a failure.</li>
+  <li>Fixed structure you state with confidence, operational details you quote from the current official source.</li>
+</ul>
+
+<div class="callout callout-warning"><p><strong>Mistakes to avoid:</strong> estimating an operational number like the weekly hours, inventing a support model, promising flexibility that is not offered, describing a Strong Draft as a failure, telling a true beginner with no field that the program is for them, or filling a silence with a guess instead of saying you will confirm.</p></div>
+
+<h2>Summary checklist</h2>
+<ul class="checklist">
+  <li>I can name the four phases, the weeks they cover, and the question each one answers.</li>
+  <li>I can list what the participant produces at each of the four gates.</li>
+  <li>I can name the three review outcomes and explain what a Strong Draft means.</li>
+  <li>I can separate fixed structure from operational details that need the current official answer.</li>
+  <li>I can tell a true beginner honestly that the program is not the right fit.</li>
+  <li>I can say I will confirm an operational figure, and then do it, rather than guessing.</li>
+</ul>
+
+<h2>A real scenario</h2>
+<p>Priya is a senior specialist in finance, weighing the program. She asks what she will actually have at the end. You explain the fixed structure with full confidence: by the end of Frame she has the Personal AI Strategy Brief, the AI Use Case Portfolio, and the first dossier sections; by Design, the decision kit, the knowledge pack, the rubric and test set, and a working system; by Prove, an honestly run evaluation and the Value and Economics Case; by Foresee, the Final Portfolio, the ninety day Roadmap, and the submitted dossier. When she asks the exact weekly hours, you give the current official figure, and where you are not certain, you tell her you will confirm it and you do.</p>
+
+<h2>How this maps to your exam</h2>
+<p>The exam checks that you can state the fixed four phase structure and what is produced at each gate, name the three outcomes and explain a Strong Draft, identify which details are operational and must come from the current official source, and give the honest answer to a beginner with no field. Answer from this material and you will pass.</p>`,
   exercises: [
     {
       stem: "Which part of the twelve weeks is fixed and can be stated with full confidence?",

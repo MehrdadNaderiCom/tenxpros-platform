@@ -8,6 +8,83 @@ export const m13: ModuleSeed = {
   passMark: 80,
   examSize: 10,
   lesson: "The program is sold two very different ways, and a partner who blurs them loses both. Selling to one experienced professional who enrolls themselves is a business to consumer sale, the B2C Charter. Selling seats to an organization that wants to develop its people is a business to business sale, the B2B Engagement. The product is the same twelve week certification, but the buyer, the motivation, the conversation, and the path to a decision are different. This module is the two motions side by side, so you can run whichever one the situation calls for.\n\nStart with the individual sale, the B2C Charter. Here the buyer and the participant are the same person, an experienced professional deciding to invest in their own standing. Their motivation is personal: to move from using AI to leading it in their field, to hold a defensible, verifiable credential built on their own real work, and to be ahead in a market where most of their peers are not. The conversation is the one you already know from the earlier modules: open with their challenge, match their field story, give the honest mini pitch, handle price by pointing to the current approved details and the application, and guide them to apply, since payment follows acceptance. The decision is theirs alone, so the sale turns on personal relevance and trust. Your commission here follows the B2C Charter rates by function.\n\nNow the organizational sale, the B2B Engagement, which is a different motion and where the larger deals live. Here the buyer is not the participant. The buyer is usually a leader responsible for capability, risk, or transformation: a head of learning and development, an HR or talent leader, a transformation or innovation lead, a department head, or an executive sponsor. They are not buying a personal credential. They are buying an outcome for the organization, a group of their people who can lead AI adoption responsibly, with a consistent method, documented governance, and defensible work, rather than a scattered set of individuals each improvising with AI on their own. Remember the unit: a seat is one enrolled professional, so a B2B engagement is simply a number of seats bought for a team, and your commission follows the B2B Engagement rates and the per deal cap.\n\nThe organizational conversation is built around a business case, not a personal one, and you frame it in the leader's terms. The problem you are solving for them is that inconsistent and risky AI use across their team becomes a shared, governed standard. People who were improvising start producing reviewed, defensible work. The organization builds real internal capability instead of depending on outside help for every AI decision. And the leader can see proof, because every participant produces a dossier reviewed against public criteria. You never promise a specific business result or a return figure you cannot stand behind, but you can honestly describe the capability, the consistency, and the governance the program builds, which is exactly what a responsible leader is trying to buy.\n\nThe organizational decision also runs differently, and you should expect that and work with it. There are usually several stakeholders: the sponsor who wants the outcome, the people who will participate, and often a procurement or finance step. The motion that works is land and expand. You propose a small first group, a pilot cohort, so the organization can see the quality of the work and the credential before committing more seats, and then you grow from there. You register the organizational opportunity on the Panel with the real scope, you keep it active with documented progress, and you respect the scope rule: a registered account covers only the confirmed scope, so other departments, affiliates, or countries are not included unless the company expressly adds them.\n\nWatch for the moment a B2C conversation is actually a B2B door, because this is where a single good conversation becomes a large deal. An individual professional who is enthusiastic and senior is often the way into their whole team. When one prospect could bring ten colleagues, you are no longer in a personal sale, you are in an organizational one, and you shift the conversation toward the team outcome and a pilot. Recognizing that switch, and handling it without losing the individual's trust, is one of the most valuable instincts a partner can build.\n\nKeep the limits the same in both motions, because the rules do not relax for a bigger deal. In neither motion do you bind the company, quote outside approved materials, give discounts, promise results, accept payment, or issue invoices. The company handles acceptance, payment, and delivery in both. Your job in both is to bring the right buyer to the door honestly and register the opportunity correctly. The difference is who the buyer is and what they are buying, not what you are allowed to promise.\n\nOne line for the module. A B2C Charter sale is to an individual investing in their own credential and turns on personal relevance, a B2B Engagement is seats sold to an organization and turns on a business case run through several stakeholders with a pilot first, and a strong individual prospect is often the door to a whole team.",
+  bodyHtml: `<p class="lead">The same twelve week certification is sold two very different ways, and a partner who blurs them loses both. Selling to one professional who enrolls themselves is the B2C Charter. Selling seats to an organization that wants to develop its people is the B2B Engagement. The product does not change. The buyer, the motivation, the conversation, and the path to a decision all do. This module puts the two motions side by side so you can run whichever one the situation calls for.</p>
+
+<h2>What you will be able to do</h2>
+<ul>
+  <li>Tell, within the first minutes of a conversation, whether you are in a B2C Charter or a B2B Engagement.</li>
+  <li>Run the individual sale on personal relevance and trust, and guide the prospect to apply.</li>
+  <li>Frame the organizational sale as a business case in the leader's own terms, never as a personal credential.</li>
+  <li>Count the unit of sale correctly: a seat is one enrolled professional, so a team deal is a number of seats.</li>
+  <li>Run land and expand with a pilot cohort, register the opportunity at its real scope, and respect the scope rule.</li>
+  <li>Spot the moment a strong individual prospect is actually the door to a whole team, and shift without losing their trust.</li>
+</ul>
+
+<h2>What you need to understand</h2>
+
+<h3>The B2C Charter: buyer and participant are the same person</h3>
+<p>Here the person deciding and the person enrolling are one experienced professional investing in their own standing. Their motivation is personal: to move from using AI to leading it in their field, to hold a defensible, verifiable credential built on their own real work, and to be ahead of peers who are still improvising. This is the multiplier in action. The program multiplies an AI method onto expertise the person already has, so the input has to be real. Ten times zero is still zero. A senior professional with a real field is exactly the input that multiplies. The decision is theirs alone, so the sale turns on personal relevance and trust, and your commission follows the B2C Charter rates by function.</p>
+
+<h3>The B2B Engagement: the buyer is not the participant</h3>
+<p>The buyer is usually a leader responsible for capability, risk, or transformation: a head of learning and development, an HR or talent leader, a transformation or innovation lead, a department head, or an executive sponsor. They are not buying a personal credential. They are buying an outcome for the organization, a group of their people who can lead AI adoption responsibly, with a consistent method, documented governance, and defensible work, instead of a scattered set of individuals each improvising on their own. The unit is the seat: one enrolled professional. A B2B engagement is simply a number of seats bought for a team, and your commission follows the B2B Engagement rates and the per deal cap.</p>
+
+<h3>The business case, framed in the leader's terms</h3>
+<p>The problem you solve for a leader is that inconsistent and risky AI use across their team becomes a shared, governed standard. People who were improvising start producing reviewed, defensible work. The organization builds real internal capability instead of depending on outside help for every AI decision. And the leader can see proof, because every participant produces a dossier reviewed against public criteria. You never promise a specific business result or a return figure you cannot stand behind, but you can honestly describe the capability, the consistency, and the governance the program builds. That is exactly what a responsible leader is trying to buy.</p>
+
+<h3>The organizational decision and land and expand</h3>
+<p>The B2B decision runs through several stakeholders: the sponsor who wants the outcome, the people who will participate, and often a procurement or finance step. The motion that works is land and expand. You propose a small first group, a pilot cohort, so the organization can see the quality of the work and the credential before committing more seats, and then you grow from there. You register the opportunity on the Panel at its real scope, keep it active with documented progress, and respect the scope rule: a registered account covers only the confirmed scope, so other departments, affiliates, or countries are not included unless the company expressly adds them.</p>
+
+<h2>How to use it</h2>
+<p>Identify the buyer before you position anything. If the person in front of you is deciding for themselves, run the B2C conversation you already know: open with their challenge, match their field story, give the honest mini pitch, point to the current approved details and the application, and guide them to apply, since payment follows acceptance. If the buyer is responsible for other people, switch to the business case, propose a pilot, and register the opportunity. Your job in detection here is the same as everywhere else: detection, not persuasion. You are reading which motion is true, not talking someone into a buyer role they do not occupy.</p>
+
+<div class="callout callout-success"><p><strong>Say this:</strong> "If a few people on your team are each improvising with AI in different ways, a pilot cohort gives you a shared method, reviewed work, and documented governance you can actually point to. Start with a small group, see the quality, then decide on more seats."</p></div>
+
+<div class="callout callout-warning"><p><strong>Do not say this:</strong> "Enroll the whole department now and you will see a return of USD 1,200 per person in productivity." You never promise a result or a return figure, the deal size does not relax that rule, and demanding full commitment before a pilot is the wrong motion.</p></div>
+
+<h2>Common objections and honest answers</h2>
+<table>
+  <thead><tr><th>Objection</th><th>How to answer</th></tr></thead>
+  <tbody>
+    <tr><td>"Can you just give us a team discount and we will sign everyone?"</td><td>You do not set price or give discounts in either motion. Point to the current approved details, and propose a pilot so they see the quality before scaling.</td></tr>
+    <tr><td>"What return will we get on this for the organization?"</td><td>You cannot promise a return figure. You can honestly describe the capability, the consistency, and the governance the program builds, and the reviewed dossier each participant produces as proof.</td></tr>
+    <tr><td>"We registered one department, so the rest of the company is covered too, right?"</td><td>No. A registration covers only its confirmed scope. Another department, affiliate, or country is included only when the company expressly adds it.</td></tr>
+    <tr><td>"I am just one person, why are you talking about my team?"</td><td>Only raise the team if they raise it. When a senior prospect mentions colleagues who share the problem, it is honest to ask whether a small group should explore it together.</td></tr>
+    <tr><td>"Can we skip the pilot to save time?"</td><td>The pilot is what lets you see the quality of the work and the credential before committing more seats. It builds confidence rather than slowing the deal for no reason.</td></tr>
+  </tbody>
+</table>
+
+<h2>Forms and screens you will reference</h2>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The Panel deal registration screen, where you log a B2B opportunity at its real scope: the legal entity, the country, the business unit, the contact, the estimated seats and value, and your route in. The opportunity is protected only once the company confirms it.</p></div>
+<div class="form-preview"><div class="form-preview-label">Form preview, placeholder</div><p>The application a B2C prospect completes themselves, where they describe their expertise and the real problem they want to work on. Acceptance comes first, and only then is there a payment decision.</p></div>
+
+<h2>Talking points</h2>
+<ul>
+  <li>Same product, different buyer: the twelve week certification does not change between the two motions.</li>
+  <li>B2C turns on personal relevance and trust; B2B turns on a business case run through several stakeholders.</li>
+  <li>A seat is one enrolled professional, so fifteen people is fifteen seats, not one license.</li>
+  <li>Land and expand: a pilot cohort first, then growth once the organization has seen the quality.</li>
+  <li>A senior, enthusiastic individual is often the door to their whole team.</li>
+  <li>The limits never relax for a bigger deal.</li>
+</ul>
+
+<div class="callout callout-warning"><p><strong>Mistakes to avoid:</strong> Treating every conversation as the same sale. Pitching a personal credential to a leader who wants a team outcome. Forgetting to switch when an individual mentions a team of ten. Assuming a single department registration covers the whole company. Relaxing any guardrail because the deal is large: you still never bind the company, quote outside approved materials, discount, promise results, accept payment, or issue invoices.</p></div>
+
+<h2>Summary checklist</h2>
+<ul class="checklist">
+  <li>I can tell whether a conversation is a B2C Charter or a B2B Engagement.</li>
+  <li>I can run the individual sale on personal relevance and guide the prospect to apply.</li>
+  <li>I can frame the organizational value as a governed standard and reviewed, defensible work, without promising a return.</li>
+  <li>I can count seats correctly and register an opportunity at its confirmed scope.</li>
+  <li>I can propose a pilot cohort and run land and expand.</li>
+  <li>I can recognize when an individual is the door to a team, and shift without losing trust.</li>
+  <li>I hold every limit identically in both motions.</li>
+</ul>
+
+<h2>A real scenario</h2>
+<p>Priya is a head of learning and development at a mid size insurer. She reaches out after a colleague enrolled as an individual and produced a dossier she could actually read and judge. She does not want a personal credential. She wants twelve of her people, who are each using AI loosely and inconsistently, to share one method with documented governance, because compliance is watching. You do not promise her a number. You describe the shared standard, the reviewed work, and the internal capability the program builds, and you propose a pilot of three first so she can see the quality. You register the opportunity at that confirmed scope, and you leave the rest of the company out until she expressly adds it.</p>
+
+<h2>How this maps to your exam</h2>
+<p>The exam checks that you can name the core difference between the two motions (same product, different buyer, motivation, and decision path), identify the B2B buyer and what they are purchasing, count seats correctly, and confirm that no limit changes for a larger deal. Expect a question on when a B2C conversation becomes a B2B door and why a pilot cohort comes first.</p>`,
   exercises: [
     {
       stem: "In a B2C Charter sale, who is the buyer?",
