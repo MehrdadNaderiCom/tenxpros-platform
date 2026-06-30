@@ -20,7 +20,10 @@ const EmailImage = Image.extend({
 });
 
 const EXTENSIONS = [
-  StarterKit.configure({ heading: { levels: [2, 3] } }),
+  // codeBlock is disabled: code blocks are not an email format and are not in the
+  // toolbar. code and strike marks ARE rendered (see newsletter-render), so they
+  // stay even if pasted in.
+  StarterKit.configure({ heading: { levels: [2, 3] }, codeBlock: false }),
   Link.configure({ openOnClick: false, autolink: true, HTMLAttributes: { rel: "noopener noreferrer", target: "_blank" } }),
   EmailImage.configure({ inline: false }),
   EmailButton,

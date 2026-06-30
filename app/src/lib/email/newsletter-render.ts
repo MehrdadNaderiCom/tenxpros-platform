@@ -70,6 +70,8 @@ function renderInline(nodes?: TipTapNode[]): string {
       for (const mark of n.marks ?? []) {
         if (mark.type === "bold" || mark.type === "strong") out = `<strong>${out}</strong>`;
         else if (mark.type === "italic" || mark.type === "em") out = `<em>${out}</em>`;
+        else if (mark.type === "strike" || mark.type === "s") out = `<span style="text-decoration:line-through;">${out}</span>`;
+        else if (mark.type === "code") out = `<code style="font-family:Menlo,Consolas,monospace;background:#F1F5F9;padding:1px 5px;border-radius:3px;font-size:90%;">${out}</code>`;
         else if (mark.type === "link") {
           const href = safeUrl(mark.attrs?.href, "link");
           if (href) out = `<a href="${escapeAttr(href)}" target="_blank" rel="noopener noreferrer" style="color:${NAVY};">${out}</a>`;
@@ -102,6 +104,12 @@ function listItems(node: TipTapNode): string {
       return `<li style="margin:0 0 6px;">${inner}</li>`;
     })
     .join("");
+}
+
+/** Recursively collect all descendant text, so a catch-all never drops content. */
+function collectText(node: TipTapNode): string {
+  if (node.type === "text") return node.text ?? "";
+  return (node.content ?? []).map(collectText).filter(Boolean).join(" ");
 }
 
 function blockToMjml(node: TipTapNode): string {
@@ -146,8 +154,11 @@ function blockToMjml(node: TipTapNode): string {
       const inner = (node.content ?? []).map((p) => renderInline(p.content)).join("<br/>");
       return `<mj-text padding="10px 0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="background:${tone.bg};border-left:4px solid ${tone.border};padding:14px 16px;border-radius:6px;color:#334155;font-size:14px;line-height:1.6;">${inner}</td></tr></table></mj-text>`;
     }
-    default:
-      return "";
+    default: {
+      // Catch-all: never silently drop content from an unexpected node type.
+      const t = collectText(node);
+      return t ? `<mj-text padding="6px 0" font-size="15px" line-height="1.7" color="#334155">${escapeHtml(t)}</mj-text>` : "";
+    }
   }
 }
 
@@ -172,8 +183,10 @@ function blockToText(node: TipTapNode): string {
     }
     case "callout":
       return (node.content ?? []).map((p) => inlineText(p.content)).join("\n") + "\n";
-    default:
-      return "";
+    default: {
+      const t = collectText(node);
+      return t ? `${t}\n` : "";
+    }
   }
 }
 

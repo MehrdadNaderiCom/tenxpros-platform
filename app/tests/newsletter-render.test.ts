@@ -90,6 +90,33 @@ describe("renderNewsletter: email-safe output", () => {
   });
 });
 
+describe("no node or mark silently disappears", () => {
+  it("renders strike and code marks", () => {
+    const doc: TipTapDoc = { type: "doc", content: [
+      { type: "paragraph", content: [
+        { type: "text", text: "struck", marks: [{ type: "strike" }] },
+        { type: "text", text: " and " },
+        { type: "text", text: "coded", marks: [{ type: "code" }] },
+      ] },
+    ] };
+    const r = renderNewsletter(doc, OPTS);
+    expect(r.html).toContain("line-through");
+    expect(r.html).toContain("struck");
+    expect(r.html).toContain("<code");
+    expect(r.html).toContain("coded");
+  });
+  it("renders an unexpected block type's text via the catch-all (no silent loss)", () => {
+    const doc: TipTapDoc = { type: "doc", content: [
+      { type: "codeBlock", content: [{ type: "text", text: "const x = 1;" }] },
+      { type: "someFutureNode", content: [{ type: "text", text: "kept anyway" }] },
+    ] };
+    const r = renderNewsletter(doc, OPTS);
+    expect(r.html).toContain("const x = 1;");
+    expect(r.html).toContain("kept anyway");
+    expect(r.text).toContain("const x = 1;");
+  });
+});
+
 describe("renderCampaign", () => {
   it("renders from bodyJson", () => {
     const r = renderCampaign({ bodyJson: JSON.stringify(fullDoc) }, OPTS);

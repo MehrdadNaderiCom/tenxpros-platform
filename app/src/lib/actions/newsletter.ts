@@ -196,48 +196,54 @@ export async function sendCampaign(formData: FormData) {
 
   const sentAt = new Date();
   const senderIdentity = newsletterSenderIdentity();
-  let sent = 0;
-  for (const r of recipients) {
-    const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/${r.unsubToken}`);
-    const email = renderCampaign(campaign, { subject: campaign.subject, unsubscribeUrl, senderIdentity });
-    const res = await sendNewsletterEmail({ to: r.email, subject: campaign.subject, html: email.html, text: email.text, unsubscribeUrl });
-    if (res.ok) sent += 1;
-    await prisma.newsletterDelivery.create({
-      data: {
-        campaignId: id,
-        subscriberId: r.id,
-        email: r.email,
-        status: res.ok ? "sent" : "error",
-        error: res.ok ? null : res.error,
-        sentAt: res.ok ? sentAt : null,
-      },
-    });
-  }
-
-  // Freeze the exact final generated output (same pipeline as the per-recipient
-  // send; only the per-recipient unsubscribe link differs).
+  // Freeze the exact final generated output up front (same pipeline as the
+  // per-recipient send; only the per-recipient unsubscribe link differs). Doing
+  // this before the loop means a mid-loop error cannot lose the snapshot.
   const snapshot = renderCampaign(campaign, {
     subject: campaign.subject,
     unsubscribeUrl: absoluteUrl("/newsletter/unsubscribe/UNSUBSCRIBE"),
     senderIdentity,
   });
-  await prisma.newsletterCampaign.update({
-    where: { id },
-    data: {
-      status: "sent",
-      sentAt,
-      sentCount: sent,
-      recipientCount: recipients.length,
-      // Frozen, immutable snapshot of exactly what went out.
-      sentSubject: campaign.subject,
-      sentBodyHtml: snapshot.html,
-      sentText: snapshot.text,
-      sentFromAddress: newsletterFrom(),
-      sentUnsubVersion: NEWSLETTER_UNSUB_VERSION,
-      sentTemplateVersion: NEWSLETTER_TEMPLATE_VERSION,
-      sentGroupIds: groupIds,
-    },
-  });
+
+  let sent = 0;
+  try {
+    for (const r of recipients) {
+      const unsubscribeUrl = absoluteUrl(`/newsletter/unsubscribe/${r.unsubToken}`);
+      const email = renderCampaign(campaign, { subject: campaign.subject, unsubscribeUrl, senderIdentity });
+      const res = await sendNewsletterEmail({ to: r.email, subject: campaign.subject, html: email.html, text: email.text, unsubscribeUrl });
+      if (res.ok) sent += 1;
+      await prisma.newsletterDelivery.create({
+        data: {
+          campaignId: id,
+          subscriberId: r.id,
+          email: r.email,
+          status: res.ok ? "sent" : "error",
+          error: res.ok ? null : res.error,
+          sentAt: res.ok ? sentAt : null,
+        },
+      });
+    }
+  } finally {
+    // Always finalize, so the campaign can never remain stuck in "sending" even
+    // if a delivery write throws partway. The status flips out of "sending" and
+    // the immutable snapshot is frozen.
+    await prisma.newsletterCampaign.update({
+      where: { id },
+      data: {
+        status: "sent",
+        sentAt,
+        sentCount: sent,
+        recipientCount: recipients.length,
+        sentSubject: campaign.subject,
+        sentBodyHtml: snapshot.html,
+        sentText: snapshot.text,
+        sentFromAddress: newsletterFrom(),
+        sentUnsubVersion: NEWSLETTER_UNSUB_VERSION,
+        sentTemplateVersion: NEWSLETTER_TEMPLATE_VERSION,
+        sentGroupIds: groupIds,
+      },
+    });
+  }
   redirect(`/admin/newsletter/campaigns/${id}`);
 }
 
