@@ -5,6 +5,8 @@ import { PartnerDealForm } from "@/components/portal/partner-deal-form";
 import { DEAL_REG_STATUS_LABELS, OFFERING_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -35,53 +37,46 @@ export default async function PartnerDealsPage() {
       />
 
       {!activated ? (
-        <Card className="border-amber-200 bg-amber-50">
-          <p className="text-sm font-semibold text-navy-900">Complete the Activation Gate first</p>
-          <p className="mt-1 text-sm text-slate-600">
-            You can register opportunities once the company confirms your Activation Gate on the panel.
-          </p>
-        </Card>
+        <Alert tone="warning" title="Complete the Activation Gate first">
+          You can register opportunities once the company confirms your Activation Gate on the panel.
+        </Alert>
       ) : (
         <PartnerDealForm />
       )}
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[820px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Offering</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Confirmed scope</th>
-              <th className="px-4 py-3">Protected until</th>
-              <th className="px-4 py-3">Submitted</th>
-            </tr>
-          </thead>
-          <tbody>
-            {partner.dealRegistrations.map((reg, i) => (
-              <tr key={reg.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3">
+      <Card className="p-0">
+        <Table minWidth="min-w-[820px]">
+          <THead>
+            <Th>Account</Th>
+            <Th>Offering</Th>
+            <Th>Status</Th>
+            <Th>Confirmed scope</Th>
+            <Th>Protected until</Th>
+            <Th>Submitted</Th>
+          </THead>
+          <TBody>
+            {partner.dealRegistrations.map((reg) => (
+              <TR key={reg.id}>
+                <Td>
                   <p className="font-medium text-navy-900">{reg.legalEntity}</p>
                   <p className="text-xs text-slate-500">{reg.country}{reg.businessUnit ? ` · ${reg.businessUnit}` : ""}</p>
-                </td>
-                <td className="px-4 py-3">{OFFERING_LABELS[reg.offering]}</td>
-                <td className="px-4 py-3">
+                </Td>
+                <Td>{OFFERING_LABELS[reg.offering]}</Td>
+                <Td>
                   <Badge status={STATUS_BADGE[reg.status]}>{DEAL_REG_STATUS_LABELS[reg.status]}</Badge>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{reg.confirmedScope ?? (reg.declineReason ? `Declined: ${reg.declineReason}` : "-")}</td>
-                <td className="px-4 py-3 text-slate-600">{reg.pipelineProtectionExpiresAt?.toLocaleDateString() ?? "-"}</td>
-                <td className="px-4 py-3 text-slate-600">{reg.submittedAt.toLocaleDateString()}</td>
-              </tr>
+                </Td>
+                <Td className="text-slate-600">{reg.confirmedScope ?? (reg.declineReason ? `Declined: ${reg.declineReason}` : "-")}</Td>
+                <Td className="text-slate-600">{reg.pipelineProtectionExpiresAt?.toLocaleDateString() ?? "-"}</Td>
+                <Td className="text-slate-600">{reg.submittedAt.toLocaleDateString()}</Td>
+              </TR>
             ))}
             {partner.dealRegistrations.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
-                  No registrations yet.
-                </td>
-              </tr>
+              <TableEmpty colSpan={6}>
+                No registrations yet.
+              </TableEmpty>
             ) : null}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </Card>
     </div>
   );

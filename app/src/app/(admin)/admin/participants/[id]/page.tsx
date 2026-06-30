@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/form-fields";
+import { Select, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function ParticipantDetailPage({ params }: { params: { id: string } }) {
@@ -66,11 +66,11 @@ export default async function ParticipantDetailPage({ params }: { params: { id: 
                   <p className="font-medium text-navy-900">Module {item.module.number}: {item.module.title}</p>
                   <p className="text-sm text-slate-600">Current: {item.status}</p>
                 </div>
-                <select name="status" className="h-10 rounded-md border border-neutral-300 px-3 text-sm">
+                <Select name="status" className="w-auto">
                   <option value="PASSED">Passed</option>
                   <option value="REVISE">Revise</option>
                   <option value="HOLD">Hold</option>
-                </select>
+                </Select>
               </div>
               <Textarea name="coachFeedback" className="mt-3" placeholder="Section-level or artifact feedback..." defaultValue={item.coachFeedback ?? ""} />
               <Button className="mt-3" type="submit">Save review</Button>

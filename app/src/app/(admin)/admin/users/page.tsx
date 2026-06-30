@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/authz";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -29,63 +29,59 @@ export default async function UsersPage() {
             : "Every account."
         }
       />
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[760px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">User</th>
-              <th className="px-4 py-3">Role</th>
-              {canManage ? <th className="px-4 py-3 text-right">View</th> : null}
-              <th className="px-4 py-3 text-right">Manage</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, i) => (
-              <tr key={user.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/users/${user.id}`} className="font-medium text-navy-900 hover:underline">
-                    {user.name ?? user.email}
-                  </Link>
-                  <p className="text-xs text-slate-500">{user.email}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge>{user.role}</Badge>
-                </td>
-                {canManage ? (
-                  <td className="px-4 py-3 text-right">
-                    {user.partner ? (
-                      <a
-                        href={`/admin/impersonate/partner/${user.partner.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
-                      >
-                        Open panel
-                      </a>
-                    ) : user.participantProfile ? (
-                      <a
-                        href={`/admin/impersonate/participant/${user.participantProfile.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
-                      >
-                        Open portal
-                      </a>
-                    ) : (
-                      <span className="text-xs text-slate-400">, </span>
-                    )}
-                  </td>
-                ) : null}
-                <td className="px-4 py-3 text-right">
-                  <Link href={`/admin/users/${user.id}`} className="font-medium text-navy-600 hover:underline">
-                    {canManage ? "Manage" : "View"}
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      <Table minWidth="min-w-[760px]">
+        <THead>
+          <Th>User</Th>
+          <Th>Role</Th>
+          {canManage ? <Th className="text-right">View</Th> : null}
+          <Th className="text-right">Manage</Th>
+        </THead>
+        <TBody>
+          {users.map((user) => (
+            <TR key={user.id}>
+              <Td>
+                <Link href={`/admin/users/${user.id}`} className="font-medium text-navy-900 hover:underline">
+                  {user.name ?? user.email}
+                </Link>
+                <p className="text-xs text-slate-500">{user.email}</p>
+              </Td>
+              <Td>
+                <Badge>{user.role}</Badge>
+              </Td>
+              {canManage ? (
+                <Td className="text-right">
+                  {user.partner ? (
+                    <a
+                      href={`/admin/impersonate/partner/${user.partner.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
+                    >
+                      Open panel
+                    </a>
+                  ) : user.participantProfile ? (
+                    <a
+                      href={`/admin/impersonate/participant/${user.participantProfile.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
+                    >
+                      Open portal
+                    </a>
+                  ) : (
+                    <span className="text-xs text-slate-400">, </span>
+                  )}
+                </Td>
+              ) : null}
+              <Td className="text-right">
+                <Link href={`/admin/users/${user.id}`} className="font-medium text-navy-600 hover:underline">
+                  {canManage ? "Manage" : "View"}
+                </Link>
+              </Td>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { decideCertification } from "@/lib/actions/admin";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/form-fields";
+import { Select, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function CertificationDecisionPage({ params }: { params: { id: string } }) {
@@ -28,12 +28,12 @@ export default async function CertificationDecisionPage({ params }: { params: { 
       <Card>
         <form action={decideCertification} className="space-y-4">
           <input type="hidden" name="participantId" value={participant.id} />
-          <select name="outcome" className="h-10 rounded-md border border-neutral-300 px-3 text-sm" defaultValue={participant.certification?.outcome ?? "CERTIFIED"}>
+          <Select name="outcome" defaultValue={participant.certification?.outcome ?? "CERTIFIED"}>
             <option value="CERTIFIED">Certified</option>
             <option value="CONDITIONALLY_CERTIFIED">Conditionally certified</option>
             <option value="COMPLETED_NOT_CERTIFIED">Completed, not certified</option>
             <option value="NOT_COMPLETED">Not completed</option>
-          </select>
+          </Select>
           <Textarea name="reviewerNotes" placeholder="Reviewer notes..." defaultValue={participant.certification?.reviewerNotes ?? ""} />
           <Button type="submit">Save certification decision</Button>
         </form>

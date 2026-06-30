@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/form-fields";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { HintField } from "@/components/ui/hint-field";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 import { prisma } from "@/lib/prisma";
@@ -262,34 +263,32 @@ export default async function MarketingActivityPage() {
           </p>
         </div>
         {logs.length ? (
-          <table className="w-full min-w-[560px] text-sm">
-            <thead className="bg-navy-900 text-left text-white">
-              <tr>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Channel</th>
-                <th className="px-3 py-2">Messages</th>
-                <th className="px-3 py-2">Replies</th>
-                <th className="px-3 py-2">Convos</th>
-                <th className="px-3 py-2">Posts</th>
-                <th className="px-3 py-2">Engage</th>
-                <th className="px-3 py-2">Note</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table minWidth="min-w-[560px]">
+            <THead>
+              <Th className="px-3 py-2">Date</Th>
+              <Th className="px-3 py-2">Channel</Th>
+              <Th className="px-3 py-2">Messages</Th>
+              <Th className="px-3 py-2">Replies</Th>
+              <Th className="px-3 py-2">Convos</Th>
+              <Th className="px-3 py-2">Posts</Th>
+              <Th className="px-3 py-2">Engage</Th>
+              <Th className="px-3 py-2">Note</Th>
+            </THead>
+            <TBody>
               {logs.map((log, index) => (
-                <tr key={log.id} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
-                  <td className="px-3 py-2">{utcDay(log.date)}</td>
-                  <td className="px-3 py-2">{channelLabel(log.channel)}</td>
-                  <td className="px-3 py-2">{log.messages}</td>
-                  <td className="px-3 py-2">{log.replies}</td>
-                  <td className="px-3 py-2">{log.calls}</td>
-                  <td className="px-3 py-2">{log.posts}</td>
-                  <td className="px-3 py-2">{log.engagements}</td>
-                  <td className="px-3 py-2 text-xs text-slate-500">{log.notes ?? ""}</td>
-                </tr>
+                <TR key={log.id} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
+                  <Td className="px-3 py-2">{utcDay(log.date)}</Td>
+                  <Td className="px-3 py-2">{channelLabel(log.channel)}</Td>
+                  <Td className="px-3 py-2">{log.messages}</Td>
+                  <Td className="px-3 py-2">{log.replies}</Td>
+                  <Td className="px-3 py-2">{log.calls}</Td>
+                  <Td className="px-3 py-2">{log.posts}</Td>
+                  <Td className="px-3 py-2">{log.engagements}</Td>
+                  <Td className="px-3 py-2 text-xs text-slate-500">{log.notes ?? ""}</Td>
+                </TR>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         ) : (
           <p className="text-sm text-slate-500">Nothing logged yet. Save today's numbers above.</p>
         )}

@@ -9,6 +9,7 @@ import { LessonReader } from "@/components/academy/lesson-reader";
 import { ExercisePlayer } from "@/components/academy/exercise-player";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -62,9 +63,9 @@ export default async function LessonPage({ params }: { params: { slug: string } 
       </div>
 
       {preview ? (
-        <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <Alert tone="warning">
           Admin preview, read-only. Lesson progress, exercises, and the exam are disabled here.
-        </div>
+        </Alert>
       ) : null}
 
       <AudioReader text={lesson?.audioText ?? ""} />

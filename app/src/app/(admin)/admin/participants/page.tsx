@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 export default async function ParticipantsPage() {
@@ -12,46 +12,42 @@ export default async function ParticipantsPage() {
   return (
     <div className="space-y-8">
       <PageHeader title="Participants" description="Active participant lifecycle and review state." />
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[820px] text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Participant</th>
-              <th className="px-4 py-3">Tier</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Modules</th>
-              <th className="px-4 py-3">Enrolled</th>
-              <th className="px-4 py-3 text-right">Portal</th>
-            </tr>
-          </thead>
-          <tbody>
-            {participants.map((participant, index) => (
-              <tr key={participant.id} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/participants/${participant.id}`} className="font-medium text-navy-900">
-                    {participant.user.name ?? participant.user.email}
-                  </Link>
-                  <p className="text-xs text-slate-500">{participant.user.email}</p>
-                </td>
-                <td className="px-4 py-3">{participant.tier}</td>
-                <td className="px-4 py-3"><Badge status={participant.status}>{participant.status}</Badge></td>
-                <td className="px-4 py-3">{participant.participantModules.filter((m) => m.status === "PASSED").length}/11 passed</td>
-                <td className="px-4 py-3">{participant.enrolledAt.toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-right">
-                  <a
-                    href={`/admin/impersonate/participant/${participant.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
-                  >
-                    Open portal
-                  </a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      <Table minWidth="min-w-[820px]">
+        <THead>
+          <Th>Participant</Th>
+          <Th>Tier</Th>
+          <Th>Status</Th>
+          <Th>Modules</Th>
+          <Th>Enrolled</Th>
+          <Th className="text-right">Portal</Th>
+        </THead>
+        <TBody>
+          {participants.map((participant) => (
+            <TR key={participant.id}>
+              <Td>
+                <Link href={`/admin/participants/${participant.id}`} className="font-medium text-navy-900">
+                  {participant.user.name ?? participant.user.email}
+                </Link>
+                <p className="text-xs text-slate-500">{participant.user.email}</p>
+              </Td>
+              <Td>{participant.tier}</Td>
+              <Td><Badge status={participant.status}>{participant.status}</Badge></Td>
+              <Td>{participant.participantModules.filter((m) => m.status === "PASSED").length}/11 passed</Td>
+              <Td>{participant.enrolledAt.toLocaleDateString()}</Td>
+              <Td className="text-right">
+                <a
+                  href={`/admin/impersonate/participant/${participant.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
+                >
+                  Open portal
+                </a>
+              </Td>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
       {participants.length === 0 ? (
         <EmptyState
           eyebrow="No participants"

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Alert } from "@/components/ui/alert";
 import { Field, Input, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
@@ -27,9 +28,9 @@ export default async function ModulePage({ params }: { params: { id: string } })
           Estimated hours: {item.module.estimatedHours} · Badge: {item.module.badgeName}
         </p>
         {item.status === "LOCKED" ? (
-          <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-slate-600">
+          <Alert tone="neutral">
             This module is locked until your approved path or prior module evidence opens it.
-          </p>
+          </Alert>
         ) : null}
         {item.status === "UNLOCKED" ? (
           <form action={startModule}>

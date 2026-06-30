@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FilterPill } from "@/components/ui/filter-pill";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { HintField } from "@/components/ui/hint-field";
 import { InfoTip } from "@/components/ui/form-field";
@@ -491,18 +492,17 @@ export default async function ProspectsPage({
       {/* Work queues */}
       <div className="flex flex-wrap gap-2">
         {VIEWS.map((v) => (
-          <Link
+          <FilterPill
             key={v.key}
             href={`/admin/marketing/prospects?view=${v.key}`}
-            className={
-              view === v.key && !stageFilter
-                ? "rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold text-white"
-                : "rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-neutral-50"
+            active={view === v.key && !stageFilter}
+            label={
+              <>
+                {v.label} ({viewCount[v.key]})
+                {v.key === "today" && dueCount > 0 ? <span className="ml-1 rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{dueCount} due</span> : null}
+              </>
             }
-          >
-            {v.label} ({viewCount[v.key]})
-            {v.key === "today" && dueCount > 0 ? <span className="ml-1 rounded-full bg-amber-500 px-1.5 text-[10px] text-white">{dueCount} due</span> : null}
-          </Link>
+          />
         ))}
       </div>
 

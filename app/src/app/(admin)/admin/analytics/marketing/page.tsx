@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 const CONVERTED = new Set(["ACCEPTED", "ENROLLED"]);
@@ -38,26 +39,24 @@ export default async function MarketingAttributionPage() {
 
       {applications.length ? (
         <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-navy-900 text-left text-white">
-              <tr>
-                <th className="px-4 py-3">Source · medium</th>
-                <th className="px-4 py-3">Applications</th>
-                <th className="px-4 py-3">Converted</th>
-                <th className="px-4 py-3">Conversion</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table minWidth="min-w-[640px]">
+            <THead>
+              <Th>Source · medium</Th>
+              <Th>Applications</Th>
+              <Th>Converted</Th>
+              <Th>Conversion</Th>
+            </THead>
+            <TBody>
               {rows.map(([source, entry], index) => (
-                <tr key={source} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
-                  <td className="px-4 py-3 font-medium text-navy-900">{source}</td>
-                  <td className="px-4 py-3">{entry.apps}</td>
-                  <td className="px-4 py-3">{entry.converted}</td>
-                  <td className="px-4 py-3 text-slate-600">{pct(entry.converted, entry.apps)}</td>
-                </tr>
+                <TR key={source} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
+                  <Td className="font-medium text-navy-900">{source}</Td>
+                  <Td>{entry.apps}</Td>
+                  <Td>{entry.converted}</Td>
+                  <Td className="text-slate-600">{pct(entry.converted, entry.apps)}</Td>
+                </TR>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </Card>
       ) : (
         <EmptyState

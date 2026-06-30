@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 
 const CERTIFIED_STATUSES = new Set(["CERTIFIED", "CONDITIONALLY_CERTIFIED"]);
@@ -31,30 +32,28 @@ export default async function CohortsPage() {
 
       {rows.length ? (
         <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-navy-900 text-left text-white">
-              <tr>
-                <th className="px-4 py-3">Cohort (enrolled)</th>
-                <th className="px-4 py-3">Participants</th>
-                <th className="px-4 py-3">Tiers</th>
-                <th className="px-4 py-3">Certified</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table minWidth="min-w-[640px]">
+            <THead>
+              <Th>Cohort (enrolled)</Th>
+              <Th>Participants</Th>
+              <Th>Tiers</Th>
+              <Th>Certified</Th>
+            </THead>
+            <TBody>
               {rows.map(([month, entry], index) => (
-                <tr key={month} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
-                  <td className="px-4 py-3 font-medium text-navy-900">{month}</td>
-                  <td className="px-4 py-3">{entry.count}</td>
-                  <td className="px-4 py-3 text-slate-600">
+                <TR key={month} className={index % 2 ? "bg-neutral-50" : "bg-white"}>
+                  <Td className="font-medium text-navy-900">{month}</Td>
+                  <Td>{entry.count}</Td>
+                  <Td className="text-slate-600">
                     {Object.entries(entry.tiers)
                       .map(([tier, n]) => `${tier} ${n}`)
                       .join(" · ")}
-                  </td>
-                  <td className="px-4 py-3">{entry.certified}</td>
-                </tr>
+                  </Td>
+                  <Td>{entry.certified}</Td>
+                </TR>
               ))}
-            </tbody>
-          </table>
+            </TBody>
+          </Table>
         </Card>
       ) : (
         <EmptyState

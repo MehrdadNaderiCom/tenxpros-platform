@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -176,9 +177,7 @@ export default async function MarketingCommandPage() {
         </div>
 
         {coachSettings.lastError ? (
-          <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
-            {coachSettings.lastError}
-          </p>
+          <Alert tone="error">{coachSettings.lastError}</Alert>
         ) : null}
 
         {latestAdvice && adviceIsToday ? (
@@ -191,10 +190,10 @@ export default async function MarketingCommandPage() {
             </p>
           </div>
         ) : latestAdvice ? (
-          <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          <Alert tone="warning">
             A new day has started. The last advice (from {latestAdvice.createdAt.toISOString().slice(0, 10)}) moved
             to the history below; press the button for a plan built on today's numbers.
-          </p>
+          </Alert>
         ) : (
           <p className="text-sm text-slate-500">
             {coachSettings.hasKey ? (

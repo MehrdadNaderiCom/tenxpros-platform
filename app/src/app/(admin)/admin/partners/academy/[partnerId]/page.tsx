@@ -93,7 +93,7 @@ export default async function PartnerAcademyManagePage({ params }: { params: { p
                       <input type="hidden" name="partnerId" value={partner.id} />
                       <input type="hidden" name="moduleId" value={m.id} />
                       <input type="hidden" name="done" value="0" />
-                      <Button type="submit" variant="secondary" size="sm">Reset</Button>
+                      <Button type="submit" variant="danger" size="sm">Reset</Button>
                     </form>
                   ) : (
                     <form action={setModuleCompletion}>

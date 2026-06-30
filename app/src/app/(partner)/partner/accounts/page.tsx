@@ -4,6 +4,7 @@ import { getCurrentPartner } from "@/lib/partner/auth";
 import { OFFERING_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -24,43 +25,39 @@ export default async function PartnerAccountsPage() {
         title="My Accounts"
         description="Your confirmed Registered Accounts. Keep each one moving with a meaningful update so its protection does not lapse."
       />
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[760px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Offering</th>
-              <th className="px-4 py-3">Scope</th>
-              <th className="px-4 py-3">Closed deals</th>
-              <th className="px-4 py-3">Protected until</th>
-              <th className="px-4 py-3">State</th>
-            </tr>
-          </thead>
-          <tbody>
-            {accounts.map((a, i) => (
-              <tr key={a.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3">
+      <Card className="p-0">
+        <Table minWidth="min-w-[760px]">
+          <THead>
+            <Th>Account</Th>
+            <Th>Offering</Th>
+            <Th>Scope</Th>
+            <Th>Closed deals</Th>
+            <Th>Protected until</Th>
+            <Th>State</Th>
+          </THead>
+          <TBody>
+            {accounts.map((a) => (
+              <TR key={a.id}>
+                <Td>
                   <p className="font-medium text-navy-900">{a.legalEntity}</p>
                   <p className="text-xs text-slate-500">{a.country}{a.businessUnit ? ` · ${a.businessUnit}` : ""}</p>
-                </td>
-                <td className="px-4 py-3">{OFFERING_LABELS[a.offering]}</td>
-                <td className="px-4 py-3 text-slate-600">{a.scope}</td>
-                <td className="px-4 py-3">{a.closedDeals.length}</td>
-                <td className="px-4 py-3 text-slate-600">{a.protectionExpiresAt?.toLocaleDateString() ?? "-"}</td>
-                <td className="px-4 py-3">
+                </Td>
+                <Td>{OFFERING_LABELS[a.offering]}</Td>
+                <Td className="text-slate-600">{a.scope}</Td>
+                <Td>{a.closedDeals.length}</Td>
+                <Td className="text-slate-600">{a.protectionExpiresAt?.toLocaleDateString() ?? "-"}</Td>
+                <Td>
                   <Badge status={a.lapsedAt ? "CLOSED" : "ACTIVE"}>{a.lapsedAt ? "Lapsed" : "Active"}</Badge>
-                </td>
-              </tr>
+                </Td>
+              </TR>
             ))}
             {accounts.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
-                  No confirmed accounts yet. Register an opportunity and it appears here once confirmed.
-                </td>
-              </tr>
+              <TableEmpty colSpan={6}>
+                No confirmed accounts yet. Register an opportunity and it appears here once confirmed.
+              </TableEmpty>
             ) : null}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </Card>
     </div>
   );

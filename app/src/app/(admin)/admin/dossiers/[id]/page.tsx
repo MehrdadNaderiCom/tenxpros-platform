@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/form-fields";
+import { Select, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function DossierReviewPage({ params }: { params: { id: string } }) {
@@ -31,11 +31,11 @@ export default async function DossierReviewPage({ params }: { params: { id: stri
             <p className="whitespace-pre-wrap rounded-md bg-neutral-50 p-4 text-sm leading-6 text-slate-700">{section.content || "No content yet."}</p>
             <form action={reviewDossierSection} className="space-y-3">
               <input type="hidden" name="sectionId" value={section.id} />
-              <select name="status" className="h-10 rounded-md border border-neutral-300 px-3 text-sm">
+              <Select name="status">
                 <option value="REVIEWED">Reviewed</option>
                 <option value="APPROVED">Approved</option>
                 <option value="REVISED">Revision requested</option>
-              </select>
+              </Select>
               <Textarea name="content" placeholder="Section-level feedback..." />
               <Button type="submit">Save feedback</Button>
             </form>

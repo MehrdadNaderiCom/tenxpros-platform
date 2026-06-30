@@ -5,6 +5,7 @@ import { PARTNER_STATUS_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -71,75 +72,69 @@ export default async function AdminPartnersPage() {
         </Card>
       </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[860px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Partner</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Tier</th>
-              <th className="px-4 py-3">Active</th>
-              <th className="px-4 py-3">Accounts</th>
-              <th className="px-4 py-3">Deals</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {partners.map((p, i) => (
-              <tr key={p.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-900 hover:underline">
-                    {p.displayName}
+      <Table minWidth="min-w-[860px]">
+        <THead>
+          <Th>Partner</Th>
+          <Th>Status</Th>
+          <Th>Tier</Th>
+          <Th>Active</Th>
+          <Th>Accounts</Th>
+          <Th>Deals</Th>
+          <Th className="text-right">Actions</Th>
+        </THead>
+        <TBody>
+          {partners.map((p) => (
+            <TR key={p.id}>
+              <Td>
+                <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-900 hover:underline">
+                  {p.displayName}
+                </Link>
+                <p className="text-xs text-slate-500">{p.contactEmail}</p>
+              </Td>
+              <Td>
+                <Badge status={BADGE[p.status]}>{PARTNER_STATUS_LABELS[p.status]}</Badge>
+              </Td>
+              <Td>{p.tier}</Td>
+              <Td>{p.activeStatus ? "Yes" : "No"}</Td>
+              <Td>{p._count.registeredAccounts}</Td>
+              <Td>{p._count.closedDeals}</Td>
+              <Td>
+                <div className="flex items-center justify-end gap-3">
+                  {p.activeStatus ? (
+                    <form action={setPartnerStatus}>
+                      <input type="hidden" name="partnerId" value={p.id} />
+                      <input type="hidden" name="action" value="DEACTIVATE" />
+                      <Button type="submit" size="sm" variant="ghost">Pause</Button>
+                    </form>
+                  ) : (
+                    <form action={setPartnerStatus}>
+                      <input type="hidden" name="partnerId" value={p.id} />
+                      <input type="hidden" name="action" value="ACTIVATE" />
+                      <Button type="submit" size="sm" variant="ghost">Reactivate</Button>
+                    </form>
+                  )}
+                  <a
+                    href={`/admin/impersonate/partner/${p.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
+                  >
+                    Panel
+                  </a>
+                  <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-600 hover:underline">
+                    Manage
                   </Link>
-                  <p className="text-xs text-slate-500">{p.contactEmail}</p>
-                </td>
-                <td className="px-4 py-3">
-                  <Badge status={BADGE[p.status]}>{PARTNER_STATUS_LABELS[p.status]}</Badge>
-                </td>
-                <td className="px-4 py-3">{p.tier}</td>
-                <td className="px-4 py-3">{p.activeStatus ? "Yes" : "No"}</td>
-                <td className="px-4 py-3">{p._count.registeredAccounts}</td>
-                <td className="px-4 py-3">{p._count.closedDeals}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-3">
-                    {p.activeStatus ? (
-                      <form action={setPartnerStatus}>
-                        <input type="hidden" name="partnerId" value={p.id} />
-                        <input type="hidden" name="action" value="DEACTIVATE" />
-                        <Button type="submit" size="sm" variant="ghost">Pause</Button>
-                      </form>
-                    ) : (
-                      <form action={setPartnerStatus}>
-                        <input type="hidden" name="partnerId" value={p.id} />
-                        <input type="hidden" name="action" value="ACTIVATE" />
-                        <Button type="submit" size="sm" variant="ghost">Reactivate</Button>
-                      </form>
-                    )}
-                    <a
-                      href={`/admin/impersonate/partner/${p.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-slate-500 hover:text-navy-700 hover:underline"
-                    >
-                      Panel
-                    </a>
-                    <Link href={`/admin/partners/${p.id}`} className="font-medium text-navy-600 hover:underline">
-                      Manage
-                    </Link>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {partners.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
-                  No partners yet. Approve an application to create the first partner.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </Card>
+                </div>
+              </Td>
+            </TR>
+          ))}
+          {partners.length === 0 ? (
+            <TableEmpty colSpan={7}>
+              No partners yet. Approve an application to create the first partner.
+            </TableEmpty>
+          ) : null}
+        </TBody>
+      </Table>
     </div>
   );
 }

@@ -34,10 +34,10 @@ import {
 } from "@/lib/actions/partner-admin";
 import { COMMON_CURRENCIES, convertMinor, entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
-import { ConfirmButton } from "@/components/admin/confirm-button";
+import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import { ForceDeleteButton } from "@/components/admin/force-delete-button";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
@@ -89,14 +89,15 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PageHeader title={partner.displayName} description={partner.contactEmail} />
         <div className="flex items-center gap-2">
-          <a
+          <ButtonLink
             href={`/admin/impersonate/partner/${partner.id}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex h-9 items-center rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-700 transition hover:bg-navy-50"
+            variant="secondary"
+            size="sm"
           >
             Open panel (read-only)
-          </a>
+          </ButtonLink>
           <Badge status={partner.status === "TERMINATED" ? "NOT_COMPLETED" : "ACTIVE"}>{PARTNER_STATUS_LABELS[partner.status]}</Badge>
           <Badge status="ENROLLED">{partner.tier}</Badge>
         </div>
@@ -452,12 +453,12 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
               </form>
             </div>
           ) : (
-            <form>
-              <input type="hidden" name="partnerId" value={partner.id} />
-              <ConfirmButton action={deletePartner} message={`Permanently delete partner "${partner.displayName}"? This cannot be undone.`}>
-                Delete partner
-              </ConfirmButton>
-            </form>
+            <ConfirmSubmit
+              action={deletePartner}
+              hidden={{ partnerId: partner.id }}
+              message={`Permanently delete partner "${partner.displayName}"? This cannot be undone.`}
+              label="Delete partner"
+            />
           )}
         </div>
       </Card>

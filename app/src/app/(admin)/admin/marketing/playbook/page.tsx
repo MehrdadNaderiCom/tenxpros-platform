@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/authz";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { FilterPill } from "@/components/ui/filter-pill";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { HintField } from "@/components/ui/hint-field";
 import { CopyButton } from "@/components/admin/copy-button";
@@ -123,11 +125,6 @@ export default async function PlaybookPage({
   const knownKeys = new Set(categories.map((c) => c.key));
   const orphans = matches.filter((t) => !knownKeys.has(t.category));
 
-  const chipClass = (active: boolean) =>
-    active
-      ? "rounded-full bg-navy-900 px-3 py-1 text-xs font-semibold text-white"
-      : "rounded-full border border-neutral-300 px-3 py-1 text-xs font-semibold text-slate-600 hover:bg-neutral-50";
-
   const filterHref = (nextCat?: string) => {
     const params = new URLSearchParams();
     if (q) params.set("q", rawQ);
@@ -173,13 +170,14 @@ export default async function PlaybookPage({
           ) : null}
         </form>
         <div className="flex flex-wrap gap-2">
-          <Link href={filterHref(undefined)} className={chipClass(!cat)}>
-            All ({templates.length})
-          </Link>
+          <FilterPill label={`All (${templates.length})`} href={filterHref(undefined)} active={!cat} />
           {categories.map((c) => (
-            <Link key={c.id} href={filterHref(c.key)} className={chipClass(cat === c.key)}>
-              {c.title} ({countByCategory[c.key] ?? 0})
-            </Link>
+            <FilterPill
+              key={c.id}
+              label={`${c.title} (${countByCategory[c.key] ?? 0})`}
+              href={filterHref(c.key)}
+              active={cat === c.key}
+            />
           ))}
         </div>
         {q || cat ? (
@@ -190,13 +188,13 @@ export default async function PlaybookPage({
           </p>
         ) : null}
         {(q || cat) && matches.length === 0 ? (
-          <p className="rounded-md bg-neutral-50 px-3 py-2 text-sm text-slate-600">
+          <Alert tone="neutral">
             Nothing here yet, add an item with “+ Add item” below, or{" "}
             <Link href="/admin/marketing/playbook" className="font-medium text-navy-600 hover:underline">
               clear the filters
             </Link>
             .
-          </p>
+          </Alert>
         ) : null}
       </Card>
 

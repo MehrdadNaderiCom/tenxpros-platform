@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { deletePartnerApplication, reviewPartnerApplication, updatePartnerApplication } from "@/lib/actions/partner-admin";
 import { PARTNER_APPLICATION_STATUS_LABELS } from "@/lib/partner/constants";
+import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ConfirmButton } from "@/components/admin/confirm-button";
+import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import { Input, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
@@ -120,24 +121,22 @@ export default async function PartnerApplicationDetailPage({ params }: { params:
       ) : null}
 
       {a.partner ? (
-        <Card className="border-emerald-200 bg-emerald-50">
-          <p className="text-sm font-semibold text-navy-900">Approved, partner created.</p>
+        <Alert tone="success" title="Approved, partner created.">
           <Link href={`/admin/partners/${a.partner.id}`} className="mt-1 inline-block text-sm font-medium text-navy-600 hover:underline">
             Open partner record →
           </Link>
-        </Card>
+        </Alert>
       ) : (
         <Card>
           <h2 className="text-lg font-semibold text-navy-900">Review decision</h2>
-          <form className="mt-3 flex justify-end">
-            <input type="hidden" name="applicationId" value={a.id} />
-            <ConfirmButton
+          <div className="mt-3 flex justify-end">
+            <ConfirmSubmit
               action={deletePartnerApplication}
+              hidden={{ applicationId: a.id }}
               message={`Permanently delete the application from "${a.fullName}"? This also removes any uploaded resume or cover letter and cannot be undone.`}
-            >
-              Delete application
-            </ConfirmButton>
-          </form>
+              label="Delete application"
+            />
+          </div>
           {a.reviewerNotes ? <p className="mt-2 text-sm text-slate-600">Previous notes: {a.reviewerNotes}</p> : null}
           <form action={reviewPartnerApplication} className="mt-4 space-y-4">
             <input type="hidden" name="applicationId" value={a.id} />

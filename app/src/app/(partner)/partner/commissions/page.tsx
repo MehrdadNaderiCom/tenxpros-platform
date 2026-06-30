@@ -8,6 +8,8 @@ import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/form-fields";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -53,62 +55,58 @@ export default async function PartnerCommissionsPage() {
         ))}
       </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[920px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Function</th>
-              <th className="px-4 py-3">Rate</th>
-              <th className="px-4 py-3">Amount</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Payable on</th>
-              <th className="px-4 py-3 text-right">Query</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e, i) => (
-              <tr key={e.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3 text-slate-700">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</td>
-                <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
-                <td className="px-4 py-3">{e.isFlat ? ", " : formatBp(e.rateBp)}</td>
-                <td className="px-4 py-3 font-medium text-navy-900">
+      <Card className="p-0">
+        <Table minWidth="min-w-[920px]">
+          <THead>
+            <Th>Account</Th>
+            <Th>Function</Th>
+            <Th>Rate</Th>
+            <Th>Amount</Th>
+            <Th>Status</Th>
+            <Th>Payable on</Th>
+            <Th className="text-right">Query</Th>
+          </THead>
+          <TBody>
+            {entries.map((e) => (
+              <TR key={e.id}>
+                <Td className="text-slate-700">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</Td>
+                <Td>{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</Td>
+                <Td>{e.isFlat ? ", " : formatBp(e.rateBp)}</Td>
+                <Td className="font-medium text-navy-900">
                   {formatCents(e.amountCents - e.reversedCents, e.currency)}
                   {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}
                   {e.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(e.reversedCents, e.currency)})</span> : null}
-                </td>
-                <td className="px-4 py-3">
+                </Td>
+                <Td>
                   <Badge status={STATUS_BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{e.payableOn?.toLocaleDateString() ?? "-"}</td>
-                <td className="px-4 py-3">
+                </Td>
+                <Td className="text-slate-600">{e.payableOn?.toLocaleDateString() ?? "-"}</Td>
+                <Td>
                   {e.queryFlag ? (
                     <span className="text-xs font-medium text-amber-700">Queried</span>
                   ) : (
                     <form action={flagCommissionQuery} className="flex items-center justify-end gap-2">
                       <input type="hidden" name="commissionEntryId" value={e.id} />
-                      <input
+                      <Input
                         name="queryNote"
                         placeholder="Reason (optional)"
-                        className="h-8 w-36 rounded border border-neutral-300 px-2 text-xs"
+                        className="h-8 w-36 px-2 text-xs"
                       />
                       <Button type="submit" size="sm" variant="ghost">
                         Query
                       </Button>
                     </form>
                   )}
-                </td>
-              </tr>
+                </Td>
+              </TR>
             ))}
             {entries.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
-                  No commission yet. Lines appear here as deals are recorded and computed.
-                </td>
-              </tr>
+              <TableEmpty colSpan={7}>
+                No commission yet. Lines appear here as deals are recorded and computed.
+              </TableEmpty>
             ) : null}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </Card>
     </div>
   );

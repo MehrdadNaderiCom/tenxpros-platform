@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { PAYMENT_STATUSES, formatPaymentMethod, formatPaymentStatus } from "@/lib/payment-terms";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
 import { FilterPill } from "@/components/ui/filter-pill";
 
@@ -80,69 +80,65 @@ export default async function PaymentsPage({
         </div>
       </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[960px] text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Person</th>
-              <th className="px-4 py-3">Amount</th>
-              <th className="px-4 py-3">Method</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Due</th>
-              <th className="px-4 py-3">Follow-up timeline</th>
-              <th className="px-4 py-3">Application</th>
-            </tr>
-          </thead>
-          <tbody>
-            {payments.map((payment) => {
-              const overdue =
-                payment.status === "INSTRUCTIONS_SENT" && !payment.paidAt && payment.dueAt != null && payment.dueAt < now;
-              return (
-                <tr key={payment.id} className="border-b border-neutral-100 align-top">
-                  <td className="px-4 py-3">
-                    {payment.participant?.user.email ?? payment.application?.email ?? "Unknown"}
-                  </td>
-                  <td className="px-4 py-3">{formatCurrency(payment.amount, payment.currency)}</td>
-                  <td className="px-4 py-3">{formatPaymentMethod(payment.method)}</td>
-                  <td className="px-4 py-3">
-                    <Badge status={payment.status}>{formatPaymentStatus(payment.status)}</Badge>
-                  </td>
-                  <td className="px-4 py-3">
-                    {payment.dueAt ? (
-                      <span className={overdue ? "font-medium text-red-700" : ""}>
-                        {payment.dueAt.toLocaleDateString()}
-                        {overdue ? " (passed)" : ""}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">Not set</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-slate-500">
-                    {payment.instructionsSentAt ? <div>Instructions {payment.instructionsSentAt.toLocaleDateString()}</div> : null}
-                    {payment.reminderSentAt ? <div className="text-amber-700">Reminder {payment.reminderSentAt.toLocaleDateString()}</div> : null}
-                    {payment.expiryNoticeSentAt ? <div className="text-red-700">Deadline notice {payment.expiryNoticeSentAt.toLocaleDateString()}</div> : null}
-                    {payment.paidAt ? <div className="text-emerald-700">Paid {payment.paidAt.toLocaleDateString()}</div> : null}
-                    {payment.waivedAt ? <div>Waived {payment.waivedAt.toLocaleDateString()}</div> : null}
-                    {payment.cancelledAt ? <div>Cancelled {payment.cancelledAt.toLocaleDateString()}</div> : null}
-                    {!payment.instructionsSentAt && !payment.paidAt && !payment.waivedAt && !payment.cancelledAt ? (
-                      <div>Created {payment.createdAt.toLocaleDateString()}</div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-3">
-                    {payment.applicationId ? (
-                      <Link className="text-navy-600 underline" href={`/admin/applications/${payment.applicationId}`}>
-                        View
-                      </Link>
-                    ) : (
-                      <span className="text-slate-400">None</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </Card>
+      <Table minWidth="min-w-[960px]">
+        <THead>
+          <Th>Person</Th>
+          <Th>Amount</Th>
+          <Th>Method</Th>
+          <Th>Status</Th>
+          <Th>Due</Th>
+          <Th>Follow-up timeline</Th>
+          <Th>Application</Th>
+        </THead>
+        <TBody>
+          {payments.map((payment) => {
+            const overdue =
+              payment.status === "INSTRUCTIONS_SENT" && !payment.paidAt && payment.dueAt != null && payment.dueAt < now;
+            return (
+              <TR key={payment.id}>
+                <Td>
+                  {payment.participant?.user.email ?? payment.application?.email ?? "Unknown"}
+                </Td>
+                <Td>{formatCurrency(payment.amount, payment.currency)}</Td>
+                <Td>{formatPaymentMethod(payment.method)}</Td>
+                <Td>
+                  <Badge status={payment.status}>{formatPaymentStatus(payment.status)}</Badge>
+                </Td>
+                <Td>
+                  {payment.dueAt ? (
+                    <span className={overdue ? "font-medium text-red-700" : ""}>
+                      {payment.dueAt.toLocaleDateString()}
+                      {overdue ? " (passed)" : ""}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">Not set</span>
+                  )}
+                </Td>
+                <Td className="text-xs text-slate-500">
+                  {payment.instructionsSentAt ? <div>Instructions {payment.instructionsSentAt.toLocaleDateString()}</div> : null}
+                  {payment.reminderSentAt ? <div className="text-amber-700">Reminder {payment.reminderSentAt.toLocaleDateString()}</div> : null}
+                  {payment.expiryNoticeSentAt ? <div className="text-red-700">Deadline notice {payment.expiryNoticeSentAt.toLocaleDateString()}</div> : null}
+                  {payment.paidAt ? <div className="text-emerald-700">Paid {payment.paidAt.toLocaleDateString()}</div> : null}
+                  {payment.waivedAt ? <div>Waived {payment.waivedAt.toLocaleDateString()}</div> : null}
+                  {payment.cancelledAt ? <div>Cancelled {payment.cancelledAt.toLocaleDateString()}</div> : null}
+                  {!payment.instructionsSentAt && !payment.paidAt && !payment.waivedAt && !payment.cancelledAt ? (
+                    <div>Created {payment.createdAt.toLocaleDateString()}</div>
+                  ) : null}
+                </Td>
+                <Td>
+                  {payment.applicationId ? (
+                    <Link className="text-navy-600 underline" href={`/admin/applications/${payment.applicationId}`}>
+                      View
+                    </Link>
+                  ) : (
+                    <span className="text-slate-400">None</span>
+                  )}
+                </Td>
+              </TR>
+            );
+          })}
+        </TBody>
+      </Table>
 
       {payments.length === 0 ? (
         <EmptyState

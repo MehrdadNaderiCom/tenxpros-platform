@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Textarea } from "@/components/ui/form-fields";
+import { Input, Select, Textarea } from "@/components/ui/form-fields";
 import { HintField } from "@/components/ui/hint-field";
 import { InfoTip } from "@/components/ui/form-field";
 import { CampaignDateRange } from "@/components/admin/campaign-date-range";
@@ -255,17 +255,13 @@ export default async function MarketingCampaignsPage() {
             <form action={saveChannel} className="flex flex-wrap items-end gap-3">
               <input type="hidden" name="campaignId" value={campaign.id} />
               <HintField label="Add channel" hint={TIPS.addChannel}>
-                <select
-                  name="channel"
-                  className="h-11 rounded-md border border-neutral-300 bg-white px-3 text-sm text-slate-900"
-                  defaultValue="instagram"
-                >
+                <Select name="channel" defaultValue="instagram">
                   {MARKETING_CHANNELS.map((c) => (
                     <option key={c.value} value={c.value}>
                       {c.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </HintField>
               <Button type="submit" variant="secondary">
                 Add

@@ -7,6 +7,7 @@ import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -49,63 +50,57 @@ export default async function AdminCommissionsPage() {
         ))}
       </div>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[980px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Partner</th>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Function</th>
-              <th className="px-4 py-3">Rate</th>
-              <th className="px-4 py-3">Amount</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e, i) => (
-              <tr key={e.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3">
-                  <Link href={`/admin/partners/${e.partner.id}`} className="text-navy-700 hover:underline">{e.partner.displayName}</Link>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</td>
-                <td className="px-4 py-3">{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</td>
-                <td className="px-4 py-3">{e.isFlat ? ", " : formatBp(e.rateBp)}</td>
-                <td className="px-4 py-3 font-medium text-navy-900">
-                  {formatCents(e.amountCents - e.reversedCents, e.currency)}
-                  {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}
-                </td>
-                <td className="px-4 py-3"><Badge status={BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
-                    {e.status === "ACCRUED" ? (
-                      <form action={setCommissionStatus}>
-                        <input type="hidden" name="commissionEntryId" value={e.id} />
-                        <input type="hidden" name="status" value="PAYABLE" />
-                        <Button type="submit" size="sm" variant="secondary">Mark payable</Button>
-                      </form>
-                    ) : null}
-                    {e.status === "PAYABLE" ? (
-                      <form action={setCommissionStatus}>
-                        <input type="hidden" name="commissionEntryId" value={e.id} />
-                        <input type="hidden" name="status" value="PAID" />
-                        <Button type="submit" size="sm">Mark paid</Button>
-                      </form>
-                    ) : null}
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {entries.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={7}>
-                  No commission lines yet.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </Card>
+      <Table minWidth="min-w-[980px]">
+        <THead>
+          <Th>Partner</Th>
+          <Th>Account</Th>
+          <Th>Function</Th>
+          <Th>Rate</Th>
+          <Th>Amount</Th>
+          <Th>Status</Th>
+          <Th className="text-right">Actions</Th>
+        </THead>
+        <TBody>
+          {entries.map((e) => (
+            <TR key={e.id}>
+              <Td>
+                <Link href={`/admin/partners/${e.partner.id}`} className="text-navy-700 hover:underline">{e.partner.displayName}</Link>
+              </Td>
+              <Td className="text-slate-600">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</Td>
+              <Td>{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</Td>
+              <Td>{e.isFlat ? ", " : formatBp(e.rateBp)}</Td>
+              <Td className="font-medium text-navy-900">
+                {formatCents(e.amountCents - e.reversedCents, e.currency)}
+                {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}
+              </Td>
+              <Td><Badge status={BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge></Td>
+              <Td>
+                <div className="flex items-center justify-end gap-2">
+                  {e.status === "ACCRUED" ? (
+                    <form action={setCommissionStatus}>
+                      <input type="hidden" name="commissionEntryId" value={e.id} />
+                      <input type="hidden" name="status" value="PAYABLE" />
+                      <Button type="submit" size="sm" variant="secondary">Mark payable</Button>
+                    </form>
+                  ) : null}
+                  {e.status === "PAYABLE" ? (
+                    <form action={setCommissionStatus}>
+                      <input type="hidden" name="commissionEntryId" value={e.id} />
+                      <input type="hidden" name="status" value="PAID" />
+                      <Button type="submit" size="sm">Mark paid</Button>
+                    </form>
+                  ) : null}
+                </div>
+              </Td>
+            </TR>
+          ))}
+          {entries.length === 0 ? (
+            <TableEmpty colSpan={7}>
+              No commission lines yet.
+            </TableEmpty>
+          ) : null}
+        </TBody>
+      </Table>
     </div>
   );
 }

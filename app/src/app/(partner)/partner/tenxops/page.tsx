@@ -5,6 +5,7 @@ import { PartnerTenXOpsForm } from "@/components/portal/partner-tenxops-form";
 import { ENGAGEMENT_STATUS_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -35,36 +36,32 @@ export default async function PartnerTenXOpsPage() {
       />
       <PartnerTenXOpsForm accounts={accounts} />
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Organisation</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Requested</th>
-              <th className="px-4 py-3">Decided</th>
-            </tr>
-          </thead>
-          <tbody>
-            {engagements.map((e, i) => (
-              <tr key={e.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3 font-medium text-navy-900">{e.organisation}</td>
-                <td className="px-4 py-3">
+      <Card className="p-0">
+        <Table minWidth="min-w-[640px]">
+          <THead>
+            <Th>Organisation</Th>
+            <Th>Status</Th>
+            <Th>Requested</Th>
+            <Th>Decided</Th>
+          </THead>
+          <TBody>
+            {engagements.map((e) => (
+              <TR key={e.id}>
+                <Td className="font-medium text-navy-900">{e.organisation}</Td>
+                <Td>
                   <Badge status={BADGE[e.status]}>{ENGAGEMENT_STATUS_LABELS[e.status]}</Badge>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{e.createdAt.toLocaleDateString()}</td>
-                <td className="px-4 py-3 text-slate-600">{e.decidedAt?.toLocaleDateString() ?? "-"}</td>
-              </tr>
+                </Td>
+                <Td className="text-slate-600">{e.createdAt.toLocaleDateString()}</Td>
+                <Td className="text-slate-600">{e.decidedAt?.toLocaleDateString() ?? "-"}</Td>
+              </TR>
             ))}
             {engagements.length === 0 ? (
-              <tr>
-                <td className="px-4 py-10 text-center text-slate-500" colSpan={4}>
-                  No engagement requests yet.
-                </td>
-              </tr>
+              <TableEmpty colSpan={4}>
+                No engagement requests yet.
+              </TableEmpty>
             ) : null}
-          </tbody>
-        </table>
+          </TBody>
+        </Table>
       </Card>
     </div>
   );

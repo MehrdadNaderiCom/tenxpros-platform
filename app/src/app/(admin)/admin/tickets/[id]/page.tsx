@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/form-fields";
+import { Select, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export default async function AdminTicketPage({ params }: { params: { id: string } }) {
@@ -31,11 +31,11 @@ export default async function AdminTicketPage({ params }: { params: { id: string
       <Card>
         <form action={respondToTicket} className="space-y-4">
           <input type="hidden" name="ticketId" value={ticket.id} />
-          <select name="status" className="h-10 rounded-md border border-neutral-300 px-3 text-sm">
+          <Select name="status">
             <option value="AWAITING_PARTICIPANT">Awaiting participant</option>
             <option value="RESOLVED">Resolved</option>
             <option value="CLOSED">Closed</option>
-          </select>
+          </Select>
           <Textarea name="body" placeholder="Admin response..." />
           <Button type="submit">Send response</Button>
         </form>

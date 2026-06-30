@@ -9,6 +9,7 @@ import { DEAL_REG_STATUS_LABELS, OFFERING_LABELS } from "@/lib/partner/constants
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Table, THead, Th, TBody, TR, Td } from "@/components/ui/table";
 import { Input } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
@@ -116,30 +117,26 @@ export default async function DealRegistrationsPage() {
         </div>
       </Card>
 
-      <Card className="overflow-x-auto p-0">
-        <table className="w-full min-w-[720px] border-collapse text-sm">
-          <thead className="bg-navy-900 text-left text-white">
-            <tr>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Partner</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Decided</th>
-            </tr>
-          </thead>
-          <tbody>
-            {recent.map((reg, i) => (
-              <tr key={reg.id} className={i % 2 ? "bg-neutral-50" : "bg-white"}>
-                <td className="px-4 py-3 text-slate-800">{reg.legalEntity}</td>
-                <td className="px-4 py-3 text-slate-600">{reg.partner.displayName}</td>
-                <td className="px-4 py-3">
-                  <Badge status={reg.status === "CONFIRMED" ? "APPROVED" : "NOT_COMPLETED"}>{DEAL_REG_STATUS_LABELS[reg.status]}</Badge>
-                </td>
-                <td className="px-4 py-3 text-slate-600">{reg.decidedAt?.toLocaleDateString() ?? "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      <Table minWidth="min-w-[720px]">
+        <THead>
+          <Th>Account</Th>
+          <Th>Partner</Th>
+          <Th>Status</Th>
+          <Th>Decided</Th>
+        </THead>
+        <TBody>
+          {recent.map((reg) => (
+            <TR key={reg.id}>
+              <Td className="text-slate-800">{reg.legalEntity}</Td>
+              <Td className="text-slate-600">{reg.partner.displayName}</Td>
+              <Td>
+                <Badge status={reg.status === "CONFIRMED" ? "APPROVED" : "NOT_COMPLETED"}>{DEAL_REG_STATUS_LABELS[reg.status]}</Badge>
+              </Td>
+              <Td className="text-slate-600">{reg.decidedAt?.toLocaleDateString() ?? "-"}</Td>
+            </TR>
+          ))}
+        </TBody>
+      </Table>
     </div>
   );
 }
