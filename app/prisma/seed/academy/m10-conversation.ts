@@ -38,11 +38,15 @@ export const m10: ModuleSeed = {
   <li>There is no genuinely <strong>cold</strong> outreach here. Strangers from bought or scraped lists are prohibited. The closest you get is reaching someone in a shared circle, and even then you lead with the real connection, not a pitch.</li>
 </ul>
 
+<h3>Do not approach another partner's prospect</h3>
+<p>Before you reach out to anyone, there is a rule that protects every partner, including you, and it is not optional. You must not approach, register, or pursue a prospect that another partner has already registered or is clearly working. The Partner Panel is the record of who registered what, and priority belongs to the partner whose registration the company confirmed first. If a person or organization is already registered to another partner, they are not yours to contact, even if you happen to know them, and even if you believe you could do it better. This is exactly what lets a partner invest in a relationship without a colleague slipping in behind them, and it is why partners can trust the system and each other.</p>
+<div class="callout callout-warning"><p><strong>This is a matter of trust and fairness, and it has real consequences.</strong> Pursue a prospect who is already registered to another partner and you lose the claim: it stays with the partner who registered first. Do it deliberately, or repeatedly, and it is grounds for removal from the program. When you are not certain whether someone is already being worked, you check the Panel first, and you register before substantive contact, so your own good faith is on the record too. Coordinating through the Panel, rather than racing a colleague to a prospect, is not a formality. It is how the whole partner network stays credible.</p></div>
+
 <h3>Running the conversation, not pitching it</h3>
 <p>When you get the conversation, do not pitch. Open with their challenge, not your program: ask what the biggest challenge they are facing around AI in their work is, and then listen. Most people hand you one of the three classic openings, and each one points straight at the program. Then match the field story to who they are, using the explorer, so they recognize themselves. Place your mini pitch where it fits naturally, sixty to ninety seconds, no hype, and lead with the boundary as much as the benefit, because that is what a serious professional respects.</p>
 
 <h2>How to sell it honestly</h2>
-<p>This program multiplies an AI method onto expertise the person already has. Ten times zero is still zero, so if there is nothing real to multiply, the program is not for them, and your job in the conversation is to find that out, not to paper over it. That is why you open with their challenge and listen: a real challenge in their own field is the signal that they have something multipliable. If you find yourself working hard to convince someone that they belong, that is the signal that they probably do not, and an honest partner names it kindly and moves on.</p>
+<p>This program adds a structured method to expertise the person already has. If there is nothing real to build on, there is nothing for the method to work with, so the program is not for them, and your job in the conversation is to find that out, not to paper over it. That is why you open with their challenge and listen: a real challenge in their own field is the signal that they have the expertise the program is meant to build on. If you find yourself working hard to convince someone that they belong, that is the signal that they probably do not, and an honest partner names it kindly and moves on.</p>
 
 <div class="callout callout-success"><p><strong>Say this:</strong> What is the biggest challenge you are facing around AI in your work right now? I thought of you because of the work you do in your field, and I want to understand the problem before I say anything about how the program might fit.</p></div>
 <div class="callout callout-warning"><p><strong>Do not say this:</strong> This program will make you an AI leader and get you results. The price is a special number just for you, and you can pay today to lock it in.</p></div>
@@ -70,7 +74,7 @@ export const m10: ModuleSeed = {
   <li>Lead with the boundary as much as the benefit: a serious professional respects the limits you name.</li>
   <li>Payment only after acceptance, so no one is ever sold into paying before they are accepted.</li>
   <li>The application is a quality gate, not a sales form, and it is the natural next step.</li>
-  <li>You bring the expertise, the program brings the method: that is the whole multiplier idea, said plainly.</li>
+  <li>You bring the expertise, the program brings the method: that is the idea in one line.</li>
   <li>Your role ends at a clean handoff: the company handles acceptance, payment, and delivery.</li>
 </ul>
 

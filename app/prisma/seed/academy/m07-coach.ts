@@ -36,6 +36,8 @@ export const m07: ModuleSeed = {
 </ul>
 <p>The pathway rises from earning a credential, to being recognized, to being trained, to supporting, to leading. It is a ladder of demonstrated capability, not a title handed out.</p>
 
+<div class="callout callout-info"><p><strong>Coaching is domain bound.</strong> A coach coaches in their own field, not in general. A lawyer who becomes a coach coaches other lawyers. A clinician coaches other clinicians. An engineer coaches other engineers. The whole point is deep, field specific guidance from someone who has done the work in that domain, which is why the pathway is a domain coach pathway and the top stage is Lead Domain Coach. When you describe this to a prospect, be clear it is coaching in their own field, so they picture leading their own profession, not becoming a general purpose AI trainer.</p></div>
+
 <h3>What earns Top Student consideration</h3>
 <p>The bar is specific, and you can describe it so a prospect understands it. A top student shows excellent problem framing and strong professional judgment, clear boundaries and governance with real confidentiality discipline, a high quality evaluation rubric and test set, a workflow that is actually usable, an evidence based value case, and a realistic ninety day roadmap. They also communicate well, take coaching, and can explain their work to others, because a coach has to teach, not just perform. All of those together, not one or two, is what gets someone looked at.</p>
 
@@ -60,10 +62,9 @@ export const m07: ModuleSeed = {
   </tbody>
 </table>
 
-<h2>Forms and screens you will reference</h2>
-<div class="form-preview"><div class="form-preview-label">The coach pathway</div><p>The coach pathway view, showing the six stages from Certified TenXPro to Lead Domain Coach, with the bar described at each stage so a prospect can see exactly where recognition, training, supporting, and leading begin.</p></div>
-
-<div class="form-preview"><div class="form-preview-label">The coach screening checklist</div><p>The coach screening checklist, listing the ethics and confidentiality interview, sample coaching review, dossier audit, communication assessment, domain expertise check, methodology exam, and brand and boundary agreement.</p></div>
+<h2>The pathway and the screening at a glance</h2>
+<p><strong>The pathway, in one line:</strong> six stages from Certified TenXPro, to Top Student Recognition, to Coach Candidate, to Apprentice Domain Coach, to Associate TenXPros Coach, to Lead Domain Coach, with a real bar at each stage so recognition, training, supporting, and leading each begin at a defined point. Keep the order and the bar straight, because a prospect will judge your credibility by whether you can describe it accurately.</p>
+<p><strong>The screening, in one line:</strong> before anyone joins as a coach they complete an ethics and confidentiality interview, a sample coaching review, a dossier quality audit, a communication assessment, a domain expertise check, the TenXPros methodology exam, and a brand and boundary agreement. Naming these shows a prospect the path is serious work, not a formality.</p>
 
 <h2>Talking points</h2>
 <ul>

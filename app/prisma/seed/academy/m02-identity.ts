@@ -68,7 +68,6 @@ export const m02: ModuleSeed = {
     <tr><td>Can I pay you directly to move faster.</td><td>No. Payment must go through official channels. I cannot accept payment outside them, even for a first installment.</td></tr>
     <tr><td>Is this basically an accredited university qualification.</td><td>No. It is a private professional certification. Saying otherwise would be a false claim, and I will not make it.</td></tr>
     <tr><td>Do you own this whole industry or region.</td><td>Only if it is confirmed in writing on the Partner Panel. I will not claim exclusivity that is not recorded there.</td></tr>
-    <tr><td>I bought a contact list, can we use it.</td><td>No. Bought, scraped, and spam lists are prohibited, with no relevance or timing exception.</td></tr>
   </tbody>
 </table>
 
