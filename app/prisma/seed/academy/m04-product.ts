@@ -22,13 +22,16 @@ export const m04: ModuleSeed = {
 <h2>What you need to understand</h2>
 
 <h3>The one sentence</h3>
-<p>TenXPros is a selective twelve week certification for experienced professionals. The participant brings one real professional problem from their own field, runs it through a structured method, and finishes with a reviewed body of evidence they can explain and defend to employers, clients, boards, and peers. That is the product.</p>
+<p>TenXPros is a selective and guided twelve week certification for experienced professionals. The participant brings one real professional problem from their own field, and is guided through a structured method, with feedback and support, to finish with a reviewed body of evidence they can explain and defend to employers, clients, boards, and peers. That is the product: selective in who it takes, and guided in how it takes them through.</p>
 
 <h3>Who it is for, and who it is not for</h3>
-<p>The program is built for people who already have real expertise: senior operators and experienced professionals, consultants and advisors, managers and decision makers, founders and small business owners, and researchers, educators, and knowledge workers. It does not work well for an absolute beginner with no domain expertise, and that is on purpose.</p>
+<p>The program is built for people who already have real expertise. That is a broad group, and you should say so plainly: senior professionals and senior operators, experienced specialists in any field, consultants and advisors, managers and decision makers, founders and small business owners, freelancers and independent experts who are genuine specialists even without an organization behind them, and researchers, educators, and knowledge workers. Being inside a company is not the point; having real, current expertise in a field is. It does not work well for an absolute beginner with no domain expertise, and that is on purpose.</p>
 <div class="callout callout-info">
   <p><strong>The multiplier idea:</strong> TenX means a multiplier. The program multiplies an AI method onto expertise the person already has. Ten times zero is still zero, so the input has to be real. A beginner with no field is a zero: there is nothing to multiply. That is the structural reason selectivity is a feature, not friction. A Pro brings the expertise. The program brings the method, the evidence, and the governance that turn that Pro into a TenXPro.</p>
 </div>
+
+<h3>Guided and selective, both true</h3>
+<p>Two things are true at once, and a prospect should hear both. The program is selective: not everyone is accepted, and the credential is worth holding partly because of that. It is also guided: a participant is not handed a video library and left alone. They are taken through a structured method one week at a time, they get feedback on the work they produce, they can draw on consultations, and much of the work is customized to their own field and problem rather than generic. So when a serious professional asks what they are signing up for, the honest answer is a supported program with a real standard at the end, not a self-serve course and not a rubber stamp. Selectivity is who it takes; guidance is how it takes them through.</p>
 
 <h3>The four phases</h3>
 <p>The twelve weeks are organized into four phases, and each one answers a single real question.</p>
@@ -39,6 +42,7 @@ export const m04: ModuleSeed = {
   <li><strong>Foresee, weeks eleven and twelve:</strong> how do I lead what comes next?</li>
 </ul>
 <p>These are not lessons to watch. They are a sequence of building, where the thinking from each phase gets tested by the work of the next.</p>
+<p>To make the phases concrete, here is what each one actually produces, using a marketing leader as the example. In <strong>Frame</strong>, she rules out letting AI write final campaigns on its own and rules in an AI research and drafting layer, ending with a clear problem definition and an assessment of where AI genuinely fits. In <strong>Design</strong>, she builds a drafting assistant grounded in her brand guidelines and past winning work, with human sign off kept, ending with a working prototype and its guardrails. In <strong>Prove</strong>, she tests it against a set of past briefs and reports honest results, including where it fell short, ending with an evaluation rubric, a test set, and a value case. In <strong>Foresee</strong>, she writes a ninety day plan to roll it out across her team, ending with a foresight plan and the final dossier. A lawyer, a clinician, or an operations lead would produce different work from the same four questions, which is exactly the point.</p>
 
 <h3>The eight assets and the dossier</h3>
 <p>Across those phases the participant builds eight connected assets: a Personal AI Strategy Brief, an AI Use Case Portfolio, an Interaction and Decision Kit, a Grounded Domain Knowledge Pack, an AI Evaluation Rubric and Test Set, Custom Assistants and AI Workflows, an AI Value and Economics Case, and a Final Portfolio and ninety day Roadmap. Each one is real, and each one builds on the last.</p>
