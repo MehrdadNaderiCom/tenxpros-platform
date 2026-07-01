@@ -2,8 +2,12 @@
 
 import { prisma } from "@/lib/prisma";
 import {
+  advanceAccountStageSchema,
+  dealMessageSchema,
   dealRegistrationSchema,
+  logAccountActivitySchema,
   partnerProfileSchema,
+  resubmitDealSchema,
   tenXOpsRequestSchema,
 } from "@/lib/validations/partner";
 import { requirePartner } from "@/lib/partner/auth";
@@ -172,6 +176,245 @@ export async function requestTenXOpsEngagement(formData: FormData) {
   safeRevalidatePath("/partner/tenxops");
   safeRevalidatePath("/admin/partners/deal-registrations");
   return { ok: true, id: engagement.id };
+}
+
+/**
+ * Move one of the partner's own Registered Accounts to a new pipeline stage.
+ * Advancing a stage is a meaningful update: it refreshes lastMeaningfulUpdateAt
+ * (so the lapse cadence resets) and clears any prior lapse marker, and it writes
+ * a STAGE_CHANGE activity so the account has a full, auditable history.
+ */
+export async function advanceAccountStage(formData: FormData) {
+  const { partner } = await requirePartner();
+  const parsed = advanceAccountStageSchema.safeParse({
+    registeredAccountId: formData.get("registeredAccountId"),
+    stage: formData.get("stage"),
+    note: formData.get("note") || undefined,
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
+  }
+  const { registeredAccountId, stage, note } = parsed.data;
+
+  // IDOR guard: the account must belong to this partner.
+  const account = await prisma.registeredAccount.findFirst({
+    where: { id: registeredAccountId, partnerId: partner.id },
+    select: { id: true, stage: true, legalEntity: true },
+  });
+  if (!account) return { ok: false, message: "That account is not one of yours." };
+  if (account.stage === stage) return { ok: false, message: "The account is already at that stage." };
+
+  const now = new Date();
+  const label = note?.trim()
+    ? note.trim()
+    : `Stage moved from ${account.stage} to ${stage}.`;
+  await prisma.$transaction([
+    prisma.registeredAccount.update({
+      where: { id: account.id },
+      data: { stage, lastMeaningfulUpdateAt: now, lapsedAt: null },
+    }),
+    prisma.accountActivity.create({
+      data: {
+        registeredAccountId: account.id,
+        partnerId: partner.id,
+        kind: "STAGE_CHANGE",
+        note: label,
+        stageAfter: stage,
+      },
+    }),
+    prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: now } }),
+  ]);
+
+  await recordAudit({
+    actorId: partner.userId,
+    actorRole: "PARTNER",
+    action: "ACCOUNT_STAGE_ADVANCED",
+    entity: "RegisteredAccount",
+    entityId: account.id,
+    after: { from: account.stage, to: stage },
+  });
+  safeRevalidatePath("/partner/accounts");
+  safeRevalidatePath(`/partner/accounts/${account.id}`);
+  return { ok: true };
+}
+
+/**
+ * Log an activity on one of the partner's own Registered Accounts. Logging a
+ * meaningful activity refreshes lastMeaningfulUpdateAt and clears the lapse
+ * marker, which is what keeps the account's protection from lapsing.
+ */
+export async function logAccountActivity(formData: FormData) {
+  const { partner } = await requirePartner();
+  const parsed = logAccountActivitySchema.safeParse({
+    registeredAccountId: formData.get("registeredAccountId"),
+    kind: formData.get("kind"),
+    note: formData.get("note"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
+  }
+  const { registeredAccountId, kind, note } = parsed.data;
+
+  const account = await prisma.registeredAccount.findFirst({
+    where: { id: registeredAccountId, partnerId: partner.id },
+    select: { id: true },
+  });
+  if (!account) return { ok: false, message: "That account is not one of yours." };
+
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.accountActivity.create({
+      data: { registeredAccountId: account.id, partnerId: partner.id, kind, note },
+    }),
+    prisma.registeredAccount.update({
+      where: { id: account.id },
+      data: { lastMeaningfulUpdateAt: now, lapsedAt: null },
+    }),
+    prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: now } }),
+  ]);
+
+  await recordAudit({
+    actorId: partner.userId,
+    actorRole: "PARTNER",
+    action: "ACCOUNT_ACTIVITY_LOGGED",
+    entity: "RegisteredAccount",
+    entityId: account.id,
+    after: { kind },
+  });
+  safeRevalidatePath("/partner/accounts");
+  safeRevalidatePath(`/partner/accounts/${account.id}`);
+  return { ok: true };
+}
+
+/** Post a message to the thread under one of the partner's own opportunities. */
+export async function postDealMessage(formData: FormData) {
+  const { partner } = await requirePartner();
+  const parsed = dealMessageSchema.safeParse({
+    dealRegistrationId: formData.get("dealRegistrationId"),
+    body: formData.get("body"),
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please write a message." };
+  }
+  const { dealRegistrationId, body } = parsed.data;
+
+  const reg = await prisma.dealRegistration.findFirst({
+    where: { id: dealRegistrationId, partnerId: partner.id },
+    select: { id: true, legalEntity: true },
+  });
+  if (!reg) return { ok: false, message: "That opportunity is not one of yours." };
+
+  await prisma.dealMessage.create({
+    data: {
+      dealRegistrationId: reg.id,
+      authorUserId: partner.userId,
+      authorRole: "PARTNER",
+      authorName: partner.displayName,
+      body,
+    },
+  });
+  await prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: new Date() } });
+  await notifyOwner({
+    subject: `Partner replied on an opportunity: ${partner.displayName}`,
+    template: "owner_deal_message",
+    body: `${partner.displayName} posted a message on the opportunity for ${reg.legalEntity}.`,
+    href: "/admin/partners/deal-registrations",
+  });
+  safeRevalidatePath(`/partner/deals/${reg.id}`);
+  safeRevalidatePath("/admin/partners/deal-registrations");
+  return { ok: true };
+}
+
+/**
+ * Edit and resubmit an opportunity the company asked the partner to revise.
+ * Only a NEEDS_REVISION registration owned by this partner can be resubmitted;
+ * it returns to SUBMITTED so it re-enters the Panel Confirmation queue, and the
+ * partner's summary of changes is added to the thread.
+ */
+export async function resubmitDealRegistration(formData: FormData) {
+  const { partner } = await requirePartner();
+  const parsed = resubmitDealSchema.safeParse({
+    dealRegistrationId: formData.get("dealRegistrationId"),
+    offering: formData.get("offering"),
+    legalEntity: formData.get("legalEntity"),
+    country: formData.get("country"),
+    businessUnit: formData.get("businessUnit") || undefined,
+    contactName: formData.get("contactName") || undefined,
+    contactTitle: formData.get("contactTitle") || undefined,
+    estSeats: formData.get("estSeats") || undefined,
+    estValueUsd: formData.get("estValueUsd") || undefined,
+    functionsIntended: formData.getAll("functionsIntended").map(String),
+    justification: formData.get("justification"),
+    widerScopeRequested: formData.get("widerScopeRequested") || undefined,
+    note: formData.get("note") || undefined,
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
+  }
+  const data = parsed.data;
+
+  const reg = await prisma.dealRegistration.findFirst({
+    where: { id: data.dealRegistrationId, partnerId: partner.id },
+    select: { id: true, status: true },
+  });
+  if (!reg) return { ok: false, message: "That opportunity is not one of yours." };
+  if (reg.status !== "NEEDS_REVISION") {
+    return { ok: false, message: "Only an opportunity the company asked you to revise can be resubmitted." };
+  }
+
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.dealRegistration.update({
+      where: { id: reg.id },
+      data: {
+        offering: data.offering,
+        legalEntity: data.legalEntity,
+        country: data.country,
+        businessUnit: data.businessUnit || null,
+        contactName: data.contactName || null,
+        contactTitle: data.contactTitle || null,
+        estSeats: data.estSeats ? Number.parseInt(data.estSeats, 10) : null,
+        estValueCents: data.estValueUsd ? usdToCents(Number(data.estValueUsd)) : null,
+        functionsIntended: data.functionsIntended ?? [],
+        justification: data.justification,
+        widerScopeRequested: data.widerScopeRequested || null,
+        status: "SUBMITTED",
+        submittedAt: now,
+        revisionRequestedAt: null,
+      },
+    }),
+    prisma.dealMessage.create({
+      data: {
+        dealRegistrationId: reg.id,
+        authorUserId: partner.userId,
+        authorRole: "PARTNER",
+        authorName: partner.displayName,
+        body: data.note?.trim()
+          ? `Resubmitted with changes. ${data.note.trim()}`
+          : "Resubmitted with changes.",
+      },
+    }),
+    prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: now } }),
+  ]);
+
+  await recordAudit({
+    actorId: partner.userId,
+    actorRole: "PARTNER",
+    action: "DEAL_REGISTRATION_RESUBMITTED",
+    entity: "DealRegistration",
+    entityId: reg.id,
+    after: { legalEntity: data.legalEntity, country: data.country, offering: data.offering },
+  });
+  await notifyOwner({
+    subject: `Opportunity resubmitted: ${partner.displayName}`,
+    template: "owner_deal_resubmitted",
+    body: `${partner.displayName} revised and resubmitted the opportunity for ${data.legalEntity}. It is awaiting Panel Confirmation again.`,
+    href: "/admin/partners/deal-registrations",
+  });
+  safeRevalidatePath(`/partner/deals/${reg.id}`);
+  safeRevalidatePath("/partner/deals");
+  safeRevalidatePath("/admin/partners/deal-registrations");
+  return { ok: true };
 }
 
 /** Flag a query on one of the partner's own commission lines. */

@@ -4,6 +4,9 @@ import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import { pickConfigFields, type EffectiveConfig } from "@/lib/partner/config";
 import { countableSeats } from "@/lib/partner/commission";
 import {
+  ACCOUNT_ACTIVITY_KIND_LABELS,
+  ACCOUNT_STAGE_BADGE,
+  ACCOUNT_STAGE_LABELS,
   COMMISSION_STATUS_LABELS,
   OFFERING_LABELS,
   PARTNER_FUNCTION_LABELS,
@@ -14,6 +17,7 @@ import {
   formatBp,
   formatCents,
 } from "@/lib/partner/constants";
+import { accountLapseState } from "@/lib/partner/rules";
 import {
   addCommissionLine,
   addQualityFlag,
@@ -62,7 +66,10 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
     include: {
       application: true,
       scorecard: { orderBy: { day: "asc" } },
-      registeredAccounts: { orderBy: { createdAt: "desc" } },
+      registeredAccounts: {
+        orderBy: { createdAt: "desc" },
+        include: { activities: { orderBy: { createdAt: "desc" }, take: 5 } },
+      },
       closedDeals: { orderBy: { createdAt: "desc" }, include: { seats: true, commissions: true, registeredAccount: true } },
       commissions: true,
       focusGrants: { orderBy: { grantedAt: "desc" } },
@@ -111,6 +118,54 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
         <Card><p className="text-sm text-slate-500">Paid seats</p><p className="mt-2 text-xl font-semibold text-navy-900">{paidSeats}</p></Card>
         <Card><p className="text-sm text-slate-500">Commission paid (net)</p><p className="mt-2 text-xl font-semibold text-navy-900">{formatMoney(payoutTotal("PAID"), payoutCurrency)}</p></Card>
       </div>
+
+      {/* Registered accounts & pipeline (read-only; the partner drives their own pipeline) */}
+      <Card className="space-y-4">
+        <h2 className="text-lg font-semibold text-navy-900">Registered accounts &amp; pipeline</h2>
+        {partner.registeredAccounts.length === 0 ? (
+          <p className="text-sm text-slate-500">No confirmed accounts yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {partner.registeredAccounts.map((a) => {
+              const lapse = accountLapseState(a.lastMeaningfulUpdateAt, partner.tier, new Date(), effective);
+              const lapseText =
+                lapse.daysUntilLapse === null
+                  ? "No update yet"
+                  : lapse.lapsed
+                    ? `Lapsed ${Math.abs(lapse.daysUntilLapse)}d ago`
+                    : `Lapses in ${lapse.daysUntilLapse}d`;
+              return (
+                <div key={a.id} className="rounded-lg border border-neutral-200 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-navy-900">{a.legalEntity}</p>
+                      <p className="text-xs text-slate-500">{a.country}{a.businessUnit ? `, ${a.businessUnit}` : ""} , {OFFERING_LABELS[a.offering]}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge status={ACCOUNT_STAGE_BADGE[a.stage]}>{ACCOUNT_STAGE_LABELS[a.stage]}</Badge>
+                      <Badge status={lapse.lapsed ? "NOT_COMPLETED" : "ACTIVE"}>{lapseText}</Badge>
+                    </div>
+                  </div>
+                  {a.activities.length > 0 ? (
+                    <ul className="mt-3 space-y-1 text-xs text-slate-600">
+                      {a.activities.map((act) => (
+                        <li key={act.id}>
+                          <span className="font-medium text-slate-700">{ACCOUNT_ACTIVITY_KIND_LABELS[act.kind] ?? act.kind}</span>
+                          {": "}
+                          {act.note}
+                          <span className="text-slate-400"> ({act.createdAt.toLocaleDateString()})</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-xs text-slate-400">No activity logged yet.</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
 
       {/* Edit profile */}
       <Card>

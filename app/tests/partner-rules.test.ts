@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { PROGRAM_CONFIG_DEFAULTS, type EffectiveConfig } from "../src/lib/partner/config";
+import { PROGRAM_CONFIG_DEFAULTS, quietAccountLapseDaysForTier, type EffectiveConfig } from "../src/lib/partner/config";
 import {
   accountIsLapsed,
+  accountLapseState,
   addBusinessDays,
   addDays,
   addHours,
@@ -105,6 +106,20 @@ describe("account limits & lapse", () => {
     expect(accountIsLapsed(last, "TIER1", addDays(last, 40), cfg)).toBe(true);
     expect(accountIsLapsed(last, "TIER3", addDays(last, 40), cfg)).toBe(false); // 60-day cadence
     expect(accountIsLapsed(null, "TIER1", addDays(last, 999), cfg)).toBe(false);
+  });
+  it("accountLapseState reports the countdown and window from config", () => {
+    const last = new Date("2026-06-01T00:00:00Z");
+    const window1 = quietAccountLapseDaysForTier(cfg, "TIER1");
+    const fresh = accountLapseState(last, "TIER1", addDays(last, 20), cfg);
+    expect(fresh.lapsed).toBe(false);
+    expect(fresh.lapseWindowDays).toBe(window1);
+    expect(fresh.daysUntilLapse).toBe(window1 - 20);
+    const gone = accountLapseState(last, "TIER1", addDays(last, window1 + 5), cfg);
+    expect(gone.lapsed).toBe(true);
+    expect(gone.daysUntilLapse).toBe(-5);
+    const none = accountLapseState(null, "TIER1", addDays(last, 999), cfg);
+    expect(none.lapsed).toBe(false);
+    expect(none.daysUntilLapse).toBeNull();
   });
 });
 

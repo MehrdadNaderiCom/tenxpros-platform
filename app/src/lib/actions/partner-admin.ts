@@ -13,6 +13,8 @@ import {
 } from "@/lib/email/templates";
 import {
   confirmDealSchema,
+  dealMessageSchema,
+  dealRevisionRequestSchema,
   declineDealSchema,
   partnerProfileSchema,
   reviewApplicationSchema,
@@ -271,7 +273,9 @@ export async function confirmDealRegistration(formData: FormData) {
     where: { id: dealRegistrationId },
     include: { partner: true, registeredAccount: true },
   });
-  if (reg.status !== "SUBMITTED") throw new Error("Only submitted registrations can be confirmed.");
+  if (reg.status !== "SUBMITTED" && reg.status !== "NEEDS_REVISION") {
+    throw new Error("Only a submitted or under-revision registration can be confirmed.");
+  }
 
   // House Account guard.
   const house = await prisma.houseAccount.findFirst({
@@ -358,7 +362,9 @@ export async function declineDealRegistration(formData: FormData) {
   });
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid decline.");
   const reg = await prisma.dealRegistration.findUniqueOrThrow({ where: { id: parsed.data.dealRegistrationId } });
-  if (reg.status !== "SUBMITTED") throw new Error("Only submitted registrations can be declined.");
+  if (reg.status !== "SUBMITTED" && reg.status !== "NEEDS_REVISION") {
+    throw new Error("Only a submitted or under-revision registration can be declined.");
+  }
   await prisma.dealRegistration.update({
     where: { id: reg.id },
     data: { status: "DECLINED", declineReason: parsed.data.declineReason, decidedAt: new Date(), confirmedByUserId: admin.id },
@@ -366,6 +372,114 @@ export async function declineDealRegistration(formData: FormData) {
   await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "DEAL_REGISTRATION_DECLINED", entity: "DealRegistration", entityId: reg.id, after: { declineReason: parsed.data.declineReason } });
   safeRevalidatePath("/admin/partners/deal-registrations");
   safeRevalidatePath("/partner/deals");
+}
+
+/**
+ * Ask the partner to revise an opportunity: sets it to NEEDS_REVISION, records
+ * the feedback as an admin message on the thread, and emails the partner. The
+ * partner can then edit and resubmit, which returns it to SUBMITTED.
+ */
+export async function requestDealRevision(formData: FormData) {
+  const admin = await requireAdminUser();
+  const parsed = dealRevisionRequestSchema.safeParse({
+    dealRegistrationId: formData.get("dealRegistrationId"),
+    feedback: formData.get("feedback"),
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid revision request.");
+  const { dealRegistrationId, feedback } = parsed.data;
+
+  const reg = await prisma.dealRegistration.findUniqueOrThrow({
+    where: { id: dealRegistrationId },
+    include: { partner: { select: { displayName: true, contactEmail: true } } },
+  });
+  if (reg.status !== "SUBMITTED" && reg.status !== "NEEDS_REVISION") {
+    throw new Error("Only a submitted or under-revision registration can be sent back for revision.");
+  }
+
+  const now = new Date();
+  await prisma.$transaction([
+    prisma.dealRegistration.update({
+      where: { id: reg.id },
+      data: { status: "NEEDS_REVISION", revisionRequestedAt: now },
+    }),
+    prisma.dealMessage.create({
+      data: {
+        dealRegistrationId: reg.id,
+        authorUserId: admin.id,
+        authorRole: "ADMIN",
+        authorName: admin.name ?? "TenXPros",
+        body: feedback,
+      },
+    }),
+  ]);
+
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "DEAL_REGISTRATION_REVISION_REQUESTED",
+    entity: "DealRegistration",
+    entityId: reg.id,
+    after: { feedback },
+  });
+  await safeSendEmail({
+    to: reg.partner.contactEmail,
+    subject: `Please revise your opportunity: ${reg.legalEntity}`,
+    template: "partner_deal_revision_requested",
+    text:
+      `Hello ${reg.partner.displayName},\n\n` +
+      `We have reviewed your registered opportunity for ${reg.legalEntity} and would like a revision before we can confirm it.\n\n` +
+      `Our note:\n${feedback}\n\n` +
+      `Open the opportunity to read the full thread, edit the details, and resubmit:\n${absoluteUrl(`/partner/deals/${reg.id}`)}`,
+  });
+
+  safeRevalidatePath("/admin/partners/deal-registrations");
+  safeRevalidatePath(`/partner/deals/${reg.id}`);
+  safeRevalidatePath("/partner/deals");
+}
+
+/** Post an admin message to the thread under an opportunity. */
+export async function postDealMessageAdmin(formData: FormData) {
+  const admin = await requireAdminUser();
+  const parsed = dealMessageSchema.safeParse({
+    dealRegistrationId: formData.get("dealRegistrationId"),
+    body: formData.get("body"),
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Write a message.");
+  const { dealRegistrationId, body } = parsed.data;
+
+  const reg = await prisma.dealRegistration.findUniqueOrThrow({
+    where: { id: dealRegistrationId },
+    include: { partner: { select: { displayName: true, contactEmail: true } } },
+  });
+
+  await prisma.dealMessage.create({
+    data: {
+      dealRegistrationId: reg.id,
+      authorUserId: admin.id,
+      authorRole: "ADMIN",
+      authorName: admin.name ?? "TenXPros",
+      body,
+    },
+  });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "DEAL_MESSAGE_POSTED",
+    entity: "DealRegistration",
+    entityId: reg.id,
+    after: { authorRole: "ADMIN" },
+  });
+  await safeSendEmail({
+    to: reg.partner.contactEmail,
+    subject: `New message on your opportunity: ${reg.legalEntity}`,
+    template: "partner_deal_message",
+    text:
+      `Hello ${reg.partner.displayName},\n\n` +
+      `You have a new message on your registered opportunity for ${reg.legalEntity}:\n\n${body}\n\n` +
+      `Open the thread to reply:\n${absoluteUrl(`/partner/deals/${reg.id}`)}`,
+  });
+  safeRevalidatePath("/admin/partners/deal-registrations");
+  safeRevalidatePath(`/partner/deals/${reg.id}`);
 }
 
 // ===========================================================================

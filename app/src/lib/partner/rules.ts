@@ -173,6 +173,37 @@ export function accountIsLapsed(
   return now.getTime() > lapseAt.getTime();
 }
 
+export interface AccountLapseState {
+  /** True once the quiet window has elapsed since the last meaningful update. */
+  lapsed: boolean;
+  /** Whole days until (positive) or since (negative) lapse. Null with no update yet. */
+  daysUntilLapse: number | null;
+  /** The tier's configured quiet window in days (single source: config). */
+  lapseWindowDays: number;
+}
+
+/**
+ * The read-time lapse view of an account. Logging an activity or advancing a
+ * stage writes lastMeaningfulUpdateAt, so this state is what makes the (formerly
+ * unwired) lapse cadence visible in the panel: it is computed from the account's
+ * freshness against the tier's config-driven window, never a stored flag alone.
+ */
+export function accountLapseState(
+  lastMeaningfulUpdateAt: Date | null | undefined,
+  tier: PartnerTier,
+  now: Date,
+  cfg: EffectiveConfig,
+): AccountLapseState {
+  const lapseWindowDays = quietAccountLapseDaysForTier(cfg, tier);
+  if (!lastMeaningfulUpdateAt) return { lapsed: false, daysUntilLapse: null, lapseWindowDays };
+  const lapseAt = addDays(lastMeaningfulUpdateAt, lapseWindowDays);
+  return {
+    lapsed: now.getTime() > lapseAt.getTime(),
+    daysUntilLapse: daysBetween(now, lapseAt),
+    lapseWindowDays,
+  };
+}
+
 /**
  * A major new engagement (a genuinely new B2B engagement, or an expansion adding
  * ≥ the configured seat threshold) opens its own fresh 12-month window. A same-

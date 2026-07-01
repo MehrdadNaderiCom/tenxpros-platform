@@ -117,6 +117,77 @@ export const partnerProfileSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Partner panel: account pipeline (stage moves + activity log)
+// ---------------------------------------------------------------------------
+
+export const ACCOUNT_STAGE_VALUES = [
+  "REGISTERED",
+  "CONTACTED",
+  "MEETING",
+  "PROPOSAL",
+  "CONVERTING",
+  "WON",
+  "LOST",
+] as const;
+
+export const ACCOUNT_ACTIVITY_KIND_VALUES = [
+  "NOTE",
+  "MEETING",
+  "NEXT_STEP",
+  "RESPONSE",
+  "PROPOSAL",
+  "CONVERSION",
+] as const;
+
+export const advanceAccountStageSchema = z.object({
+  registeredAccountId: z.string().min(1, "Missing account."),
+  stage: z.enum(ACCOUNT_STAGE_VALUES, { error: "Choose a stage." }),
+  note: z.string().trim().max(2000).optional(),
+});
+
+export const logAccountActivitySchema = z.object({
+  registeredAccountId: z.string().min(1, "Missing account."),
+  kind: z.enum(ACCOUNT_ACTIVITY_KIND_VALUES, { error: "Choose an activity type." }),
+  note: z.string().trim().min(3, "Add a short note describing the activity."),
+});
+
+// ---------------------------------------------------------------------------
+// Partner panel: opportunity thread + edit/resubmit (NEEDS_REVISION loop)
+// ---------------------------------------------------------------------------
+
+export const dealMessageSchema = z.object({
+  dealRegistrationId: z.string().min(1, "Missing opportunity."),
+  body: z.string().trim().min(2, "Write a message.").max(4000),
+});
+
+/** Admin asks a partner to revise an opportunity: a feedback message is required. */
+export const dealRevisionRequestSchema = z.object({
+  dealRegistrationId: z.string().min(1),
+  feedback: z.string().trim().min(4, "Explain what needs to change."),
+});
+
+/** Partner edits and resubmits a NEEDS_REVISION opportunity. Same shape as the
+ *  original registration, minus the immutable product line. */
+export const resubmitDealSchema = z.object({
+  dealRegistrationId: z.string().min(1),
+  offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
+  legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
+  country: z.string().trim().min(2, "Enter the country."),
+  businessUnit: z.string().trim().max(160).optional(),
+  contactName: z.string().trim().max(160).optional(),
+  contactTitle: z.string().trim().max(160).optional(),
+  estSeats: z.string().trim().regex(/^\d*$/, "Enter a whole number.").optional(),
+  estValueUsd: z.string().trim().regex(/^\d*(\.\d{1,2})?$/, "Enter a valid amount.").optional(),
+  functionsIntended: z.array(z.enum(["ORIGINATION", "CLOSING", "DELIVERY"])).optional(),
+  justification: z
+    .string()
+    .trim()
+    .min(40, "Give your case for this account: relationship, warm contact, sector experience, or a concrete route in."),
+  widerScopeRequested: z.string().trim().max(500).optional(),
+  note: z.string().trim().max(2000).optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Admin: application review & deal decisions
 // ---------------------------------------------------------------------------
 

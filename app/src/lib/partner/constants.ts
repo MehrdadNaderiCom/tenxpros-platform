@@ -1,4 +1,5 @@
 import type {
+  AccountStage,
   CommissionStatus,
   DealRegStatus,
   EngagementStatus,
@@ -73,6 +74,66 @@ export const OFFERING_LABELS: Record<OfferingType, string> = {
   B2B_ENGAGEMENT: "B2B Engagement",
   OTHER: "Other",
 };
+
+// ---------------------------------------------------------------------------
+// Account pipeline (Registered Account stages) and the activity log
+// ---------------------------------------------------------------------------
+
+export const ACCOUNT_STAGE_LABELS: Record<AccountStage, string> = {
+  REGISTERED: "Registered",
+  CONTACTED: "Contacted",
+  MEETING: "Meeting",
+  PROPOSAL: "Proposal",
+  CONVERTING: "Converting",
+  WON: "Won",
+  LOST: "Lost",
+};
+
+/** The stages in pipeline order, for a stepper and for the advance control. */
+export const ACCOUNT_STAGE_ORDER: AccountStage[] = [
+  "REGISTERED",
+  "CONTACTED",
+  "MEETING",
+  "PROPOSAL",
+  "CONVERTING",
+  "WON",
+  "LOST",
+];
+
+/** Maps a stage to a Badge status key for consistent colouring. */
+export const ACCOUNT_STAGE_BADGE: Record<AccountStage, string> = {
+  REGISTERED: "SUBMITTED",
+  CONTACTED: "OPEN",
+  MEETING: "UNDER_REVIEW",
+  PROPOSAL: "WAITING_RESPONSE",
+  CONVERTING: "IN_PROGRESS",
+  WON: "APPROVED",
+  LOST: "NOT_COMPLETED",
+};
+
+/**
+ * Activity kinds a partner can log. STAGE_CHANGE is written by the system when a
+ * stage is advanced, so it is not offered as a manual choice here.
+ */
+export const ACCOUNT_ACTIVITY_KIND_LABELS: Record<string, string> = {
+  NOTE: "Note",
+  MEETING: "Meeting held",
+  NEXT_STEP: "Next step set",
+  RESPONSE: "Response received",
+  PROPOSAL: "Proposal sent",
+  CONVERSION: "Conversion progress",
+  STAGE_CHANGE: "Stage change",
+};
+
+/** Manually loggable activity kinds, in the order shown in the form. */
+export const ACCOUNT_ACTIVITY_KINDS = [
+  "NOTE",
+  "MEETING",
+  "NEXT_STEP",
+  "RESPONSE",
+  "PROPOSAL",
+  "CONVERSION",
+] as const;
 
 export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
   ACCRUED: "Accrued",

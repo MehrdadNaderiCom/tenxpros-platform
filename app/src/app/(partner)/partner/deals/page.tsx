@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { PartnerDealForm } from "@/components/portal/partner-deal-form";
@@ -17,6 +18,7 @@ const STATUS_BADGE: Record<string, string> = {
   DECLINED: "NOT_COMPLETED",
   LAPSED: "CLOSED",
   WITHDRAWN: "CLOSED",
+  NEEDS_REVISION: "REVISE",
 };
 
 export default async function PartnerDealsPage() {
@@ -58,8 +60,10 @@ export default async function PartnerDealsPage() {
             {partner.dealRegistrations.map((reg) => (
               <TR key={reg.id}>
                 <Td>
-                  <p className="font-medium text-navy-900">{reg.legalEntity}</p>
-                  <p className="text-xs text-slate-500">{reg.country}{reg.businessUnit ? ` · ${reg.businessUnit}` : ""}</p>
+                  <Link href={`/partner/deals/${reg.id}`} className="font-medium text-navy-900 hover:underline">
+                    {reg.legalEntity}
+                  </Link>
+                  <p className="text-xs text-slate-500">{reg.country}{reg.businessUnit ? `, ${reg.businessUnit}` : ""}</p>
                 </Td>
                 <Td>{OFFERING_LABELS[reg.offering]}</Td>
                 <Td>
