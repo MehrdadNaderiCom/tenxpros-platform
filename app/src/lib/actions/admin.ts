@@ -165,13 +165,32 @@ export async function decideCertification(formData: FormData) {
     | "COMPLETED_NOT_CERTIFIED"
     | "NOT_COMPLETED";
   const reviewerNotes = String(formData.get("reviewerNotes") ?? "");
-  const participant = await prisma.participantProfile.findUniqueOrThrow({ where: { id: participantId } });
+  const participant = await prisma.participantProfile.findUniqueOrThrow({
+    where: { id: participantId },
+    include: { user: { select: { name: true } } },
+  });
+
+  // The credential states the professional field the person worked in (default
+  // from their application domain) and the specialization their dossier achieved
+  // (prefill from the dossier title). Both are reviewer-editable here; if left
+  // blank we fall back to those defaults so the credential is never bare.
+  const [application, dossier] = await Promise.all([
+    prisma.application.findUnique({ where: { userId: participant.userId }, select: { domain: true } }),
+    prisma.dossier.findUnique({ where: { participantId }, select: { title: true } }),
+  ]);
+  const submittedField = String(formData.get("field") ?? "").trim();
+  const submittedSpecialization = String(formData.get("specialization") ?? "").trim();
+  const field = submittedField || application?.domain || null;
+  const specialization = submittedSpecialization || dossier?.title || null;
+
   const certificateReset = outcome === "CERTIFIED" ? {} : { certificateUrl: null, badgeIssuedAt: null };
   const review = await prisma.certificationReview.upsert({
     where: { participantId },
     update: {
       outcome,
       reviewerNotes,
+      field,
+      specialization,
       reviewedBy: admin.id,
       reviewedAt: new Date(),
       rubricScores: { overall: outcome },
@@ -181,6 +200,8 @@ export async function decideCertification(formData: FormData) {
       participantId,
       outcome,
       reviewerNotes,
+      field,
+      specialization,
       reviewedBy: admin.id,
       rubricScores: { overall: outcome },
       certificateUrl: null,
@@ -214,9 +235,11 @@ export async function decideCertification(formData: FormData) {
       create: {
         userId: participant.userId,
         slug: `tenxpro-${participant.userId.slice(0, 8)}`,
-        displayName: "Certified TenXPro",
-        title: "Certified TenXPro",
-        domain: "AI adoption",
+        displayName: participant.user.name ?? "Certified TenXPro",
+        // Seed the draft from the real credential: the specialization as the
+        // public title and the field as the domain, not a hardcoded value.
+        title: specialization ?? "Certified TenXPro",
+        domain: field ?? "Professional practice",
         bio: "Directory profile draft created after certification.",
       },
     });

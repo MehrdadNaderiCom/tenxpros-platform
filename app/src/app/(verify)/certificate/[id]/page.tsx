@@ -58,6 +58,23 @@ export default async function CertificatePage({ params }: { params: { id: string
           </p>
         </div>
 
+        {review.field || review.specialization ? (
+          <div className="mx-auto grid max-w-2xl gap-4 sm:grid-cols-2">
+            {review.field ? (
+              <div className="rounded-md border border-gold-500 bg-gold-50 p-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-700">Field</p>
+                <p className="mt-2 text-lg font-semibold text-navy-900">{review.field}</p>
+              </div>
+            ) : null}
+            {review.specialization ? (
+              <div className="rounded-md border border-gold-500 bg-gold-50 p-4 text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gold-700">Specialization</p>
+                <p className="mt-2 text-lg font-semibold text-navy-900">{review.specialization}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         <div className="grid gap-4 text-left md:grid-cols-3">
           <div className="rounded-md border border-neutral-200 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">Certification date</p>

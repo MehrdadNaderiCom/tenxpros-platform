@@ -8,6 +8,13 @@ export async function verifyBadge(code: string) {
       user: {
         include: {
           directoryProfile: true,
+          // The recipient's certification carries the credential field and
+          // specialization, shown on the verification surfaces when certified.
+          participantProfile: {
+            include: {
+              certification: { select: { outcome: true, field: true, specialization: true } },
+            },
+          },
         },
       },
     },

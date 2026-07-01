@@ -34,6 +34,22 @@ export default async function DossierPreviewPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">TenXPros</p>
           <Badge status={isCertified ? "CERTIFIED" : "SUBMITTED"}>{isCertified ? "CERTIFIED" : "DRAFT"}</Badge>
         </div>
+        {dossier.participant.certification?.field || dossier.participant.certification?.specialization ? (
+          <dl className="grid gap-3 sm:grid-cols-2">
+            {dossier.participant.certification?.field ? (
+              <div className="rounded-md border border-neutral-200 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Field</dt>
+                <dd className="mt-1 font-medium text-navy-900">{dossier.participant.certification.field}</dd>
+              </div>
+            ) : null}
+            {dossier.participant.certification?.specialization ? (
+              <div className="rounded-md border border-neutral-200 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Specialization</dt>
+                <dd className="mt-1 font-medium text-navy-900">{dossier.participant.certification.specialization}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
         <p className="text-sm leading-6 text-slate-600">
           Generated: {new Date().toLocaleDateString()} · Sections: {dossier.sections.length}/12
         </p>

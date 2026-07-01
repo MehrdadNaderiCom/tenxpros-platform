@@ -21,6 +21,22 @@ export default async function CertificationStatusPage() {
       />
       <Card className="space-y-4">
         <Badge status={profile.certification?.outcome ?? profile.status}>{profile.certification?.outcome ?? profile.status}</Badge>
+        {profile.certification?.field || profile.certification?.specialization ? (
+          <dl className="grid gap-3 sm:grid-cols-2">
+            {profile.certification?.field ? (
+              <div className="rounded-md border border-neutral-200 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Field</dt>
+                <dd className="mt-1 font-medium text-navy-900">{profile.certification.field}</dd>
+              </div>
+            ) : null}
+            {profile.certification?.specialization ? (
+              <div className="rounded-md border border-neutral-200 p-3">
+                <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">Specialization</dt>
+                <dd className="mt-1 font-medium text-navy-900">{profile.certification.specialization}</dd>
+              </div>
+            ) : null}
+          </dl>
+        ) : null}
         <p className="text-sm leading-6 text-slate-600">
           {profile.certification
             ? profile.certification.reviewerNotes
