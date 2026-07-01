@@ -2,17 +2,24 @@ import type { Metadata } from "next";
 import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { PartnerTermsDialog } from "@/components/marketing/partner-terms-modal";
+import { PROGRAM_CONFIG_DEFAULTS as CFG } from "@/lib/partner/config";
+import { formatBp } from "@/lib/partner/constants";
+
+// Every rate, cap, threshold and window below renders from the config source of
+// truth (PROGRAM_CONFIG_DEFAULTS), so a change to a number there updates this page
+// and the terms text together, with no hardcoded literal to drift.
+const deliveryBand = `fixed fee, or ${formatBp(CFG.deliveryPercentMinBp)} to ${formatBp(CFG.deliveryPercentMaxBp)}`;
 
 export const metadata: Metadata = {
   title: "Become a TenXPros Partner",
   description:
-    "Help sell, deliver and grow TenXPros, and earn a clear, defined commission on the opportunities you bring to a close. A 90-day pilot leads to a transparent three-tier partner ladder, with recognition you keep.",
+    `Help sell, deliver and grow TenXPros, and earn a clear, defined commission on the opportunities you bring to a close. A ${CFG.pilotDays}-day pilot leads to a transparent three-tier partner ladder, with recognition you keep.`,
 };
 
 const STAGES: Array<[string, string]> = [
   [
     "Pilot and activation",
-    "Every partner starts on a 90-day pilot and completes a short Activation Gate. Once the company confirms you on the panel, you are ready to begin.",
+    `Every partner starts on a ${CFG.pilotDays}-day pilot and completes a short Activation Gate. Once the company confirms you on the panel, you are ready to begin.`,
   ],
   [
     "Register and earn",
@@ -32,10 +39,10 @@ const TIERS = [
   {
     eyebrow: "Tier 1",
     name: "Referral Partner",
-    blurb: "Where every partner begins, on a 90-day pilot.",
+    blurb: `Where every partner begins, on a ${CFG.pilotDays}-day pilot.`,
     points: [
       "Register opportunities and earn on every confirmed deal",
-      "Hold up to 3 open registered accounts",
+      `Hold up to ${CFG.maxOpenAccountsTier1} open registered accounts`,
       "Use the TenXPros Referral Partner credential",
     ],
   },
@@ -44,7 +51,7 @@ const TIERS = [
     name: "Certified Partner",
     blurb: "Earned by real, collected results across sales and delivery.",
     points: [
-      "Hold up to 5 open accounts, with longer protection",
+      `Hold up to ${CFG.maxOpenAccountsTier2} open accounts, with longer protection`,
       "Priority on company leads, and a growth bonus",
       "Certified credential, a public listing, and a letter of recognition",
     ],
@@ -54,7 +61,7 @@ const TIERS = [
     name: "Territory Builder",
     blurb: "For a proven partner with a focus on one industry or region.",
     points: [
-      "Hold up to 10 open accounts, with the longest protection",
+      `Hold up to ${CFG.maxOpenAccountsTier3} open accounts, with the longest protection`,
       "First priority on leads within your focus",
       "A focus bonus and public recognition as the lead partner",
     ],
@@ -69,11 +76,11 @@ const FUNCTIONS: Array<[string, string]> = [
 ];
 
 const COMMISSION_ROWS: Array<[string, string, string]> = [
-  ["Basic Introduction", "5%", "5%"],
-  ["Qualified Origination", "10%", "8%"],
-  ["Strong Origination", "15%", "12%"],
-  ["Closing", "5%", "10%"],
-  ["Delivery or Coaching", "fixed fee, or 5 to 8%", "fixed fee, or 5 to 8%"],
+  ["Basic Introduction", formatBp(CFG.basicIntroductionBp), formatBp(CFG.basicIntroductionBp)],
+  ["Qualified Origination", formatBp(CFG.qualifiedOriginationB2cBp), formatBp(CFG.qualifiedOriginationB2bBp)],
+  ["Strong Origination", formatBp(CFG.strongOriginationB2cBp), formatBp(CFG.strongOriginationB2bBp)],
+  ["Closing", formatBp(CFG.closingB2cBp), formatBp(CFG.closingB2bBp)],
+  ["Delivery or Coaching", deliveryBand, deliveryBand],
 ];
 
 function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -202,16 +209,16 @@ export default function PartnersPage() {
               ))}
               <tr className="border-t border-neutral-200 bg-navy-50">
                 <td className="px-5 py-3 font-semibold text-navy-900">Cap per deal</td>
-                <td className="px-5 py-3 font-semibold text-navy-900">25%</td>
-                <td className="px-5 py-3 font-semibold text-navy-900">30%</td>
+                <td className="px-5 py-3 font-semibold text-navy-900">{formatBp(CFG.capB2cBp)}</td>
+                <td className="px-5 py-3 font-semibold text-navy-900">{formatBp(CFG.capB2bBp)}</td>
               </tr>
             </tbody>
           </table>
         </Card>
         <p className="mt-3 text-xs leading-5 text-slate-500">
-          The strong origination rate on B2C applies after 40 paid seats, or by confirmation on the panel. A Tier 3
-          focus account can rise gradually above the cap to 35%. You can read the full detail in the{" "}
-          <PartnerTermsDialog className="text-xs">Partner Program Terms</PartnerTermsDialog>.
+          The strong origination rate on B2C applies after {CFG.strongOriginationUnlockSeats} paid seats, or by
+          confirmation on the panel. A Tier 3 focus account can rise gradually above the cap to {formatBp(CFG.tier3FocusHardCeilingBp)}. You can read the full
+          detail in the <PartnerTermsDialog className="text-xs">Partner Program Terms</PartnerTermsDialog>.
         </p>
       </Section>
 
@@ -236,8 +243,8 @@ export default function PartnersPage() {
           <div>
             <h2 className="text-2xl font-semibold text-white">Ready to begin?</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-navy-100">
-              Apply to the 90-day pilot. We read every application personally, and you start as soon as you are confirmed
-              on the panel.
+              Apply to the {CFG.pilotDays}-day pilot. We read every application personally, and you start as soon as you
+              are confirmed on the panel.
             </p>
           </div>
           <ButtonLink href="/partners/apply" size="lg" className="bg-gold-500 text-navy-900 hover:bg-gold-400">

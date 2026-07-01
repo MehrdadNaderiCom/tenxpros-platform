@@ -4,16 +4,22 @@
  * testable and deterministic. Section 5 of the build spec is the source of truth.
  */
 
+/**
+ * The number of EXAM-BEARING modules a partner must pass before the final exam.
+ * Informational modules (Contact Us, Alumni, Experience Sharing) are excluded
+ * from the gate, so the academy can hold more modules than this without blocking
+ * the certificate.
+ */
 export const ACADEMY_MODULE_COUNT = 14;
 export const DEFAULT_PASS_MARK = 80;
 export const DEFAULT_EXAM_SIZE = 10;
 export const DEFAULT_COOLDOWN_HOURS = 24;
 export const EXERCISE_MAX_ATTEMPTS = 3;
 
-// The comprehensive final exam, taken after every module is passed. It draws a
-// shuffled set of questions from all fourteen modules' exam pools and gates the
-// certificate. It has no parent module, so its size, pass mark, and cooldown are
-// constants here rather than read from an AcademyModule row.
+// The comprehensive final exam, taken after every exam-bearing module is passed.
+// It draws a shuffled set of questions from every exam-bearing module's exam pool
+// and gates the certificate. It has no parent module, so its size, pass mark, and
+// cooldown are constants here rather than read from an AcademyModule row.
 export const FINAL_EXAM_SIZE = 20;
 export const FINAL_EXAM_PASS_MARK = 80;
 export const FINAL_EXAM_COOLDOWN_HOURS = 24;
@@ -147,7 +153,7 @@ export function cooldownUntil(now: Date, cooldownHours: number): Date {
   return new Date(now.getTime() + cooldownHours * 60 * 60 * 1000);
 }
 
-/** All fourteen modules passed. */
+/** All exam-bearing modules passed. */
 export function allModulesPassed(passedCount: number, total: number = ACADEMY_MODULE_COUNT): boolean {
   return passedCount >= total;
 }

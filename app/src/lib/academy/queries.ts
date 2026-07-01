@@ -23,8 +23,19 @@ export interface ModuleView {
   lockedUntil: Date | null;
 }
 
+/** A reference/benefit module: a lesson only, always open, not exam-gated. */
+export interface InformationalModuleView {
+  id: string;
+  slug: string;
+  order: number;
+  title: string;
+  summary: string;
+}
+
 export interface AcademyOverview {
   modules: ModuleView[];
+  /** Informational modules (Contact Us, Alumni, Experience Sharing): read-only. */
+  informationalModules: InformationalModuleView[];
   passedCount: number;
   totalCount: number;
   allPassed: boolean;
@@ -41,8 +52,13 @@ export interface AcademyOverview {
  * the previous module being passed (the first module is always open).
  */
 export async function getAcademyOverview(partnerId: string): Promise<AcademyOverview> {
-  const [modules, progressRows, exerciseCounts, badge, finalSittings] = await Promise.all([
-    prisma.academyModule.findMany({ where: { isPublished: true }, orderBy: { order: "asc" } }),
+  const [modules, informational, progressRows, exerciseCounts, badge, finalSittings] = await Promise.all([
+    prisma.academyModule.findMany({ where: { isPublished: true, isInformational: false }, orderBy: { order: "asc" } }),
+    prisma.academyModule.findMany({
+      where: { isPublished: true, isInformational: true },
+      orderBy: { order: "asc" },
+      select: { id: true, slug: true, order: true, title: true, summary: true },
+    }),
     prisma.academyProgress.findMany({ where: { partnerId } }),
     prisma.academyQuestion.groupBy({ by: ["moduleId"], where: { pool: "EXERCISE" }, _count: { _all: true } }),
     prisma.partnerAcademyBadge.findUnique({ where: { partnerId } }),
@@ -109,6 +125,7 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
 
   return {
     modules: views,
+    informationalModules: informational,
     passedCount,
     totalCount,
     allPassed,
@@ -137,10 +154,12 @@ export async function getModuleForLesson(partnerId: string, slug: string) {
   const [progress, attempts, prevPassed] = await Promise.all([
     prisma.academyProgress.findUnique({ where: { partnerId_moduleId: { partnerId, moduleId: m.id } } }),
     prisma.academyExerciseAttempt.findMany({ where: { partnerId, questionId: { in: m.questions.map((q) => q.id) } } }),
-    m.order <= 1
+    // Informational modules are always open; exam-bearing modules unlock when the
+    // previous exam-bearing module is passed.
+    m.isInformational || m.order <= 1
       ? Promise.resolve(true)
       : prisma.academyModule
-          .findFirst({ where: { order: m.order - 1, isPublished: true } })
+          .findFirst({ where: { order: { lt: m.order }, isPublished: true, isInformational: false }, orderBy: { order: "desc" } })
           .then((prev) =>
             prev
               ? prisma.academyProgress
@@ -150,5 +169,5 @@ export async function getModuleForLesson(partnerId: string, slug: string) {
           ),
   ]);
 
-  return { module: m, progress, attempts, unlocked: m.order <= 1 || prevPassed };
+  return { module: m, progress, attempts, unlocked: m.isInformational || m.order <= 1 || prevPassed };
 }

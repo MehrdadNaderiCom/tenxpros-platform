@@ -178,7 +178,7 @@ const GLOSSARY: Array<[string, string]> = [
   ["Foresee (phase)", "Weeks 11 to 12. How is the solution kept relevant as AI, work, and risk change? Produces a foresight plan and the final dossier."],
   ["Living AI Solution Dossier", "The reviewed body of work assembled across the twelve weeks: connected assets from framing to a 90 day roadmap. It is the basis of certification."],
   ["Capstone review", "The final review of the dossier against published criteria, producing certified, conditionally certified, or completed without certification."],
-  ["Partner Academy", "The fourteen module training that certifies a partner to represent the program honestly."],
+  ["Partner Academy", "The module-based training that certifies a partner to represent the program honestly, with exam-bearing modules plus a few informational ones."],
   ["Partner Academy certificate", "The partner's own credential, issued when every published module is passed; carries a serial and year, is verifiable, and is renewed annually."],
   ["Content version", "Per module integer that increments when a superadmin edits a lesson. Passed partners keep their certificate for the year and are notified; not-yet-passed partners take the latest version."],
   ["Pass mark / exam size / cooldown", "The percent required to pass (80%), the number of questions per sitting, and the wait after a failed attempt."],

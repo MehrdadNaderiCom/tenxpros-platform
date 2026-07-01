@@ -47,7 +47,7 @@ out.push("**Legend.** Keep = ship as is. Rewrite = wording/structure needs work.
 out.push("");
 out.push("## Global review (applies to the whole Academy)");
 out.push("");
-out.push("- [ ] Tone is consistent across all 14 modules (plain, confident, no hype)");
+out.push("- [ ] Tone is consistent across all 17 modules (plain, confident, no hype)");
 out.push("- [ ] No promises of jobs, income, certification, or outcomes anywhere");
 out.push("- [ ] Pro / TenXPro definition is consistent everywhere it appears");
 out.push("- [ ] All form-preview placeholders have a plan for real screenshots");

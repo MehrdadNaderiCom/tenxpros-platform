@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 const REASONS: Record<string, string> = {
   already_passed: "You have already passed the final exam. Your certificate has been issued.",
-  not_ready: "The final exam opens once you have passed all fourteen module exams. Finish the modules first.",
+  not_ready: "The final exam opens once you have passed every module exam. Finish the modules first.",
   cooldown: "The final exam is on a short cooldown after a failed attempt. Review your weaker modules, then come back.",
 };
 
@@ -54,7 +54,7 @@ export default async function FinalExamPage() {
     <div className="space-y-6">
       <PageHeader
         title="Final exam"
-        description={`One sitting, ${result.questions.length} questions drawn from all fourteen modules, ${result.passMark}% to pass. Answers are shown only after you submit. Passing issues your certificate.`}
+        description={`One sitting, ${result.questions.length} questions drawn from across every module exam, ${result.passMark}% to pass. Answers are shown only after you submit. Passing issues your certificate.`}
       />
       <ExamPlayer
         sittingId={result.sittingId}

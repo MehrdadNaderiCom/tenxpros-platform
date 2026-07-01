@@ -16,8 +16,14 @@ export function validateAcademyContent(modules: ModuleSeed[]): void {
   const globalStems = new Map<string, string>(); // normalized stem -> moduleSlug
 
   for (const m of modules) {
-    if (m.exercises.length !== 6) errors.push(`${m.slug}: expected 6 exercise questions, found ${m.exercises.length}`);
-    if (m.exam.length !== 12) errors.push(`${m.slug}: expected 12 exam questions, found ${m.exam.length}`);
+    if (m.isInformational) {
+      // Informational modules carry a lesson but no exam or exercises.
+      if (m.exercises.length > 0) errors.push(`${m.slug}: informational module must have no exercises, found ${m.exercises.length}`);
+      if (m.exam.length > 0) errors.push(`${m.slug}: informational module must have no exam, found ${m.exam.length}`);
+    } else {
+      if (m.exercises.length !== 6) errors.push(`${m.slug}: expected 6 exercise questions, found ${m.exercises.length}`);
+      if (m.exam.length !== 12) errors.push(`${m.slug}: expected 12 exam questions, found ${m.exam.length}`);
+    }
 
     const all = [...m.exercises.map((q) => ({ q, pool: "EXERCISE" })), ...m.exam.map((q) => ({ q, pool: "EXAM" }))];
     const perModule = new Map<string, string>(); // normalized stem -> pool (within this module)
@@ -58,8 +64,8 @@ export async function seedAcademy(prisma: PrismaClient): Promise<void> {
   for (const m of ACADEMY_MODULES) {
     const mod = await prisma.academyModule.upsert({
       where: { slug: m.slug },
-      update: { order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
-      create: { slug: m.slug, order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
+      update: { order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize, isInformational: m.isInformational ?? false },
+      create: { slug: m.slug, order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize, isInformational: m.isInformational ?? false },
     });
 
     // Build the rich body (if authored) and derive the audio text from it.

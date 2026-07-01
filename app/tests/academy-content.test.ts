@@ -8,16 +8,26 @@ describe("Academy seed content", () => {
     expect(() => validateAcademyContent(ACADEMY_MODULES)).not.toThrow();
   });
 
-  it("has exactly the expected number of modules with contiguous order 1..N and unique slugs", () => {
-    expect(ACADEMY_MODULES.length).toBe(ACADEMY_MODULE_COUNT);
+  it("has the exam-bearing modules count from ACADEMY_MODULE_COUNT, contiguous order 1..N, unique slugs", () => {
+    const examBearing = ACADEMY_MODULES.filter((m) => !m.isInformational);
+    const informational = ACADEMY_MODULES.filter((m) => m.isInformational);
+    // The gate counts only exam-bearing modules; informational ones are extra.
+    expect(examBearing.length).toBe(ACADEMY_MODULE_COUNT);
+    expect(informational.length).toBeGreaterThan(0);
+    // Orders are contiguous across the full set (1..total), exam-bearing first.
     const orders = ACADEMY_MODULES.map((m) => m.order).sort((a, b) => a - b);
-    expect(orders).toEqual(Array.from({ length: ACADEMY_MODULE_COUNT }, (_, i) => i + 1));
+    expect(orders).toEqual(Array.from({ length: ACADEMY_MODULES.length }, (_, i) => i + 1));
     const slugs = new Set(ACADEMY_MODULES.map((m) => m.slug));
     expect(slugs.size).toBe(ACADEMY_MODULES.length);
   });
 
-  it("has six exercise and twelve exam questions per module, each with four options and a valid key", () => {
+  it("has six exercise and twelve exam questions per exam-bearing module (informational carry none)", () => {
     for (const m of ACADEMY_MODULES) {
+      if (m.isInformational) {
+        expect(m.exercises.length, m.slug).toBe(0);
+        expect(m.exam.length, m.slug).toBe(0);
+        continue;
+      }
       expect(m.exercises.length, m.slug).toBe(6);
       expect(m.exam.length, m.slug).toBe(12);
       for (const q of [...m.exercises, ...m.exam]) {

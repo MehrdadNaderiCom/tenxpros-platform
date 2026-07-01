@@ -62,7 +62,7 @@ export default async function AcademyHome() {
             <p className="text-xs font-semibold uppercase tracking-wide text-gold-800">Final step</p>
             <h2 className="mt-1 text-lg font-semibold text-navy-900">The comprehensive final exam</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
-              You have passed every module. The final exam draws 20 questions from across all fourteen modules. Pass it to earn your Partner Academy certificate.
+              You have passed every module. The final exam draws 20 questions from across every module exam. Pass it to earn your Partner Academy certificate.
             </p>
             {overview.finalExam.lockedUntil ? (
               <p className="mt-1 text-sm text-amber-700">
@@ -111,6 +111,31 @@ export default async function AcademyHome() {
           );
         })}
       </div>
+
+      {overview.informationalModules.length > 0 ? (
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-lg font-semibold text-navy-900">Reference and information</h2>
+            <p className="text-sm text-slate-600">
+              These are always open and never gated. They do not affect your certificate; read them whenever it is useful.
+            </p>
+          </div>
+          {overview.informationalModules.map((m) => (
+            <Link key={m.id} href={`/partner/academy/${m.slug}`} className="block">
+              <Card className="transition hover:border-navy-300 hover:shadow-md">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Reference</p>
+                    <h3 className="mt-1 text-lg font-semibold text-navy-900">{m.title}</h3>
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">{m.summary}</p>
+                  </div>
+                  <Badge status="OPEN">Info</Badge>
+                </div>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

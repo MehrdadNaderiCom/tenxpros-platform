@@ -15,8 +15,8 @@ async function seedAcademy(modules) {
   for (const m of modules) {
     const mod = await prisma.academyModule.upsert({
       where: { slug: m.slug },
-      update: { order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
-      create: { slug: m.slug, order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize },
+      update: { order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize, isInformational: m.isInformational || false },
+      create: { slug: m.slug, order: m.order, title: m.title, summary: m.summary, passMark: m.passMark, examSize: m.examSize, isInformational: m.isInformational || false },
     });
 
     // bodyHtml and audioText are prepared (sanitized/derived) by dump-content.ts.

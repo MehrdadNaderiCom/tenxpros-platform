@@ -68,7 +68,7 @@ export default async function CertificatePage() {
             <p className="mt-3 text-4xl font-semibold text-navy-900">{current.partner.displayName}</p>
 
             <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-slate-600 [text-wrap:balance]">
-              has completed the TenXPros Partner Academy, passing all fourteen module exams and the comprehensive final exam against the program standard.
+              has completed the TenXPros Partner Academy, passing every module exam and the comprehensive final exam against the program standard.
             </p>
 
             <div className="mx-auto mt-8 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3">

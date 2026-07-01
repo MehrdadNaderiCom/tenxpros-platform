@@ -168,7 +168,7 @@ async function main() {
     <div class="kicker">TenXPros Partner Academy</div>
     <h1>Review Package</h1>
     <div class="sub">The complete production Academy, for offline review and annotation.</div>
-    <div class="meta">Generated ${dateStr} &middot; 14 modules &middot; 252 questions</div>
+    <div class="meta">Generated ${dateStr} &middot; 17 modules (14 with exams, 3 informational) &middot; 252 questions</div>
   </div>`;
   const html = `<!doctype html><html><head><meta charset="utf-8"><style>${CSS}</style></head><body>${cover}${body}</body></html>`;
 

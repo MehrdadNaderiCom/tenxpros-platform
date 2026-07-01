@@ -85,42 +85,52 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         ) : null}
       </Card>
 
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-navy-900">Exercises</h2>
-        <p className="text-sm text-slate-600">
-          Each exercise gives {EXERCISE_MAX_ATTEMPTS} attempts. They teach, they never block: after the final attempt the answer and explanation are shown so you can move on.
-        </p>
-        {preview ? (
-          <Card><p className="text-sm text-slate-500">Exercises are interactive for partners. They are not available in admin preview.</p></Card>
-        ) : (
-          m.questions.map((q, i) => (
-            <ExercisePlayer
-              key={q.id}
-              index={i + 1}
-              question={{ id: q.id, stem: q.stem, options: q.options as string[] }}
-              initialCompleted={isCompleted(q.id)}
-            />
-          ))
-        )}
-      </section>
-
-      <Card className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-navy-900">Module exam</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            {examPassed
-              ? `Passed with ${progress?.bestExamScore ?? 0}%.`
-              : `One sitting, ${m.examSize} questions, ${m.passMark}% to pass. Open it once the lesson is read and every exercise is done.`}
+      {m.isInformational ? (
+        <Card>
+          <p className="text-sm text-slate-600">
+            This is an informational module. There is no exam here, and reading it is never required to earn your certificate.
           </p>
-        </div>
-        {examPassed ? (
-          <span className="text-sm font-medium text-emerald-700">Module complete</span>
-        ) : canExam && !preview ? (
-          <ButtonLink href={`/partner/academy/${m.slug}/exam`}>Start module exam</ButtonLink>
-        ) : (
-          <span className="text-sm text-slate-500">{lessonRead ? "Finish the exercises" : "Read the lesson"} to unlock the exam.</span>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <>
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold text-navy-900">Exercises</h2>
+            <p className="text-sm text-slate-600">
+              Each exercise gives {EXERCISE_MAX_ATTEMPTS} attempts. They teach, they never block: after the final attempt the answer and explanation are shown so you can move on.
+            </p>
+            {preview ? (
+              <Card><p className="text-sm text-slate-500">Exercises are interactive for partners. They are not available in admin preview.</p></Card>
+            ) : (
+              m.questions.map((q, i) => (
+                <ExercisePlayer
+                  key={q.id}
+                  index={i + 1}
+                  question={{ id: q.id, stem: q.stem, options: q.options as string[] }}
+                  initialCompleted={isCompleted(q.id)}
+                />
+              ))
+            )}
+          </section>
+
+          <Card className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold text-navy-900">Module exam</h2>
+              <p className="mt-1 text-sm text-slate-600">
+                {examPassed
+                  ? `Passed with ${progress?.bestExamScore ?? 0}%.`
+                  : `One sitting, ${m.examSize} questions, ${m.passMark}% to pass. Open it once the lesson is read and every exercise is done.`}
+              </p>
+            </div>
+            {examPassed ? (
+              <span className="text-sm font-medium text-emerald-700">Module complete</span>
+            ) : canExam && !preview ? (
+              <ButtonLink href={`/partner/academy/${m.slug}/exam`}>Start module exam</ButtonLink>
+            ) : (
+              <span className="text-sm text-slate-500">{lessonRead ? "Finish the exercises" : "Read the lesson"} to unlock the exam.</span>
+            )}
+          </Card>
+        </>
+      )}
     </div>
   );
 }

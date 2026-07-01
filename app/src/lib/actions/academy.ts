@@ -152,9 +152,13 @@ export async function startOrResumeExam(slug: string): Promise<
   if (progress.lockedUntil && progress.lockedUntil.getTime() > Date.now()) {
     return { ok: false, reason: "cooldown", lockedUntil: progress.lockedUntil.toISOString() };
   }
-  // Module unlock: previous module passed.
+  // Module unlock: previous exam-bearing module passed (informational modules
+  // are not part of the unlock chain).
   if (m.order > 1) {
-    const prev = await prisma.academyModule.findFirst({ where: { order: m.order - 1, isPublished: true } });
+    const prev = await prisma.academyModule.findFirst({
+      where: { order: { lt: m.order }, isPublished: true, isInformational: false },
+      orderBy: { order: "desc" },
+    });
     if (prev) {
       const prevP = await prisma.academyProgress.findUnique({
         where: { partnerId_moduleId: { partnerId: partner.id, moduleId: prev.id } },
@@ -283,10 +287,14 @@ export async function submitExam(input: { sittingId: string; selections: number[
   };
 }
 
-/** True once every published module's exam is passed (the final-exam gate). */
+/**
+ * True once every published EXAM-BEARING module's exam is passed (the final-exam
+ * gate). Informational modules (isInformational=true) are excluded, so publishing
+ * a Contact Us / Alumni / Experience Sharing module never blocks the certificate.
+ */
 async function allModulesPassedFor(partnerId: string): Promise<boolean> {
   const [publishedCount, passedCount] = await Promise.all([
-    prisma.academyModule.count({ where: { isPublished: true } }),
+    prisma.academyModule.count({ where: { isPublished: true, isInformational: false } }),
     prisma.academyProgress.count({ where: { partnerId, examPassed: true } }),
   ]);
   return publishedCount >= ACADEMY_MODULE_COUNT && passedCount >= publishedCount;
@@ -323,7 +331,7 @@ export async function startOrResumeFinalExam(): Promise<
 
   // The pool is every published module's EXAM questions, combined.
   const examQuestions = await prisma.academyQuestion.findMany({
-    where: { pool: "EXAM", module: { isPublished: true } },
+    where: { pool: "EXAM", module: { isPublished: true, isInformational: false } },
   });
 
   const open = await prisma.academyExamSitting.findFirst({
