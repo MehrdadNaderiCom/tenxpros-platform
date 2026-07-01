@@ -16,7 +16,9 @@ export default async function VerifyBadgePage({ params }: { params: { code: stri
   const record = await verifyBadge(params.code);
   if (!record) notFound();
   const certification = record.user.participantProfile?.certification;
-  const isCertified = certification?.outcome === "CERTIFIED";
+  // Show the credential details only for a certified recipient whose badge is
+  // public, matching the ACTIVE/INACTIVE status shown below.
+  const showCredential = certification?.outcome === "CERTIFIED" && record.isPublic;
   return (
     <main className="mx-auto max-w-3xl px-6 py-16 md:px-8 md:py-24">
       <Card className="space-y-6 text-center">
@@ -25,10 +27,10 @@ export default async function VerifyBadgePage({ params }: { params: { code: stri
         <p className="text-slate-600">{record.badge.description}</p>
         <div className="grid gap-4 rounded-md bg-neutral-50 p-5 text-left">
           <p><span className="font-medium text-slate-900">Recipient:</span> {record.user.name ?? record.user.email}</p>
-          {isCertified && certification?.field ? (
+          {showCredential && certification?.field ? (
             <p><span className="font-medium text-slate-900">Field:</span> {certification.field}</p>
           ) : null}
-          {isCertified && certification?.specialization ? (
+          {showCredential && certification?.specialization ? (
             <p><span className="font-medium text-slate-900">Specialization:</span> {certification.specialization}</p>
           ) : null}
           <p><span className="font-medium text-slate-900">Earned:</span> {record.earnedAt.toLocaleDateString()}</p>

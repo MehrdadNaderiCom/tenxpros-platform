@@ -34,7 +34,7 @@ export default async function DossierPreviewPage() {
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">TenXPros</p>
           <Badge status={isCertified ? "CERTIFIED" : "SUBMITTED"}>{isCertified ? "CERTIFIED" : "DRAFT"}</Badge>
         </div>
-        {dossier.participant.certification?.field || dossier.participant.certification?.specialization ? (
+        {isCertified && (dossier.participant.certification?.field || dossier.participant.certification?.specialization) ? (
           <dl className="grid gap-3 sm:grid-cols-2">
             {dossier.participant.certification?.field ? (
               <div className="rounded-md border border-neutral-200 p-3">

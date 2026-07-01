@@ -21,7 +21,8 @@ export default async function CertificationStatusPage() {
       />
       <Card className="space-y-4">
         <Badge status={profile.certification?.outcome ?? profile.status}>{profile.certification?.outcome ?? profile.status}</Badge>
-        {profile.certification?.field || profile.certification?.specialization ? (
+        {profile.certification?.outcome === "CERTIFIED" &&
+        (profile.certification?.field || profile.certification?.specialization) ? (
           <dl className="grid gap-3 sm:grid-cols-2">
             {profile.certification?.field ? (
               <div className="rounded-md border border-neutral-200 p-3">
