@@ -5,9 +5,10 @@
   "description": "Clean Next.js rebuild scaffold for TenXPros.",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "build": "node scripts/lint-content-dashes.cjs && next build",
     "start": "next start -H 0.0.0.0 -p 3000",
     "lint": "next lint",
+    "lint:content": "node scripts/lint-content-dashes.cjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",

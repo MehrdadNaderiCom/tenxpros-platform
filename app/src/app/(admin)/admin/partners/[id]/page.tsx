@@ -277,7 +277,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                       <td className="py-1 pr-2 text-slate-500">{c.isFlat ? "Flat" : formatBp(c.rateBp)}</td>
                       <td className="py-1 pr-2 font-medium text-navy-900">
                         {formatCents(c.amountCents - c.reversedCents, c.currency)}
-                        {c.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(c.reversedCents, c.currency)})</span> : null}
+                        {c.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(-{formatCents(c.reversedCents, c.currency)})</span> : null}
                       </td>
                       <td className="py-1"><Badge status={c.status === "PAID" ? "PAID" : c.status === "REVERSED" ? "NOT_COMPLETED" : "PENDING"}>{COMMISSION_STATUS_LABELS[c.status]}</Badge></td>
                     </tr>

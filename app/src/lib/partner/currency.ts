@@ -56,7 +56,7 @@ export function convertMinor(amountMinor: number, rate: number, from: string, to
 
 /**
  * Net payout (in payout-currency minor units) for a commission line: the line's
- * net (amount − reversed) in the deal currency, converted at the deal's captured
+ * net (amount - reversed) in the deal currency, converted at the deal's captured
  * rate. Pure; used by every commission display so totals are in one currency.
  */
 export function entryPayoutMinor(

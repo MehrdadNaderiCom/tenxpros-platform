@@ -75,7 +75,7 @@ export default async function PartnerCommissionsPage() {
                 <Td className="font-medium text-navy-900">
                   {formatCents(e.amountCents - e.reversedCents, e.currency)}
                   {e.currency !== payoutCurrency ? <span className="ml-1 text-xs text-slate-500">(≈ {formatMoney(entryPayoutMinor(e, e.closedDeal, payoutCurrency), payoutCurrency)})</span> : null}
-                  {e.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(−{formatCents(e.reversedCents, e.currency)})</span> : null}
+                  {e.reversedCents > 0 ? <span className="ml-1 text-xs text-amber-700">(-{formatCents(e.reversedCents, e.currency)})</span> : null}
                 </Td>
                 <Td>
                   <Badge status={STATUS_BADGE[e.status]}>{COMMISSION_STATUS_LABELS[e.status]}</Badge>
