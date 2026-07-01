@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import { pickConfigFields, type EffectiveConfig } from "@/lib/partner/config";
-import { countableSeats } from "@/lib/partner/commission";
+import { countableSeats, deriveFunctionRate, type DerivedRate } from "@/lib/partner/commission";
 import {
   ACCOUNT_ACTIVITY_KIND_LABELS,
   ACCOUNT_STAGE_BADGE,
@@ -17,9 +17,8 @@ import {
   formatBp,
   formatCents,
 } from "@/lib/partner/constants";
-import { accountLapseState } from "@/lib/partner/rules";
+import { accountLapseState, addMonths, withinOriginationWindow } from "@/lib/partner/rules";
 import {
-  addCommissionLine,
   addQualityFlag,
   applyRefund,
   confirmActivationGate,
@@ -38,6 +37,7 @@ import {
 } from "@/lib/actions/partner-admin";
 import { COMMON_CURRENCIES, convertMinor, entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
+import { AddCommissionLineForm } from "@/components/admin/add-commission-line-form";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
 import { ForceDeleteButton } from "@/components/admin/force-delete-button";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,45 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
 
   const seats = partner.closedDeals.flatMap((d) => d.seats);
   const paidSeats = countableSeats(seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged })));
+
+  // Context for the commission add-line rate preview (the server re-derives on save).
+  const nowForRates = new Date();
+  const sinceForOrgs = addMonths(nowForRates, -12);
+  const b2bOrgSet = new Set<string>();
+  for (const d of partner.closedDeals) {
+    if (d.dealType === "B2B" && d.isMajorNewEngagement && d.signedAt && d.signedAt.getTime() >= sinceForOrgs.getTime() && d.registeredAccountId) {
+      b2bOrgSet.add(d.registeredAccountId);
+    }
+  }
+  const newB2bOrgsRolling12 = b2bOrgSet.size;
+  const FUNCTION_OPTIONS: [string, string][] = FUNCTION_VALUES.map((f) => [f, PARTNER_FUNCTION_LABELS[f]]);
+  const ratesForDeal = (deal: (typeof partner.closedDeals)[number]): Record<string, DerivedRate> => {
+    const ctx = {
+      dealKind: deal.dealType as "B2C" | "B2B",
+      cfg: effective,
+      seatsTowardStrongUnlock: paidSeats,
+      openRateBp: deal.originationRateBpAtOpen ?? 0,
+      withinOriginationWindow: deal.originationWindowStart
+        ? withinOriginationWindow(deal.originationWindowStart, nowForRates, effective)
+        : false,
+      activeStatus: partner.activeStatus,
+      newB2bOrgsRolling12,
+      tier: partner.tier,
+    };
+    const map: Record<string, DerivedRate> = {};
+    for (const f of FUNCTION_VALUES) map[f] = deriveFunctionRate(f, ctx);
+    return map;
+  };
+  const strongUnlockedRateBpFor = (deal: (typeof partner.closedDeals)[number]): number => {
+    const r = deriveFunctionRate("STRONG_ORIGINATION", {
+      dealKind: deal.dealType as "B2C" | "B2B",
+      cfg: effective,
+      seatsTowardStrongUnlock: paidSeats,
+      strongUnlockedByPanel: true,
+    });
+    return r.kind === "PERCENT" ? r.rateBp : 0;
+  };
+
   const payoutCurrency = effective.currency;
   // Net payable, converted to the payout currency, summed by status.
   const lines = partner.closedDeals.flatMap((d) => d.commissions.map((c) => ({ c, d })));
@@ -340,16 +379,17 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                 </tbody>
               </table>
               </div>
+              <AddCommissionLineForm
+                closedDealId={deal.id}
+                currency={deal.currency}
+                dealKind={deal.dealType as "B2C" | "B2B"}
+                rates={ratesForDeal(deal)}
+                strongUnlockedRateBp={strongUnlockedRateBpFor(deal)}
+                seatGate={{ seats: paidSeats, threshold: effective.strongOriginationUnlockSeats, met: paidSeats >= effective.strongOriginationUnlockSeats }}
+                deliveryBand={{ minBp: effective.deliveryPercentMinBp, maxBp: effective.deliveryPercentMaxBp, mode: effective.deliveryMode }}
+                functionOptions={FUNCTION_OPTIONS}
+              />
               <div className="mt-2 flex flex-wrap items-end gap-2">
-                <form action={addCommissionLine} className="flex items-end gap-2">
-                  <input type="hidden" name="closedDealId" value={deal.id} />
-                  <Select name="function" defaultValue="QUALIFIED_ORIGINATION" className="h-8 w-44">
-                    {FUNCTION_VALUES.map((f) => <option key={f} value={f}>{PARTNER_FUNCTION_LABELS[f]}</option>)}
-                  </Select>
-                  <Input name="rateBp" type="number" min={0} placeholder="rate bp" className="h-8 w-20" />
-                  <Input name="flatFee" type="number" step="0.01" min={0} placeholder={`or fee ${deal.currency}`} className="h-8 w-28" />
-                  <Button type="submit" size="sm" variant="ghost">Add line</Button>
-                </form>
                 <form action={recomputeDealCommissions}>
                   <input type="hidden" name="closedDealId" value={deal.id} />
                   <Button type="submit" size="sm" variant="secondary">Recompute (apply cap + payable)</Button>

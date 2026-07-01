@@ -9,6 +9,7 @@ import {
   convertCents,
   countableSeats,
   deliveryRateBp,
+  deriveFunctionRate,
   focusBonusBp,
   growthBonusBp,
   originationOverrideBp,
@@ -301,5 +302,58 @@ describe("fixed-fee lines are committed and idempotent under the cap clamp", () 
     });
     expect(r.overCap).toBe(true);
     expect(r.capped).toBe(true);
+  });
+});
+
+describe("deriveFunctionRate (single source of truth, no operator-typed rates)", () => {
+  it("basic intro is the config rate for both kinds", () => {
+    expect(deriveFunctionRate("BASIC_INTRO", { dealKind: "B2C", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.basicIntroductionBp });
+    expect(deriveFunctionRate("BASIC_INTRO", { dealKind: "B2B", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.basicIntroductionBp });
+  });
+  it("qualified origination splits B2C vs B2B", () => {
+    expect(deriveFunctionRate("QUALIFIED_ORIGINATION", { dealKind: "B2C", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.qualifiedOriginationB2cBp });
+    expect(deriveFunctionRate("QUALIFIED_ORIGINATION", { dealKind: "B2B", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.qualifiedOriginationB2bBp });
+  });
+  it("closing pays more for B2B than B2C (per config)", () => {
+    expect(deriveFunctionRate("CLOSING", { dealKind: "B2C", cfg }).kind === "PERCENT" && deriveFunctionRate("CLOSING", { dealKind: "B2C", cfg })).toMatchObject({ rateBp: cfg.closingB2cBp });
+    expect(deriveFunctionRate("CLOSING", { dealKind: "B2B", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.closingB2bBp });
+    expect(cfg.closingB2bBp).toBeGreaterThan(cfg.closingB2cBp);
+  });
+  it("strong origination: B2B always strong; B2C gated by the seat threshold or panel unlock", () => {
+    // B2B strong is always available.
+    expect(deriveFunctionRate("STRONG_ORIGINATION", { dealKind: "B2B", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.strongOriginationB2bBp });
+    // B2C strong below the gate falls back to the qualified B2C rate.
+    expect(deriveFunctionRate("STRONG_ORIGINATION", { dealKind: "B2C", cfg, seatsTowardStrongUnlock: cfg.strongOriginationUnlockSeats - 1 })).toEqual({
+      kind: "PERCENT",
+      rateBp: cfg.qualifiedOriginationB2cBp,
+    });
+    // B2C strong at/above the gate unlocks the strong B2C rate.
+    expect(deriveFunctionRate("STRONG_ORIGINATION", { dealKind: "B2C", cfg, seatsTowardStrongUnlock: cfg.strongOriginationUnlockSeats })).toEqual({
+      kind: "PERCENT",
+      rateBp: cfg.strongOriginationB2cBp,
+    });
+    // Panel unlock overrides the seat gate.
+    expect(deriveFunctionRate("STRONG_ORIGINATION", { dealKind: "B2C", cfg, seatsTowardStrongUnlock: 0, strongUnlockedByPanel: true })).toEqual({
+      kind: "PERCENT",
+      rateBp: cfg.strongOriginationB2cBp,
+    });
+  });
+  it("delivery: FLAT under fixed-fee mode, else clamped into the band", () => {
+    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg: { ...cfg, deliveryMode: "FIXED_FEE" } })).toEqual({ kind: "FLAT" });
+    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentMinBp });
+    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg, deliveryApprovedBp: 99999 })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentMaxBp });
+  });
+  it("override is zero outside the window or when inactive, else a share of the open rate", () => {
+    expect(deriveFunctionRate("OVERRIDE", { dealKind: "B2B", cfg, openRateBp: 1200, withinOriginationWindow: false, activeStatus: true })).toEqual({ kind: "PERCENT", rateBp: 0 });
+    expect(deriveFunctionRate("OVERRIDE", { dealKind: "B2B", cfg, openRateBp: 1200, withinOriginationWindow: true, activeStatus: false })).toEqual({ kind: "PERCENT", rateBp: 0 });
+    const r = deriveFunctionRate("OVERRIDE", { dealKind: "B2B", cfg, openRateBp: 1200, withinOriginationWindow: true, activeStatus: true });
+    expect(r).toEqual({ kind: "PERCENT", rateBp: originationOverrideBp({ openRateBp: 1200, withinWindow: true, activeStatus: true }, cfg) });
+  });
+  it("growth bonus derives from rolling org count and tier", () => {
+    expect(deriveFunctionRate("GROWTH_BONUS", { dealKind: "B2B", cfg, newB2bOrgsRolling12: cfg.growthBonusOrgThreshold, tier: "TIER2" })).toEqual({ kind: "PERCENT", rateBp: cfg.growthBonusBp });
+    expect(deriveFunctionRate("GROWTH_BONUS", { dealKind: "B2B", cfg, newB2bOrgsRolling12: cfg.growthBonusOrgThreshold, tier: "TIER1" })).toEqual({ kind: "PERCENT", rateBp: 0 });
+  });
+  it("focus bonus is auto-only (never a manual line)", () => {
+    expect(deriveFunctionRate("FOCUS_BONUS", { dealKind: "B2B", cfg }).kind).toBe("AUTO_ONLY");
   });
 });

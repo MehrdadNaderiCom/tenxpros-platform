@@ -29,7 +29,15 @@ import {
 import { CONFIG_FIELD_META } from "@/lib/partner/constants";
 import { parseConfigField } from "@/lib/partner/config-parse";
 import { resolvePartnerConfig } from "@/lib/partner/config-server";
-import { computeDealCommission, focusBonusBp, proportionalReversalCents } from "@/lib/partner/commission";
+import {
+  bpToCents,
+  centsToBp,
+  computeDealCommission,
+  countableSeats,
+  deriveFunctionRate,
+  focusBonusBp,
+  proportionalReversalCents,
+} from "@/lib/partner/commission";
 import {
   addMonths,
   clawbackWindowEnd,
@@ -38,6 +46,7 @@ import {
   focusTenureYear,
   pipelineProtectionExpiry,
   trailPeriodEnd,
+  withinOriginationWindow,
 } from "@/lib/partner/rules";
 import { normalizeCurrencyCode, toMinorUnits } from "@/lib/partner/currency";
 import { recordAudit } from "@/lib/partner/audit";
@@ -723,35 +732,121 @@ export async function updateSeatStatus(formData: FormData) {
  * in the deal's currency minor units. The cap is applied on recompute; a fixed
  * fee keeps its exact amount through recompute (isFlat).
  */
+/**
+ * Add a commission line. The rate is DERIVED from config by function + deal kind
+ * (never operator-typed): the per-function engine helpers decide it, including
+ * the B2C strong-origination seat gate. Every line requires an evidence note.
+ * The focus bonus is applied by recompute, not here; override and growth are
+ * derived from deal/partner context.
+ */
 export async function addCommissionLine(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
   const fn = String(formData.get("function") ?? "") as PartnerFunction;
-  // A rate is in basis points: clamp NaN/negatives to 0 and cap at 10000 (100%).
-  const rateRaw = Number(formData.get("rateBp") ?? 0);
-  const rateBp = Math.min(10000, Math.max(0, Number.isFinite(rateRaw) ? Math.round(rateRaw) : 0));
-  // A fixed fee is entered in the deal's currency (major units).
-  const flatRaw = formData.get("flatFee");
-  const isFlat = flatRaw != null && String(flatRaw).trim() !== "";
-  const flatMajor = isFlat ? safeNonNegative(flatRaw, "fixed fee", 1e10) : 0;
-  const flatCents = isFlat ? toMinorUnits(flatMajor, deal.currency) : null;
-  const amountCents = isFlat ? (flatCents as number) : Math.round((deal.netReceiptsCents * rateBp) / 10000);
+
+  // Evidence note is mandatory: the dispute-prevention record for every line.
+  const evidenceNote = String(formData.get("evidenceNote") ?? "").trim();
+  if (evidenceNote.length < 5) {
+    return { ok: false, message: "Add an evidence note (at least 5 characters) explaining why this line applies." };
+  }
+
+  const cfg = await resolvePartnerConfig(deal.partnerId);
+  const partner = await prisma.partner.findUniqueOrThrow({
+    where: { id: deal.partnerId },
+    select: { tier: true, activeStatus: true, qualityFlagged: true },
+  });
+  const partnerDeals = await prisma.closedDeal.findMany({
+    where: { partnerId: deal.partnerId },
+    select: {
+      dealType: true,
+      isMajorNewEngagement: true,
+      signedAt: true,
+      registeredAccountId: true,
+      seats: { select: { count: true, status: true } },
+    },
+  });
+
+  const now = new Date();
+  // Strong-origination B2C gate: the partner's countable paid seats.
+  const seatsTowardStrongUnlock = countableSeats(
+    partnerDeals.flatMap((d) => d.seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged }))),
+  );
+  // Growth bonus: distinct new B2B orgs originated in the rolling 12 months.
+  const since = addMonths(now, -12);
+  const orgSet = new Set<string>();
+  for (const d of partnerDeals) {
+    if (d.dealType === "B2B" && d.isMajorNewEngagement && d.signedAt && d.signedAt.getTime() >= since.getTime() && d.registeredAccountId) {
+      orgSet.add(d.registeredAccountId);
+    }
+  }
+  const newB2bOrgsRolling12 = orgSet.size;
+
+  const strongUnlockedByPanel = formData.get("strongUnlockedByPanel") === "on" || formData.get("strongUnlockedByPanel") === "true";
+  const deliveryApprovedRaw = formData.get("deliveryApprovedBp");
+  const deliveryApprovedBp =
+    deliveryApprovedRaw != null && String(deliveryApprovedRaw).trim() !== "" ? Math.round(Number(deliveryApprovedRaw)) : null;
+
+  const derived = deriveFunctionRate(fn, {
+    dealKind: deal.dealType as "B2C" | "B2B",
+    cfg,
+    seatsTowardStrongUnlock,
+    strongUnlockedByPanel,
+    deliveryApprovedBp: Number.isFinite(deliveryApprovedBp as number) ? deliveryApprovedBp : null,
+    openRateBp: deal.originationRateBpAtOpen ?? 0,
+    withinOriginationWindow: deal.originationWindowStart ? withinOriginationWindow(deal.originationWindowStart, now, cfg) : false,
+    activeStatus: partner.activeStatus,
+    newB2bOrgsRolling12,
+    tier: partner.tier,
+  });
+
+  if (derived.kind === "AUTO_ONLY") {
+    return { ok: false, message: derived.reason };
+  }
+
+  let rateBp: number;
+  let amountCents: number;
+  let isFlat: boolean;
+  if (derived.kind === "FLAT") {
+    // Fixed-fee delivery: the operator supplies the fee in the deal's currency.
+    const flatRaw = formData.get("flatFee");
+    if (flatRaw == null || String(flatRaw).trim() === "") {
+      return { ok: false, message: "Delivery is on a fixed fee: enter the fee amount." };
+    }
+    const flatMajor = safeNonNegative(flatRaw, "fixed fee", 1e10);
+    const flatCents = toMinorUnits(flatMajor, deal.currency);
+    if (flatCents <= 0) return { ok: false, message: "Enter a fixed fee greater than zero." };
+    isFlat = true;
+    amountCents = flatCents;
+    rateBp = centsToBp(flatCents, deal.netReceiptsCents);
+  } else {
+    rateBp = derived.rateBp;
+    if (rateBp <= 0) {
+      return {
+        ok: false,
+        message: "The engine computed a 0% rate for this function on this deal, so there is nothing to record. Check the deal kind, the seat gate, the origination window, or the config.",
+      };
+    }
+    isFlat = false;
+    amountCents = bpToCents(deal.netReceiptsCents, rateBp);
+  }
 
   const entry = await prisma.commissionEntry.create({
     data: {
       partnerId: deal.partnerId,
       closedDealId: deal.id,
       function: fn,
-      rateBp: isFlat ? Math.round(((flatCents as number) * 10000) / Math.max(1, deal.netReceiptsCents)) : rateBp,
+      rateBp,
       baseAmountCents: deal.netReceiptsCents,
       amountCents,
       isFlat,
+      evidenceNote,
       currency: deal.currency,
     },
   });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_LINE_ADDED", entity: "CommissionEntry", entityId: entry.id, after: { function: fn, rateBp, amountCents, isFlat } });
+  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_LINE_ADDED", entity: "CommissionEntry", entityId: entry.id, after: { function: fn, rateBp, amountCents, isFlat, evidenceNote } });
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
+  return { ok: true };
 }
 
 /**

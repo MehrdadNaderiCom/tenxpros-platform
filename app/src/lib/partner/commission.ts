@@ -108,6 +108,89 @@ export function capBpForDeal(args: { dealKind: DealKind; focusActive?: boolean }
 }
 
 // ---------------------------------------------------------------------------
+// Per-line rate derivation (single source of truth: no operator-typed rate)
+// ---------------------------------------------------------------------------
+
+/**
+ * The outcome of deriving a commission line's rate from config + context:
+ *  - PERCENT: a config-derived basis-points rate to apply to net receipts.
+ *  - FLAT: delivery under FIXED_FEE mode; the operator supplies the fixed amount.
+ *  - AUTO_ONLY: the line is applied by another flow (e.g. the focus bonus on
+ *    recompute), so a manual add is refused with a clear reason.
+ */
+export type DerivedRate =
+  | { kind: "PERCENT"; rateBp: number }
+  | { kind: "FLAT" }
+  | { kind: "AUTO_ONLY"; reason: string };
+
+export interface DeriveContext {
+  dealKind: DealKind;
+  cfg: EffectiveConfig;
+  // Strong-origination B2C gate:
+  seatsTowardStrongUnlock?: number;
+  strongUnlockedByPanel?: boolean;
+  // Delivery percentage: an operator-approved rate, clamped into the band.
+  deliveryApprovedBp?: number | null;
+  // Override (renewal) context:
+  openRateBp?: number;
+  withinOriginationWindow?: boolean;
+  activeStatus?: boolean;
+  // Growth bonus context:
+  newB2bOrgsRolling12?: number;
+  tier?: PartnerTier;
+}
+
+/**
+ * Derive the rate for a commission function purely from config + deal/partner
+ * context, using the per-function helpers above. This is the single place a
+ * line's rate comes from: no operator types a percentage anywhere.
+ */
+export function deriveFunctionRate(fn: PartnerFunction, ctx: DeriveContext): DerivedRate {
+  switch (fn) {
+    case "BASIC_INTRO":
+      return { kind: "PERCENT", rateBp: basicIntroRateBp(ctx.cfg) };
+    case "QUALIFIED_ORIGINATION":
+      return { kind: "PERCENT", rateBp: originationRateBp({ strength: "QUALIFIED", dealKind: ctx.dealKind }, ctx.cfg) };
+    case "STRONG_ORIGINATION":
+      return {
+        kind: "PERCENT",
+        rateBp: originationRateBp(
+          {
+            strength: "STRONG",
+            dealKind: ctx.dealKind,
+            seatsTowardStrongUnlock: ctx.seatsTowardStrongUnlock,
+            strongUnlockedByPanel: ctx.strongUnlockedByPanel,
+          },
+          ctx.cfg,
+        ),
+      };
+    case "CLOSING":
+      return { kind: "PERCENT", rateBp: closingRateBp(ctx.dealKind, ctx.cfg) };
+    case "DELIVERY":
+      if (ctx.cfg.deliveryMode === "FIXED_FEE") return { kind: "FLAT" };
+      return { kind: "PERCENT", rateBp: deliveryRateBp(ctx.cfg, ctx.deliveryApprovedBp) };
+    case "OVERRIDE":
+      return {
+        kind: "PERCENT",
+        rateBp: originationOverrideBp(
+          {
+            openRateBp: ctx.openRateBp ?? 0,
+            withinWindow: ctx.withinOriginationWindow ?? false,
+            activeStatus: ctx.activeStatus ?? false,
+          },
+          ctx.cfg,
+        ),
+      };
+    case "GROWTH_BONUS":
+      return { kind: "PERCENT", rateBp: growthBonusBp(ctx.newB2bOrgsRolling12 ?? 0, ctx.tier ?? "TIER1", ctx.cfg) };
+    case "FOCUS_BONUS":
+      return { kind: "AUTO_ONLY", reason: "The focus bonus is applied automatically when you recompute the deal." };
+    default:
+      return { kind: "AUTO_ONLY", reason: "This function is not added manually." };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Deal-level computation with cap clamp
 // ---------------------------------------------------------------------------
 
