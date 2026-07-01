@@ -490,7 +490,7 @@ export async function postDealMessageAdmin(formData: FormData) {
 
 /** Approve or reject a single out-of-rule detail on a special request. */
 export async function decideSpecialDealItem(formData: FormData) {
-  const admin = await requireAdminUser();
+  const admin = await requireSuperAdmin();
   const parsed = decideSpecialDealItemSchema.safeParse({
     itemId: formData.get("itemId"),
     decision: formData.get("decision"),
@@ -526,7 +526,7 @@ export async function decideSpecialDealItem(formData: FormData) {
  * requires every item to already be decided.
  */
 export async function decideSpecialDealRequest(formData: FormData) {
-  const admin = await requireAdminUser();
+  const admin = await requireSuperAdmin();
   const parsed = decideSpecialDealRequestSchema.safeParse({
     requestId: formData.get("requestId"),
     decision: formData.get("decision"),

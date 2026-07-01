@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { SpecialDealRequestItem } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { requireAdminUser, isSuperAdmin } from "@/lib/authz";
 import { decideSpecialDealItem, decideSpecialDealRequest } from "@/lib/actions/partner-admin";
 import {
   SPECIAL_DEAL_ITEM_STATUS_BADGE,
@@ -22,9 +23,9 @@ type RequestWithRelations = {
   context: string;
   status: keyof typeof SPECIAL_DEAL_STATUS_LABELS;
   decisionNote: string | null;
+  dealRegistrationId: string | null;
   createdAt: Date;
   partner: { id: string; displayName: string };
-  dealRegistration: { legalEntity: string; country: string } | null;
   items: SpecialDealRequestItem[];
 };
 
@@ -51,7 +52,7 @@ function ItemRow({ item }: { item: SpecialDealRequestItem }) {
   );
 }
 
-function RequestCard({ req }: { req: RequestWithRelations }) {
+function RequestCard({ req, dealLabel }: { req: RequestWithRelations; dealLabel?: string }) {
   const decided = req.status !== "PENDING";
   return (
     <Card className="space-y-3">
@@ -62,7 +63,7 @@ function RequestCard({ req }: { req: RequestWithRelations }) {
             <Link href={`/admin/partners/${req.partner.id}`} className="hover:underline">
               {req.partner.displayName}
             </Link>
-            {req.dealRegistration ? ` , opportunity: ${req.dealRegistration.legalEntity}, ${req.dealRegistration.country}` : ""}
+            {dealLabel ? ` , opportunity: ${dealLabel}` : ""}
             {` , submitted ${req.createdAt.toLocaleDateString()}`}
           </p>
         </div>
@@ -97,15 +98,34 @@ function RequestCard({ req }: { req: RequestWithRelations }) {
 }
 
 export default async function AdminSpecialDealsPage() {
+  const admin = await requireAdminUser();
+  if (!isSuperAdmin(admin.email)) {
+    return (
+      <Card>
+        <p className="text-sm text-slate-600">Deciding special requests is restricted to the primary admin.</p>
+      </Card>
+    );
+  }
+
   const include = {
     partner: { select: { id: true, displayName: true } },
-    dealRegistration: { select: { legalEntity: true, country: true } },
     items: { orderBy: { order: "asc" as const } },
   };
   const [pending, decided] = await Promise.all([
     prisma.specialDealRequest.findMany({ where: { status: "PENDING" }, orderBy: { createdAt: "asc" }, include }),
     prisma.specialDealRequest.findMany({ where: { status: { not: "PENDING" } }, orderBy: { decidedAt: "desc" }, take: 30, include }),
   ]);
+
+  // Resolve any linked opportunities in one query (SpecialDealRequest keeps only
+  // the id, so there is no relation to include).
+  const dealIds = Array.from(
+    new Set([...pending, ...decided].map((r) => r.dealRegistrationId).filter((id): id is string => Boolean(id))),
+  );
+  const regs = dealIds.length
+    ? await prisma.dealRegistration.findMany({ where: { id: { in: dealIds } }, select: { id: true, legalEntity: true, country: true } })
+    : [];
+  const dealLabel = new Map(regs.map((r) => [r.id, `${r.legalEntity}, ${r.country}`]));
+  const labelFor = (r: RequestWithRelations) => (r.dealRegistrationId ? dealLabel.get(r.dealRegistrationId) : undefined);
 
   return (
     <div className="space-y-8">
@@ -118,7 +138,7 @@ export default async function AdminSpecialDealsPage() {
         <h2 className="mb-3 text-lg font-semibold text-navy-900">Pending ({pending.length})</h2>
         <div className="space-y-4">
           {pending.map((r) => (
-            <RequestCard key={r.id} req={r as RequestWithRelations} />
+            <RequestCard key={r.id} req={r as RequestWithRelations} dealLabel={labelFor(r as RequestWithRelations)} />
           ))}
           {pending.length === 0 ? <p className="text-sm text-slate-500">Nothing pending.</p> : null}
         </div>
@@ -129,7 +149,7 @@ export default async function AdminSpecialDealsPage() {
           <h2 className="mb-3 text-lg font-semibold text-navy-900">Recently decided</h2>
           <div className="space-y-4">
             {decided.map((r) => (
-              <RequestCard key={r.id} req={r as RequestWithRelations} />
+              <RequestCard key={r.id} req={r as RequestWithRelations} dealLabel={labelFor(r as RequestWithRelations)} />
             ))}
           </div>
         </div>
