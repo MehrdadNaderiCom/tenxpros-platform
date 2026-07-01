@@ -15,6 +15,8 @@ import {
   confirmDealSchema,
   dealMessageSchema,
   dealRevisionRequestSchema,
+  decideSpecialDealItemSchema,
+  decideSpecialDealRequestSchema,
   declineDealSchema,
   partnerProfileSchema,
   reviewApplicationSchema,
@@ -480,6 +482,114 @@ export async function postDealMessageAdmin(formData: FormData) {
   });
   safeRevalidatePath("/admin/partners/deal-registrations");
   safeRevalidatePath(`/partner/deals/${reg.id}`);
+}
+
+// ===========================================================================
+// Special-deal requests (decide the whole request and each detail item)
+// ===========================================================================
+
+/** Approve or reject a single out-of-rule detail on a special request. */
+export async function decideSpecialDealItem(formData: FormData) {
+  const admin = await requireAdminUser();
+  const parsed = decideSpecialDealItemSchema.safeParse({
+    itemId: formData.get("itemId"),
+    decision: formData.get("decision"),
+    decisionNote: formData.get("decisionNote") || undefined,
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid item decision.");
+  const { itemId, decision, decisionNote } = parsed.data;
+
+  const item = await prisma.specialDealRequestItem.findUniqueOrThrow({
+    where: { id: itemId },
+    select: { id: true, requestId: true },
+  });
+  await prisma.specialDealRequestItem.update({
+    where: { id: item.id },
+    data: { status: decision === "APPROVE" ? "APPROVED" : "REJECTED", decisionNote: decisionNote || null },
+  });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "SPECIAL_DEAL_ITEM_DECIDED",
+    entity: "SpecialDealRequestItem",
+    entityId: item.id,
+    after: { decision },
+  });
+  safeRevalidatePath("/admin/partners/special-deals");
+  safeRevalidatePath("/partner/special-deals");
+}
+
+/**
+ * Finalize a special request as a whole. APPROVE_ALL and REJECT_ALL set every
+ * item accordingly; FINALIZE_FROM_ITEMS derives the overall status from the
+ * per-item decisions (all approved, all rejected, or partially approved) and
+ * requires every item to already be decided.
+ */
+export async function decideSpecialDealRequest(formData: FormData) {
+  const admin = await requireAdminUser();
+  const parsed = decideSpecialDealRequestSchema.safeParse({
+    requestId: formData.get("requestId"),
+    decision: formData.get("decision"),
+    decisionNote: formData.get("decisionNote") || undefined,
+  });
+  if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid decision.");
+  const { requestId, decision, decisionNote } = parsed.data;
+
+  const request = await prisma.specialDealRequest.findUniqueOrThrow({
+    where: { id: requestId },
+    include: { items: true, partner: { select: { displayName: true, contactEmail: true } } },
+  });
+
+  let overall: "APPROVED" | "REJECTED" | "PARTIALLY_APPROVED";
+  const now = new Date();
+
+  if (decision === "APPROVE_ALL") {
+    overall = "APPROVED";
+    await prisma.specialDealRequestItem.updateMany({
+      where: { requestId: request.id },
+      data: { status: "APPROVED" },
+    });
+  } else if (decision === "REJECT_ALL") {
+    overall = "REJECTED";
+    await prisma.specialDealRequestItem.updateMany({
+      where: { requestId: request.id },
+      data: { status: "REJECTED" },
+    });
+  } else {
+    // FINALIZE_FROM_ITEMS: every item must already be decided.
+    const pending = request.items.filter((i) => i.status === "PENDING");
+    if (pending.length > 0) {
+      throw new Error("Decide every detail first, or use approve all / reject all.");
+    }
+    const approved = request.items.filter((i) => i.status === "APPROVED").length;
+    const rejected = request.items.filter((i) => i.status === "REJECTED").length;
+    overall = approved === 0 ? "REJECTED" : rejected === 0 ? "APPROVED" : "PARTIALLY_APPROVED";
+  }
+
+  await prisma.specialDealRequest.update({
+    where: { id: request.id },
+    data: { status: overall, decisionNote: decisionNote || null, decidedByUserId: admin.id, decidedAt: now },
+  });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "SPECIAL_DEAL_REQUEST_DECIDED",
+    entity: "SpecialDealRequest",
+    entityId: request.id,
+    after: { status: overall },
+  });
+  await safeSendEmail({
+    to: request.partner.contactEmail,
+    subject: `Decision on your special request: ${request.title}`,
+    template: "partner_special_deal_decided",
+    text:
+      `Hello ${request.partner.displayName},\n\n` +
+      `We have reviewed your special request "${request.title}". Overall status: ${overall.replace(/_/g, " ").toLowerCase()}.\n` +
+      (decisionNote ? `\nNote from the team:\n${decisionNote}\n` : "") +
+      `\nOpen your panel to see the decision on each detail:\n${absoluteUrl("/partner/special-deals")}`,
+  });
+  safeRevalidatePath("/admin/partners/special-deals");
+  safeRevalidatePath("/partner/special-deals");
 }
 
 // ===========================================================================

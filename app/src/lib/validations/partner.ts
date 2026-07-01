@@ -207,3 +207,56 @@ export const declineDealSchema = z.object({
   dealRegistrationId: z.string().min(1),
   declineReason: z.string().trim().min(2, "Give a reason."),
 });
+
+// ---------------------------------------------------------------------------
+// Special-deal requests (partner submits; superadmin decides overall + per item)
+// ---------------------------------------------------------------------------
+
+export const specialDealRequestSchema = z.object({
+  title: z.string().trim().min(4, "Give the request a short title.").max(160),
+  context: z
+    .string()
+    .trim()
+    .min(20, "Explain the situation and why the standard contract does not fit."),
+  dealRegistrationId: z.string().trim().optional(),
+  items: z
+    .array(z.string().trim().min(3, "Each detail needs a short description."))
+    .min(1, "Add at least one out-of-rule detail.")
+    .max(20, "That is a lot of details. Please consolidate to 20 or fewer."),
+});
+
+export const decideSpecialDealItemSchema = z.object({
+  itemId: z.string().min(1),
+  decision: z.enum(["APPROVE", "REJECT"], { error: "Choose approve or reject." }),
+  decisionNote: z.string().trim().max(2000).optional(),
+});
+
+export const decideSpecialDealRequestSchema = z.object({
+  requestId: z.string().min(1),
+  decision: z.enum(["APPROVE_ALL", "REJECT_ALL", "FINALIZE_FROM_ITEMS"], {
+    error: "Choose how to finalize.",
+  }),
+  decisionNote: z.string().trim().max(2000).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Partner Toolkit repository (superadmin authoring)
+// ---------------------------------------------------------------------------
+
+export const TOOLKIT_MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB per file
+export const TOOLKIT_MAX_FILES = 10;
+
+export const toolkitPostSchema = z.object({
+  id: z.string().trim().optional(),
+  title: z.string().trim().min(3, "Give the post a title.").max(200),
+  slug: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a URL-friendly slug: lowercase letters, numbers, and hyphens.")
+    .max(120)
+    .optional(),
+  category: z.string().trim().min(2, "Choose or name a category.").max(80),
+  bodyHtml: z.string().trim().min(1, "Write the post body."),
+  order: z.string().trim().regex(/^\d*$/, "Order must be a whole number.").optional(),
+  isPublished: z.boolean().optional(),
+});

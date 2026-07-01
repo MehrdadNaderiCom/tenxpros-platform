@@ -8,6 +8,7 @@ import {
   logAccountActivitySchema,
   partnerProfileSchema,
   resubmitDealSchema,
+  specialDealRequestSchema,
   tenXOpsRequestSchema,
 } from "@/lib/validations/partner";
 import { requirePartner } from "@/lib/partner/auth";
@@ -414,6 +415,73 @@ export async function resubmitDealRegistration(formData: FormData) {
   safeRevalidatePath(`/partner/deals/${reg.id}`);
   safeRevalidatePath("/partner/deals");
   safeRevalidatePath("/admin/partners/deal-registrations");
+  return { ok: true };
+}
+
+/**
+ * Submit a request for a special arrangement beyond the standard contract. Each
+ * out-of-rule detail becomes an item the superadmin can approve or reject
+ * individually, so a request can end up approved, partially approved, or rejected.
+ */
+export async function submitSpecialDealRequest(formData: FormData) {
+  const { partner } = await requirePartner();
+  const items = formData
+    .getAll("items")
+    .map(String)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const rawDealId = String(formData.get("dealRegistrationId") ?? "").trim();
+  const parsed = specialDealRequestSchema.safeParse({
+    title: formData.get("title"),
+    context: formData.get("context"),
+    dealRegistrationId: rawDealId || undefined,
+    items,
+  });
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
+  }
+  const data = parsed.data;
+
+  // If a linked opportunity is named, it must belong to this partner (IDOR guard).
+  let linkedDealId: string | null = null;
+  if (data.dealRegistrationId) {
+    const reg = await prisma.dealRegistration.findFirst({
+      where: { id: data.dealRegistrationId, partnerId: partner.id },
+      select: { id: true },
+    });
+    if (!reg) return { ok: false, message: "That opportunity is not one of yours." };
+    linkedDealId = reg.id;
+  }
+
+  const request = await prisma.specialDealRequest.create({
+    data: {
+      partnerId: partner.id,
+      dealRegistrationId: linkedDealId,
+      title: data.title,
+      context: data.context,
+      items: {
+        create: data.items.map((description, index) => ({ description, order: index })),
+      },
+    },
+  });
+
+  await prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: new Date() } });
+  await recordAudit({
+    actorId: partner.userId,
+    actorRole: "PARTNER",
+    action: "SPECIAL_DEAL_REQUEST_SUBMITTED",
+    entity: "SpecialDealRequest",
+    entityId: request.id,
+    after: { title: data.title, items: data.items.length },
+  });
+  await notifyOwner({
+    subject: `New special request: ${partner.displayName}`,
+    template: "owner_special_deal_request",
+    body: `${partner.displayName} submitted a special request (${data.title}) with ${data.items.length} detail(s) to review.`,
+    href: "/admin/partners/special-deals",
+  });
+  safeRevalidatePath("/partner/special-deals");
+  safeRevalidatePath("/admin/partners/special-deals");
   return { ok: true };
 }
 

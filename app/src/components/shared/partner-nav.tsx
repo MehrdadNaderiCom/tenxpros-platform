@@ -12,6 +12,8 @@ const partnerItems: Array<[string, string]> = [
   ["Onboarding", "/partner/onboarding"],
   ["Deal Registrations", "/partner/deals"],
   ["My Accounts", "/partner/accounts"],
+  ["Special Requests", "/partner/special-deals"],
+  ["Partner Toolkit", "/partner/toolkit"],
   ["Commissions", "/partner/commissions"],
   ["TenXOps", "/partner/tenxops"],
   ["Profile", "/partner/profile"],

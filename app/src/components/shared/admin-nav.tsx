@@ -37,6 +37,8 @@ const sections: NavSection[] = [
       { label: "Lesson content", href: "/admin/academy/content" },
       { label: "Applications", href: "/admin/partners/applications" },
       { label: "Deal Registrations", href: "/admin/partners/deal-registrations" },
+      { label: "Special Requests", href: "/admin/partners/special-deals" },
+      { label: "Partner Toolkit", href: "/admin/partners/toolkit" },
       { label: "Commissions", href: "/admin/partners/commissions" },
       { label: "Configuration", href: "/admin/partners/config" },
       { label: "House Accounts", href: "/admin/partners/house-accounts" },

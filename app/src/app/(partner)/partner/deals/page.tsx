@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { PartnerDealForm } from "@/components/portal/partner-deal-form";
+import { SpecialDealModal } from "@/components/portal/special-deal-modal";
 import { DEAL_REG_STATUS_LABELS, OFFERING_LABELS } from "@/lib/partner/constants";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -43,7 +44,20 @@ export default async function PartnerDealsPage() {
           You can register opportunities once the company confirms your Activation Gate on the panel.
         </Alert>
       ) : (
-        <PartnerDealForm />
+        <>
+          <PartnerDealForm />
+          <Card className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-medium text-navy-900">Need terms beyond the standard contract?</p>
+              <p className="text-sm text-slate-600">
+                Submit a special request. The company decides on the request as a whole and on each detail separately.
+              </p>
+            </div>
+            <SpecialDealModal
+              deals={partner.dealRegistrations.map((d) => ({ id: d.id, label: `${d.legalEntity}, ${d.country}` }))}
+            />
+          </Card>
+        </>
       )}
 
       <Card className="p-0">

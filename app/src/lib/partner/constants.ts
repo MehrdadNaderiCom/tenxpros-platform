@@ -10,6 +10,8 @@ import type {
   PartnerTier,
   ScorecardDay,
   SeatStatus,
+  SpecialDealItemStatus,
+  SpecialDealStatus,
 } from "@prisma/client";
 import type { EffectiveConfig } from "./config";
 import { formatMoney } from "./currency";
@@ -134,6 +136,37 @@ export const ACCOUNT_ACTIVITY_KINDS = [
   "PROPOSAL",
   "CONVERSION",
 ] as const;
+
+// ---------------------------------------------------------------------------
+// Special-deal requests (a request beyond the standard contract, with
+// individually approvable detail items)
+// ---------------------------------------------------------------------------
+
+export const SPECIAL_DEAL_STATUS_LABELS: Record<SpecialDealStatus, string> = {
+  PENDING: "Pending review",
+  APPROVED: "Approved",
+  PARTIALLY_APPROVED: "Partially approved",
+  REJECTED: "Rejected",
+};
+
+export const SPECIAL_DEAL_STATUS_BADGE: Record<SpecialDealStatus, string> = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  PARTIALLY_APPROVED: "WAITING_RESPONSE",
+  REJECTED: "NOT_COMPLETED",
+};
+
+export const SPECIAL_DEAL_ITEM_STATUS_LABELS: Record<SpecialDealItemStatus, string> = {
+  PENDING: "Pending",
+  APPROVED: "Approved",
+  REJECTED: "Rejected",
+};
+
+export const SPECIAL_DEAL_ITEM_STATUS_BADGE: Record<SpecialDealItemStatus, string> = {
+  PENDING: "PENDING",
+  APPROVED: "APPROVED",
+  REJECTED: "NOT_COMPLETED",
+};
 
 export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
   ACCRUED: "Accrued",
