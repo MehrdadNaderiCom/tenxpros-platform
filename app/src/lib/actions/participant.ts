@@ -239,6 +239,24 @@ export async function updateDirectoryProfile(formData: FormData) {
   safeRevalidatePath("/portal/profile");
 }
 
+/**
+ * The participant's own alumni introduction preferences. Public introduction (for
+ * networking and finding work) and introduction to our B2B clients at
+ * tenxops.org are both strictly opt-in: nothing is shared unless the participant
+ * turns it on here.
+ */
+export async function updateAlumniOptIn(formData: FormData) {
+  const profile = await requireParticipant();
+  await prisma.participantProfile.update({
+    where: { id: profile.id },
+    data: {
+      alumniPublicIntroOptIn: formData.get("alumniPublicIntroOptIn") === "on",
+      alumniB2bIntroOptIn: formData.get("alumniB2bIntroOptIn") === "on",
+    },
+  });
+  safeRevalidatePath("/portal/profile");
+}
+
 function safeRevalidatePath(path: string) {
   try {
     revalidatePath(path);

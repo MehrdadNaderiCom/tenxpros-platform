@@ -17,6 +17,7 @@ const sections: NavSection[] = [
     items: [
       { label: "Applications", href: "/admin/applications" },
       { label: "Participants", href: "/admin/participants" },
+      { label: "Alumni Network", href: "/admin/alumni" },
       { label: "Tickets", href: "/admin/tickets" },
     ],
   },

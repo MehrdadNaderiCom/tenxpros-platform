@@ -1,5 +1,5 @@
 import { resolvePortalUserId } from "@/lib/participant/view";
-import { updateDirectoryProfile } from "@/lib/actions/participant";
+import { updateDirectoryProfile, updateAlumniOptIn } from "@/lib/actions/participant";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -53,6 +53,28 @@ export default async function ProfilePage() {
             Publish directory profile when eligible
           </label>
           <Button type="submit">Save profile</Button>
+        </form>
+      </Card>
+      <Card>
+        <h2 className="text-xl font-semibold text-navy-900">Alumni network introductions</h2>
+        <p className="mt-1 text-sm leading-6 text-slate-600">
+          These are strictly opt-in. Nothing is shared unless you turn it on, and you can change it at any time.
+        </p>
+        <form action={updateAlumniOptIn} className="mt-4 space-y-3">
+          <label className="flex gap-3 text-sm text-slate-700">
+            <input type="checkbox" name="alumniPublicIntroOptIn" defaultChecked={profile.alumniPublicIntroOptIn} />
+            <span>
+              Introduce me publicly for networking and finding work. Other members and prospective contacts may be
+              pointed to my alumni profile.
+            </span>
+          </label>
+          <label className="flex gap-3 text-sm text-slate-700">
+            <input type="checkbox" name="alumniB2bIntroOptIn" defaultChecked={profile.alumniB2bIntroOptIn} />
+            <span>
+              Introduce me to our B2B clients at tenxops.org who are looking for certified TenXPros.
+            </span>
+          </label>
+          <Button type="submit">Save preferences</Button>
         </form>
       </Card>
       <Card>
