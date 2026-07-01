@@ -336,7 +336,7 @@ export async function confirmDealRegistration(formData: FormData) {
         action: "PANEL_CONFIRM_DEAL_REGISTRATION",
         entity: "DealRegistration",
         entityId: reg.id,
-        changes: { before: { status: "SUBMITTED" }, after: { status: "CONFIRMED", confirmedScope } },
+        changes: { before: { status: reg.status }, after: { status: "CONFIRMED", confirmedScope } },
       },
     });
   });
