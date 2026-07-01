@@ -65,6 +65,7 @@ export const DEAL_REG_STATUS_LABELS: Record<DealRegStatus, string> = {
   DECLINED: "Declined",
   LAPSED: "Lapsed",
   WITHDRAWN: "Withdrawn",
+  NEEDS_REVISION: "Needs revision",
 };
 
 export const OFFERING_LABELS: Record<OfferingType, string> = {

@@ -315,6 +315,14 @@ model ParticipantProfile {
 
   participantModules ParticipantModule[]
 
+  // Alumni network: graduates join groups, and can opt in to public and B2B
+  // introductions the company facilitates.
+  alumniMemberships AlumniMembership[]
+
+  alumniPublicIntroOptIn Boolean @default(false)
+
+  alumniB2bIntroOptIn Boolean @default(false)
+
   // Back relation to payments
 
   payments PaymentRecord[]
@@ -864,6 +872,13 @@ model CertificationReview {
   badgeIssuedAt DateTime?
 
   certificateUrl String?
+
+  // The professional domain the person works in (defaulted from Application.domain)
+  // and a short reviewer-set label for what the dossier accomplished. Both appear
+  // on the credential and its public verification.
+  field String?
+
+  specialization String?
 
   createdAt DateTime @default(now())
 
@@ -1759,6 +1774,46 @@ enum DealRegStatus {
   DECLINED
   LAPSED
   WITHDRAWN
+  NEEDS_REVISION
+}
+
+enum AccountStage {
+  REGISTERED
+  CONTACTED
+  MEETING
+  PROPOSAL
+  CONVERTING
+  WON
+  LOST
+}
+
+enum SpecialDealStatus {
+  PENDING
+  APPROVED
+  PARTIALLY_APPROVED
+  REJECTED
+}
+
+enum SpecialDealItemStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DiscussionStatus {
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+}
+
+enum PartnerSupportStatus {
+  OPEN
+  RESOLVED
+}
+
+enum AlumniGroupKind {
+  GENERAL
+  SPECIALIZED
 }
 
 enum PartnerFunction {
@@ -1920,6 +1975,8 @@ model Partner {
   academyExamSittings     AcademyExamSitting[]
   academyBadge            PartnerAcademyBadge?
   notifications           PartnerNotification[]
+  specialDealRequests     SpecialDealRequest[]
+  supportTickets          PartnerSupportTicket[]
 
   @@index([status])
 }
@@ -2172,10 +2229,12 @@ model DealRegistration {
   pipelineProtectionExpiresAt DateTime?
   confirmedByUserId           String?
   declineReason               String?
+  revisionRequestedAt         DateTime?
   submittedAt                 DateTime      @default(now())
   decidedAt                   DateTime?
 
   registeredAccount RegisteredAccount?
+  messages          DealMessage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2203,9 +2262,11 @@ model RegisteredAccount {
   protectionExpiresAt    DateTime?
   lastMeaningfulUpdateAt DateTime?
   lapsedAt               DateTime?
+  stage                  AccountStage @default(REGISTERED)
 
   closedDeals ClosedDeal[]
   engagements TenXOpsEngagement[]
+  activities  AccountActivity[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2305,6 +2366,9 @@ model CommissionEntry {
   queryFlag       Boolean          @default(false)
   queryNote       String?
   note            String?
+  // Short evidence describing what qualifies this function for this deal, recorded
+  // when the line is created so a function claim is never just a name on a list.
+  evidenceNote    String?          @db.Text
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2409,6 +2473,10 @@ model AcademyModule {
   examSize          Int                  @default(10)
   examCooldownHours Int                  @default(24)
   isPublished       Boolean              @default(true)
+  /// Reference/benefit modules (Contact Us, Alumni, Sharing Experience) carry a
+  /// lesson but no exam. They do not count toward the final-exam gate or the
+  /// sequential unlock, so publishing them never blocks the certificate.
+  isInformational   Boolean              @default(false)
   /// Bumped whenever a superadmin edits any lesson in this module. Partners who
   /// already passed keep their badge (notified only); partners who have not
   /// passed must complete this latest version.
@@ -2639,4 +2707,184 @@ model NewsletterDelivery {
 
   @@index([campaignId])
   @@index([email])
+}
+
+// ===========================================================================
+// Partner Panel launch-readiness features (all additive)
+// ===========================================================================
+
+/// A threaded conversation under a registered opportunity. Admin can leave
+/// feedback; the partner can reply, edit, and resubmit the registration.
+model DealMessage {
+  id                 String           @id @default(cuid())
+  dealRegistrationId String
+  dealRegistration   DealRegistration @relation(fields: [dealRegistrationId], references: [id], onDelete: Cascade)
+  authorUserId       String?
+  authorRole         String // "PARTNER" | "ADMIN"
+  authorName         String
+  body               String           @db.Text
+  createdAt          DateTime         @default(now())
+
+  @@index([dealRegistrationId])
+}
+
+/// One logged activity or stage change on a registered account. Writing an
+/// activity updates the account's lastMeaningfulUpdateAt, which drives the
+/// (previously unwired) lapse logic.
+model AccountActivity {
+  id                  String            @id @default(cuid())
+  registeredAccountId String
+  registeredAccount   RegisteredAccount @relation(fields: [registeredAccountId], references: [id], onDelete: Cascade)
+  partnerId           String
+  kind                String // NOTE | MEETING | NEXT_STEP | RESPONSE | PROPOSAL | CONVERSION | STAGE_CHANGE
+  note                String            @db.Text
+  stageAfter          AccountStage?
+  createdAt           DateTime          @default(now())
+
+  @@index([registeredAccountId])
+}
+
+/// A partner's request for a special arrangement outside the standard contract.
+/// The superadmin can approve or reject the request as a whole and can decide
+/// each out-of-rule detail (item) separately.
+model SpecialDealRequest {
+  id                 String                   @id @default(cuid())
+  partnerId          String
+  partner            Partner                  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  dealRegistrationId String?
+  title              String
+  context            String                   @db.Text
+  status             SpecialDealStatus        @default(PENDING)
+  decisionNote       String?                  @db.Text
+  decidedByUserId    String?
+  decidedAt          DateTime?
+  items              SpecialDealRequestItem[]
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+
+  @@index([partnerId, status])
+}
+
+model SpecialDealRequestItem {
+  id           String                @id @default(cuid())
+  requestId    String
+  request      SpecialDealRequest    @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  description  String                @db.Text
+  status       SpecialDealItemStatus @default(PENDING)
+  decisionNote String?               @db.Text
+  order        Int                   @default(0)
+
+  @@index([requestId])
+}
+
+/// Superadmin-authored resource in the Partner Toolkit repository (blog-style),
+/// with optional downloadable files.
+model ToolkitPost {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  bodyHtml    String        @db.Text
+  category    String        @default("General")
+  isPublished Boolean       @default(true)
+  authorEmail String?
+  order       Int           @default(0)
+  files       ToolkitFile[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([isPublished, order])
+}
+
+model ToolkitFile {
+  id        String       @id @default(cuid())
+  postId    String?
+  post      ToolkitPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  filename  String
+  mimeType  String
+  size      Int
+  data      Bytes
+  createdAt DateTime     @default(now())
+
+  @@index([postId])
+}
+
+/// A partner-authored knowledge/experience post. Publishes under the author's
+/// name only after superadmin approval; others can comment once published.
+model DiscussionPost {
+  id               String              @id @default(cuid())
+  authorUserId     String
+  authorName       String
+  authorPartnerId  String?
+  title            String
+  bodyHtml         String              @db.Text
+  category         String?
+  status           DiscussionStatus    @default(PENDING_REVIEW)
+  moderatedByEmail String?
+  publishedAt      DateTime?
+  comments         DiscussionComment[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+model DiscussionComment {
+  id           String         @id @default(cuid())
+  postId       String
+  post         DiscussionPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorUserId String
+  authorName   String
+  body         String         @db.Text
+  createdAt    DateTime       @default(now())
+
+  @@index([postId])
+}
+
+/// A partner support report. Each new ticket is emailed to the program owner.
+model PartnerSupportTicket {
+  id         String              @id @default(cuid())
+  partnerId  String
+  partner    Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  subject    String
+  body       String              @db.Text
+  status     PartnerSupportStatus @default(OPEN)
+  resolvedAt DateTime?
+  createdAt  DateTime            @default(now())
+
+  @@index([partnerId, status])
+}
+
+/// Alumni network: general and specialized groups of program graduates.
+model AlumniGroup {
+  id          String             @id @default(cuid())
+  name        String
+  kind        AlumniGroupKind    @default(GENERAL)
+  description String?            @db.Text
+  isActive    Boolean            @default(true)
+  memberships AlumniMembership[]
+  events      AlumniEvent[]
+  createdAt   DateTime           @default(now())
+}
+
+model AlumniMembership {
+  id            String             @id @default(cuid())
+  groupId       String
+  group         AlumniGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  participantId String
+  participant   ParticipantProfile @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  joinedAt      DateTime           @default(now())
+
+  @@unique([groupId, participantId])
+  @@index([participantId])
+}
+
+model AlumniEvent {
+  id          String       @id @default(cuid())
+  groupId     String?
+  group       AlumniGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  title       String
+  description String?      @db.Text
+  startsAt    DateTime?
+  location    String?
+  createdAt   DateTime     @default(now())
 }
