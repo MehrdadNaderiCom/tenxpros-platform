@@ -14,8 +14,10 @@ const partnerItems: Array<[string, string]> = [
   ["My Accounts", "/partner/accounts"],
   ["Special Requests", "/partner/special-deals"],
   ["Partner Toolkit", "/partner/toolkit"],
+  ["Experience Sharing", "/partner/discussions"],
   ["Commissions", "/partner/commissions"],
   ["TenXOps", "/partner/tenxops"],
+  ["Support", "/partner/support"],
   ["Profile", "/partner/profile"],
 ];
 

@@ -260,3 +260,35 @@ export const toolkitPostSchema = z.object({
   order: z.string().trim().regex(/^\d*$/, "Order must be a whole number.").optional(),
   isPublished: z.boolean().optional(),
 });
+
+// ---------------------------------------------------------------------------
+// Discussion board (partner experience sharing; superadmin moderates)
+// ---------------------------------------------------------------------------
+
+export const discussionPostSchema = z.object({
+  title: z.string().trim().min(4, "Give your post a clear title.").max(200),
+  body: z.string().trim().min(30, "Share enough of your experience to be useful (at least 30 characters)."),
+  category: z.string().trim().max(80).optional(),
+});
+
+export const discussionCommentSchema = z.object({
+  postId: z.string().min(1),
+  body: z.string().trim().min(2, "Write a comment.").max(4000),
+});
+
+export const moderateDiscussionSchema = z.object({
+  postId: z.string().min(1),
+  decision: z.enum(["PUBLISH", "REJECT"], { error: "Choose publish or reject." }),
+  title: z.string().trim().min(4, "The title is required.").max(200),
+  body: z.string().trim().min(10, "The body is required."),
+  category: z.string().trim().max(80).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Partner support tickets (also emailed to the program owner)
+// ---------------------------------------------------------------------------
+
+export const supportTicketSchema = z.object({
+  subject: z.string().trim().min(4, "Give the issue a short subject.").max(200),
+  body: z.string().trim().min(10, "Describe the problem so we can help."),
+});

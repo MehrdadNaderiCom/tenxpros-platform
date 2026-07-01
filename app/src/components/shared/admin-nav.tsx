@@ -39,6 +39,8 @@ const sections: NavSection[] = [
       { label: "Deal Registrations", href: "/admin/partners/deal-registrations" },
       { label: "Special Requests", href: "/admin/partners/special-deals" },
       { label: "Partner Toolkit", href: "/admin/partners/toolkit" },
+      { label: "Discussion Board", href: "/admin/partners/discussions" },
+      { label: "Support", href: "/admin/partners/support" },
       { label: "Commissions", href: "/admin/partners/commissions" },
       { label: "Configuration", href: "/admin/partners/config" },
       { label: "House Accounts", href: "/admin/partners/house-accounts" },

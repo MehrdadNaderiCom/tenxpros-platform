@@ -7,7 +7,9 @@ import type {
   PartnerApplicationStatus,
   PartnerFunction,
   PartnerStatus,
+  PartnerSupportStatus,
   PartnerTier,
+  DiscussionStatus,
   ScorecardDay,
   SeatStatus,
   SpecialDealItemStatus,
@@ -166,6 +168,32 @@ export const SPECIAL_DEAL_ITEM_STATUS_BADGE: Record<SpecialDealItemStatus, strin
   PENDING: "PENDING",
   APPROVED: "APPROVED",
   REJECTED: "NOT_COMPLETED",
+};
+
+// ---------------------------------------------------------------------------
+// Discussion board + support tickets
+// ---------------------------------------------------------------------------
+
+export const DISCUSSION_STATUS_LABELS: Record<DiscussionStatus, string> = {
+  PENDING_REVIEW: "Awaiting review",
+  PUBLISHED: "Published",
+  REJECTED: "Not published",
+};
+
+export const DISCUSSION_STATUS_BADGE: Record<DiscussionStatus, string> = {
+  PENDING_REVIEW: "PENDING",
+  PUBLISHED: "APPROVED",
+  REJECTED: "NOT_COMPLETED",
+};
+
+export const SUPPORT_STATUS_LABELS: Record<PartnerSupportStatus, string> = {
+  OPEN: "Open",
+  RESOLVED: "Resolved",
+};
+
+export const SUPPORT_STATUS_BADGE: Record<PartnerSupportStatus, string> = {
+  OPEN: "OPEN",
+  RESOLVED: "RESOLVED",
 };
 
 export const COMMISSION_STATUS_LABELS: Record<CommissionStatus, string> = {
