@@ -29,7 +29,7 @@ export const m02: ModuleSeed = {
   <li><strong>Delivery or coaching:</strong> you help deliver, coach, or support the offering when you are approved to do so.</li>
 </ul>
 
-<h3>The four things a partner protects</h3>
+<h3>What your commission is calculated on</h3><p>Your commission is a percentage of Net Receipts: the money that actually reaches and clears to the company after the real costs of the sale, such as payment-processor and gateway fees and any currency-conversion cost. It is not a share of the company's profit, and it is not the gross sticker price. The system does not itemize each fee for you; those costs are already reflected in the Net Receipts figure your commission is calculated on. If a payment is later refunded or charged back, the matching commission is reversed, because you are paid on money the company actually kept. The exact rate for each function, and the cap that limits any single deal, live in the Rules module and in the official terms.</p><h3>The four things a partner protects</h3>
 <p>The mindset under all five functions protects you as much as it protects the company. A partner protects the brand, protects the prospect, protects the standard, and protects their own right to earn by following the process. Those four hold together: drop one and the others weaken. Protect the prospect, for instance, and you protect the brand at the same time, because an honest introduction is what makes the brand trustworthy in the first place.</p>
 
 <h3>Detection, not persuasion</h3>
