@@ -1,11 +1,14 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isActivePartnerStatus } from "@/lib/partner/status";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Stream a Toolkit attachment. Available to any logged-in admin or partner (the
- * repository is a partner resource). The bytes live in the database.
+ * Stream a Toolkit attachment. An admin may fetch any file (including drafts and
+ * orphans). A non-admin must be an ACTIVE partner (not a bare applicant and not
+ * terminated) AND the file's parent post must be published, matching the toolkit
+ * UI which lists only isPublished posts. The bytes live in the database.
  */
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
@@ -13,12 +16,18 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   const isAdmin = session.user.role === "ADMIN";
   if (!isAdmin) {
-    const partner = await prisma.partner.findUnique({ where: { userId: session.user.id }, select: { id: true } });
-    if (!partner) return new Response("Forbidden", { status: 403 });
+    const partner = await prisma.partner.findUnique({ where: { userId: session.user.id }, select: { status: true } });
+    if (!partner || !isActivePartnerStatus(partner.status)) return new Response("Forbidden", { status: 403 });
   }
 
-  const file = await prisma.toolkitFile.findUnique({ where: { id: params.id } });
+  const file = await prisma.toolkitFile.findUnique({
+    where: { id: params.id },
+    include: { post: { select: { isPublished: true } } },
+  });
   if (!file) return new Response("Not found", { status: 404 });
+  // Non-admins may only download an attachment of a published post; a draft post
+  // or an orphaned file (no parent post) is hidden from them, matching the UI.
+  if (!isAdmin && !file.post?.isPublished) return new Response("Not found", { status: 404 });
 
   const safeName = file.filename.replace(/[^\w.()\- ]+/g, "_") || "file";
   return new Response(Buffer.from(file.data), {

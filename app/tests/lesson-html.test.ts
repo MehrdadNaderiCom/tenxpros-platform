@@ -43,6 +43,28 @@ describe("sanitizeLessonHtml", () => {
     expect(out).toContain('class="callout callout-tip"');
     expect(out).not.toMatch(/evil/);
   });
+
+  it("escapes a double-quote in an href so it cannot break out of the attribute", () => {
+    // A single-quoted source href may carry an embedded double-quote. Without
+    // escaping it would close the emitted attribute early and inject a handler.
+    const out = sanitizeLessonHtml(`<a href='/path" onmouseover="alert(1)'>x</a>`);
+    // Every embedded quote becomes an inert entity inside the value, so the
+    // attribute cannot be closed early: no raw `href="/path"` followed by a handler.
+    expect(out).not.toMatch(/href="\/path"\s+onmouseover/i);
+    expect(out).toContain('/path&quot; onmouseover=&quot;alert(1)');
+  });
+
+  it("escapes a double-quote in an img src so it cannot break out of the attribute", () => {
+    const out = sanitizeLessonHtml(`<img src='/img" onerror="alert(1)' alt="ok">`);
+    expect(out).not.toMatch(/src="\/img"\s+onerror/i);
+    expect(out).toContain('/img&quot; onerror=&quot;alert(1)');
+  });
+
+  it("still emits a normal href unchanged (no over-escaping of quote-free urls)", () => {
+    const out = sanitizeLessonHtml('<a href="https://tenxpros.com/x?a=1">x</a>');
+    expect(out).toContain('href="https://tenxpros.com/x?a=1"');
+    expect(out).not.toContain("&quot;");
+  });
 });
 
 describe("htmlToPlainText", () => {

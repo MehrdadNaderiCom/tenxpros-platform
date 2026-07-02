@@ -28,6 +28,16 @@ function safeUrl(raw: string): string | null {
 }
 
 /**
+ * Escape a double-quote so a value interpolated into a double-quoted attribute
+ * cannot break out of it (e.g. a href/src URL that contains a quote). Applied to
+ * every emitted attribute value. This does not change which URL schemes are
+ * allowed; safeUrl still decides that. It only neutralizes an embedded quote.
+ */
+function escapeAttr(value: string): string {
+  return value.replace(/"/g, "&quot;");
+}
+
+/**
  * Sanitize lesson HTML: drop <script>/<style> blocks, strip event handlers and
  * unsafe URLs, and remove any tag outside the allowlist while keeping its text.
  */
@@ -56,7 +66,7 @@ export function sanitizeLessonHtml(html: string): string {
       const val = href ? (href[2] ?? href[3] ?? "") : "";
       const safe = val ? safeUrl(val) : null;
       if (safe) {
-        attrs.push(`href="${safe}"`);
+        attrs.push(`href="${escapeAttr(safe)}"`);
         if (/^https?:/i.test(safe)) attrs.push('target="_blank"', 'rel="noopener noreferrer"');
       }
     }
@@ -66,9 +76,9 @@ export function sanitizeLessonHtml(html: string): string {
       const alt = /\balt\s*=\s*("([^"]*)"|'([^']*)')/i.exec(rawAttrs);
       const srcVal = src ? (src[2] ?? src[3] ?? "") : "";
       const safe = srcVal ? safeUrl(srcVal) : null;
-      if (safe) attrs.push(`src="${safe}"`);
+      if (safe) attrs.push(`src="${escapeAttr(safe)}"`);
       const altVal = alt ? (alt[2] ?? alt[3] ?? "") : "";
-      attrs.push(`alt="${altVal.replace(/"/g, "&quot;")}"`);
+      attrs.push(`alt="${escapeAttr(altVal)}"`);
       attrs.push('loading="lazy"');
     }
     // colspan/rowspan on table cells

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin } from "@/lib/authz";
+import { isActivePartnerStatus } from "./status";
 
 /**
  * Partner Panel access control. A Partner Panel user is a logged-in account whose
@@ -20,8 +21,6 @@ import { isSuperAdmin } from "@/lib/authz";
 export type SessionUser = { id: string; email: string | null; name: string | null; role: string };
 
 export const PARTNER_VIEW_COOKIE = "tenx_view_partner";
-
-const ACTIVE_PARTNER_STATUSES = ["PILOT", "TIER1", "TIER2", "TIER3", "INACTIVE"] as const;
 
 /** Strict, session-only resolution. The basis for every mutating action. */
 export async function getSessionPartner(): Promise<{ user: SessionUser; partner: Partner } | null> {
@@ -68,7 +67,14 @@ export async function getCurrentPartner(): Promise<
       }
     }
   }
-  return getSessionPartner();
+  // Panel READS are limited to the same active statuses that gate mutations, so a
+  // terminated or applicant partner with a valid session cannot read the panel
+  // (its commission ledger, closed deals, or registered client accounts). The
+  // super admin preview branch above returns before this point, so previewing a
+  // partner of any status is unaffected.
+  const current = await getSessionPartner();
+  if (!current || !isActivePartnerStatus(current.partner.status)) return null;
+  return current;
 }
 
 /**
@@ -80,7 +86,7 @@ export async function getCurrentPartner(): Promise<
 export async function requirePartner(): Promise<{ user: SessionUser; partner: Partner }> {
   const current = await getSessionPartner();
   if (!current) throw new Error("Partner access required.");
-  if (!(ACTIVE_PARTNER_STATUSES as readonly string[]).includes(current.partner.status)) {
+  if (!isActivePartnerStatus(current.partner.status)) {
     throw new Error("Your partner account is not active.");
   }
   return current;
