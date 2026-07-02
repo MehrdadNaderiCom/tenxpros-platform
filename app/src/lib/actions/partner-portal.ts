@@ -12,6 +12,7 @@ import {
   tenXOpsRequestSchema,
 } from "@/lib/validations/partner";
 import { requirePartner } from "@/lib/partner/auth";
+import { startReadiness, notReadyMessage, type StartReadiness } from "@/lib/partner/readiness";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
 import { notifyOwner } from "@/lib/services/owner-notify";
@@ -19,6 +20,19 @@ import { notifyOwner } from "@/lib/services/owner-notify";
 function usdToCents(usd: number | undefined): number | null {
   if (usd == null || !Number.isFinite(usd)) return null;
   return Math.round(usd * 100);
+}
+
+/**
+ * Start-work readiness for a partner: Academy complete (certificate badge) AND
+ * onboarding confirmed (Activation Gate). The single gate before a partner may
+ * register opportunities. Reads the badge existence; the Activation Gate comes
+ * from the partner record.
+ */
+async function partnerStartReadiness(partner: { id: string; activationGatePassedAt: Date | null }): Promise<StartReadiness> {
+  const hasAcademyBadge = Boolean(
+    await prisma.partnerAcademyBadge.findUnique({ where: { partnerId: partner.id }, select: { id: true } }),
+  );
+  return startReadiness({ activationGatePassedAt: partner.activationGatePassedAt, hasAcademyBadge });
 }
 
 /** Mark an Activation Gate checklist item complete/incomplete (own partner only). */
@@ -68,8 +82,9 @@ export async function setActivationItem(formData: FormData) {
 /** Submit a deal registration (Schedule B). Effective only on Panel Confirmation. */
 export async function submitDealRegistration(formData: FormData) {
   const { partner } = await requirePartner();
-  if (!partner.activationGatePassedAt) {
-    return { ok: false, message: "Complete the Activation Gate before registering deals." };
+  const readiness = await partnerStartReadiness(partner);
+  if (!readiness.ready) {
+    return { ok: false, message: notReadyMessage(readiness) };
   }
 
   const parsed = dealRegistrationSchema.safeParse({
@@ -425,6 +440,10 @@ export async function resubmitDealRegistration(formData: FormData) {
  */
 export async function submitSpecialDealRequest(formData: FormData) {
   const { partner } = await requirePartner();
+  const readiness = await partnerStartReadiness(partner);
+  if (!readiness.ready) {
+    return { ok: false, message: notReadyMessage(readiness) };
+  }
   const items = formData
     .getAll("items")
     .map(String)

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPartner } from "@/lib/partner/auth";
+import { startReadiness, notReadyMessage } from "@/lib/partner/readiness";
 import { PartnerDealForm } from "@/components/portal/partner-deal-form";
 import { SpecialDealModal } from "@/components/portal/special-deal-modal";
 import { DEAL_REG_STATUS_LABELS, OFFERING_LABELS } from "@/lib/partner/constants";
@@ -28,9 +29,12 @@ export default async function PartnerDealsPage() {
 
   const partner = await prisma.partner.findUniqueOrThrow({
     where: { id: current.partner.id },
-    include: { dealRegistrations: { orderBy: { submittedAt: "desc" } } },
+    include: { dealRegistrations: { orderBy: { submittedAt: "desc" } }, academyBadge: true },
   });
-  const activated = Boolean(partner.activationGatePassedAt);
+  const readiness = startReadiness({
+    activationGatePassedAt: partner.activationGatePassedAt,
+    hasAcademyBadge: Boolean(partner.academyBadge),
+  });
 
   return (
     <div className="space-y-8">
@@ -39,9 +43,9 @@ export default async function PartnerDealsPage() {
         description="Register each opportunity before substantive contact. Deal Registration is the only source of protection, and it is effective only on Panel Confirmation."
       />
 
-      {!activated ? (
-        <Alert tone="warning" title="Complete the Activation Gate first">
-          You can register opportunities once the company confirms your Activation Gate on the panel.
+      {!readiness.ready ? (
+        <Alert tone="warning" title="Finish your Academy and onboarding first">
+          {notReadyMessage(readiness)} You can register opportunities once both are complete.
         </Alert>
       ) : (
         <>

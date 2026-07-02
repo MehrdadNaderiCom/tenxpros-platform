@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
+import { StartHereCard } from "@/components/partner/start-here";
+import { startReadiness } from "@/lib/partner/readiness";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +23,7 @@ export default async function PartnerDashboardPage() {
     where: { id: current.partner.id },
     include: {
       activationItems: true,
+      academyBadge: true,
       scorecard: { orderBy: { day: "asc" } },
       commissions: { include: { closedDeal: true } },
       closedDeals: { include: { seats: true } },
@@ -37,8 +40,11 @@ export default async function PartnerDashboardPage() {
   const sum = (status: "ACCRUED" | "PAYABLE" | "PAID" | "REVERSED") =>
     partner.commissions.filter((c) => c.status === status).reduce((t, c) => t + entryPayoutMinor(c, c.closedDeal, payoutCurrency), 0);
 
-  const gatePassed = Boolean(partner.activationGatePassedAt);
   const itemsDone = partner.activationItems.filter((i) => i.completed).length;
+  const readiness = startReadiness({
+    activationGatePassedAt: partner.activationGatePassedAt,
+    hasAcademyBadge: Boolean(partner.academyBadge),
+  });
   const pilotDay = partner.pilotStartDate ? pilotDayNumber(partner.pilotStartDate, now) : null;
   const pilotEnd = partner.pilotStartDate ? pilotEndDate(partner.pilotStartDate, cfg) : null;
 
@@ -72,19 +78,14 @@ export default async function PartnerDashboardPage() {
         </Card>
       </div>
 
-      {/* Activation gate / next step */}
-      {!gatePassed ? (
-        <Card className="flex flex-col gap-4 border-amber-200 bg-amber-50 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">Before you start</p>
-            <h2 className="text-xl font-semibold text-navy-900">Complete the Activation Gate</h2>
-            <p className="mt-2 text-sm text-slate-600">
-              {itemsDone}/{partner.activationItems.length} steps complete. Finish onboarding, then the company confirms
-              your gate on the panel before any outreach.
-            </p>
-          </div>
-          <ButtonLink href="/partner/onboarding">Open onboarding</ButtonLink>
-        </Card>
+      {/* Get started: Academy + onboarding, then start working */}
+      {!readiness.ready ? (
+        <StartHereCard
+          academyComplete={readiness.academyComplete}
+          onboardingComplete={readiness.onboardingComplete}
+          itemsDone={itemsDone}
+          itemsTotal={partner.activationItems.length}
+        />
       ) : (
         <Card className="flex flex-col gap-4 border-navy-200 bg-navy-50 md:flex-row md:items-center md:justify-between">
           <div>
