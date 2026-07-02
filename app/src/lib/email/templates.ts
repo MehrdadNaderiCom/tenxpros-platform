@@ -625,6 +625,61 @@ export function partnerApplicationDecisionEmail(params: {
   };
 }
 
+/**
+ * Second email on partner approval: point the new partner to the Academy and to
+ * onboarding, so they start with the training and the Activation Gate before any
+ * outreach. Sent alongside the approval and set-password email.
+ */
+export function partnerStartHereEmail(params: {
+  fullName: string;
+  academyUrl: string;
+  onboardingUrl: string;
+  panelUrl?: string | null;
+}): EmailContent {
+  const { fullName, academyUrl, onboardingUrl, panelUrl } = params;
+
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph(
+      "Now that you are on the Partner Panel, start in this order: the Academy first, then onboarding. The Academy teaches how the program works, how you earn, and how to represent it honestly, so you learn the system before you use it.",
+    ) +
+    button(academyUrl, "Start the Academy") +
+    paragraph(
+      "When you have worked through the Academy, complete onboarding (the Activation Gate). You begin outreach using the TenXPros name only after the company confirms your gate on the panel.",
+    ) +
+    button(onboardingUrl, "Go to onboarding") +
+    noteBox(
+      "Do this first",
+      "Work through the Academy modules and pass each check, then finish the Activation Gate in onboarding. Everything runs on the panel, so start there and follow the training step by step.",
+    );
+
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "Now that you are on the Partner Panel, start in this order: the Academy first, then onboarding. The Academy teaches how the program works, how you earn, and how to represent it honestly, so you learn the system before you use it.",
+    "",
+    `Start the Academy: ${academyUrl}`,
+    "",
+    "When you have worked through the Academy, complete onboarding (the Activation Gate). You begin outreach using the TenXPros name only after the company confirms your gate on the panel.",
+    "",
+    `Go to onboarding: ${onboardingUrl}`,
+    ...(panelUrl ? ["", `Your Partner Panel: ${panelUrl}`] : []),
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "Start here: your TenXPros Academy and onboarding",
+    html: layout({
+      preheader: "Start with the Academy, then complete onboarding.",
+      eyebrow: "Your first steps",
+      heading: "Start with the Academy, then onboarding.",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
 /** Confirm a deal registration on the panel. */
 export function partnerDealConfirmedEmail(params: {
   fullName: string;

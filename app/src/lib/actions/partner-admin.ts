@@ -9,6 +9,7 @@ import { absoluteUrl } from "@/lib/utils";
 import { safeSendEmail } from "@/lib/services/email";
 import {
   partnerApplicationDecisionEmail,
+  partnerStartHereEmail,
   partnerDealConfirmedEmail,
 } from "@/lib/email/templates";
 import {
@@ -187,6 +188,16 @@ export async function reviewPartnerApplication(formData: FormData) {
     panelUrl: absoluteUrl("/partner"),
   });
   await safeSendEmail({ to: application.email, subject: mail.subject, template: "partner_application_approved", text: mail.text, html: mail.html });
+
+  // Second email: point the new partner to the Academy and onboarding so they
+  // start with the training and the Activation Gate before any outreach.
+  const startMail = partnerStartHereEmail({
+    fullName: application.fullName,
+    academyUrl: absoluteUrl("/partner/academy"),
+    onboardingUrl: absoluteUrl("/partner/onboarding"),
+    panelUrl: absoluteUrl("/partner"),
+  });
+  await safeSendEmail({ to: application.email, subject: startMail.subject, template: "partner_start_here", text: startMail.text, html: startMail.html });
 
   safeRevalidatePath("/admin/partners/applications");
   safeRevalidatePath(`/admin/partners/applications/${applicationId}`);
@@ -1283,11 +1294,18 @@ export async function forceDeletePartner(formData: FormData) {
   }
   const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
   await prisma.$transaction(async (tx) => {
-    // Clear the RESTRICT-protected financial records first, then quality flags
-    // (which may reference closed deals), then the deals (cascading their seats +
-    // refunds), then the partner (cascading the remaining children).
-    await tx.commissionEntry.deleteMany({ where: { partnerId } });
-    await tx.qualityFlag.deleteMany({ where: { partnerId } });
+    // Clear every RESTRICT-protected record before the deals and the partner.
+    // CommissionEntry has a RESTRICT link to Partner; TenXOpsEngagement and
+    // QualityFlag each have a RESTRICT link to ClosedDeal, so they must be removed
+    // before the deals or the deal delete throws a foreign-key error. We key each
+    // delete on both the partner AND the partner's deal ids, so a record attached
+    // via the deal (not the partner) is still cleared. Deleting the deals then
+    // cascades their seats and refunds; deleting the partner cascades the rest
+    // (registrations, accounts, config, academy progress, notifications, and more).
+    const dealIds = (await tx.closedDeal.findMany({ where: { partnerId }, select: { id: true } })).map((d) => d.id);
+    await tx.commissionEntry.deleteMany({ where: { OR: [{ partnerId }, { closedDealId: { in: dealIds } }] } });
+    await tx.tenXOpsEngagement.deleteMany({ where: { OR: [{ partnerId }, { closedDealId: { in: dealIds } }] } });
+    await tx.qualityFlag.deleteMany({ where: { OR: [{ partnerId }, { closedDealId: { in: dealIds } }] } });
     await tx.closedDeal.deleteMany({ where: { partnerId } });
     if (partner.userId) {
       const user = await tx.user.findUnique({ where: { id: partner.userId }, select: { role: true } });
