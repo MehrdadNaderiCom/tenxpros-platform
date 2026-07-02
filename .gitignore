@@ -18,3 +18,6 @@ Thumbs.db
 # Database backups / dumps — may contain password hashes; never commit.
 backups/
 scratch_academy/
+
+# Local backups created during ops (may contain secrets) - never commit
+*.bak-*

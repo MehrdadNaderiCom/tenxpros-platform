@@ -7,10 +7,13 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: tenxpros
-      POSTGRES_PASSWORD: tenxpros_dev
+      # Secret sourced from gitignored /opt/tenxpros/.env (never committed).
+      # Only used on first cluster init; the live role password is managed via ALTER USER.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in /opt/tenxpros/.env}
       POSTGRES_DB: tenxpros
-    ports:
-      - "5433:5432"
+    # No host port publish: the app reaches Postgres over the internal compose
+    # network at db:5432. Publishing to the host exposed it on 0.0.0.0 (Docker
+    # DNAT bypasses ufw). Add "127.0.0.1:5433:5432" only if host-side psql is needed.
     volumes:
       - tenxpros-db-data:/var/lib/postgresql/data
     healthcheck:
