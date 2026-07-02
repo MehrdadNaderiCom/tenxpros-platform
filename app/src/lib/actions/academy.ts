@@ -13,6 +13,7 @@ import {
   cooldownUntil,
   academyBadgeSerial,
   ACADEMY_MODULE_COUNT,
+  CERTIFICATION_MODULE_FILTER,
   FINAL_EXAM_SIZE,
   FINAL_EXAM_PASS_MARK,
   FINAL_EXAM_COOLDOWN_HOURS,
@@ -294,8 +295,10 @@ export async function submitExam(input: { sittingId: string; selections: number[
  */
 async function allModulesPassedFor(partnerId: string): Promise<boolean> {
   const [publishedCount, passedCount] = await Promise.all([
-    prisma.academyModule.count({ where: { isPublished: true, isInformational: false } }),
-    prisma.academyProgress.count({ where: { partnerId, examPassed: true } }),
+    prisma.academyModule.count({ where: CERTIFICATION_MODULE_FILTER }),
+    // Scope the passed count to the SAME population (published, exam-bearing), so a
+    // progress row on an informational module cannot inflate it toward the gate.
+    prisma.academyProgress.count({ where: { partnerId, examPassed: true, module: CERTIFICATION_MODULE_FILTER } }),
   ]);
   return publishedCount >= ACADEMY_MODULE_COUNT && passedCount >= publishedCount;
 }

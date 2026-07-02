@@ -11,6 +11,15 @@
  * the certificate.
  */
 export const ACADEMY_MODULE_COUNT = 14;
+
+/**
+ * A module contributes to the final-exam certification gate only when it is
+ * published AND exam-bearing (not informational). Both the published-module count
+ * and the passed-module count are scoped by this identical filter, so an
+ * informational module (even one marked complete) can never satisfy the gate.
+ */
+export const CERTIFICATION_MODULE_FILTER = { isPublished: true, isInformational: false };
+
 export const DEFAULT_PASS_MARK = 80;
 export const DEFAULT_EXAM_SIZE = 10;
 export const DEFAULT_COOLDOWN_HOURS = 24;

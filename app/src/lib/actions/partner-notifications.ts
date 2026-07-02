@@ -28,7 +28,9 @@ export async function markAllPartnerNotificationsRead() {
   revalidatePath("/partner");
 }
 
-/** Unread notification count for the partner nav badge. */
-export async function partnerUnreadCount(partnerId: string): Promise<number> {
-  return prisma.partnerNotification.count({ where: { partnerId, isRead: false } });
+/** Unread notification count for the partner nav badge. Scoped to the session
+ *  partner, so it can never return another partner's count. */
+export async function partnerUnreadCount(): Promise<number> {
+  const { partner } = await requirePartner();
+  return prisma.partnerNotification.count({ where: { partnerId: partner.id, isRead: false } });
 }

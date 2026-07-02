@@ -135,6 +135,27 @@ export function focusBonusBp(yearsHeld: number, cfg: EffectiveConfig): number {
   return Math.min(bp, cfg.focusBonusCeilingBp);
 }
 
+/**
+ * Decide what a recompute should do with a deal's FOCUS_BONUS line, so the bonus
+ * is applied exactly once and a settled line is never re-scaled or duplicated.
+ * `existingStatus` is the status of the deal's current NON-REVERSED FOCUS_BONUS
+ * line, or null when none exists (a fully reversed line counts as none).
+ *  - no existing line, positive bonus        -> "create"
+ *  - an ACCRUED/PAYABLE line, positive bonus  -> "update" (re-scale the open line)
+ *  - a PAID (or otherwise settled) line        -> "skip" (never mutate, never duplicate)
+ *  - no positive bonus                         -> "skip"
+ */
+export type FocusBonusRecomputeAction = "create" | "update" | "skip";
+export function focusBonusRecomputeAction(
+  bonusBp: number,
+  existingStatus: "ACCRUED" | "PAYABLE" | "PAID" | "REVERSED" | null,
+): FocusBonusRecomputeAction {
+  if (existingStatus === null) return bonusBp > 0 ? "create" : "skip";
+  if (existingStatus === "ACCRUED" || existingStatus === "PAYABLE") return bonusBp > 0 ? "update" : "skip";
+  // PAID (settled) or an unexpected reversed status: leave it, and never duplicate.
+  return "skip";
+}
+
 /** Growth bonus (Tier 2/3 only) when ≥ threshold new B2B orgs in a rolling year. */
 export function growthBonusBp(orgCountRolling12: number, tier: PartnerTier, cfg: EffectiveConfig): number {
   if (tier === "TIER1") return 0;

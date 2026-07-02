@@ -15,6 +15,8 @@ import {
   academyBadgeSerial,
   normalizeStem,
   EXERCISE_MAX_ATTEMPTS,
+  ACADEMY_MODULE_COUNT,
+  CERTIFICATION_MODULE_FILTER,
 } from "../src/lib/academy/engine";
 
 describe("academy engine: rng + shuffle", () => {
@@ -146,6 +148,17 @@ describe("academy engine: sequencing, gating, cooldown, badge", () => {
   it("the badge gates strictly on all fourteen modules", () => {
     expect(allModulesPassed(13)).toBe(false);
     expect(allModulesPassed(14)).toBe(true);
+  });
+
+  it("the certification gate counts only published, exam-bearing modules (finding 3)", () => {
+    // Both the published-module count and the passed-module count use this exact
+    // filter, so a progress row on an informational module (isInformational=true),
+    // even if a superadmin marked it complete, is never counted toward the gate.
+    expect(CERTIFICATION_MODULE_FILTER).toEqual({ isPublished: true, isInformational: false });
+    // Passing only the exam-bearing modules is required: the threshold is 14.
+    expect(ACADEMY_MODULE_COUNT).toBe(14);
+    expect(allModulesPassed(ACADEMY_MODULE_COUNT - 1, ACADEMY_MODULE_COUNT)).toBe(false);
+    expect(allModulesPassed(ACADEMY_MODULE_COUNT, ACADEMY_MODULE_COUNT)).toBe(true);
   });
 
   it("badge serial is zero-padded and carries the year", () => {

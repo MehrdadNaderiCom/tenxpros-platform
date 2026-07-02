@@ -36,6 +36,7 @@ import {
   countableSeats,
   deriveFunctionRate,
   focusBonusBp,
+  focusBonusRecomputeAction,
   originationOpener,
   proportionalReversalCents,
 } from "@/lib/partner/commission";
@@ -918,14 +919,17 @@ export async function recomputeDealCommissions(formData: FormData) {
   if (grant) {
     const atDate = deal.paymentClearedAt ?? deal.signedAt ?? new Date();
     const bonusBp = focusBonusBp(focusTenureYear(grant.continuouslyHeldSince, atDate), cfg);
+    // Match ANY non-reversed FOCUS_BONUS (including a PAID one) so a second line is
+    // never minted once one exists, and a settled PAID line is never re-scaled.
     const existing = await prisma.commissionEntry.findFirst({
-      where: { closedDealId, function: "FOCUS_BONUS", status: { in: ["ACCRUED", "PAYABLE"] } },
+      where: { closedDealId, function: "FOCUS_BONUS", status: { notIn: ["REVERSED"] } },
     });
-    if (bonusBp > 0) {
+    const action = focusBonusRecomputeAction(bonusBp, existing?.status ?? null);
+    if (action !== "skip") {
       const amount = Math.round((deal.netReceiptsCents * bonusBp) / 10000);
-      if (existing) {
+      if (action === "update" && existing) {
         await prisma.commissionEntry.update({ where: { id: existing.id }, data: { rateBp: bonusBp, amountCents: amount } });
-      } else {
+      } else if (action === "create") {
         await prisma.commissionEntry.create({
           data: { partnerId: deal.partnerId, closedDealId, function: "FOCUS_BONUS", rateBp: bonusBp, baseAmountCents: deal.netReceiptsCents, amountCents: amount, currency: deal.currency },
         });

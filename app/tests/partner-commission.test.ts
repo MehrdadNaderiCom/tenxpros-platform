@@ -11,6 +11,7 @@ import {
   deliveryRateBp,
   deriveFunctionRate,
   focusBonusBp,
+  focusBonusRecomputeAction,
   growthBonusBp,
   openerOriginationRateBp,
   originationOpener,
@@ -300,6 +301,28 @@ describe("tier-3 focus bonus stepping & ceiling", () => {
   });
   it("resets to the start value after a lapse (caller passes yearsHeld=1)", () => {
     expect(focusBonusBp(1, cfg)).toBe(100);
+  });
+});
+
+describe("focus bonus recompute action (no duplicate; a paid line is never re-scaled)", () => {
+  it("creates the focus bonus when none exists and the bonus is positive", () => {
+    expect(focusBonusRecomputeAction(100, null)).toBe("create");
+  });
+  it("does nothing when there is no line and no bonus", () => {
+    expect(focusBonusRecomputeAction(0, null)).toBe("skip");
+  });
+  it("re-scales a still-open (ACCRUED or PAYABLE) focus bonus", () => {
+    expect(focusBonusRecomputeAction(200, "ACCRUED")).toBe("update");
+    expect(focusBonusRecomputeAction(200, "PAYABLE")).toBe("update");
+  });
+  it("pay-then-recompute: a PAID focus bonus is never mutated and never duplicated", () => {
+    // The finding-1 fix: once a focus bonus is PAID, a later recompute must not
+    // create a second one and must not re-scale the paid line.
+    expect(focusBonusRecomputeAction(300, "PAID")).toBe("skip");
+    expect(focusBonusRecomputeAction(999, "PAID")).toBe("skip"); // even if the bonus recomputes differently
+  });
+  it("a zero bonus leaves an open line as-is (unchanged prior behavior)", () => {
+    expect(focusBonusRecomputeAction(0, "ACCRUED")).toBe("skip");
   });
 });
 
