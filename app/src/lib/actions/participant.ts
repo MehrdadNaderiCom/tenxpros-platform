@@ -168,12 +168,24 @@ export async function createTicket(formData: FormData) {
 export async function addTicketMessage(formData: FormData) {
   const profile = await requireParticipant();
   const parsed = ticketMessageSchema.parse(Object.fromEntries(formData));
-  await prisma.ticketMessage.create({
-    data: { ticketId: parsed.ticketId, userId: profile.userId, body: parsed.body },
-  });
-  await prisma.ticket.update({
-    where: { id: parsed.ticketId, userId: profile.userId },
-    data: { status: "WAITING_RESPONSE" },
+  // Ownership check and both writes in a single transaction: if the ticket does
+  // not belong to the acting participant, the transaction throws and nothing
+  // commits, so a foreign ticketId can never inject a message into another
+  // participant's thread. (Mirrors the partner-portal findFirst({id, ownerId})
+  // then write pattern.)
+  await prisma.$transaction(async (tx) => {
+    const ticket = await tx.ticket.findFirst({
+      where: { id: parsed.ticketId, userId: profile.userId },
+      select: { id: true },
+    });
+    if (!ticket) throw new Error("Ticket not found.");
+    await tx.ticketMessage.create({
+      data: { ticketId: ticket.id, userId: profile.userId, body: parsed.body },
+    });
+    await tx.ticket.update({
+      where: { id: ticket.id },
+      data: { status: "WAITING_RESPONSE" },
+    });
   });
   safeRevalidatePath(`/portal/tickets/${parsed.ticketId}`);
 }

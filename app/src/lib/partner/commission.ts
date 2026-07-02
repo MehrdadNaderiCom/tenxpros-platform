@@ -245,6 +245,11 @@ function scaleToTarget(amounts: number[], target: number): number[] {
  * reach 35%). Fixed-fee lines are treated as committed (counted toward the cap
  * but never scaled, so recompute is idempotent); only percentage lines are
  * scaled down, cents-exact, to fit the remaining headroom under the cap.
+ *
+ * `committedExternalCents` is commission already locked in lines NOT passed in
+ * `functions` (for example already-PAID lines that recompute must not re-scale).
+ * Those consume cap headroom too, so the recomputed lines may only fill what is
+ * left under the cap: committed + recomputed can never exceed the absolute cap.
  * Amounts are in the DEAL's currency minor units (the engine is scale-agnostic).
  */
 export function computeDealCommission(args: {
@@ -253,10 +258,16 @@ export function computeDealCommission(args: {
   functions: FunctionInput[];
   config: EffectiveConfig;
   focusActive?: boolean;
+  committedExternalCents?: number;
 }): DealCommissionResult {
   const { netReceiptsCents, dealKind, functions, config } = args;
+  const committedExternalCents = Math.max(0, args.committedExternalCents ?? 0);
   const capBp = capBpForDeal({ dealKind, focusActive: args.focusActive }, config);
   const capCents = bpToCents(netReceiptsCents, capBp);
+  // Headroom under the absolute per-deal cap after amounts already locked in
+  // (e.g. PAID lines outside this recompute) are subtracted. The recomputed
+  // lines may only fill this remainder, so paid + recomputed stays within the cap.
+  const capAvailable = Math.max(0, capCents - committedExternalCents);
 
   const raw: ComputedEntry[] = functions.map((f) => {
     const isFlat = f.flatCents != null;
@@ -269,15 +280,16 @@ export function computeDealCommission(args: {
   const rateAmounts = raw.filter((e) => !e.isFlat).map((e) => e.amountCents);
   const rateRaw = rateAmounts.reduce((s, a) => s + a, 0);
   const rawTotalCents = flatTotal + rateRaw;
-  const capForRate = Math.max(0, capCents - flatTotal);
-  const overCap = flatTotal > capCents;
+  const capForRate = Math.max(0, capAvailable - flatTotal);
+  const overCap = flatTotal > capAvailable;
 
   if (rateRaw <= capForRate) {
     const totalCents = flatTotal + rateRaw;
-    return { entries: raw, capBp, capCents, rawTotalCents, totalCents, capped: totalCents > capCents, overCap };
+    return { entries: raw, capBp, capCents, rawTotalCents, totalCents, capped: committedExternalCents + totalCents > capCents, overCap };
   }
 
-  // Scale only the percentage lines to fit the headroom left by the fixed fees.
+  // Scale only the percentage lines to fit the headroom left by the fixed fees
+  // and any already-committed amounts.
   const scaledRate = scaleToTarget(rateAmounts, capForRate);
   let ri = 0;
   const entries = raw.map((e) => (e.isFlat ? e : { ...e, amountCents: scaledRate[ri++] }));

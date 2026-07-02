@@ -905,12 +905,27 @@ export async function recomputeDealCommissions(formData: FormData) {
     return;
   }
 
+  // Commission already locked in PAID lines is deliberately excluded from the
+  // recompute set (paid money is never re-scaled), but it still consumes the
+  // per-deal cap. Feed its net amount (after any reversal) to the engine so the
+  // recomputed lines can only fill the remaining headroom and paid + recomputed
+  // can never breach the absolute cap.
+  const paidEntries = await prisma.commissionEntry.findMany({
+    where: { closedDealId, status: "PAID" },
+    select: { amountCents: true, reversedCents: true },
+  });
+  const committedExternalCents = paidEntries.reduce(
+    (sum, e) => sum + Math.max(0, e.amountCents - e.reversedCents),
+    0,
+  );
+
   const result = computeDealCommission({
     netReceiptsCents: deal.netReceiptsCents,
     dealKind: deal.dealType as "B2C" | "B2B",
     focusActive,
     config: cfg,
     functions: entries.map((e) => (e.isFlat ? { function: e.function, flatCents: e.amountCents } : { function: e.function, rateBp: e.rateBp })),
+    committedExternalCents,
   });
   const payableOn = commissionPayableOn(deal.deliveredAt, deal.paymentClearedAt, cfg);
 

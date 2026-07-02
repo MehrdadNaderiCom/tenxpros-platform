@@ -305,6 +305,64 @@ describe("fixed-fee lines are committed and idempotent under the cap clamp", () 
   });
 });
 
+describe("computeDealCommission — already-committed (PAID) amounts consume cap headroom", () => {
+  // B2C net $20k, cap 25% = $5,000. A CLOSING line was already PAID at 5% = $1,000
+  // and is excluded from the recompute set. The operator then adds strong
+  // origination 15% ($3,000) + delivery 8% ($1,600) = $4,600 of new percentage lines.
+  it("clamps recomputed lines so PAID + recomputed can never breach the per-deal cap (pay-then-add ordering)", () => {
+    const paidCents = 100_000; // $1,000 already PAID, outside the recompute set
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2C",
+      config: cfg,
+      committedExternalCents: paidCents,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: cfg.strongOriginationB2cBp }, // 15% = $3,000
+        { function: "DELIVERY", rateBp: cfg.deliveryPercentMaxBp }, // 8% = $1,600
+      ],
+    });
+    expect(r.capCents).toBe(bpToCents(USD_20K, cfg.capB2cBp)); // $5,000
+    expect(r.rawTotalCents).toBe(460_000); // $4,600 of new lines
+    // Without the fix this would stay $4,600 (it fits under $5,000 alone) and
+    // $1,000 + $4,600 = $5,600 would breach. With the paid $1,000 consuming
+    // headroom, the new lines clamp to the remaining $4,000.
+    expect(r.capped).toBe(true);
+    expect(r.totalCents).toBe(400_000);
+    expect(paidCents + r.totalCents).toBe(r.capCents); // exactly at the cap
+    expect(paidCents + r.totalCents).toBeLessThanOrEqual(r.capCents); // never above it
+  });
+
+  it("is backward compatible: committedExternalCents of 0 (or omitted) is unchanged", () => {
+    const base = {
+      netReceiptsCents: USD_20K,
+      dealKind: "B2C" as const,
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION" as const, rateBp: cfg.strongOriginationB2cBp },
+        { function: "DELIVERY" as const, rateBp: cfg.deliveryPercentMaxBp },
+      ],
+    };
+    const omitted = computeDealCommission(base);
+    const zero = computeDealCommission({ ...base, committedExternalCents: 0 });
+    expect(zero.totalCents).toBe(omitted.totalCents);
+    expect(omitted.totalCents).toBe(460_000); // $4,600, under the $5,000 cap, not clamped
+    expect(omitted.capped).toBe(false);
+  });
+
+  it("when PAID lines already fill the cap, further recomputed rate lines clamp to zero", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2C",
+      config: cfg,
+      committedExternalCents: bpToCents(USD_20K, cfg.capB2cBp), // already at the full 25% cap
+      functions: [{ function: "QUALIFIED_ORIGINATION", rateBp: cfg.qualifiedOriginationB2cBp }],
+    });
+    expect(r.totalCents).toBe(0);
+    expect(r.capped).toBe(true);
+    expect(r.entries[0].amountCents).toBe(0);
+  });
+});
+
 describe("deriveFunctionRate (single source of truth, no operator-typed rates)", () => {
   it("basic intro is the config rate for both kinds", () => {
     expect(deriveFunctionRate("BASIC_INTRO", { dealKind: "B2C", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.basicIntroductionBp });

@@ -159,10 +159,10 @@ export const m03: ModuleSeed = {
       explanation: "Contracts are valid until the thirty first of December of the year they were accepted, with renewal through the site. The other durations are wrong.",
     },
     {
-      stem: "When commission becomes payable, within what window is it paid?",
-      options: ["Within thirty business days of the later of delivery and cleared payment", "Immediately when the deal is signed", "Within one year", "Only after the partner reaches tier two"],
+      stem: "Once commission becomes payable, when is it paid?",
+      options: ["Within the window set in the current official terms, counted from the later of delivery and cleared payment", "Immediately when the deal is signed, before delivery or payment", "As soon as the opportunity is registered on the Panel", "Only after the partner reaches tier two"],
       correct: 0,
-      explanation: "Payment is within thirty business days of the later of delivery and cleared customer payment. Signing alone, a year, or a tier requirement are not the rule.",
+      explanation: "Payment is due within the window set in the current official terms, counted from the later of delivery and cleared customer payment. Quote the current figure from the official terms rather than memorizing it. Signing alone, registration alone, or a tier requirement are not the rule.",
     },
   ],
   exam: [
