@@ -1,7 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pause, Play, Square } from "lucide-react";
+
+/**
+ * Split text into short, sentence-sized chunks. Mobile speech engines (notably
+ * iOS Safari, and Chrome after ~15s) silently drop or cut off a single long
+ * utterance, so we queue several short ones instead of one long one.
+ */
+function chunkText(text: string, max = 200): string[] {
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (!clean) return [];
+  const sentences = clean.match(/[^.!?]+[.!?]*\s*/g) ?? [clean];
+  const chunks: string[] = [];
+  let buf = "";
+  for (const s of sentences) {
+    if (buf && (buf + s).length > max) {
+      chunks.push(buf.trim());
+      buf = "";
+    }
+    buf += s;
+  }
+  if (buf.trim()) chunks.push(buf.trim());
+  return chunks;
+}
 
 /**
  * Free, built-in audio reader using the browser SpeechSynthesis API. Reads the
@@ -15,7 +37,6 @@ export function AudioReader({ text }: { text: string }) {
   const [rate, setRate] = useState(1);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceURI, setVoiceURI] = useState("");
-  const uttRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -29,19 +50,39 @@ export function AudioReader({ text }: { text: string }) {
     };
   }, []);
 
+  // Keepalive: Chrome and some mobile engines auto-pause long speech after a few
+  // seconds. While playing and not user-paused, nudge the engine to keep going.
+  useEffect(() => {
+    if (!playing || paused) return;
+    const id = window.setInterval(() => {
+      const s = window.speechSynthesis;
+      if (s.speaking && !s.paused) s.resume();
+    }, 8000);
+    return () => window.clearInterval(id);
+  }, [playing, paused]);
+
   const start = () => {
     const synth = window.speechSynthesis;
+    // Clear any stuck or queued speech, and unstick a globally-paused engine
+    // (iOS Safari can leave speechSynthesis paused, which silently blocks speak).
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.rate = rate;
+    synth.resume();
+    const chunks = chunkText(text);
+    if (chunks.length === 0) return;
     const v = voices.find((vv) => vv.voiceURI === voiceURI);
-    if (v) u.voice = v;
-    u.onend = () => {
-      setPlaying(false);
-      setPaused(false);
-    };
-    uttRef.current = u;
-    synth.speak(u);
+    // Queue every chunk synchronously inside this click gesture (required by iOS).
+    chunks.forEach((chunk, i) => {
+      const u = new SpeechSynthesisUtterance(chunk);
+      u.rate = rate;
+      if (v) u.voice = v;
+      if (i === chunks.length - 1) {
+        u.onend = () => {
+          setPlaying(false);
+          setPaused(false);
+        };
+      }
+      synth.speak(u);
+    });
     setPlaying(true);
     setPaused(false);
   };
