@@ -38,6 +38,9 @@ export const m06: ModuleSeed = {
   </tbody>
 </table>
 
+<h3>How the two layers fit together</h3>
+<p>The two layers are not separate tracks. The weekly badges are the steps inside each phase, and the phase rank is what a participant earns when the work of that phase is complete and holds together. Roughly, the earliest badges build toward the Frame rank, the next toward Design, the next toward Proof, and the final stretch toward Foresee and the flagship. So a rank is never a surprise: it is the visible result of the badges beneath it, and the flagship credential sits above all four ranks as the one thing they were always building toward. When you explain this to a prospect, that is the whole shape in one motion, from a single week's deliverable up to a defensible credential.</p>
+
 <h3>What makes the flagship credential worth holding</h3>
 <p>The flagship credential is the thing everything points toward, and you should be able to say what makes it real. It is <strong>verifiable</strong>, reviewed against a public rubric rather than self reported. It is <strong>field specific</strong>, naming the participant's actual domain rather than a generic AI certificate. It is <strong>evidence based</strong>, backed by a reviewed living dossier of real work. And it is <strong>defensible</strong>, meaning the holder can walk any stakeholder through exactly what they built, how they tested it, and what value it delivers.</p>
 <blockquote>A normal certificate says this person completed a course. This credential says this person built, tested, and documented a responsible AI adoption system in their field, and it was reviewed against an explicit public standard. Those are not the same sentence, and serious people know the difference.</blockquote>
@@ -69,11 +72,8 @@ export const m06: ModuleSeed = {
   </tbody>
 </table>
 
-<h2>Forms and screens you will reference</h2>
-<div class="form-preview">
-  <div class="form-preview-label">The progress view</div>
-  <p>The progress view shows where a participant sits right now: accepted member, a phase rank, dossier candidate, or one of the three review outcomes. Use it to describe status honestly rather than rounding up.</p>
-</div>
+<h2>The progress view</h2>
+<p>The Partner Panel and the participant's own dashboard show a progress state at every moment: accepted member before week one, then the phase rank they have reached, then dossier candidate once they submit, and finally one of the three review outcomes. Check it before you describe where someone is, because it lets you speak from the record rather than rounding up. If the view says Design level practitioner, that is what you say, not certified.</p>
 
 <h2>Talking points</h2>
 <ul>

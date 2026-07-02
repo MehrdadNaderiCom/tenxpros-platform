@@ -32,7 +32,28 @@ export const m08: ModuleSeed = {
 <p>Have it ready so you can say it in your sleep: TenXPros is a selective twelve week certification for experienced professionals who want to lead AI adoption in their field, not just use AI tools. You bring one real professional problem. The program gives you a structured method, Frame, Design, Prove, Foresee, to decide where AI belongs, design a responsible workflow, test value and risk, and assemble the work into a reviewed Living AI Solution Dossier. The credential is earned through reviewed evidence, not attendance. If your dossier meets the public standard, you earn a verifiable certified credential. That is the whole thing, said straight.</p>
 
 <h3>Detection beats persuasion</h3>
-<p>The program multiplies a method onto expertise the person already has. Ten times zero is still zero, so the input has to be real. A professional with a real problem and the judgment to defend their work is someone you detect, not someone you talk into it. If you find yourself working hard to convince a prospect they belong, treat that effort as a signal that they probably do not.</p>
+<p>The program adds a method onto expertise the person already has. If there is no real expertise and no real problem to build on, there is nothing for the method to work with, so the input has to be real. A professional with a real problem and the judgment to defend their work is someone you detect, not someone you talk into it. If you find yourself working hard to convince a prospect they belong, treat that effort as a signal that they probably do not.</p>
+
+<h3>The real differentiators</h3>
+<p>When a prospect asks what actually sets this apart, have the differences ready, plainly, without hype. These are the ones that hold up under scrutiny:</p>
+<ul>
+  <li><strong>One real problem, not a syllabus.</strong> The whole program is built around a genuine professional problem the participant brings, so the work is theirs and the output is usable, not a set of exercises.</li>
+  <li><strong>A reviewed dossier, not attendance.</strong> The credential is earned by evidence reviewed against a public standard, so finishing the weeks is not the same as passing, and serious people know the difference.</li>
+  <li><strong>Field specific, not generic.</strong> The credential names the participant's actual domain rather than being one more generic AI certificate, which is what makes it credible to their peers.</li>
+  <li><strong>Honest outcomes, not a guaranteed pass.</strong> There are three review outcomes, Certified, Strong Draft, and Completed, so the standard means something.</li>
+  <li><strong>A selective front door.</strong> Application is the first quality gate and payment comes only after acceptance, so the people inside genuinely belong.</li>
+  <li><strong>Responsible by design.</strong> The method builds in value and risk testing and expects regulated data to be protected, which serious professionals respect rather than resent.</li>
+</ul>
+
+<h3>The website facilities you can point to</h3>
+<p>You are not doing this from memory. The website carries facilities you can walk a prospect through or send them to, and using them keeps everything accurate and on message:</p>
+<ul>
+  <li><strong>The how it works page and the program page</strong> lay out the method, the format, and what the twelve weeks involve, in the company's own current words.</li>
+  <li><strong>The pricing page</strong> shows the current published figures, so you never have to quote a price from memory or invent one.</li>
+  <li><strong>The application</strong> is the real next step and the first quality gate, where the professional describes their expertise and the challenge they want to explore.</li>
+  <li><strong>The public credential verification page</strong> lets anyone confirm a certified credential against the public record, which is what makes the credential trustworthy to an outsider.</li>
+</ul>
+<p>Point people to the current pages rather than paraphrasing from memory. The site is always the source of truth for the offering and the price, exactly as the rules module requires.</p>
 
 <h2>How to sell it honestly</h2>
 <p>Every honest answer is also persuasive, because it respects the intelligence of the person asking. You never trade accuracy for a close. The structure of the program, apply first and pay only after acceptance, does your qualifying for you and takes the pressure out of the whole conversation.</p>

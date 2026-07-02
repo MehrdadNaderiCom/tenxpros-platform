@@ -28,6 +28,22 @@ export const m03: ModuleSeed = {
 
 <h2>What you need to understand</h2>
 
+<h3>A plain-language glossary</h3>
+<p>A handful of terms recur through this module and the Panel. Here they are in plain language, so nothing later reads as jargon.</p>
+<ul>
+  <li><strong>House account:</strong> a customer the company already owns or is already working, including existing relationships, live pipeline, and direct inbound customers. House accounts cannot be registered by a partner, because they were never yours to bring.</li>
+  <li><strong>Net receipts:</strong> the money that actually reaches and clears to the company after the real costs of the sale, such as processor and gateway fees and any currency conversion cost. Commission is a percentage of net receipts, not of the sticker price and not of profit.</li>
+  <li><strong>Seat:</strong> the unit of sale, meaning one enrolled professional. Everything is counted in seats.</li>
+  <li><strong>B2C charter:</strong> an individual enrolls and pays for their own seat. <strong>B2B engagement:</strong> an organization buys seats for its people.</li>
+  <li><strong>Deal registration:</strong> recording a specific opportunity on the Panel so your role on it is protected once the company confirms it.</li>
+  <li><strong>Activation Gate:</strong> the one time set of steps you finish before any outreach using the TenXPros name.</li>
+  <li><strong>Origination, closing, and delivery:</strong> the three families of function you can be paid for. Origination is bringing and qualifying the opportunity, closing is getting it to a paid decision, and delivery or coaching is doing approved work inside the engagement.</li>
+  <li><strong>Clawback:</strong> the rule that reverses commission when the underlying money is refunded, charged back, cancelled, or reversed.</li>
+  <li><strong>Pipeline protection:</strong> the period during which your confirmed account is shielded from other partners while you actively work it.</li>
+  <li><strong>Growth bonus and focus bonus:</strong> extra earnings a qualifying tier two or tier three partner can become eligible for. They live inside the same per deal cap, never above it.</li>
+  <li><strong>Survival clauses:</strong> the obligations that continue after the year ends and after the partnership ends, such as confidentiality, non circumvention, and non solicitation.</li>
+</ul>
+
 <h3>The five part formula</h3>
 <p>Your right to earn comes from five things, and you need all five together: a registered opportunity, a real role you actually performed, money that was actually received and cleared, a defined time window, and active account management. If something is not registered, not confirmed, not performed, not cleared, and not recorded, it is not a protected earning right. A friendly conversation is not a right. A pending status is not a right. A confirmed record on the Panel is a right.</p>
 
@@ -52,12 +68,13 @@ export const m03: ModuleSeed = {
 <p>Commission becomes payable only after the offering has been delivered and the matching customer payment is received and cleared, then within thirty business days of the later of those two events. You handle your own taxes and any receiving side bank fees, and you check your statements and raise any query within thirty days. Clawback is the other side: if an engagement, seat, or payment is refunded, charged back, cancelled, credited, or reversed, no commission is owed, and if you were already paid it can be reversed, offset, or repaid.</p>
 
 <h3>The tier ladder</h3>
-<p>The tiers are climbed on collected results, not promises.</p>
+<p>The tiers are a ladder you climb on collected results, not on promises. Each step is a real change in what you can hold, how long you are protected, and how you are recognized, and you move up only on paid, non refunded seats that the Panel confirms.</p>
 <ul>
-  <li><strong>Tier one, referral partner:</strong> where everyone begins, on the pilot. You can register opportunities, earn on confirmed closed deals, hold a small number of open accounts, and use the referral partner credential.</li>
-  <li><strong>Tier two, certified partner:</strong> earned by selling and collecting a defined number of paid, non refunded seats within twelve months, with a clean record and Panel confirmation. It brings more open accounts, longer protection, priority on company leads, growth bonus eligibility, a certified credential, a public listing, and a letter of recognition.</li>
-  <li><strong>Tier three, territory builder:</strong> earned after tier two by sourcing and collecting a defined number of paid, non refunded seats in one industry or region within twelve months. It brings the most open accounts, the longest protection, first priority on leads in your focus, a focus bonus, and public recognition as the lead partner for your area.</li>
+  <li><strong>Tier one, referral partner.</strong> Where everyone begins, on the pilot. You can register opportunities, earn on confirmed closed deals, hold a small number of open accounts, and use the referral partner credential. This tier is about proving you can find real fits and follow the process cleanly. Think of it as your working audition, where discipline matters more than volume, and where a handful of well run deals says more than a long list of loose conversations.</li>
+  <li><strong>Tier two, certified partner.</strong> Earned by selling and collecting a defined number of paid, non refunded seats within twelve months, with a clean record and Panel confirmation. It is a genuine step up: more open accounts so you can carry a wider pipeline, longer account protection so your work is shielded for more time, priority on company leads, eligibility for the growth bonus, a certified credential, a public listing, and a letter of recognition. In plain terms, the company starts investing in you because you have shown you turn real opportunities into cleared money.</li>
+  <li><strong>Tier three, territory builder.</strong> Earned after tier two by sourcing and collecting a defined number of paid, non refunded seats in one industry or region within twelve months. This is the depth tier: you have gone deep in a focus rather than wide across everything. It brings the most open accounts, the longest protection, first priority on leads inside your focus, a focus bonus, and public recognition as the lead partner for your area. It is the difference between someone who closes deals and someone who owns a corner of the market by reputation.</li>
 </ul>
+<p>Two things stay true at every tier. You never stop being bound by the rules above, and you never rise on anything but confirmed, collected results. A tier is a record of what you have actually delivered, so it cannot be argued into existence, and once earned within its period it reflects real, cleared work rather than a title someone handed you.</p>
 
 <h3>Authority limits, and what survives the year</h3>
 <p>You cannot bind the company, quote prices outside approved current materials, give discounts, promise results, approve terms, accept payment, or issue invoices. You cannot register domains, handles, or business names using the brand, or use unofficial titles. The rules, commission structure, and tier thresholds are valid for the current calendar year only, changeable each new year with notice through the website, and contracts run until the thirty first of December of the year accepted. The annual reset does not cancel everything: confidentiality, non circumvention, non solicitation, clawback on commission already paid, and ownership of intellectual property and customer relationships survive for their defined periods.</p>

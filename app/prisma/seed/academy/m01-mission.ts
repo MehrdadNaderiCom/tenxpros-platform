@@ -39,6 +39,24 @@ export const m01: ModuleSeed = {
 <h3>How the credential is earned</h3>
 <p>It is earned by doing the work, not by watching videos or passing a quick quiz. The participant assembles a Living AI Solution Dossier, submits it, and it is reviewed against a public standard. If the work meets the standard, the credential is awarded. If it does not, specific revisions come back. That rigor is the whole point: it is why the credential means something, and why the people you bring in respect the bar rather than resent it.</p>
 
+<h3>Who this is for, in concrete terms</h3>
+<p>A useful way to picture the fit is by profession, role, and setting. These are examples, not limits. The real test is always real expertise plus a real problem, but this list makes the target vivid.</p>
+<ul>
+  <li><strong>Regulated and clinical fields:</strong> doctors, nurses, radiologists, pharmacists, dentists, veterinarians, and clinic, hospital, and health operations leaders.</li>
+  <li><strong>Legal and compliance:</strong> lawyers, in house counsel, compliance and risk officers, and auditors.</li>
+  <li><strong>Finance and accounting:</strong> accountants, financial analysts, controllers, advisers, actuaries, and finance managers.</li>
+  <li><strong>Engineering, product, and technical fields:</strong> engineers of every discipline, architects, product managers, and data and analytics leads.</li>
+  <li><strong>Business, operations, and people:</strong> consultants and advisers, operations and supply chain managers, human resources and learning leaders, and project, program, and department heads.</li>
+  <li><strong>Marketing, sales, and communications:</strong> marketing leaders, brand and content strategists, sales leaders, and communications professionals.</li>
+  <li><strong>Education and research:</strong> educators, academics, researchers, and knowledge workers.</li>
+  <li><strong>Independent and small business:</strong> founders, small business owners, and freelancers or independent experts who are genuine specialists even without an organization behind them.</li>
+  <li><strong>Organizational structures:</strong> a senior individual who decides for themselves, which is a B2C fit, or a team inside a company whose leader wants a consistent, governed standard across their people, which is a B2B fit.</li>
+</ul>
+<p>What every one of these has in common is the only thing that matters: real, current expertise in a field, and one real problem worth twelve weeks of work. Anyone with that is worth a conversation. Anyone without it, whatever their title, is not the fit yet.</p>
+
+<h3>Where not to prospect, and the forbidden channels</h3>
+<p>Where you find prospects matters as much as who they are. You reach the people above through your own network, referrals, and the professional circles you already belong to. You do not use bought or scraped contact lists, bulk or automated SMS or email, or public advertising placed without the company's written approval and coordination. Those channels are prohibited, because they damage the brand and bring the wrong people. This is only the short version, to set the boundary early. The detailed rules on registration and house accounts are in module 3, and the full method for finding and qualifying the right prospects is in module 9.</p>
+
 <h2>How to sell it honestly</h2>
 <p>You are not pushing a course. You are opening a door to a professional standard for someone who is already ready to walk through it. Your job is detection, not persuasion. If you have to convince someone they are a Pro, they almost always are not. So instead of talking, you look: does this person have a real problem in their own field they could spend twelve weeks proving an AI approach against, and does the result have to pass the judgment of someone who matters to them. If yes to both, you have found a fit, and the honest move is simply to name the standard and the bar, then let them decide.</p>
 
