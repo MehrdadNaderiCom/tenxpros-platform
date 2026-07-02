@@ -9,7 +9,6 @@ import { absoluteUrl } from "@/lib/utils";
 import { safeSendEmail } from "@/lib/services/email";
 import {
   partnerApplicationDecisionEmail,
-  partnerStartHereEmail,
   partnerDealConfirmedEmail,
 } from "@/lib/email/templates";
 import {
@@ -186,18 +185,10 @@ export async function reviewPartnerApplication(formData: FormData) {
       ? absoluteUrl(`/set-password?email=${encodeURIComponent(application.email)}&token=${encodeURIComponent(setupToken)}`)
       : null,
     panelUrl: absoluteUrl("/partner"),
-  });
-  await safeSendEmail({ to: application.email, subject: mail.subject, template: "partner_application_approved", text: mail.text, html: mail.html });
-
-  // Second email: point the new partner to the Academy and onboarding so they
-  // start with the training and the Activation Gate before any outreach.
-  const startMail = partnerStartHereEmail({
-    fullName: application.fullName,
     academyUrl: absoluteUrl("/partner/academy"),
     onboardingUrl: absoluteUrl("/partner/onboarding"),
-    panelUrl: absoluteUrl("/partner"),
   });
-  await safeSendEmail({ to: application.email, subject: startMail.subject, template: "partner_start_here", text: startMail.text, html: startMail.html });
+  await safeSendEmail({ to: application.email, subject: mail.subject, template: "partner_application_approved", text: mail.text, html: mail.html });
 
   safeRevalidatePath("/admin/partners/applications");
   safeRevalidatePath(`/admin/partners/applications/${applicationId}`);

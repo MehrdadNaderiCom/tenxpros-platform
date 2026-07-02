@@ -550,18 +550,34 @@ export function partnerApplicationDecisionEmail(params: {
   notes?: string | null;
   setPasswordUrl?: string | null;
   panelUrl?: string | null;
+  academyUrl?: string | null;
+  onboardingUrl?: string | null;
 }): EmailContent {
-  const { fullName, approved, notes, setPasswordUrl, panelUrl } = params;
+  const { fullName, approved, notes, setPasswordUrl, panelUrl, academyUrl, onboardingUrl } = params;
 
   if (approved) {
+    // One comprehensive welcome email: approval, set your password, then the two
+    // steps (Academy and onboarding) that unlock the ability to start working.
     const bodyHtml =
       paragraph(`Hi ${esc(fullName)},`) +
       paragraph(
-        "Congratulations. Your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
+        "Congratulations. Your application to the TenXPros Partner Program has been approved, and you are now on the TenXPros Partner Panel to begin your 90-day pilot.",
       ) +
+      paragraph("<strong>First, set your password</strong> so you can sign in to the panel.") +
       (setPasswordUrl ? button(setPasswordUrl, "Set your password") : "") +
       paragraph(
-        "On the panel you will complete onboarding (the Activation Gate), register opportunities, and track every confirmation, scorecard step and commission. Nothing is approved except on the panel.",
+        "<strong>Then complete two steps before you can register opportunities.</strong> Finish both and your access to start working opens automatically, with nothing extra to ask for.",
+      ) +
+      paragraph(
+        "<strong>1. Complete the Academy.</strong> Work through every module and pass the comprehensive final exam to earn your certificate. The Academy is where you learn how the program works, how you earn, and how to represent it honestly.",
+      ) +
+      (academyUrl ? button(academyUrl, "Start the Academy") : "") +
+      paragraph(
+        "<strong>2. Complete onboarding.</strong> Finish the Activation Gate steps, then the company confirms your gate on the panel. Only after that do you begin any outreach using the TenXPros name.",
+      ) +
+      (onboardingUrl ? button(onboardingUrl, "Go to onboarding") : "") +
+      paragraph(
+        "Everything runs on the panel: registrations, confirmations, scorecard steps and commission. Nothing is approved except on the panel.",
       ) +
       (notes ? noteBox("A note from the team", notes) : "") +
       noteBox(
@@ -572,22 +588,33 @@ export function partnerApplicationDecisionEmail(params: {
     const text = [
       `Hi ${fullName},`,
       "",
-      "Congratulations. Your application to the TenXPros Partner Program has been approved. You are now invited onto the TenXPros Partner Panel to begin your 90-day pilot.",
-      ...(setPasswordUrl ? ["", `Set your password: ${setPasswordUrl}`] : []),
+      "Congratulations. Your application to the TenXPros Partner Program has been approved, and you are now on the TenXPros Partner Panel to begin your 90-day pilot.",
+      "",
+      "FIRST, set your password so you can sign in to the panel:",
+      ...(setPasswordUrl ? [`  ${setPasswordUrl}`] : []),
+      "",
+      "THEN complete two steps before you can register opportunities. Finish both and your access to start working opens automatically:",
+      "",
+      "1. Complete the Academy. Work through every module and pass the comprehensive final exam to earn your certificate.",
+      ...(academyUrl ? [`   ${academyUrl}`] : []),
+      "2. Complete onboarding. Finish the Activation Gate, then the company confirms your gate on the panel, and only then do you begin outreach.",
+      ...(onboardingUrl ? [`   ${onboardingUrl}`] : []),
       ...(panelUrl ? ["", `Your Partner Panel: ${panelUrl}`] : []),
       "",
-      "On the panel you will complete onboarding (the Activation Gate), register opportunities, and track every confirmation, scorecard step and commission. Nothing is approved except on the panel.",
-      ...(notes ? ["", `Note: ${notes}`] : []),
+      "Everything runs on the panel: registrations, confirmations, scorecard steps and commission. Nothing is approved except on the panel.",
+      ...(notes ? ["", `A note from the team: ${notes}`] : []),
+      "",
+      "Remember: no equity, no country, no industry, no exclusivity. Commission is earned only on confirmed registrations, real work and cleared payment.",
       "",
       "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
     ].join("\n");
 
     return {
-      subject: "Your TenXPros Partner Program application is approved",
+      subject: "You are approved: set your password, then complete the Academy and onboarding",
       html: layout({
-        preheader: "Approved. Set your password to access the Partner Panel.",
+        preheader: "Set your password, then finish the Academy and onboarding to start working.",
         eyebrow: "Partner application approved",
-        heading: "Welcome to the Partner Program.",
+        heading: "Welcome. Here are your next steps.",
         bodyHtml,
       }),
       text,
@@ -619,61 +646,6 @@ export function partnerApplicationDecisionEmail(params: {
       preheader: "An update on your partner application.",
       eyebrow: "Partner application update",
       heading: "An update on your application",
-      bodyHtml,
-    }),
-    text,
-  };
-}
-
-/**
- * Second email on partner approval: point the new partner to the Academy and to
- * onboarding, so they start with the training and the Activation Gate before any
- * outreach. Sent alongside the approval and set-password email.
- */
-export function partnerStartHereEmail(params: {
-  fullName: string;
-  academyUrl: string;
-  onboardingUrl: string;
-  panelUrl?: string | null;
-}): EmailContent {
-  const { fullName, academyUrl, onboardingUrl, panelUrl } = params;
-
-  const bodyHtml =
-    paragraph(`Hi ${esc(fullName)},`) +
-    paragraph(
-      "Now that you are on the Partner Panel, start in this order: the Academy first, then onboarding. The Academy teaches how the program works, how you earn, and how to represent it honestly, so you learn the system before you use it.",
-    ) +
-    button(academyUrl, "Start the Academy") +
-    paragraph(
-      "When you have worked through the Academy, complete onboarding (the Activation Gate). You begin outreach using the TenXPros name only after the company confirms your gate on the panel.",
-    ) +
-    button(onboardingUrl, "Go to onboarding") +
-    noteBox(
-      "Do this first",
-      "Work through the Academy modules and pass each check, then finish the Activation Gate in onboarding. Everything runs on the panel, so start there and follow the training step by step.",
-    );
-
-  const text = [
-    `Hi ${fullName},`,
-    "",
-    "Now that you are on the Partner Panel, start in this order: the Academy first, then onboarding. The Academy teaches how the program works, how you earn, and how to represent it honestly, so you learn the system before you use it.",
-    "",
-    `Start the Academy: ${academyUrl}`,
-    "",
-    "When you have worked through the Academy, complete onboarding (the Activation Gate). You begin outreach using the TenXPros name only after the company confirms your gate on the panel.",
-    "",
-    `Go to onboarding: ${onboardingUrl}`,
-    ...(panelUrl ? ["", `Your Partner Panel: ${panelUrl}`] : []),
-    "",
-    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
-  ].join("\n");
-
-  return {
-    subject: "Start here: your TenXPros Academy and onboarding",
-    html: layout({
-      preheader: "Start with the Academy, then complete onboarding.",
-      eyebrow: "Your first steps",
-      heading: "Start with the Academy, then onboarding.",
       bodyHtml,
     }),
     text,
