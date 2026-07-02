@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/lib/auth";
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 export default function LoginPage({
   searchParams,
 }: {
-  searchParams?: { callbackUrl?: string; error?: string };
+  searchParams?: { callbackUrl?: string; error?: string; reset?: string; setup?: string };
 }) {
   // Default empty: when there's no explicit in-app callback, route by role below.
   const callbackUrl = searchParams?.callbackUrl ?? "";
@@ -65,6 +66,11 @@ export default function LoginPage({
           The email or password was not recognized.
         </p>
       ) : null}
+      {searchParams?.reset === "complete" || searchParams?.setup === "complete" ? (
+        <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">
+          Your password is set. You can sign in now.
+        </p>
+      ) : null}
       <form action={login} className="space-y-4">
         <input type="hidden" name="callbackUrl" value={callbackUrl} />
         <Field label="Email">
@@ -73,6 +79,11 @@ export default function LoginPage({
         <Field label="Password">
           <Input name="password" type="password" autoComplete="current-password" required />
         </Field>
+        <div className="text-right">
+          <Link href="/forgot-password" className="text-sm font-medium text-navy-900 hover:underline">
+            Forgot your password?
+          </Link>
+        </div>
         <SubmitButton />
       </form>
     </Card>

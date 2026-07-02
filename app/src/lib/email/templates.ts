@@ -358,6 +358,46 @@ export function enrollmentWelcomeEmail(params: {
   };
 }
 
+export function passwordResetEmail(params: { resetUrl: string }): EmailContent {
+  const { resetUrl } = params;
+
+  const bodyHtml =
+    paragraph("Hi,") +
+    paragraph(
+      "We received a request to reset the password for your TenXPros account. Use the button below to choose a new password.",
+    ) +
+    button(resetUrl, "Reset your password") +
+    paragraph(
+      "For your security this link expires in 1 hour and can be used only once. If you did not request a password reset, you can safely ignore this email and your password will stay the same.",
+    ) +
+    paragraph(
+      `If the button does not work, copy and paste this address into your browser: <a href="${esc(resetUrl)}" style="color:${NAVY};">${esc(resetUrl)}</a>.`,
+    );
+
+  const text = [
+    "Hi,",
+    "",
+    "We received a request to reset the password for your TenXPros account. Use the link below to choose a new password.",
+    "",
+    `Reset your password: ${resetUrl}`,
+    "",
+    "For your security this link expires in 1 hour and can be used only once. If you did not request a password reset, you can safely ignore this email and your password will stay the same.",
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+
+  return {
+    subject: "Reset your TenXPros password",
+    html: layout({
+      preheader: "Choose a new password for your TenXPros account. This link expires in 1 hour.",
+      eyebrow: "Password reset",
+      heading: "Reset your password",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Partner Program emails
 // ---------------------------------------------------------------------------
