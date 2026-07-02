@@ -84,6 +84,46 @@ export function originationOverrideBp(
   return Math.round((args.openRateBp * cfg.overrideShareBp) / 10000);
 }
 
+export interface OriginationOpener {
+  rateBp: number;
+  signedAt: Date | null;
+}
+
+/**
+ * The account's OPENER for the renewal OVERRIDE: the earliest closed deal (by
+ * signedAt) that carries an origination line (QUALIFIED_ORIGINATION or
+ * STRONG_ORIGINATION). Returns both its origination rate (the higher, if it
+ * carries more than one line) AND its signedAt, so the caller can pay a share of
+ * that rate AND anchor the origination window to the account OPENING rather than
+ * to the renewal (otherwise the override would never expire per account). Pass
+ * the account's EXISTING closed deals; the deal being recorded has no lines yet,
+ * so it is never itself the opener. Returns null when no deal on the account
+ * carries an origination line, so the OVERRIDE safely refuses (nothing to trail).
+ * A `signedAt` of null sorts last, so a dated opener is always preferred. Pure:
+ * it takes already-derived rates and returns one of them.
+ */
+export function originationOpener(
+  deals: Array<{ signedAt: Date | null; originationRateBps: number[] }>,
+): OriginationOpener | null {
+  const withOrigination = deals
+    .filter((d) => d.originationRateBps.length > 0)
+    .sort(
+      (a, b) =>
+        (a.signedAt ? a.signedAt.getTime() : Number.POSITIVE_INFINITY) -
+        (b.signedAt ? b.signedAt.getTime() : Number.POSITIVE_INFINITY),
+    );
+  if (withOrigination.length === 0) return null;
+  const opener = withOrigination[0];
+  return { rateBp: Math.max(...opener.originationRateBps), signedAt: opener.signedAt };
+}
+
+/** Convenience wrapper: just the opener's origination rate (or null). */
+export function openerOriginationRateBp(
+  deals: Array<{ signedAt: Date | null; originationRateBps: number[] }>,
+): number | null {
+  return originationOpener(deals)?.rateBp ?? null;
+}
+
 /**
  * Tier-3 focus bonus: starts at `focusBonusStartBp`, +increment per additional
  * full continuously-held year, clamped to the ceiling. `yearsHeld < 1` (no

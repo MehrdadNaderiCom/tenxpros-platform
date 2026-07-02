@@ -12,6 +12,8 @@ import {
   deriveFunctionRate,
   focusBonusBp,
   growthBonusBp,
+  openerOriginationRateBp,
+  originationOpener,
   originationOverrideBp,
   originationRateBp,
   proportionalReversalCents,
@@ -188,6 +190,101 @@ describe("origination override (renewal tail)", () => {
   it("is zero after the window OR when the partner is not active (vested trail still stays elsewhere)", () => {
     expect(originationOverrideBp({ openRateBp: 1200, withinWindow: false, activeStatus: true }, cfg)).toBe(0);
     expect(originationOverrideBp({ openRateBp: 1200, withinWindow: true, activeStatus: false }, cfg)).toBe(0);
+  });
+});
+
+describe("renewal OVERRIDE opener rate (originationRateBpAtOpen source)", () => {
+  const jan = new Date("2026-01-01T00:00:00Z");
+  const mar = new Date("2026-03-01T00:00:00Z");
+
+  it("a renewal on an account opened at the qualified rate trails a share of that qualified rate", () => {
+    const openRate = openerOriginationRateBp([
+      { signedAt: jan, originationRateBps: [cfg.qualifiedOriginationB2bBp] }, // opener at 8%
+    ]);
+    expect(openRate).toBe(cfg.qualifiedOriginationB2bBp);
+    // The OVERRIDE line then pays overrideShareBp (config, 50%) of the opener rate.
+    const overrideBp = originationOverrideBp({ openRateBp: openRate!, withinWindow: true, activeStatus: true }, cfg);
+    expect(overrideBp).toBe(Math.round((cfg.qualifiedOriginationB2bBp * cfg.overrideShareBp) / 10000));
+    expect(
+      deriveFunctionRate("OVERRIDE", { dealKind: "B2B", cfg, openRateBp: openRate!, withinOriginationWindow: true, activeStatus: true }),
+    ).toEqual({ kind: "PERCENT", rateBp: overrideBp });
+  });
+
+  it("a renewal on an account opened at the strong rate uses the strong rate", () => {
+    const openRate = openerOriginationRateBp([
+      { signedAt: jan, originationRateBps: [cfg.strongOriginationB2bBp] }, // opener at 12%
+    ]);
+    expect(openRate).toBe(cfg.strongOriginationB2bBp);
+    expect(originationOverrideBp({ openRateBp: openRate!, withinWindow: true, activeStatus: true }, cfg)).toBe(
+      Math.round((cfg.strongOriginationB2bBp * cfg.overrideShareBp) / 10000),
+    );
+  });
+
+  it("the opener deal itself never trails an override (no earlier origination deal exists)", () => {
+    // When the opener is recorded, the account has no prior deal with an origination line.
+    expect(openerOriginationRateBp([])).toBeNull();
+    expect(openerOriginationRateBp([{ signedAt: jan, originationRateBps: [] }])).toBeNull();
+    // A null open rate feeds openRateBp 0 -> derived OVERRIDE rate is 0 -> the line is refused.
+    expect(
+      deriveFunctionRate("OVERRIDE", { dealKind: "B2B", cfg, openRateBp: 0, withinOriginationWindow: true, activeStatus: true }),
+    ).toEqual({ kind: "PERCENT", rateBp: 0 });
+  });
+
+  it("an account whose opener has no origination line still refuses OVERRIDE", () => {
+    // Opened via only an introduction or a closing: no origination rate to trail.
+    const openRate = openerOriginationRateBp([
+      { signedAt: jan, originationRateBps: [] },
+      { signedAt: mar, originationRateBps: [] },
+    ]);
+    expect(openRate).toBeNull();
+    expect(originationOverrideBp({ openRateBp: openRate ?? 0, withinWindow: true, activeStatus: true }, cfg)).toBe(0);
+  });
+
+  it("with more than one origination deal, the earliest by signedAt is the opener", () => {
+    const openRate = openerOriginationRateBp([
+      { signedAt: mar, originationRateBps: [cfg.strongOriginationB2bBp] }, // later deal
+      { signedAt: jan, originationRateBps: [cfg.qualifiedOriginationB2bBp] }, // earliest -> the opener
+    ]);
+    expect(openRate).toBe(cfg.qualifiedOriginationB2bBp);
+  });
+
+  it("returns the OPENER's signedAt so the override window anchors to the account opening, not the renewal", () => {
+    // The window must be measured from the opening (jan), never from a later
+    // renewal, otherwise the override would never expire per account.
+    const opener = originationOpener([
+      { signedAt: mar, originationRateBps: [cfg.strongOriginationB2bBp] }, // later renewal
+      { signedAt: jan, originationRateBps: [cfg.qualifiedOriginationB2bBp] }, // the opening
+    ]);
+    expect(opener).not.toBeNull();
+    expect(opener!.rateBp).toBe(cfg.qualifiedOriginationB2bBp);
+    expect(opener!.signedAt).toBe(jan); // recordClosedDeal anchors originationWindowStart to this
+  });
+
+  it("originationOpener returns null (no window/rate anchor) when no deal carries an origination line", () => {
+    expect(originationOpener([])).toBeNull();
+    expect(originationOpener([{ signedAt: jan, originationRateBps: [] }])).toBeNull();
+  });
+
+  it("the OVERRIDE line is still clamped by the per-deal cap like any other line", () => {
+    // Opener qualified B2B (8%) -> override 4% (50%). On a renewal that already
+    // stacks strong 12% + closing 10% + delivery 8% = the full 30% cap, the 4%
+    // override pushes the raw total above the cap and must clamp back to it.
+    const openRate = openerOriginationRateBp([{ signedAt: jan, originationRateBps: [cfg.qualifiedOriginationB2bBp] }])!;
+    const overrideBp = originationOverrideBp({ openRateBp: openRate, withinWindow: true, activeStatus: true }, cfg);
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2B",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: cfg.strongOriginationB2bBp },
+        { function: "CLOSING", rateBp: cfg.closingB2bBp },
+        { function: "DELIVERY", rateBp: cfg.deliveryPercentMaxBp },
+        { function: "OVERRIDE", rateBp: overrideBp },
+      ],
+    });
+    expect(r.rawTotalCents).toBeGreaterThan(r.capCents);
+    expect(r.capped).toBe(true);
+    expect(r.totalCents).toBe(r.capCents); // clamped to the 30% cap, override included
   });
 });
 

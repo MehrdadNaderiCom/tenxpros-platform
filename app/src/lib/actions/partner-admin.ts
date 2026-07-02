@@ -36,6 +36,7 @@ import {
   countableSeats,
   deriveFunctionRate,
   focusBonusBp,
+  originationOpener,
   proportionalReversalCents,
 } from "@/lib/partner/commission";
 import {
@@ -674,6 +675,41 @@ export async function recordClosedDeal(formData: FormData) {
   const isMajorNewEngagement = formData.get("isMajorNewEngagement") === "on";
   const industryOrRegion = String(formData.get("industryOrRegion") ?? "").trim() || null;
 
+  // Renewal OVERRIDE trail: if this account was already opened, meaning an earlier
+  // closed deal on it carries a (non-reversed) origination line, persist that
+  // opener's actual origination rate so a later OVERRIDE line can pay a config
+  // share of it, AND anchor the origination window to the OPENER's signedAt so the
+  // override expires the configured months after the account was OPENED, not after
+  // this renewal (which would let it never expire per account). The opener has no
+  // earlier origination deal, so it keeps null and its own window and earns
+  // origination directly. A deal with no registered account, or an account never
+  // opened via a non-reversed origination line, also keeps null and its own window,
+  // and OVERRIDE stays correctly refused.
+  let originationRateBpAtOpen: number | null = null;
+  let originationWindowStart: Date = signedAt;
+  if (registeredAccountId) {
+    const priorDeals = await prisma.closedDeal.findMany({
+      where: { registeredAccountId },
+      select: {
+        signedAt: true,
+        commissions: {
+          where: {
+            function: { in: ["QUALIFIED_ORIGINATION", "STRONG_ORIGINATION"] },
+            status: { notIn: ["REVERSED"] },
+          },
+          select: { rateBp: true },
+        },
+      },
+    });
+    const opener = originationOpener(
+      priorDeals.map((d) => ({ signedAt: d.signedAt, originationRateBps: d.commissions.map((c) => c.rateBp) })),
+    );
+    if (opener) {
+      originationRateBpAtOpen = opener.rateBp;
+      if (opener.signedAt) originationWindowStart = opener.signedAt;
+    }
+  }
+
   const deal = await prisma.closedDeal.create({
     data: {
       partnerId,
@@ -687,7 +723,8 @@ export async function recordClosedDeal(formData: FormData) {
       signedAt,
       deliveredAt,
       paymentClearedAt,
-      originationWindowStart: signedAt,
+      originationWindowStart,
+      originationRateBpAtOpen,
       trailPeriodEnd: trailPeriodEnd(signedAt, cfg),
       isMajorNewEngagement,
       industryOrRegion,
