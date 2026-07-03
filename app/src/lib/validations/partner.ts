@@ -82,6 +82,9 @@ export const dealRegistrationSchema = z.object({
   productLine: z.enum(["TENXPROS", "TENXOPS"], { error: "Select the type." }),
   offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
   legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
+  // Canonical company identity for the objective newness / origination rule. Optional
+  // at submission (an individual may have none), normalized server side before storage.
+  domain: z.string().trim().max(253).optional(),
   country: z.string().trim().min(2, "Enter the country."),
   businessUnit: z.string().trim().max(160).optional(),
   contactName: z.string().trim().max(160).optional(),
@@ -172,6 +175,9 @@ export const resubmitDealSchema = z.object({
   dealRegistrationId: z.string().min(1),
   offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
   legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
+  // Canonical company identity for the objective newness / origination rule. Optional
+  // at submission (an individual may have none), normalized server side before storage.
+  domain: z.string().trim().max(253).optional(),
   country: z.string().trim().min(2, "Enter the country."),
   businessUnit: z.string().trim().max(160).optional(),
   contactName: z.string().trim().max(160).optional(),

@@ -12,6 +12,7 @@ import {
   tenXOpsRequestSchema,
 } from "@/lib/validations/partner";
 import { requirePartner } from "@/lib/partner/auth";
+import { normalizeDomain } from "@/lib/partner/commission";
 import { startReadiness, notReadyMessage, type StartReadiness } from "@/lib/partner/readiness";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
@@ -91,6 +92,7 @@ export async function submitDealRegistration(formData: FormData) {
     productLine: formData.get("productLine"),
     offering: formData.get("offering"),
     legalEntity: formData.get("legalEntity"),
+    domain: formData.get("domain") || undefined,
     country: formData.get("country"),
     businessUnit: formData.get("businessUnit") || undefined,
     contactName: formData.get("contactName") || undefined,
@@ -112,6 +114,7 @@ export async function submitDealRegistration(formData: FormData) {
       productLine: data.productLine,
       offering: data.offering,
       legalEntity: data.legalEntity,
+      domain: normalizeDomain(data.domain),
       country: data.country,
       businessUnit: data.businessUnit || null,
       contactName: data.contactName || null,
@@ -353,6 +356,7 @@ export async function resubmitDealRegistration(formData: FormData) {
     dealRegistrationId: formData.get("dealRegistrationId"),
     offering: formData.get("offering"),
     legalEntity: formData.get("legalEntity"),
+    domain: formData.get("domain") || undefined,
     country: formData.get("country"),
     businessUnit: formData.get("businessUnit") || undefined,
     contactName: formData.get("contactName") || undefined,
@@ -385,6 +389,7 @@ export async function resubmitDealRegistration(formData: FormData) {
       data: {
         offering: data.offering,
         legalEntity: data.legalEntity,
+        domain: normalizeDomain(data.domain),
         country: data.country,
         businessUnit: data.businessUnit || null,
         contactName: data.contactName || null,

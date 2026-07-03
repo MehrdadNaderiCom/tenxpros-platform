@@ -4,7 +4,7 @@ import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import type { PartnerFunction, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAdminUser, requireSuperAdmin } from "@/lib/authz";
+import { isSuperAdmin, requireAdminUser, requireSuperAdmin } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
 import { safeSendEmail } from "@/lib/services/email";
 import {
@@ -32,13 +32,19 @@ import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import {
   bpToCents,
   centsToBp,
+  classifyOrigination,
+  commissionLinePrecheck,
+  companyNewnessState,
   computeDealCommission,
-  countableSeats,
+  deliverySingleRateBp,
   deriveFunctionRate,
   focusBonusBp,
   focusBonusRecomputeAction,
+  normalizeDomain,
   originationOpener,
+  originationOverrideBp,
   proportionalReversalCents,
+  type NewnessState,
 } from "@/lib/partner/commission";
 import {
   addMonths,
@@ -50,6 +56,7 @@ import {
   trailPeriodEnd,
   withinOriginationWindow,
 } from "@/lib/partner/rules";
+import { countNewCompanyDomainsRolling } from "@/lib/partner/growth";
 import { normalizeCurrencyCode, toMinorUnits } from "@/lib/partner/currency";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
@@ -336,6 +343,7 @@ export async function confirmDealRegistration(formData: FormData) {
         dealRegistrationId: reg.id,
         partnerId: reg.partnerId,
         legalEntity: reg.legalEntity,
+        domain: normalizeDomain(reg.domain),
         country: reg.country,
         businessUnit: reg.businessUnit,
         offering: reg.offering,
@@ -672,6 +680,13 @@ export async function recordClosedDeal(formData: FormData) {
   const conversionRate = sameCurrency ? 1 : Math.max(0, Number(formData.get("conversionRate") ?? 0)) || 1;
 
   const registeredAccountId = String(formData.get("registeredAccountId") ?? "") || null;
+  // Canonical company domain: the identity the objective newness/origination rule
+  // keys on. Use the entered value, else inherit the linked account's stored domain.
+  let domain = normalizeDomain(formData.get("domain") as string | null);
+  if (!domain && registeredAccountId) {
+    const acct = await prisma.registeredAccount.findUnique({ where: { id: registeredAccountId }, select: { domain: true } });
+    domain = normalizeDomain(acct?.domain ?? null);
+  }
   const signedAt = formData.get("signedAt") ? new Date(String(formData.get("signedAt"))) : new Date();
   const deliveredAt = formData.get("deliveredAt") ? new Date(String(formData.get("deliveredAt"))) : null;
   const paymentClearedAt = formData.get("paymentClearedAt") ? new Date(String(formData.get("paymentClearedAt"))) : null;
@@ -717,6 +732,7 @@ export async function recordClosedDeal(formData: FormData) {
     data: {
       partnerId,
       registeredAccountId,
+      domain,
       dealType,
       productLine,
       netReceiptsCents,
@@ -774,10 +790,11 @@ export async function updateSeatStatus(formData: FormData) {
  */
 /**
  * Add a commission line. The rate is DERIVED from config by function + deal kind
- * (never operator-typed): the per-function engine helpers decide it, including
- * the B2C strong-origination seat gate. Every line requires an evidence note.
- * The focus bonus is applied by recompute, not here; override and growth are
- * derived from deal/partner context.
+ * (never operator-typed). Per-line partner attribution: the deal owner by default;
+ * a superadmin may credit a different performer, and an OVERRIDE always goes to the
+ * account opener. A superadmin may weight-split one function among partners. The
+ * DEAL OWNER's config and focus grant govern the cap regardless of who is credited.
+ * Every line requires an evidence note; the focus bonus is applied by recompute.
  */
 export async function addCommissionLine(formData: FormData) {
   const admin = await requireAdminUser();
@@ -791,100 +808,217 @@ export async function addCommissionLine(formData: FormData) {
     return { ok: false, message: "Add an evidence note (at least 5 characters) explaining why this line applies." };
   }
 
+  // The DEAL OWNER's resolved config and focus grant govern the cap and any focus
+  // line; per-line partner attribution below only changes WHO is credited, never
+  // which config or cap applies to the deal.
   const cfg = await resolvePartnerConfig(deal.partnerId);
   const partner = await prisma.partner.findUniqueOrThrow({
     where: { id: deal.partnerId },
-    select: { tier: true, activeStatus: true, qualityFlagged: true },
-  });
-  const partnerDeals = await prisma.closedDeal.findMany({
-    where: { partnerId: deal.partnerId },
-    select: {
-      dealType: true,
-      isMajorNewEngagement: true,
-      signedAt: true,
-      registeredAccountId: true,
-      seats: { select: { count: true, status: true } },
-    },
+    select: { tier: true, activeStatus: true },
   });
 
   const now = new Date();
-  // Strong-origination B2C gate: the partner's countable paid seats.
-  const seatsTowardStrongUnlock = countableSeats(
-    partnerDeals.flatMap((d) => d.seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged }))),
-  );
-  // Growth bonus: distinct new B2B orgs originated in the rolling 12 months.
-  const since = addMonths(now, -12);
-  const orgSet = new Set<string>();
-  for (const d of partnerDeals) {
-    if (d.dealType === "B2B" && d.isMajorNewEngagement && d.signedAt && d.signedAt.getTime() >= since.getTime() && d.registeredAccountId) {
-      orgSet.add(d.registeredAccountId);
-    }
-  }
-  const newB2bOrgsRolling12 = orgSet.size;
 
-  const strongUnlockedByPanel = formData.get("strongUnlockedByPanel") === "on" || formData.get("strongUnlockedByPanel") === "true";
-  const deliveryApprovedRaw = formData.get("deliveryApprovedBp");
-  const deliveryApprovedBp =
-    deliveryApprovedRaw != null && String(deliveryApprovedRaw).trim() !== "" ? Math.round(Number(deliveryApprovedRaw)) : null;
+  // Superadmin identity (email-based) gates the fixed-fee delivery exception, the
+  // cross-partner attribution, and the weighted split.
+  const superAdmin = isSuperAdmin(admin.email);
+  const warmRelationshipAttested =
+    formData.get("warmRelationshipAttested") === "on" || formData.get("warmRelationshipAttested") === "true";
+  const fixedFeeRequested =
+    formData.get("fixedFeeException") === "on" || formData.get("fixedFeeException") === "true";
+  const fixedFeeReason = String(formData.get("fixedFeeReason") ?? "").trim();
 
-  const derived = deriveFunctionRate(fn, {
-    dealKind: deal.dealType as "B2C" | "B2B",
-    cfg,
-    seatsTowardStrongUnlock,
-    strongUnlockedByPanel,
-    deliveryApprovedBp: Number.isFinite(deliveryApprovedBp as number) ? deliveryApprovedBp : null,
-    openRateBp: deal.originationRateBpAtOpen ?? 0,
-    withinOriginationWindow: deal.originationWindowStart ? withinOriginationWindow(deal.originationWindowStart, now, cfg) : false,
-    activeStatus: partner.activeStatus,
-    newB2bOrgsRolling12,
-    tier: partner.tier,
+  // Objective preconditions before any rate work: a signed date for Closing, a
+  // delivered date for Delivery (and superadmin + a logged reason for the fixed-fee
+  // exception), and an explicit warm-relationship attestation for Basic Introduction.
+  const precheck = commissionLinePrecheck({
+    fn,
+    signedAt: deal.signedAt,
+    deliveredAt: deal.deliveredAt,
+    warmRelationshipAttested,
+    fixedFee: { requested: fixedFeeRequested, isSuperAdmin: superAdmin, reason: fixedFeeReason },
   });
+  if (!precheck.ok) return { ok: false, message: precheck.message };
 
-  if (derived.kind === "AUTO_ONLY") {
-    return { ok: false, message: derived.reason };
-  }
-
+  const dealKind = deal.dealType as "B2C" | "B2B";
+  let recordedFn: PartnerFunction = fn;
   let rateBp: number;
   let amountCents: number;
-  let isFlat: boolean;
-  if (derived.kind === "FLAT") {
-    // Fixed-fee delivery: the operator supplies the fee in the deal's currency.
-    const flatRaw = formData.get("flatFee");
-    if (flatRaw == null || String(flatRaw).trim() === "") {
-      return { ok: false, message: "Delivery is on a fixed fee: enter the fee amount." };
+  let isFlat = false;
+  // Dispute-proof context recorded alongside the line in the audit trail.
+  const auditExtra: Record<string, unknown> = {};
+
+  // Per-line partner attribution: default the deal owner. Only a SUPERADMIN may credit
+  // a line to a different performer (with the mandatory evidence note). An OVERRIDE line
+  // always overrides this to the account opener, in its own branch below.
+  let linePartnerId = deal.partnerId;
+  const attributedRaw = String(formData.get("attributedPartnerId") ?? "").trim();
+  if (attributedRaw && attributedRaw !== deal.partnerId) {
+    if (!superAdmin) return { ok: false, message: "Only a superadmin may credit a line to a partner other than the deal owner." };
+    const performer = await prisma.partner.findUnique({ where: { id: attributedRaw }, select: { id: true } });
+    if (!performer) return { ok: false, message: "The partner you tried to credit was not found." };
+    linePartnerId = attributedRaw;
+    auditExtra.attributedPartnerId = attributedRaw;
+  }
+
+  // Weighted split (superadmin only): one shared function split among partners. Each
+  // shared line carries the FULL function rate plus a weightBp share; the engine counts
+  // the group once against the cap and splits it, so the shared lines together equal
+  // exactly one unshared line. The evidence note is the recorded reason.
+  let weightBp: number | null = null;
+  const weightRaw = formData.get("weightBp");
+  if (weightRaw != null && String(weightRaw).trim() !== "") {
+    if (!superAdmin) return { ok: false, message: "Only a superadmin may split a function among partners by weight." };
+    const w = Math.round(Number(weightRaw));
+    if (!Number.isFinite(w) || w <= 0 || w > 10000) return { ok: false, message: "Enter a weight between 1 and 10000 basis points." };
+    weightBp = w;
+    auditExtra.weightBp = w;
+  }
+
+  if (fn === "QUALIFIED_ORIGINATION" || fn === "STRONG_ORIGINATION") {
+    // Origination strength AND rate are SERVER-DERIVED from the company's newness
+    // (by canonical domain) and the sale amount, never operator-chosen. Newness is a
+    // program-wide fact, so the history is queried across ALL partners by domain.
+    // Supersedes the old B2C 40-seat unlock and the Panel bypass (both retired here).
+    const domainNorm = normalizeDomain(deal.domain);
+    const hasDomain = domainNorm != null;
+    let newness: NewnessState = "NEW";
+    if (domainNorm) {
+      const priorDomainDeals = await prisma.closedDeal.findMany({
+        where: { domain: { equals: domainNorm, mode: "insensitive" }, id: { not: deal.id } },
+        select: { signedAt: true, paymentClearedAt: true },
+      });
+      newness = companyNewnessState(priorDomainDeals, now, cfg);
     }
-    const flatMajor = safeNonNegative(flatRaw, "fixed fee", 1e10);
-    const flatCents = toMinorUnits(flatMajor, deal.currency);
-    if (flatCents <= 0) return { ok: false, message: "Enter a fixed fee greater than zero." };
-    isFlat = true;
-    amountCents = flatCents;
-    rateBp = centsToBp(flatCents, deal.netReceiptsCents);
+    const cls = classifyOrigination({ newness, hasDomain, dealKind, saleAmountCents: deal.netReceiptsCents, cfg });
+    recordedFn = cls.function;
+    rateBp = cls.rateBp;
+    if (rateBp <= 0) {
+      return { ok: false, message: "The engine computed a 0% origination rate. Check the deal kind and the configured rates." };
+    }
+    amountCents = bpToCents(deal.netReceiptsCents, rateBp);
+    auditExtra.newness = newness;
+    auditExtra.isNewCompany = cls.isNewCompany;
+    auditExtra.paidStrongRate = cls.paidStrongRate;
+    auditExtra.classification = cls.reason;
+  } else if (fn === "DELIVERY") {
+    if (fixedFeeRequested) {
+      // Superadmin fixed-fee exception (already validated by the precheck): a logged
+      // reason is required and the operator supplies the fee in the deal's currency.
+      const flatRaw = formData.get("flatFee");
+      if (flatRaw == null || String(flatRaw).trim() === "") {
+        return { ok: false, message: "Fixed-fee delivery exception: enter the fee amount." };
+      }
+      const flatCents = toMinorUnits(safeNonNegative(flatRaw, "fixed fee", 1e10), deal.currency);
+      if (flatCents <= 0) return { ok: false, message: "Enter a fixed fee greater than zero." };
+      isFlat = true;
+      amountCents = flatCents;
+      rateBp = centsToBp(flatCents, deal.netReceiptsCents);
+      auditExtra.fixedFeeException = true;
+      auditExtra.fixedFeeReason = fixedFeeReason;
+    } else {
+      // The single, config-sourced delivery rate. No band, no operator-typed rate.
+      rateBp = deliverySingleRateBp(cfg);
+      if (rateBp <= 0) return { ok: false, message: "The configured delivery rate is 0%, so there is nothing to record." };
+      amountCents = bpToCents(deal.netReceiptsCents, rateBp);
+    }
+  } else if (fn === "OVERRIDE") {
+    // The renewal OVERRIDE is credited to the account OPENER, and Active Status is
+    // checked against the OPENER, not the renewal deal's owner. If opener == owner the
+    // behavior is unchanged. If no opener can be identified, no override line is created.
+    if (!deal.registeredAccountId) {
+      return { ok: false, message: "This deal has no registered account, so there is no origination opener to trail an override to." };
+    }
+    const priorDeals = await prisma.closedDeal.findMany({
+      where: { registeredAccountId: deal.registeredAccountId, id: { not: deal.id } },
+      select: {
+        partnerId: true,
+        signedAt: true,
+        commissions: {
+          where: { function: { in: ["QUALIFIED_ORIGINATION", "STRONG_ORIGINATION"] }, status: { notIn: ["REVERSED"] } },
+          select: { rateBp: true },
+        },
+      },
+    });
+    const opener = originationOpener(
+      priorDeals.map((d) => ({ signedAt: d.signedAt, originationRateBps: d.commissions.map((c) => c.rateBp), partnerId: d.partnerId })),
+    );
+    if (!opener || !opener.partnerId) {
+      return { ok: false, message: "No origination opener on this account, so there is no override to trail." };
+    }
+    const openerPartner = await prisma.partner.findUnique({ where: { id: opener.partnerId }, select: { activeStatus: true } });
+    const withinWindow = deal.originationWindowStart ? withinOriginationWindow(deal.originationWindowStart, now, cfg) : false;
+    // The share and window are the DEAL OWNER's config; the Active Status is the OPENER's.
+    const overrideBp = originationOverrideBp(
+      { openRateBp: opener.rateBp, withinWindow, activeStatus: openerPartner?.activeStatus ?? false },
+      cfg,
+    );
+    if (overrideBp <= 0) {
+      return { ok: false, message: "Override is 0% here: the origination window has closed, or the opener is not on Active Status." };
+    }
+    recordedFn = "OVERRIDE";
+    linePartnerId = opener.partnerId; // credit the OPENER, not the deal owner
+    rateBp = overrideBp;
+    amountCents = bpToCents(deal.netReceiptsCents, rateBp);
+    auditExtra.overrideOpenerPartnerId = opener.partnerId;
+    auditExtra.overrideOpenerRateBp = opener.rateBp;
+    auditExtra.overrideWithinWindow = withinWindow;
+    auditExtra.overrideOpenerActive = openerPartner?.activeStatus ?? false;
   } else {
+    // BASIC_INTRO, CLOSING, GROWTH_BONUS, FOCUS_BONUS: config-derived rate.
+    const newB2bOrgsRolling12 = fn === "GROWTH_BONUS" ? await countNewCompanyDomainsRolling(deal.partnerId, now, cfg) : 0;
+    const derived = deriveFunctionRate(fn, {
+      dealKind,
+      cfg,
+      newB2bOrgsRolling12,
+      tier: partner.tier,
+    });
+    if (derived.kind === "AUTO_ONLY") return { ok: false, message: derived.reason };
+    if (derived.kind === "FLAT") {
+      return { ok: false, message: "Only Delivery supports a fixed fee, and only as a superadmin exception." };
+    }
     rateBp = derived.rateBp;
     if (rateBp <= 0) {
       return {
         ok: false,
-        message: "The engine computed a 0% rate for this function on this deal, so there is nothing to record. Check the deal kind, the seat gate, the origination window, or the config.",
+        message: "The engine computed a 0% rate for this function on this deal, so there is nothing to record. Check the deal kind or the config.",
       };
     }
-    isFlat = false;
     amountCents = bpToCents(deal.netReceiptsCents, rateBp);
+  }
+
+  // Weighted split: store the FULL function rate as rateBp and this partner's provisional
+  // share as the amount. The exact cents-split under the cap is finalized on recompute,
+  // which sees all sibling lines; like every pre-recompute amount, this one is provisional.
+  if (weightBp != null) {
+    if (isFlat) return { ok: false, message: "A fixed-fee line cannot be weight-split; split a percentage function instead." };
+    amountCents = Math.round((amountCents * weightBp) / 10000);
   }
 
   const entry = await prisma.commissionEntry.create({
     data: {
-      partnerId: deal.partnerId,
+      partnerId: linePartnerId,
       closedDealId: deal.id,
-      function: fn,
+      function: recordedFn,
       rateBp,
       baseAmountCents: deal.netReceiptsCents,
       amountCents,
       isFlat,
+      weightBp,
       evidenceNote,
+      // Stored only for Basic Introduction (the precheck guarantees it is attested).
+      warmRelationshipAttested: recordedFn === "BASIC_INTRO",
       currency: deal.currency,
     },
   });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_LINE_ADDED", entity: "CommissionEntry", entityId: entry.id, after: { function: fn, rateBp, amountCents, isFlat, evidenceNote } });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "COMMISSION_LINE_ADDED",
+    entity: "CommissionEntry",
+    entityId: entry.id,
+    after: { submittedFunction: fn, function: recordedFn, partnerId: linePartnerId, rateBp, amountCents, isFlat, weightBp, evidenceNote, ...auditExtra },
+  });
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
   return { ok: true };
 }
@@ -955,19 +1089,39 @@ export async function recomputeDealCommissions(formData: FormData) {
   // can never breach the absolute cap.
   const paidEntries = await prisma.commissionEntry.findMany({
     where: { closedDealId, status: "PAID" },
-    select: { amountCents: true, reversedCents: true },
+    select: { amountCents: true, reversedCents: true, function: true, weightBp: true },
   });
   const committedExternalCents = paidEntries.reduce(
     (sum, e) => sum + Math.max(0, e.amountCents - e.reversedCents),
     0,
   );
+  // For a weighted split whose siblings settle at different times, the amount of each
+  // function already settled (PAID) so the surviving siblings in this recompute are
+  // clamped to the remaining budget and the group can never overpay one unshared line.
+  const settledByFunction = new Map<PartnerFunction, number>();
+  for (const e of paidEntries) {
+    if (e.weightBp != null) {
+      settledByFunction.set(e.function, (settledByFunction.get(e.function) ?? 0) + Math.max(0, e.amountCents - e.reversedCents));
+    }
+  }
+  const groupSettled = (e: (typeof entries)[number]) => (e.weightBp != null ? settledByFunction.get(e.function) ?? 0 : undefined);
 
   const result = computeDealCommission({
     netReceiptsCents: deal.netReceiptsCents,
     dealKind: deal.dealType as "B2C" | "B2B",
     focusActive,
     config: cfg,
-    functions: entries.map((e) => (e.isFlat ? { function: e.function, flatCents: e.amountCents } : { function: e.function, rateBp: e.rateBp })),
+    // Preserve each line's partner attribution and weight through the recompute so a
+    // cross-partner override or a weighted split is never silently reassigned to the
+    // deal owner. The engine groups weighted lines and splits them under the cap; the
+    // row's partnerId/weightBp are untouched (only amountCents/payableOn are updated).
+    // groupSettledCents lets a partially-settled weighted group clamp the survivors to
+    // the remaining budget, so no settlement order or partner count can ever overpay.
+    functions: entries.map((e) =>
+      e.isFlat
+        ? { function: e.function, flatCents: e.amountCents, partnerId: e.partnerId, weightBp: e.weightBp ?? undefined, groupSettledCents: groupSettled(e) }
+        : { function: e.function, rateBp: e.rateBp, partnerId: e.partnerId, weightBp: e.weightBp ?? undefined, groupSettledCents: groupSettled(e) },
+    ),
     committedExternalCents,
   });
   const payableOn = commissionPayableOn(deal.deliveredAt, deal.paymentClearedAt, cfg);

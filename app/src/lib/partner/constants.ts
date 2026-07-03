@@ -298,12 +298,11 @@ export const CONFIG_FIELD_META: ConfigFieldMeta[] = [
   { key: "qualifiedOriginationB2bBp", label: "Qualified Origination, B2B", unit: "bp", group: "Commission rates" },
   { key: "strongOriginationB2cBp", label: "Strong Origination, B2C", unit: "bp", group: "Commission rates" },
   { key: "strongOriginationB2bBp", label: "Strong Origination, B2B", unit: "bp", group: "Commission rates" },
-  { key: "strongOriginationUnlockSeats", label: "B2C strong rate unlocks after N seats", unit: "seats", group: "Commission rates" },
   { key: "closingB2cBp", label: "Closing, B2C", unit: "bp", group: "Commission rates" },
   { key: "closingB2bBp", label: "Closing, B2B", unit: "bp", group: "Commission rates" },
-  { key: "deliveryMode", label: "Delivery pay mode", unit: "enum", group: "Commission rates", options: ["FIXED_FEE", "PERCENTAGE"] },
-  { key: "deliveryPercentMinBp", label: "Delivery percent, min", unit: "bp", group: "Commission rates" },
-  { key: "deliveryPercentMaxBp", label: "Delivery percent, max", unit: "bp", group: "Commission rates" },
+  { key: "deliveryPercentBp", label: "Delivery rate (single default)", unit: "bp", group: "Commission rates" },
+  { key: "strongValueThresholdB2cCents", label: "Strong Origination high value threshold, B2C", unit: "cents", group: "Commission rates" },
+  { key: "strongValueThresholdB2bCents", label: "Strong Origination high value threshold, B2B", unit: "cents", group: "Commission rates" },
   // Caps
   { key: "capB2cBp", label: "Cap per deal, B2C", unit: "bp", group: "Caps" },
   { key: "capB2bBp", label: "Cap per deal, B2B", unit: "bp", group: "Caps" },
@@ -362,6 +361,13 @@ export const CONFIG_FIELD_META: ConfigFieldMeta[] = [
   { key: "nonCircumventionMonths", label: "Non-circumvention tail", unit: "months", group: "Restrictions" },
   { key: "nonSolicitationMonths", label: "Non-solicitation tail", unit: "months", group: "Restrictions" },
   { key: "lateStageTailDays", label: "Late-stage tail", unit: "days", group: "Restrictions" },
+  // Retired knobs: kept for continuity (never dropped) but NOT used by the current
+  // rules. Origination strength is derived objectively from domain newness and the
+  // sale amount, and delivery pays the single configured rate; these are inert.
+  { key: "strongOriginationUnlockSeats", label: "B2C strong seat unlock (retired, superseded by domain newness)", unit: "seats", group: "Retired (not used by current rules)" },
+  { key: "deliveryMode", label: "Delivery pay mode (retired, delivery is a single rate)", unit: "enum", group: "Retired (not used by current rules)", options: ["FIXED_FEE", "PERCENTAGE"] },
+  { key: "deliveryPercentMinBp", label: "Delivery percent min (retired band)", unit: "bp", group: "Retired (not used by current rules)" },
+  { key: "deliveryPercentMaxBp", label: "Delivery percent max (retired band)", unit: "bp", group: "Retired (not used by current rules)" },
 ];
 
 export const CONFIG_GROUPS = Array.from(new Set(CONFIG_FIELD_META.map((f) => f.group)));

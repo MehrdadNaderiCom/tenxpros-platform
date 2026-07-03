@@ -36,6 +36,11 @@ export const PROGRAM_CONFIG_DEFAULTS: EffectiveConfig = {
   deliveryMode: "PERCENTAGE",
   deliveryPercentMinBp: 500,
   deliveryPercentMaxBp: 800,
+  // Commission redesign: single delivery rate, and the high value thresholds that
+  // (with the domain newness state) decide the Strong vs Qualified origination rate.
+  deliveryPercentBp: 800,
+  strongValueThresholdB2cCents: 500000,
+  strongValueThresholdB2bCents: 1500000,
   // Caps (basis points)
   capB2cBp: 2500,
   capB2bBp: 3000,
