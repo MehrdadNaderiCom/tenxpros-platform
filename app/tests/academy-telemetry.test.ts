@@ -104,11 +104,14 @@ describe("telemetry wiring (source inspection)", () => {
     expect(modulePage).toContain("<TelemetryBeacon slug={m.slug} disabled={preview} />");
   });
 
-  it("the audio reader announces played seconds for the beacon", () => {
-    expect(audio).toContain("txp-academy-audio-second");
+  it("the audio reader announces played seconds for the beacon (server player AND fallback)", () => {
+    // The reader dispatches the beacon's own exported constant, so the event
+    // name can never drift between the two files.
+    expect(audio).toContain('import { AUDIO_SECOND_EVENT } from "@/components/academy/telemetry-beacon"');
+    expect((audio.match(/new CustomEvent\(AUDIO_SECOND_EVENT\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
   });
 
-  it("voice selection is duplicate-URI-safe and applies immediately, also mid-playback", () => {
+  it("the FALLBACK speech path stays engine-safe (used only until the studio narration is ready)", () => {
     // Android engines can report the SAME voiceURI for different voices, so the
     // selection must key on name + lang, never on voiceURI.
     expect(audio).toContain("function voiceKey");
