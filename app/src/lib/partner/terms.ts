@@ -13,7 +13,7 @@
  * are stated as literals and noted as such.
  */
 import { PROGRAM_CONFIG_DEFAULTS, type EffectiveConfig } from "./config";
-import { formatBp } from "./constants";
+import { formatBp, formatCents } from "./constants";
 
 export interface TermsSection {
   title: string;
@@ -27,6 +27,7 @@ export const PARTNER_TERMS_LEAD =
 /** Build the terms with every configurable number rendered from `cfg`. */
 export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] {
   const pct = (bp: number) => formatBp(bp);
+  const usd = (cents: number) => formatCents(cents);
   return [
     {
       title: "How your rights work",
@@ -77,15 +78,16 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
     {
       title: "How commission is earned",
       body: [
-        "Commission is earned by function, calculated on Net Receipts actually received and cleared. You earn for the functions you actually perform on a Closed Deal. The Seat (one enrolled professional) is the unit of sale.",
+        "Commission is earned by function, calculated on Net Receipts actually received and cleared. You earn for the functions you actually perform on a Closed Deal. The Seat (one enrolled professional) is the unit of sale. You never set your own rate or grade your own origination: the company derives every classification objectively from the recorded facts of the deal, so nothing on your statement is a matter of opinion.",
+        `A company's newness is decided by its domain, objectively. New means the domain has never appeared on a closed deal with us. Dormant means it has, but its most recent activity is more than ${cfg.originationWindowMonths} months ago. Existing means there has been activity within the last ${cfg.originationWindowMonths} months. A high-value sale is one strictly above ${usd(cfg.strongValueThresholdB2cCents)} on B2C, or ${usd(cfg.strongValueThresholdB2bCents)} on B2B.`,
       ],
       bullets: [
-        `Basic Introduction: ${pct(cfg.basicIntroductionBp)} on B2C and B2B, paid if the introduction becomes a closed deal.`,
-        `Qualified Origination: ${pct(cfg.qualifiedOriginationB2cBp)} on B2C, ${pct(cfg.qualifiedOriginationB2bBp)} on B2B.`,
-        `Strong Origination: ${pct(cfg.strongOriginationB2cBp)} on B2C (after ${cfg.strongOriginationUnlockSeats} paid seats, or by Panel Confirmation), ${pct(cfg.strongOriginationB2bBp)} on B2B.`,
-        `Closing: ${pct(cfg.closingB2cBp)} on B2C, ${pct(cfg.closingB2bBp)} on B2B.`,
-        `Delivery or Coaching: a fixed fee, or ${pct(cfg.deliveryPercentMinBp)} to ${pct(cfg.deliveryPercentMaxBp)} if approved.`,
-        `Cap per deal: total partner compensation is ${pct(cfg.capB2cBp)} of Net Receipts on B2C and ${pct(cfg.capB2bBp)} on B2B, with a Tier 3 focus account able to rise gradually to ${pct(cfg.tier3FocusHardCeilingBp)}.`,
+        `Basic Introduction: ${pct(cfg.basicIntroductionBp)} on B2C and B2B. It requires a genuine, pre-existing warm relationship, which you attest to with a note naming the person and the relationship, and it pays only when that introduced contact becomes a closed, paid deal. It confers no account ownership or protection.`,
+        `Qualified Origination: ${pct(cfg.qualifiedOriginationB2cBp)} on B2C, ${pct(cfg.qualifiedOriginationB2bBp)} on B2B. This is a new department, branch or unit of a company we already know (an Existing domain).`,
+        `Strong Origination: ${pct(cfg.strongOriginationB2cBp)} on B2C, ${pct(cfg.strongOriginationB2bBp)} on B2B. Two things must both be true: the company's domain is genuinely New or Dormant, and the sale amount is strictly above the high-value threshold for its type. If the domain is New or Dormant but the sale is at or below that threshold, the deal keeps its new-company classification but is paid the Qualified rate. A deal with no recorded domain cannot claim the Strong rate.`,
+        `Closing: ${pct(cfg.closingB2cBp)} on B2C, ${pct(cfg.closingB2bBp)} on B2B, payable only once the deal carries a recorded signed-agreement date.`,
+        `Delivery or Coaching: ${pct(cfg.deliveryPercentBp)} of Net Receipts, a single rate the company sets. Delivery is normally performed by the company; this line is paid only when the company engages a partner to help it scale, and only once the deal carries a recorded delivered date. A fixed fee is possible only as a company exception, recorded with a reason.`,
+        `Cap per deal: total partner compensation, across every function and every partner on the deal, is ${pct(cfg.capB2cBp)} of Net Receipts on B2C and ${pct(cfg.capB2bBp)} on B2B, with a Tier 3 focus account able to rise gradually to ${pct(cfg.tier3FocusHardCeilingBp)}. When functions stack above the cap, the percentage lines scale down in proportion to fit it exactly.`,
       ],
     },
     {
@@ -99,7 +101,8 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
       title: "Renewals, trail and the origination tail",
       body: [
         `Commission on a Closed Deal is payable on Net Receipts collected for up to ${cfg.trailPeriodMonths} months from signing. This trail is vested and is not affected by your later activity, subject to the clawback rules.`,
-        `On a B2B account you opened, for the first ${cfg.originationWindowMonths} months you also earn an Origination Override of ${pct(cfg.overrideShareBp)} of the rate the account was opened at on a same-scope renewal, while you keep actively supporting the account. After ${cfg.originationWindowMonths} months the override ends. A genuinely new engagement, or an expansion that adds at least ${cfg.majorNewEngagementMinSeats} paid seats, opens its own fresh ${cfg.originationWindowMonths}-month window.`,
+        `On a B2B account, a same-scope renewal within the first ${cfg.originationWindowMonths} months also pays an Origination Override of ${pct(cfg.overrideShareBp)} of the rate the account was opened at. The override is credited to the account's opener, the partner who originated it, not to whoever records the renewal, and only while that opener still holds Active Status by actively supporting the account. After ${cfg.originationWindowMonths} months, or if the opener goes inactive, the override ends. It is one line on the renewal and sits inside that renewal's single cap.`,
+        `Where several partners contribute to one deal, each line is credited to the partner who actually performed it, so an introducer, an originator, a closer and a delivery partner can each be paid on the same deal. A single genuinely shared contribution may be split between partners by a company-set weight, recorded with a reason. However the credit is divided, the deal total can never exceed the cap.`,
       ],
     },
     {
@@ -120,7 +123,7 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
       body: [
         "Every tier earns commission on all functions at the same rates. What grows with tier is the number of open accounts you may hold, how long your accounts stay protected, your priority on company leads, eligibility for a growth bonus, public recognition, and, at Tier 3, an industry or region focus.",
         `Tier 2 is earned by selling and collecting at least ${cfg.tier2SeatThreshold} paid, non-refunded seats within a ${cfg.tierQualifyingWindowMonths}-month window. Tier 3 is earned by holding Tier 2 and then sourcing and collecting at least ${cfg.tier3FocusSeatThreshold} paid, non-refunded seats in one industry or region within a ${cfg.tierQualifyingWindowMonths}-month window. Promotion takes effect only on the company's Panel Confirmation; meeting the thresholds is necessary but not automatic.`,
-        `A growth bonus of ${pct(cfg.growthBonusBp)} applies to Tier 2 and Tier 3 partners who open, close and collect ${cfg.growthBonusOrgThreshold} or more new B2B organisations within a rolling ${cfg.tierQualifyingWindowMonths}-month period, within the overall cap.`,
+        `A growth bonus of ${pct(cfg.growthBonusBp)} applies to Tier 2 and Tier 3 partners who close and collect ${cfg.growthBonusOrgThreshold} or more distinct, genuinely new B2B organisations within a rolling ${cfg.tierQualifyingWindowMonths}-month period, counted by domain, so two deals on the same company count once. A deal with no recorded domain never counts. The bonus applies within the overall cap.`,
       ],
     },
     {

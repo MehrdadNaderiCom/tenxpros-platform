@@ -86,6 +86,9 @@ export function PartnerDealForm() {
           <Field label="Exact legal entity or individual" error={errors.legalEntity?.message}>
             <Input {...register("legalEntity")} placeholder="e.g. Global Bank Ltd" />
           </Field>
+          <Field label="Company domain" optional error={errors.domain?.message} description="The company website domain. It is the canonical identity used to price origination fairly.">
+            <Input {...register("domain")} placeholder="e.g. globalbank.com" />
+          </Field>
           <Field label="Country" error={errors.country?.message}>
             <CountrySelect {...register("country")} />
           </Field>

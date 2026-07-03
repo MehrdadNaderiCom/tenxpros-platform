@@ -18,6 +18,9 @@ import {
   formatCents,
 } from "@/lib/partner/constants";
 import { accountLapseState, addMonths, withinOriginationWindow } from "@/lib/partner/rules";
+import { countNewCompanyDomainsRolling } from "@/lib/partner/growth";
+import { auth } from "@/lib/auth";
+import { isSuperAdmin } from "@/lib/authz";
 import {
   addQualityFlag,
   applyRefund,
@@ -78,6 +81,16 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
   });
   if (!partner) notFound();
 
+  // Superadmin-only controls (cross-partner attribution, weighted split). The server
+  // action enforces this too; the flag just decides whether to show the controls.
+  const session = await auth();
+  const superAdmin = isSuperAdmin(session?.user?.email);
+  const partnerOptions: [string, string][] = superAdmin
+    ? (await prisma.partner.findMany({ select: { id: true, displayName: true }, orderBy: { displayName: "asc" } })).map(
+        (p) => [p.id, p.displayName] as [string, string],
+      )
+    : [];
+
   const effective = await resolvePartnerConfig(partner.id);
   const overrideRowRaw = await prisma.partnerConfig.findUnique({ where: { partnerId: partner.id } });
   const overrideRow = overrideRowRaw ? pickConfigFields(overrideRowRaw as unknown as EffectiveConfig) : {};
@@ -86,21 +99,17 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
   const paidSeats = countableSeats(seats.map((s) => ({ count: s.count, status: s.status, disregardForTargets: partner.qualityFlagged })));
 
   // Context for the commission add-line rate preview (the server re-derives on save).
+  // The Growth Bonus preview uses the SAME domain-based counter the server uses, so it
+  // never shows 0% where a bonus would actually be paid.
   const nowForRates = new Date();
-  const sinceForOrgs = addMonths(nowForRates, -12);
-  const b2bOrgSet = new Set<string>();
-  for (const d of partner.closedDeals) {
-    if (d.dealType === "B2B" && d.isMajorNewEngagement && d.signedAt && d.signedAt.getTime() >= sinceForOrgs.getTime() && d.registeredAccountId) {
-      b2bOrgSet.add(d.registeredAccountId);
-    }
-  }
-  const newB2bOrgsRolling12 = b2bOrgSet.size;
+  const newB2bOrgsRolling12 = await countNewCompanyDomainsRolling(partner.id, nowForRates, effective);
   const FUNCTION_OPTIONS: [string, string][] = FUNCTION_VALUES.map((f) => [f, PARTNER_FUNCTION_LABELS[f]]);
   const ratesForDeal = (deal: (typeof partner.closedDeals)[number]): Record<string, DerivedRate> => {
+    // Origination and Delivery are shown separately in the form (server-derived and a
+    // single configured rate); the rest are derived from config for the preview.
     const ctx = {
       dealKind: deal.dealType as "B2C" | "B2B",
       cfg: effective,
-      seatsTowardStrongUnlock: paidSeats,
       openRateBp: deal.originationRateBpAtOpen ?? 0,
       withinOriginationWindow: deal.originationWindowStart
         ? withinOriginationWindow(deal.originationWindowStart, nowForRates, effective)
@@ -112,15 +121,6 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
     const map: Record<string, DerivedRate> = {};
     for (const f of FUNCTION_VALUES) map[f] = deriveFunctionRate(f, ctx);
     return map;
-  };
-  const strongUnlockedRateBpFor = (deal: (typeof partner.closedDeals)[number]): number => {
-    const r = deriveFunctionRate("STRONG_ORIGINATION", {
-      dealKind: deal.dealType as "B2C" | "B2B",
-      cfg: effective,
-      seatsTowardStrongUnlock: paidSeats,
-      strongUnlockedByPanel: true,
-    });
-    return r.kind === "PERCENT" ? r.rateBp : 0;
   };
 
   const payoutCurrency = effective.currency;
@@ -307,9 +307,12 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
           <datalist id="currency-options">{COMMON_CURRENCIES.map((c) => <option key={c} value={c} />)}</datalist>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Registered account</span>
             <Select name="registeredAccountId" defaultValue="">
-              <option value="">, none, </option>
+              <option value="">none</option>
               {partner.registeredAccounts.map((a) => <option key={a.id} value={a.id}>{a.legalEntity}</option>)}
             </Select>
+          </label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Company domain</span>
+            <Input name="domain" placeholder="acme.com (drives newness / origination)" />
           </label>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Signed at</span><Input name="signedAt" type="date" /></label>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Delivered at</span><Input name="deliveredAt" type="date" /></label>
@@ -384,10 +387,11 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                 currency={deal.currency}
                 dealKind={deal.dealType as "B2C" | "B2B"}
                 rates={ratesForDeal(deal)}
-                strongUnlockedRateBp={strongUnlockedRateBpFor(deal)}
-                seatGate={{ seats: paidSeats, threshold: effective.strongOriginationUnlockSeats, met: paidSeats >= effective.strongOriginationUnlockSeats }}
-                deliveryBand={{ minBp: effective.deliveryPercentMinBp, maxBp: effective.deliveryPercentMaxBp, mode: effective.deliveryMode }}
+                deliverySingleRateBp={effective.deliveryPercentBp}
                 functionOptions={FUNCTION_OPTIONS}
+                isSuperAdmin={superAdmin}
+                dealOwnerId={partner.id}
+                partnerOptions={partnerOptions}
               />
               <div className="mt-2 flex flex-wrap items-end gap-2">
                 <form action={recomputeDealCommissions}>

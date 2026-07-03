@@ -3,12 +3,13 @@ import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { PartnerTermsDialog } from "@/components/marketing/partner-terms-modal";
 import { PROGRAM_CONFIG_DEFAULTS as CFG } from "@/lib/partner/config";
-import { formatBp } from "@/lib/partner/constants";
+import { formatBp, formatCents } from "@/lib/partner/constants";
 
 // Every rate, cap, threshold and window below renders from the config source of
 // truth (PROGRAM_CONFIG_DEFAULTS), so a change to a number there updates this page
 // and the terms text together, with no hardcoded literal to drift.
-const deliveryBand = `fixed fee, or ${formatBp(CFG.deliveryPercentMinBp)} to ${formatBp(CFG.deliveryPercentMaxBp)}`;
+const deliveryRate = formatBp(CFG.deliveryPercentBp);
+const overrideShare = `${formatBp(CFG.overrideShareBp)} of the opener rate`;
 
 export const metadata: Metadata = {
   title: "Become a TenXPros Partner",
@@ -69,10 +70,11 @@ const TIERS = [
 ];
 
 const FUNCTIONS: Array<[string, string]> = [
-  ["Basic Introduction", "Introduce a relevant contact. You earn when that introduction becomes a paid deal."],
-  ["Origination", "Source a qualified opportunity that closes. This is the reward for opening the door on a real account."],
-  ["Closing", "Lead the sale through to a signed, binding agreement."],
-  ["Delivery and Coaching", "Deliver or coach the offering, paid by a fixed fee or an approved percentage."],
+  ["Basic Introduction", "Introduce a relevant contact you already have a genuine, warm relationship with. You earn when that introduction becomes a paid deal."],
+  ["Origination", "Open a real account. Qualified when it is a new unit of a company we already know; the higher Strong rate when the company is genuinely new or dormant and the sale is high-value. The company decides which from the facts, not opinion."],
+  ["Closing", "Carry the sale through to a signed, binding agreement."],
+  ["Delivery and Coaching", "Delivery is normally the company's own. When the company engages a partner to help it scale, this pays a single set rate."],
+  ["Renewal Override", "Open a B2B account and keep supporting it, and a renewal within the window pays you a share of the rate you opened it at, on top of that renewal's own commission."],
 ];
 
 const COMMISSION_ROWS: Array<[string, string, string]> = [
@@ -80,7 +82,8 @@ const COMMISSION_ROWS: Array<[string, string, string]> = [
   ["Qualified Origination", formatBp(CFG.qualifiedOriginationB2cBp), formatBp(CFG.qualifiedOriginationB2bBp)],
   ["Strong Origination", formatBp(CFG.strongOriginationB2cBp), formatBp(CFG.strongOriginationB2bBp)],
   ["Closing", formatBp(CFG.closingB2cBp), formatBp(CFG.closingB2bBp)],
-  ["Delivery or Coaching", deliveryBand, deliveryBand],
+  ["Delivery or Coaching", deliveryRate, deliveryRate],
+  ["Renewal Override", overrideShare, overrideShare],
 ];
 
 function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -215,10 +218,19 @@ export default function PartnersPage() {
             </tbody>
           </table>
         </Card>
+        <p className="mt-4 text-sm leading-6 text-slate-600">
+          Total partner compensation on any one deal is capped at {formatBp(CFG.capB2cBp)} of Net Receipts on B2C and{" "}
+          {formatBp(CFG.capB2bBp)} on B2B, across every function and every partner on the deal. The one exception is a Tier 3
+          focus account, which can rise gradually to {formatBp(CFG.tier3FocusHardCeilingBp)}. When functions stack above the cap, the lines scale
+          down in proportion to fit it exactly.
+        </p>
         <p className="mt-3 text-xs leading-5 text-slate-500">
-          The strong origination rate on B2C applies after {CFG.strongOriginationUnlockSeats} paid seats, or by
-          confirmation on the panel. A Tier 3 focus account can rise gradually above the cap to {formatBp(CFG.tier3FocusHardCeilingBp)}. You can read the full
-          detail in the <PartnerTermsDialog className="text-xs">Partner Program Terms</PartnerTermsDialog>.
+          The higher Strong Origination rate applies only when the company is genuinely new or dormant and the sale is
+          above the high-value threshold (over {formatCents(CFG.strongValueThresholdB2cCents)} on B2C, over{" "}
+          {formatCents(CFG.strongValueThresholdB2bCents)} on B2B); a new-company deal at or below that threshold keeps its new-company standing
+          but is paid the Qualified rate. The Renewal Override is a share of the rate the account was opened at, credited to the
+          partner who opened it while they keep supporting it. You can read the full detail in the{" "}
+          <PartnerTermsDialog className="text-xs">Partner Program Terms</PartnerTermsDialog>.
         </p>
       </Section>
 

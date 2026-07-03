@@ -66,6 +66,9 @@ export function DealResubmitForm({ deal }: { deal: ResubmitInput }) {
         <Field label="Exact legal entity or individual" error={errors.legalEntity?.message}>
           <Input {...register("legalEntity")} />
         </Field>
+        <Field label="Company domain" optional error={errors.domain?.message}>
+          <Input {...register("domain")} placeholder="e.g. globalbank.com" />
+        </Field>
         <Field label="Country" error={errors.country?.message}>
           <CountrySelect {...register("country")} />
         </Field>

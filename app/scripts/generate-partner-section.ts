@@ -17,7 +17,7 @@ import { sanitizeLessonHtml } from "../src/lib/academy/lesson-html";
 import { badgeCatalog } from "../src/lib/program-data";
 import { PRO_DEFINITION } from "../src/lib/marketing/pro-definition";
 import { PROGRAM_CONFIG_DEFAULTS as CFG } from "../src/lib/partner/config";
-import { formatBp } from "../src/lib/partner/constants";
+import { formatBp, formatCents } from "../src/lib/partner/constants";
 import { PARTNER_TERMS_SECTIONS, PARTNER_TERMS_LEAD } from "../src/lib/partner/terms";
 import { SURVIVAL_CLAUSES, ANNUAL_VALIDITY, currentTermsYear } from "../src/lib/terms/annual";
 
@@ -153,7 +153,8 @@ out.push("");
 // ---- Part 1: public partners page -----------------------------------------
 // Reconstructed from the public page's own content, with every number rendered
 // from the same configuration source the live page uses.
-const deliveryBand = `fixed fee, or ${pct(CFG.deliveryPercentMinBp)} to ${pct(CFG.deliveryPercentMaxBp)}`;
+const deliveryRate = pct(CFG.deliveryPercentBp);
+const overrideShare = `${pct(CFG.overrideShareBp)} of the opener rate`;
 const STAGES: Array<[string, string]> = [
   ["Pilot and activation", `Every partner starts on a ${CFG.pilotDays}-day pilot and completes a short Activation Gate. Once the company confirms you on the panel, you are ready to begin.`],
   ["Register and earn", "You register each opportunity before you pursue it. The moment it is confirmed on the panel it is protected for you, and you earn commission on the functions you perform once the customer has paid."],
@@ -166,17 +167,19 @@ const TIERS = [
   { eyebrow: "Tier 3", name: "Territory Builder", blurb: "For a proven partner with a focus on one industry or region.", points: [`Hold up to ${CFG.maxOpenAccountsTier3} open accounts, with the longest protection`, "First priority on leads within your focus", "A focus bonus and public recognition as the lead partner"] },
 ];
 const FUNCTIONS: Array<[string, string]> = [
-  ["Basic Introduction", "Introduce a relevant contact. You earn when that introduction becomes a paid deal."],
-  ["Origination", "Source a qualified opportunity that closes. This is the reward for opening the door on a real account."],
-  ["Closing", "Lead the sale through to a signed, binding agreement."],
-  ["Delivery and Coaching", "Deliver or coach the offering, paid by a fixed fee or an approved percentage."],
+  ["Basic Introduction", "Introduce a relevant contact you already have a genuine, warm relationship with. You earn when that introduction becomes a paid deal."],
+  ["Origination", "Open a real account. Qualified when it is a new unit of a company we already know; the higher Strong rate when the company is genuinely new or dormant and the sale is high-value. The company decides which from the facts, not opinion."],
+  ["Closing", "Carry the sale through to a signed, binding agreement."],
+  ["Delivery and Coaching", "Delivery is normally the company's own. When the company engages a partner to help it scale, this pays a single set rate."],
+  ["Renewal Override", "Open a B2B account and keep supporting it, and a renewal within the window pays you a share of the rate you opened it at, on top of that renewal's own commission."],
 ];
 const COMMISSION_ROWS: Array<[string, string, string]> = [
   ["Basic Introduction", pct(CFG.basicIntroductionBp), pct(CFG.basicIntroductionBp)],
   ["Qualified Origination", pct(CFG.qualifiedOriginationB2cBp), pct(CFG.qualifiedOriginationB2bBp)],
   ["Strong Origination", pct(CFG.strongOriginationB2cBp), pct(CFG.strongOriginationB2bBp)],
   ["Closing", pct(CFG.closingB2cBp), pct(CFG.closingB2bBp)],
-  ["Delivery or Coaching", deliveryBand, deliveryBand],
+  ["Delivery or Coaching", deliveryRate, deliveryRate],
+  ["Renewal Override", overrideShare, overrideShare],
 ];
 
 out.push(`<a id="part-public"></a>`);
@@ -216,7 +219,9 @@ out.push(`| --- | --- | --- |`);
 for (const [fn, b2c, b2b] of COMMISSION_ROWS) out.push(`| ${fn} | ${b2c} | ${b2b} |`);
 out.push(`| **Cap per deal** | **${pct(CFG.capB2cBp)}** | **${pct(CFG.capB2bBp)}** |`);
 out.push("");
-out.push(`The strong origination rate on B2C applies after ${CFG.strongOriginationUnlockSeats} paid seats, or by confirmation on the panel. A Tier 3 focus account can rise gradually above the cap to ${pct(CFG.tier3FocusHardCeilingBp)}. The full detail is in the Partner Program Terms (Part 3).`);
+out.push(`Total partner compensation on any one deal is capped at ${pct(CFG.capB2cBp)} of Net Receipts on B2C and ${pct(CFG.capB2bBp)} on B2B, across every function and every partner on the deal. The one exception is a Tier 3 focus account, which can rise gradually to ${pct(CFG.tier3FocusHardCeilingBp)}. When functions stack above the cap, the lines scale down in proportion to fit it exactly.`);
+out.push("");
+out.push(`The higher Strong Origination rate applies only when the company is genuinely new or dormant and the sale is above the high-value threshold (over ${formatCents(CFG.strongValueThresholdB2cCents)} on B2C, over ${formatCents(CFG.strongValueThresholdB2bCents)} on B2B); a new-company deal at or below that threshold keeps its new-company standing but is paid the Qualified rate. The Renewal Override is a share of the rate the account was opened at, credited to the partner who opened it while they keep supporting it. The full detail is in the Partner Program Terms (Part 3).`);
 out.push("");
 out.push(`### Recognition you keep`);
 out.push("");

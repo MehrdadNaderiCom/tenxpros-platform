@@ -79,6 +79,7 @@ export default async function PartnerDealDetailPage({ params }: { params: { id: 
               dealRegistrationId: reg.id,
               offering: reg.offering,
               legalEntity: reg.legalEntity,
+              domain: reg.domain ?? undefined,
               country: reg.country,
               businessUnit: reg.businessUnit ?? undefined,
               contactName: reg.contactName ?? undefined,

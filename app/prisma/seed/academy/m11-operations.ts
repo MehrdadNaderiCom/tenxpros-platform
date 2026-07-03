@@ -117,9 +117,9 @@ export const m11: ModuleSeed = {
     },
     {
       stem: "By day thirty of the pilot, what is the target?",
-      options: ["A signed contract", "At least one confirmed qualified lead or documented progress", "Forty paid seats", "Nothing is expected yet"],
+      options: ["A signed contract", "At least one confirmed qualified lead or documented progress", "A completed enrollment", "Nothing is expected yet"],
       correct: 1,
-      explanation: "Day thirty targets at least one qualified lead or documented progress. A signed contract, forty seats, or no expectation are not the day thirty mark.",
+      explanation: "Day thirty targets at least one qualified lead or documented progress. A signed contract, a completed enrollment, or no expectation are not the day thirty mark.",
     },
     {
       stem: "You are unsure whether an action is allowed. What do you do?",
@@ -161,9 +161,9 @@ export const m11: ModuleSeed = {
     },
     {
       stem: "What is the day sixty target in the first ninety days?",
-      options: ["Nothing yet", "At least one prospect meeting, a proposal path, or conversion evidence", "Reaching Tier three", "Forty paid seats"],
+      options: ["Nothing yet", "At least one prospect meeting, a proposal path, or conversion evidence", "Reaching Tier three", "A completed enrollment"],
       correct: 1,
-      explanation: "Day sixty targets a meeting, proposal path, or conversion evidence. It is not nothing, not a tier jump, and not forty seats.",
+      explanation: "Day sixty targets a meeting, proposal path, or conversion evidence. It is not nothing, not a tier jump, and not a completed enrollment.",
     },
     {
       stem: "At the day ninety review, what are the possible outcomes?",
@@ -197,9 +197,9 @@ export const m11: ModuleSeed = {
     },
     {
       stem: "What is the first thing in the ninety day sequence, before outreach?",
-      options: ["Registering forty accounts", "Completing the Activation Gate and waiting for confirmation", "Sending a mass campaign", "Reaching Tier two"],
+      options: ["Registering many accounts at once", "Completing the Activation Gate and waiting for confirmation", "Sending a mass campaign", "Reaching Tier two"],
       correct: 1,
-      explanation: "The sequence starts with completing the Activation Gate and getting confirmation. It does not start with forty accounts, a mass campaign, or a tier jump.",
+      explanation: "The sequence starts with completing the Activation Gate and getting confirmation. It does not start with registering many accounts, a mass campaign, or a tier jump.",
     },
     {
       stem: "A partner is unsure whether a particular claim is allowed in a message. What is the correct default?",
