@@ -169,7 +169,7 @@ describe("surfaces (source inspection)", () => {
     expect(terms).toContain("cfg.strongSeatThresholdB2b");
     expect(terms).toContain("zero meetings and no follow-up");
     expect(terms).toContain("rewarded even though you introduce and step aside");
-    expect(terms).toContain("at most one online meeting of under one hour");
+    expect(terms).toContain("at most one online meeting of up to forty five minutes, and possibly not even that");
     expect(terms).not.toContain("strongValueThreshold");
   });
 
@@ -197,7 +197,7 @@ describe("surfaces (source inspection)", () => {
   it("the registration form captures per-function claims, encouraged not blocking, with the attestation exception", () => {
     expect(dealForm).toContain("Your Basic Introduction claim");
     expect(dealForm).toContain("rewarded even though you introduce and step aside");
-    expect(dealForm).toContain("at most one\n              online meeting of under one hour");
+    expect(dealForm).toContain("up to forty five minutes, and possibly not even that");
     expect(dealForm).toContain("optional but\n          strongly encouraged");
     // The stated decision window comes from the RESOLVED config via a server prop.
     expect(dealForm).toContain("decisionBusinessDays");

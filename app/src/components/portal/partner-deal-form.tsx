@@ -136,9 +136,11 @@ export function PartnerDealForm({
           <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
             <p className="text-sm font-semibold text-navy-900">Your Basic Introduction claim</p>
             <p className="text-xs leading-5 text-slate-600">
-              A Basic Introduction means you actively introduce and explain us to someone you genuinely know, and then
-              step away: zero meetings and no follow-up after the introduction. A genuinely valuable introduction is
-              rewarded even though you introduce and step aside. It confers no account ownership or protection.
+              A Basic Introduction means you actively introduce and explain us to someone with whom you have a
+              genuinely valuable relationship: close and trusted, or real access we could not reach on our own, not
+              merely knowing someone. You then step away: zero meetings and no follow-up after the introduction. A
+              genuinely valuable introduction is rewarded even though you introduce and step aside. It confers no
+              account ownership or protection.
             </p>
             <Field label="Who is the contact" optional error={errors.introContactName?.message}>
               <Input {...register("introContactName")} placeholder="e.g. Sara Khan, CHRO" />
@@ -175,8 +177,8 @@ export function PartnerDealForm({
             <p className="text-sm font-semibold text-navy-900">Your Closing claim</p>
             <p className="text-xs leading-5 text-slate-600">
               Closing means you drive the deal to a signed, started contract yourself. Our team contributes at most one
-              online meeting of under one hour; you carry everything else through payment cleared, contract signed, and
-              the engagement started.
+              online meeting of up to forty five minutes, and possibly not even that; you carry everything else through
+              payment cleared, contract signed, and the engagement started.
             </p>
             <Field label="How you will drive it to signature" optional error={errors.closingPlan?.message}>
               <Textarea {...register("closingPlan")} rows={2} placeholder="e.g. I own the proposal, the negotiation, and the signature; I may ask for one short technical call from your side." />

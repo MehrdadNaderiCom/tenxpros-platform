@@ -106,8 +106,9 @@ export function DealResubmitForm({ deal }: { deal: ResubmitInput }) {
         <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
           <p className="text-sm font-semibold text-navy-900">Your Basic Introduction claim</p>
           <p className="text-xs leading-5 text-slate-600">
-            You introduce and explain us to someone you genuinely know, then step away: zero meetings and no follow-up.
-            A genuinely valuable introduction is rewarded even though you step aside.
+            You introduce and explain us to someone with whom you have a genuinely valuable relationship, close and
+            trusted or real access we could not reach ourselves, not merely someone you know, then step away: zero
+            meetings and no follow-up. A genuinely valuable introduction is rewarded even though you step aside.
           </p>
           <Field label="Who is the contact" optional error={errors.introContactName?.message}>
             <Input {...register("introContactName")} />
@@ -134,7 +135,7 @@ export function DealResubmitForm({ deal }: { deal: ResubmitInput }) {
 
       {intended.includes("CLOSING") ? (
         <Field
-          label="Closing: how you drive it to signature (our side gives at most one online meeting under one hour)"
+          label="Closing: how you drive it to signature (our side contributes at most one online meeting of up to forty five minutes, and possibly not even that)"
           optional
           error={errors.closingPlan?.message}
         >

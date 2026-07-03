@@ -53,7 +53,7 @@ const TIERS = [
     blurb: "Earned by real, collected results across sales and delivery.",
     points: [
       `Hold up to ${CFG.maxOpenAccountsTier2} open accounts, with longer protection`,
-      "Priority on company leads, and a growth bonus",
+      "Priority on company leads, and a growth bonus on genuinely new B2B organisations",
       "Certified credential, a public listing, and a letter of recognition",
     ],
   },
@@ -70,11 +70,11 @@ const TIERS = [
 ];
 
 const FUNCTIONS: Array<[string, string]> = [
-  ["Basic Introduction", "Introduce and explain us to someone you genuinely know, then step away: zero meetings and no follow-up. A genuinely valuable introduction is rewarded even though you introduce and step aside."],
+  ["Basic Introduction", "Introduce and explain us to someone with whom you have a genuinely valuable relationship, attested as a real warm relationship: close and trusted, or real access we could not reach ourselves, not merely knowing someone. Then step away: zero meetings and no follow-up. A genuinely valuable introduction is rewarded even though you step aside."],
   ["Origination", "Go beyond an introduction: attend the meetings, take on the follow-up, and open a real account. The higher Strong rate is decided by seat count, not opinion."],
-  ["Closing", "Drive the deal to a signed, started contract yourself. Our team gives at most one short online meeting; you carry the rest to signature and start."],
+  ["Closing", "Drive the deal to a signed, started contract yourself. Our team contributes at most one online meeting of up to forty five minutes, and possibly not even that; you carry the rest to signature and start."],
   ["Delivery and Coaching", "Delivery is normally the company's own. When the company engages a partner to help it scale, this pays a single set rate."],
-  ["Renewal Override", "B2B only: open an account and keep supporting it, and a renewal within the window pays you a share of the rate you opened it at, on top of that renewal's own commission."],
+  ["Renewal Override", "B2B only: open an account and keep supporting it, and a same scope renewal of that same account within the window pays you a share of the rate you opened it at, on top of that renewal's own commission. A new branch or unit is a new registration and a full new origination instead."],
 ];
 
 const COMMISSION_ROWS: Array<[string, string, string]> = [
@@ -228,8 +228,11 @@ export default function PartnersPage() {
           The higher Strong Origination rate is decided by seat count, on paid and collected seats: on B2C it applies from{" "}
           {CFG.strongSeatThresholdB2c} seats (seats alone decide; an individual has no domain), and on B2B it needs both a
           genuinely new or dormant company domain and {CFG.strongSeatThresholdB2b} seats or more. Below the threshold, a
-          new-company B2B deal keeps its new-company standing but is paid the Qualified rate. The Renewal Override is B2B only,
-          a share of the rate the account was opened at, credited to the partner who opened it while they keep supporting it.
+          new-company B2B deal keeps its new-company standing but is paid the Qualified rate, and a deal with no recorded paid
+          seats yet is always Qualified. The Renewal Override is B2B only, a share of the rate the account was opened at,
+          credited to the partner who opened it while they keep supporting it, and it follows only a same scope renewal of
+          the same account: the same organisation and unit under the same domain. A new branch or unit is a new registration
+          and a full new origination.
           You can read the full detail in the <PartnerTermsDialog className="text-xs">Partner Program Terms</PartnerTermsDialog>.
         </p>
       </Section>

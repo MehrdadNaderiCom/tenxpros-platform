@@ -2019,8 +2019,10 @@ model ProgramConfig {
   deliveryMode                 DeliveryMode @default(PERCENTAGE)
   deliveryPercentMinBp         Int          @default(500)
   deliveryPercentMaxBp         Int          @default(800)
-  // Commission redesign: single delivery rate, and the high value thresholds that
-  // (with the domain newness state) decide the Strong vs Qualified origination rate.
+  // Single delivery rate, plus the RETIRED dollar thresholds kept only for
+  // historical compatibility (additive rule: no config key is ever dropped).
+  // They do NOT decide anything: current Strong vs Qualified classification
+  // uses PAID-COLLECTED SEATS (see the seat thresholds below).
   deliveryPercentBp            Int          @default(800)
   strongValueThresholdB2cCents Int          @default(500000)
   strongValueThresholdB2bCents Int          @default(1500000)
@@ -2268,8 +2270,9 @@ model DealRegistration {
 /// One claimed function on a registration, with the evidence that justifies it.
 /// Involvement is the dividing line between functions: an introduction steps
 /// away (zero meetings, no follow-up), an origination attends meetings and takes
-/// the follow-up, a closing drives the deal to signature and start with at most
-/// one short online meeting from our side. Evidence is encouraged, not submit
+/// the follow-up, a closing drives the deal to signature and start with our side
+/// contributing at most one online meeting of up to forty five minutes, possibly
+/// none. Evidence is encouraged, not submit
 /// blocking; the one hard requirement is the warm-relationship attestation on a
 /// Basic Introduction claim (the engine also requires it before the line pays).
 model DealFunctionClaim {
