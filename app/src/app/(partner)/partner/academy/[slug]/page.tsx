@@ -139,7 +139,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         </Card>
       ) : null}
 
-      <AudioReader text={lesson?.audioText ?? ""} />
+      <AudioReader slug={m.slug} text={lesson?.audioText ?? ""} title={m.title} />
 
       <Card>
         <LessonReader paragraphs={paragraphs} html={lessonHtml} />

@@ -1,13 +1,64 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, Square } from "lucide-react";
+import { AUDIO_SECOND_EVENT } from "@/components/academy/telemetry-beacon";
+import { rankDeviceVoice } from "@/lib/academy/voices";
 
 /**
- * Split text into short, sentence-sized chunks. Mobile speech engines (notably
- * iOS Safari, and Chrome after ~15s) silently drop or cut off a single long
- * utterance, so we queue several short ones instead of one long one.
+ * Lesson narration player. The audio is synthesized ON THE SERVER (Piper TTS
+ * in the app container) and served as a plain MP3, so every device and
+ * browser gets the same small list of professional voices, the same good
+ * default, and controls that actually work:
+ *  - Voice changes apply mid-playback: the player swaps the source and
+ *    resumes at the same fraction of the narration, still inside the user's
+ *    gesture (which keeps iOS happy).
+ *  - Speed is the audio element's playbackRate: instant everywhere.
+ *  - Seeking works because the server honors HTTP Range requests.
+ *
+ * If the server narration is not ready yet (a lesson was just edited) or the
+ * TTS toolchain is absent (some dev machines), the player falls back to the
+ * browser's speech synthesis, CURATED: English voices only, ranked by known
+ * quality, best one preselected, never the raw device list.
  */
+
+type VoiceStatus = {
+  id: string;
+  label: string;
+  tagline: string;
+  ready: boolean;
+  durationSeconds: number | null;
+};
+
+type NarrationStatus = {
+  narration: boolean;
+  defaultVoice: string | null;
+  voices: VoiceStatus[];
+};
+
+const RATES = [0.75, 1, 1.25, 1.5];
+const VOICE_PREF_KEY = "txp-narration-voice";
+const RATE_PREF_KEY = "txp-narration-rate";
+
+function formatTime(totalSeconds: number): string {
+  const s = Math.max(0, Math.floor(totalSeconds));
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, "0")}`;
+}
+
+/* ------------------------------------------------------------------------ */
+/* Fallback: curated browser speech synthesis (no server narration ready).  */
+/* ------------------------------------------------------------------------ */
+
+function curateDeviceVoices(all: SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
+  return all
+    .map((v) => ({ v, rank: rankDeviceVoice(v.name, v.lang) }))
+    .filter((x) => x.rank >= 0)
+    .sort((a, b) => b.rank - a.rank || a.v.name.localeCompare(b.v.name))
+    .slice(0, 6)
+    .map((x) => x.v);
+}
+
 function chunkText(text: string, max = 200): string[] {
   const clean = text.replace(/\s+/g, " ").trim();
   if (!clean) return [];
@@ -25,42 +76,29 @@ function chunkText(text: string, max = 200): string[] {
   return chunks;
 }
 
-/**
- * Voices are selected by a name + lang composite, NOT by voiceURI: several
- * Android engines report the SAME voiceURI for different voices, so a URI
- * lookup always resolves to the first match and the selection silently never
- * changes. Name plus lang is unique in practice and survives list reloads.
- */
 function voiceKey(v: SpeechSynthesisVoice): string {
   return `${v.name}__${v.lang}`;
 }
 
-/**
- * Free, built-in audio reader using the browser SpeechSynthesis API. Reads the
- * lesson's plain audioText. Controls are buttons (keyboard operable). No motion
- * is animated, so reduced-motion preferences are respected by default.
- *
- * Voice and speed changes apply IMMEDIATELY, also mid-playback: the reader
- * restarts from the chunk currently being spoken with the new settings, inside
- * the user's select gesture (which keeps iOS happy). A generation counter
- * guards state against stale onend events from the cancelled queue.
- */
-export function AudioReader({ text }: { text: string }) {
+function SpeechFallback({ text, note }: { text: string; note: string | null }) {
   const [supported, setSupported] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [paused, setPaused] = useState(false);
   const [rate, setRate] = useState(1);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [voiceSel, setVoiceSel] = useState("");
-  // The chunk currently being spoken, so a settings change can resume in place.
   const currentChunkRef = useRef(0);
-  // Bumped on every (re)start; stale utterance events compare against it.
   const generationRef = useRef(0);
 
   useEffect(() => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
     setSupported(true);
-    const load = () => setVoices(window.speechSynthesis.getVoices());
+    const load = () => {
+      const curated = curateDeviceVoices(window.speechSynthesis.getVoices());
+      setVoices(curated);
+      // Default to the BEST curated voice, never the engine's own default.
+      setVoiceSel((sel) => sel || (curated[0] ? voiceKey(curated[0]) : ""));
+    };
     load();
     window.speechSynthesis.addEventListener("voiceschanged", load);
     return () => {
@@ -69,8 +107,6 @@ export function AudioReader({ text }: { text: string }) {
     };
   }, []);
 
-  // Keepalive: Chrome and some mobile engines auto-pause long speech after a few
-  // seconds. While playing and not user-paused, nudge the engine to keep going.
   useEffect(() => {
     if (!playing || paused) return;
     const id = window.setInterval(() => {
@@ -80,26 +116,17 @@ export function AudioReader({ text }: { text: string }) {
     return () => window.clearInterval(id);
   }, [playing, paused]);
 
-  // Engagement telemetry: announce each second of actual playback on a window
-  // event; the telemetry beacon (when present) accumulates and reports it.
   useEffect(() => {
     if (!playing || paused) return;
     const id = window.setInterval(() => {
-      window.dispatchEvent(new CustomEvent("txp-academy-audio-second"));
+      window.dispatchEvent(new CustomEvent(AUDIO_SECOND_EVENT));
     }, 1000);
     return () => window.clearInterval(id);
   }, [playing, paused]);
 
-  /**
-   * Start (or restart) speaking from a chunk index with the given settings.
-   * Settings are passed explicitly because React state updates are async and a
-   * select's change handler must restart with the NEW value, not the stale one.
-   */
   const startFrom = (fromIndex: number, opts?: { rate?: number; voiceSel?: string }) => {
     const synth = window.speechSynthesis;
     const gen = ++generationRef.current;
-    // Clear any stuck or queued speech, and unstick a globally-paused engine
-    // (iOS Safari can leave speechSynthesis paused, which silently blocks speak).
     synth.cancel();
     synth.resume();
     const chunks = chunkText(text);
@@ -108,13 +135,11 @@ export function AudioReader({ text }: { text: string }) {
     const effRate = opts?.rate ?? rate;
     const effSel = opts?.voiceSel ?? voiceSel;
     const v = voices.find((vv) => voiceKey(vv) === effSel) ?? null;
-    // Queue every remaining chunk synchronously inside this gesture (required by iOS).
     for (let i = from; i < chunks.length; i++) {
       const u = new SpeechSynthesisUtterance(chunks[i]);
       u.rate = effRate;
       if (v) {
         u.voice = v;
-        // Some Android engines ignore `voice` unless the utterance lang matches it.
         u.lang = v.lang;
       }
       const idx = i;
@@ -123,8 +148,6 @@ export function AudioReader({ text }: { text: string }) {
       };
       if (i === chunks.length - 1) {
         u.onend = () => {
-          // A cancelled queue (settings restart) also fires onend; only the
-          // current generation may declare playback finished.
           if (generationRef.current !== gen) return;
           setPlaying(false);
           setPaused(false);
@@ -137,12 +160,6 @@ export function AudioReader({ text }: { text: string }) {
     setPaused(false);
   };
 
-  const start = () => {
-    currentChunkRef.current = 0;
-    startFrom(0);
-  };
-
-  /** Apply a settings change: live-restart from the current chunk when playing. */
   const applySettings = (opts: { rate?: number; voiceSel?: string }) => {
     if (opts.rate !== undefined) setRate(opts.rate);
     if (opts.voiceSel !== undefined) setVoiceSel(opts.voiceSel);
@@ -160,55 +177,379 @@ export function AudioReader({ text }: { text: string }) {
   if (!supported) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-3">
-      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Listen</span>
-      {!playing ? (
-        <button type="button" onClick={start} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-navy-900 px-3 text-sm font-medium text-white hover:bg-navy-700">
-          <Play className="h-4 w-4" aria-hidden="true" /> Play
+    <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+      {note ? <p className="text-xs text-slate-500">{note}</p> : null}
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Listen</span>
+        {!playing ? (
+          <button type="button" onClick={() => { currentChunkRef.current = 0; startFrom(0); }} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-navy-900 px-3 text-sm font-medium text-white hover:bg-navy-700">
+            <Play className="h-4 w-4" aria-hidden="true" /> Play
+          </button>
+        ) : paused ? (
+          <button type="button" onClick={() => { window.speechSynthesis.resume(); setPaused(false); }} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-navy-900 px-3 text-sm font-medium text-white hover:bg-navy-700">
+            <Play className="h-4 w-4" aria-hidden="true" /> Resume
+          </button>
+        ) : (
+          <button type="button" onClick={() => { window.speechSynthesis.pause(); setPaused(true); }} className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-900 hover:bg-neutral-50">
+            <Pause className="h-4 w-4" aria-hidden="true" /> Pause
+          </button>
+        )}
+        <button type="button" onClick={stop} className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-900 hover:bg-neutral-50">
+          <Square className="h-4 w-4" aria-hidden="true" /> Stop
         </button>
-      ) : paused ? (
-        <button type="button" onClick={() => { window.speechSynthesis.resume(); setPaused(false); }} className="inline-flex h-9 items-center gap-1.5 rounded-md bg-navy-900 px-3 text-sm font-medium text-white hover:bg-navy-700">
-          <Play className="h-4 w-4" aria-hidden="true" /> Resume
-        </button>
-      ) : (
-        <button type="button" onClick={() => { window.speechSynthesis.pause(); setPaused(true); }} className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-900 hover:bg-neutral-50">
-          <Pause className="h-4 w-4" aria-hidden="true" /> Pause
-        </button>
-      )}
-      <button type="button" onClick={stop} className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-900 hover:bg-neutral-50">
-        <Square className="h-4 w-4" aria-hidden="true" /> Stop
-      </button>
-      <label className="flex items-center gap-2 text-xs text-slate-600">
-        Speed
-        <select
-          value={rate}
-          onChange={(e) => applySettings({ rate: Number(e.target.value) })}
-          className="h-8 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+        <label className="flex items-center gap-2 text-xs text-slate-600">
+          Speed
+          <select value={rate} onChange={(e) => applySettings({ rate: Number(e.target.value) })} className="h-8 rounded-md border border-neutral-300 bg-white px-2 text-sm">
+            {RATES.map((r) => (
+              <option key={r} value={r}>{r}x</option>
+            ))}
+          </select>
+        </label>
+        {voices.length > 0 ? (
+          <label className="flex items-center gap-2 text-xs text-slate-600">
+            Voice
+            <select value={voiceSel} onChange={(e) => applySettings({ voiceSel: e.target.value })} className="h-8 max-w-[12rem] rounded-md border border-neutral-300 bg-white px-2 text-sm">
+              {voices.map((v, i) => (
+                <option key={`${voiceKey(v)}_${i}`} value={voiceKey(v)}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Primary: server narration through a plain audio element.                 */
+/* ------------------------------------------------------------------------ */
+
+export function AudioReader({ slug, text, title }: { slug: string; text: string; title?: string }) {
+  const [status, setStatus] = useState<NarrationStatus | null>(null);
+  const [statusFailed, setStatusFailed] = useState(false);
+  const [voiceId, setVoiceId] = useState<string | null>(null);
+  const [rate, setRate] = useState(1);
+  const [playing, setPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Where to resume (as a fraction of duration) after a mid-playback voice swap.
+  const pendingSeekFractionRef = useRef<number | null>(null);
+  const rateRef = useRef(1);
+
+  const refreshStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/partner/academy/audio/${encodeURIComponent(slug)}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(String(res.status));
+      const body = (await res.json()) as NarrationStatus;
+      setStatus(body);
+      setStatusFailed(false);
+      return body;
+    } catch {
+      setStatusFailed(true);
+      return null;
+    }
+  }, [slug]);
+
+  // Initial status, restore saved preferences.
+  useEffect(() => {
+    try {
+      const savedRate = Number(window.localStorage.getItem(RATE_PREF_KEY));
+      if (RATES.includes(savedRate)) {
+        setRate(savedRate);
+        rateRef.current = savedRate;
+      }
+    } catch {
+      /* storage unavailable */
+    }
+    void refreshStatus();
+  }, [refreshStatus]);
+
+  // Pick the voice once the status is known: saved preference if ready,
+  // otherwise the configured default, otherwise the first ready voice.
+  useEffect(() => {
+    if (!status || voiceId) return;
+    let saved: string | null = null;
+    try {
+      saved = window.localStorage.getItem(VOICE_PREF_KEY);
+    } catch {
+      /* storage unavailable */
+    }
+    const ready = status.voices.filter((v) => v.ready);
+    const pick =
+      ready.find((v) => v.id === saved)?.id ??
+      ready.find((v) => v.id === status.defaultVoice)?.id ??
+      ready[0]?.id ??
+      status.defaultVoice;
+    if (pick) setVoiceId(pick);
+  }, [status, voiceId]);
+
+  // While ANY voice is not ready but narration exists, poll: the server
+  // regenerates in the background after an edit and after deploys, and a
+  // not-yet-ready saved preference must become selectable without a reload.
+  const selected = useMemo(
+    () => status?.voices.find((v) => v.id === voiceId) ?? null,
+    [status, voiceId],
+  );
+  const anyNotReady = Boolean(status?.voices.some((v) => !v.ready));
+  useEffect(() => {
+    if (!status?.narration || !anyNotReady) return;
+    const id = window.setInterval(() => {
+      void refreshStatus();
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [status?.narration, anyNotReady, refreshStatus]);
+
+  // A failed status fetch must never be terminal: keep retrying quietly so a
+  // transient blip or server restart cannot lock the session into the device
+  // voice fallback.
+  useEffect(() => {
+    if (!statusFailed) return;
+    const id = window.setInterval(() => {
+      void refreshStatus();
+    }, 10000);
+    return () => window.clearInterval(id);
+  }, [statusFailed, refreshStatus]);
+
+  // Engagement telemetry: one event per second of actual playback, the same
+  // event the beacon already aggregates.
+  useEffect(() => {
+    if (!playing) return;
+    const id = window.setInterval(() => {
+      window.dispatchEvent(new CustomEvent(AUDIO_SECOND_EVENT));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [playing]);
+
+  const srcFor = useCallback(
+    (v: string) => `/api/partner/academy/audio/${encodeURIComponent(slug)}/${encodeURIComponent(v)}`,
+    [slug],
+  );
+
+  // The audio element's src is set IMPERATIVELY, never as a React prop: a
+  // controlled src prop would be re-committed after changeVoice's in-gesture
+  // swap, re-running the media load algorithm and aborting the just-issued
+  // play(). This effect only covers mount and the ready transition; it
+  // compares the attribute first so it never disturbs an element changeVoice
+  // has already pointed at the right source.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el || !selected?.ready) return;
+    const want = srcFor(selected.id);
+    if (el.getAttribute("src") !== want) {
+      el.setAttribute("src", want);
+      el.load();
+    }
+  }, [selected?.ready, selected?.id, srcFor]);
+
+  const onLoadedMetadata = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    setDuration(el.duration || 0);
+    el.playbackRate = rateRef.current;
+    // Keep the voice's pitch natural at non-1x speeds (Safari needs the
+    // webkit-prefixed property below iOS 17.2).
+    try {
+      el.preservesPitch = true;
+      (el as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = true;
+    } catch {
+      /* cosmetic */
+    }
+    if (title && "mediaSession" in navigator) {
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({ title, artist: "TenXPros Partner Academy" });
+      } catch {
+        /* metadata is cosmetic */
+      }
+    }
+  };
+
+  // Apply a pending resume position (after a voice swap) once the new source
+  // can actually play. iOS ignores currentTime set at loadedmetadata time, so
+  // this runs on canplay AND playing and clears itself on first success.
+  const applyPendingSeek = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    const fraction = pendingSeekFractionRef.current;
+    if (fraction == null || !Number.isFinite(el.duration) || el.duration <= 0) return;
+    pendingSeekFractionRef.current = null;
+    el.currentTime = Math.max(0.1, fraction * el.duration);
+    el.playbackRate = rateRef.current;
+  };
+
+  const toggle = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (el.paused) {
+      el.playbackRate = rateRef.current;
+      void el.play().catch(() => {
+        // A 404 while regenerating: refresh so the UI shows preparing state.
+        void refreshStatus();
+      });
+    } else {
+      el.pause();
+    }
+  };
+
+  const stop = () => {
+    const el = audioRef.current;
+    if (!el) return;
+    pendingSeekFractionRef.current = null;
+    el.pause();
+    el.currentTime = 0;
+    setCurrentTime(0);
+  };
+
+  const changeRate = (r: number) => {
+    setRate(r);
+    rateRef.current = r;
+    try {
+      window.localStorage.setItem(RATE_PREF_KEY, String(r));
+    } catch {
+      /* storage unavailable */
+    }
+    const el = audioRef.current;
+    if (el) el.playbackRate = r;
+  };
+
+  /**
+   * Swap the voice, keeping the position and the playing state. Everything
+   * happens synchronously inside the change gesture: set the new source,
+   * load, and call play() immediately (it resolves when data arrives), which
+   * preserves the playback permission on iOS.
+   */
+  const changeVoice = (id: string) => {
+    setVoiceId(id);
+    try {
+      window.localStorage.setItem(VOICE_PREF_KEY, id);
+    } catch {
+      /* storage unavailable */
+    }
+    const el = audioRef.current;
+    const target = status?.voices.find((v) => v.id === id);
+    if (!el || !target?.ready) return;
+    const wasPlaying = !el.paused && !el.ended;
+    pendingSeekFractionRef.current =
+      Number.isFinite(el.duration) && el.duration > 0 ? el.currentTime / el.duration : null;
+    el.src = srcFor(id);
+    el.load();
+    if (wasPlaying) {
+      void el.play().catch(() => {});
+    }
+  };
+
+  const seek = (t: number) => {
+    const el = audioRef.current;
+    if (!el) return;
+    // A manual seek supersedes any pending voice-swap resume position.
+    pendingSeekFractionRef.current = null;
+    el.currentTime = t;
+    setCurrentTime(t);
+  };
+
+  // No server narration at all (toolchain absent, or the endpoint failed):
+  // fall back to the curated device speech.
+  if (statusFailed || (status && !status.narration)) {
+    return <SpeechFallback text={text} note={null} />;
+  }
+  if (!status) return null;
+  if (status.voices.length === 0) return null;
+
+  // Narration exists but the chosen voice is still being prepared (right
+  // after a content edit or a first deploy): offer the curated device speech
+  // meanwhile, and the poll above swaps in the studio narration when ready.
+  if (!selected?.ready) {
+    return (
+      <SpeechFallback
+        text={text}
+        note="The studio narration for this lesson is being prepared. You can listen with a device voice meanwhile; the narration appears here automatically when ready."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+      <audio
+        ref={audioRef}
+        preload="metadata"
+        onLoadedMetadata={onLoadedMetadata}
+        onCanPlay={applyPendingSeek}
+        onPlaying={applyPendingSeek}
+        onTimeUpdate={() => setCurrentTime(audioRef.current?.currentTime ?? 0)}
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onError={() => {
+          // The row can vanish mid-session (a superadmin edit): refresh the
+          // status so the UI flips to the preparing state and polls.
+          setPlaying(false);
+          void refreshStatus();
+        }}
+        onEnded={() => {
+          setPlaying(false);
+          setCurrentTime(0);
+        }}
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Listen</span>
+        <button
+          type="button"
+          onClick={toggle}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-navy-900 px-3 text-sm font-medium text-white hover:bg-navy-700"
         >
-          {[0.75, 1, 1.25, 1.5].map((r) => (
-            <option key={r} value={r}>{r}x</option>
-          ))}
-        </select>
-      </label>
-      {voices.length > 0 ? (
+          {playing ? <Pause className="h-4 w-4" aria-hidden="true" /> : <Play className="h-4 w-4" aria-hidden="true" />}
+          {playing ? "Pause" : "Play"}
+        </button>
+        <button
+          type="button"
+          onClick={stop}
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 text-sm font-medium text-navy-900 hover:bg-neutral-50"
+        >
+          <Square className="h-4 w-4" aria-hidden="true" /> Stop
+        </button>
+        <label className="flex items-center gap-2 text-xs text-slate-600">
+          Speed
+          <select
+            value={rate}
+            onChange={(e) => changeRate(Number(e.target.value))}
+            className="h-8 rounded-md border border-neutral-300 bg-white px-2 text-sm"
+          >
+            {RATES.map((r) => (
+              <option key={r} value={r}>{r}x</option>
+            ))}
+          </select>
+        </label>
         <label className="flex items-center gap-2 text-xs text-slate-600">
           Voice
           <select
-            value={voiceSel}
-            onChange={(e) => applySettings({ voiceSel: e.target.value })}
-            className="h-8 max-w-[12rem] rounded-md border border-neutral-300 bg-white px-2 text-sm"
+            value={selected.id}
+            onChange={(e) => changeVoice(e.target.value)}
+            className="h-8 max-w-[13rem] rounded-md border border-neutral-300 bg-white px-2 text-sm"
           >
-            <option value="">System default</option>
-            {voices.map((v, i) => (
-              // Key carries the index too: some Android engines report duplicate
-              // name+lang pairs, and duplicate keys would drop options silently.
-              <option key={`${voiceKey(v)}_${i}`} value={voiceKey(v)}>
-                {v.name} ({v.lang})
+            {status.voices.map((v) => (
+              <option key={v.id} value={v.id} disabled={!v.ready}>
+                {v.label}
+                {v.ready ? "" : " (preparing)"}
               </option>
             ))}
           </select>
         </label>
-      ) : null}
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="w-10 text-right text-xs tabular-nums text-slate-500">{formatTime(currentTime)}</span>
+        <input
+          type="range"
+          min={0}
+          max={Math.max(1, Math.floor(duration))}
+          step={1}
+          value={Math.min(Math.floor(currentTime), Math.floor(duration))}
+          onChange={(e) => seek(Number(e.target.value))}
+          aria-label="Seek"
+          className="h-1.5 flex-1 cursor-pointer accent-navy-900"
+        />
+        <span className="w-10 text-xs tabular-nums text-slate-500">{formatTime(duration)}</span>
+      </div>
     </div>
   );
 }
