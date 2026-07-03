@@ -21,8 +21,10 @@ export function DealResubmitForm({ deal }: { deal: ResubmitInput }) {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ResubmitInput>({ resolver: zodResolver(resubmitDealSchema), defaultValues: deal });
+  const intended = watch("functionsIntended") ?? [];
 
   const onSubmit = (data: ResubmitInput) => {
     setServerError(null);
@@ -99,6 +101,52 @@ export function DealResubmitForm({ deal }: { deal: ResubmitInput }) {
           ))}
         </div>
       </Field>
+
+      {intended.includes("BASIC_INTRO") ? (
+        <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+          <p className="text-sm font-semibold text-navy-900">Your Basic Introduction claim</p>
+          <p className="text-xs leading-5 text-slate-600">
+            You introduce and explain us to someone you genuinely know, then step away: zero meetings and no follow-up.
+            A genuinely valuable introduction is rewarded even though you step aside.
+          </p>
+          <Field label="Who is the contact" optional error={errors.introContactName?.message}>
+            <Input {...register("introContactName")} />
+          </Field>
+          <Field label="Your pre-existing relationship" optional error={errors.introRelationship?.message}>
+            <Textarea {...register("introRelationship")} rows={2} />
+          </Field>
+          <Field label="How you introduced and explained us" optional error={errors.introHow?.message}>
+            <Textarea {...register("introHow")} rows={2} />
+          </Field>
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input type="checkbox" {...register("introWarmAttested")} className="mt-0.5 h-4 w-4" />
+            <span>I attest this is a genuine, pre-existing warm relationship.</span>
+          </label>
+          {errors.introWarmAttested ? <p className="text-sm text-red-600">{errors.introWarmAttested.message}</p> : null}
+        </div>
+      ) : null}
+
+      {intended.includes("ORIGINATION") ? (
+        <Field label="Origination: your involvement (meetings and follow-up)" optional error={errors.originationInvolvement?.message}>
+          <Textarea {...register("originationInvolvement")} rows={2} />
+        </Field>
+      ) : null}
+
+      {intended.includes("CLOSING") ? (
+        <Field
+          label="Closing: how you drive it to signature (our side gives at most one online meeting under one hour)"
+          optional
+          error={errors.closingPlan?.message}
+        >
+          <Textarea {...register("closingPlan")} rows={2} />
+        </Field>
+      ) : null}
+
+      {intended.includes("DELIVERY") ? (
+        <Field label="Delivery or Coaching: intended scope" optional error={errors.deliveryScope?.message}>
+          <Textarea {...register("deliveryScope")} rows={2} />
+        </Field>
+      ) : null}
 
       <Field label="Your case for this account" error={errors.justification?.message}>
         <Textarea {...register("justification")} rows={4} />

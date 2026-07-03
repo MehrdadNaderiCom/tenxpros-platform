@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { submitDealRegistration } from "@/lib/actions/partner-portal";
 import { DEAL_FUNCTION_OPTIONS, dealRegistrationSchema, type DealRegistrationInput } from "@/lib/validations/partner";
+import { PROGRAM_CONFIG_DEFAULTS } from "@/lib/partner/config";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Select, Textarea } from "@/components/ui/form-fields";
@@ -14,7 +15,12 @@ import { CountrySelect } from "@/components/ui/country-select";
 
 const defaults: Partial<DealRegistrationInput> = { productLine: "TENXPROS", offering: "B2B_ENGAGEMENT", functionsIntended: [] };
 
-export function PartnerDealForm() {
+export function PartnerDealForm({
+  decisionBusinessDays = PROGRAM_CONFIG_DEFAULTS.dealConfirmationWindowBusinessDays,
+}: {
+  /** The partner's RESOLVED decision window, passed from the server page. */
+  decisionBusinessDays?: number;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -23,8 +29,10 @@ export function PartnerDealForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<DealRegistrationInput>({ resolver: zodResolver(dealRegistrationSchema), defaultValues: defaults });
+  const intended = watch("functionsIntended") ?? [];
 
   const onSubmit = (data: DealRegistrationInput) => {
     setServerError(null);
@@ -119,6 +127,71 @@ export function PartnerDealForm() {
             ))}
           </div>
         </Field>
+        <p className="text-xs leading-5 text-slate-500">
+          The dividing line between functions is your level of involvement. Describing each claim below is optional but
+          strongly encouraged: it is what the review reads first and it materially speeds up confirmation.
+        </p>
+
+        {intended.includes("BASIC_INTRO") ? (
+          <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-sm font-semibold text-navy-900">Your Basic Introduction claim</p>
+            <p className="text-xs leading-5 text-slate-600">
+              A Basic Introduction means you actively introduce and explain us to someone you genuinely know, and then
+              step away: zero meetings and no follow-up after the introduction. A genuinely valuable introduction is
+              rewarded even though you introduce and step aside. It confers no account ownership or protection.
+            </p>
+            <Field label="Who is the contact" optional error={errors.introContactName?.message}>
+              <Input {...register("introContactName")} placeholder="e.g. Sara Khan, CHRO" />
+            </Field>
+            <Field label="Your pre-existing relationship" optional error={errors.introRelationship?.message}>
+              <Textarea {...register("introRelationship")} rows={2} placeholder="e.g. We worked together for 4 years; she asked me about AI training last month." />
+            </Field>
+            <Field label="How you introduced and explained us" optional error={errors.introHow?.message}>
+              <Textarea {...register("introHow")} rows={2} placeholder="e.g. I walked her through the program over coffee and sent the public page." />
+            </Field>
+            <label className="flex items-start gap-2 text-sm text-slate-700">
+              <input type="checkbox" {...register("introWarmAttested")} className="mt-0.5 h-4 w-4" />
+              <span>I attest this is a genuine, pre-existing warm relationship.</span>
+            </label>
+            {errors.introWarmAttested ? <p className="text-sm text-red-600">{errors.introWarmAttested.message}</p> : null}
+          </div>
+        ) : null}
+
+        {intended.includes("ORIGINATION") ? (
+          <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-sm font-semibold text-navy-900">Your Origination claim</p>
+            <p className="text-xs leading-5 text-slate-600">
+              Origination goes beyond an introduction: you attend the meetings and take on the follow-up, actively
+              advancing the account.
+            </p>
+            <Field label="Your involvement" optional error={errors.originationInvolvement?.message}>
+              <Textarea {...register("originationInvolvement")} rows={2} placeholder="e.g. I will attend the discovery and scoping meetings and own the follow-up with their L&D team." />
+            </Field>
+          </div>
+        ) : null}
+
+        {intended.includes("CLOSING") ? (
+          <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-sm font-semibold text-navy-900">Your Closing claim</p>
+            <p className="text-xs leading-5 text-slate-600">
+              Closing means you drive the deal to a signed, started contract yourself. Our team contributes at most one
+              online meeting of under one hour; you carry everything else through payment cleared, contract signed, and
+              the engagement started.
+            </p>
+            <Field label="How you will drive it to signature" optional error={errors.closingPlan?.message}>
+              <Textarea {...register("closingPlan")} rows={2} placeholder="e.g. I own the proposal, the negotiation, and the signature; I may ask for one short technical call from your side." />
+            </Field>
+          </div>
+        ) : null}
+
+        {intended.includes("DELIVERY") ? (
+          <div className="space-y-4 rounded-md border border-neutral-200 bg-neutral-50 p-4">
+            <p className="text-sm font-semibold text-navy-900">Your Delivery or Coaching claim</p>
+            <Field label="Intended delivery scope" optional error={errors.deliveryScope?.message}>
+              <Textarea {...register("deliveryScope")} rows={2} placeholder="e.g. Coaching the cohort through the twelve weeks alongside your team." />
+            </Field>
+          </div>
+        ) : null}
 
         <Field
           label="Your case for this account"
@@ -135,6 +208,10 @@ export function PartnerDealForm() {
         <Button type="submit" disabled={isPending}>
           {isPending ? "Submitting…" : "Submit registration"}
         </Button>
+        <p className="text-xs text-slate-500">
+          We confirm or decline within {decisionBusinessDays} business days, and you get an email the moment it is
+          decided.
+        </p>
       </form>
     </Card>
   );

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { startReadiness, notReadyMessage } from "@/lib/partner/readiness";
+import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import { PartnerDealForm } from "@/components/portal/partner-deal-form";
 import { SpecialDealModal } from "@/components/portal/special-deal-modal";
 import { DEAL_REG_STATUS_LABELS, OFFERING_LABELS } from "@/lib/partner/constants";
@@ -35,6 +36,9 @@ export default async function PartnerDealsPage() {
     activationGatePassedAt: partner.activationGatePassedAt,
     hasAcademyBadge: Boolean(partner.academyBadge),
   });
+  // The stated decision window must match what the ack email and the admin queue
+  // actually use: the partner's RESOLVED config, not the compile-time defaults.
+  const cfg = await resolvePartnerConfig(partner.id);
 
   return (
     <div className="space-y-8">
@@ -49,7 +53,7 @@ export default async function PartnerDealsPage() {
         </Alert>
       ) : (
         <>
-          <PartnerDealForm />
+          <PartnerDealForm decisionBusinessDays={cfg.dealConfirmationWindowBusinessDays} />
           <Card className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="font-medium text-navy-900">Need terms beyond the standard contract?</p>

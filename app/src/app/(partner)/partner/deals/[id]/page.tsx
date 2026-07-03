@@ -29,7 +29,7 @@ export default async function PartnerDealDetailPage({ params }: { params: { id: 
 
   const reg = await prisma.dealRegistration.findFirst({
     where: { id, partnerId: current.partner.id },
-    include: { messages: { orderBy: { createdAt: "asc" } } },
+    include: { messages: { orderBy: { createdAt: "asc" } }, functionClaims: true },
   });
   if (!reg) notFound();
 
@@ -86,7 +86,15 @@ export default async function PartnerDealDetailPage({ params }: { params: { id: 
               contactTitle: reg.contactTitle ?? undefined,
               estSeats: reg.estSeats != null ? String(reg.estSeats) : undefined,
               estValueUsd: reg.estValueCents != null ? String(reg.estValueCents / 100) : undefined,
-              functionsIntended: reg.functionsIntended as ("ORIGINATION" | "CLOSING" | "DELIVERY")[],
+              functionsIntended: reg.functionsIntended as ("BASIC_INTRO" | "ORIGINATION" | "CLOSING" | "DELIVERY")[],
+              // Prefill the stored per-function evidence, so resubmitting never wipes it.
+              introContactName: reg.functionClaims.find((c) => c.function === "BASIC_INTRO")?.contactName ?? undefined,
+              introRelationship: reg.functionClaims.find((c) => c.function === "BASIC_INTRO")?.relationshipDescription ?? undefined,
+              introHow: reg.functionClaims.find((c) => c.function === "BASIC_INTRO")?.introDescription ?? undefined,
+              introWarmAttested: reg.functionClaims.find((c) => c.function === "BASIC_INTRO")?.warmRelationshipAttested ?? undefined,
+              originationInvolvement: reg.functionClaims.find((c) => c.function === "ORIGINATION")?.involvementStatement ?? undefined,
+              closingPlan: reg.functionClaims.find((c) => c.function === "CLOSING")?.involvementStatement ?? undefined,
+              deliveryScope: reg.functionClaims.find((c) => c.function === "DELIVERY")?.involvementStatement ?? undefined,
               justification: reg.justification,
               widerScopeRequested: reg.widerScopeRequested ?? undefined,
               note: undefined,

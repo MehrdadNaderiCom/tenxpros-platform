@@ -17,7 +17,7 @@ import { sanitizeLessonHtml } from "../src/lib/academy/lesson-html";
 import { badgeCatalog } from "../src/lib/program-data";
 import { PRO_DEFINITION } from "../src/lib/marketing/pro-definition";
 import { PROGRAM_CONFIG_DEFAULTS as CFG } from "../src/lib/partner/config";
-import { formatBp, formatCents } from "../src/lib/partner/constants";
+import { formatBp } from "../src/lib/partner/constants";
 import { PARTNER_TERMS_SECTIONS, PARTNER_TERMS_LEAD } from "../src/lib/partner/terms";
 import { SURVIVAL_CLAUSES, ANNUAL_VALIDITY, currentTermsYear } from "../src/lib/terms/annual";
 
@@ -167,11 +167,11 @@ const TIERS = [
   { eyebrow: "Tier 3", name: "Territory Builder", blurb: "For a proven partner with a focus on one industry or region.", points: [`Hold up to ${CFG.maxOpenAccountsTier3} open accounts, with the longest protection`, "First priority on leads within your focus", "A focus bonus and public recognition as the lead partner"] },
 ];
 const FUNCTIONS: Array<[string, string]> = [
-  ["Basic Introduction", "Introduce a relevant contact you already have a genuine, warm relationship with. You earn when that introduction becomes a paid deal."],
-  ["Origination", "Open a real account. Qualified when it is a new unit of a company we already know; the higher Strong rate when the company is genuinely new or dormant and the sale is high-value. The company decides which from the facts, not opinion."],
-  ["Closing", "Carry the sale through to a signed, binding agreement."],
+  ["Basic Introduction", "Introduce and explain us to someone you genuinely know, then step away: zero meetings and no follow-up. A genuinely valuable introduction is rewarded even though you introduce and step aside."],
+  ["Origination", "Go beyond an introduction: attend the meetings, take on the follow-up, and open a real account. The higher Strong rate is decided by seat count, not opinion."],
+  ["Closing", "Drive the deal to a signed, started contract yourself. Our team gives at most one short online meeting; you carry the rest to signature and start."],
   ["Delivery and Coaching", "Delivery is normally the company's own. When the company engages a partner to help it scale, this pays a single set rate."],
-  ["Renewal Override", "Open a B2B account and keep supporting it, and a renewal within the window pays you a share of the rate you opened it at, on top of that renewal's own commission."],
+  ["Renewal Override", "B2B only: open an account and keep supporting it, and a renewal within the window pays you a share of the rate you opened it at, on top of that renewal's own commission."],
 ];
 const COMMISSION_ROWS: Array<[string, string, string]> = [
   ["Basic Introduction", pct(CFG.basicIntroductionBp), pct(CFG.basicIntroductionBp)],
@@ -221,7 +221,7 @@ out.push(`| **Cap per deal** | **${pct(CFG.capB2cBp)}** | **${pct(CFG.capB2bBp)}
 out.push("");
 out.push(`Total partner compensation on any one deal is capped at ${pct(CFG.capB2cBp)} of Net Receipts on B2C and ${pct(CFG.capB2bBp)} on B2B, across every function and every partner on the deal. The one exception is a Tier 3 focus account, which can rise gradually to ${pct(CFG.tier3FocusHardCeilingBp)}. When functions stack above the cap, the lines scale down in proportion to fit it exactly.`);
 out.push("");
-out.push(`The higher Strong Origination rate applies only when the company is genuinely new or dormant and the sale is above the high-value threshold (over ${formatCents(CFG.strongValueThresholdB2cCents)} on B2C, over ${formatCents(CFG.strongValueThresholdB2bCents)} on B2B); a new-company deal at or below that threshold keeps its new-company standing but is paid the Qualified rate. The Renewal Override is a share of the rate the account was opened at, credited to the partner who opened it while they keep supporting it. The full detail is in the Partner Program Terms (Part 3).`);
+out.push(`The higher Strong Origination rate is decided by seat count, on paid and collected seats: on B2C it applies from ${CFG.strongSeatThresholdB2c} seats (seats alone decide; an individual has no domain), and on B2B it needs both a genuinely new or dormant company domain and ${CFG.strongSeatThresholdB2b} seats or more. Below the threshold, a new-company B2B deal keeps its new-company standing but is paid the Qualified rate. The Renewal Override is B2B only, a share of the rate the account was opened at, credited to the partner who opened it while they keep supporting it. The full detail is in the Partner Program Terms (Part 3).`);
 out.push("");
 out.push(`### Recognition you keep`);
 out.push("");

@@ -13,7 +13,7 @@
  * are stated as literals and noted as such.
  */
 import { PROGRAM_CONFIG_DEFAULTS, type EffectiveConfig } from "./config";
-import { formatBp, formatCents } from "./constants";
+import { formatBp } from "./constants";
 
 export interface TermsSection {
   title: string;
@@ -27,7 +27,6 @@ export const PARTNER_TERMS_LEAD =
 /** Build the terms with every configurable number rendered from `cfg`. */
 export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] {
   const pct = (bp: number) => formatBp(bp);
-  const usd = (cents: number) => formatCents(cents);
   return [
     {
       title: "How your rights work",
@@ -78,14 +77,14 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
     {
       title: "How commission is earned",
       body: [
-        "Commission is earned by function, calculated on Net Receipts actually received and cleared. You earn for the functions you actually perform on a Closed Deal. The Seat (one enrolled professional) is the unit of sale. You never set your own rate or grade your own origination: the company derives every classification objectively from the recorded facts of the deal, so nothing on your statement is a matter of opinion.",
-        `A company's newness is decided by its domain, objectively. New means the domain has never appeared on a closed deal with us. Dormant means it has, but its most recent activity is more than ${cfg.originationWindowMonths} months ago. Existing means there has been activity within the last ${cfg.originationWindowMonths} months. A high-value sale is one strictly above ${usd(cfg.strongValueThresholdB2cCents)} on B2C, or ${usd(cfg.strongValueThresholdB2bCents)} on B2B.`,
+        "Commission is earned by function, calculated on Net Receipts actually received and cleared. You earn for the functions you actually perform on a Closed Deal. The Seat (one enrolled professional) is the unit of sale. The dividing line between functions is your level of involvement, and you never set your own rate or grade your own origination: the company derives every classification objectively from the recorded facts of the deal, so nothing on your statement is a matter of opinion.",
+        `A company's newness is decided by its domain, objectively. New means the domain has never appeared on a closed deal with us. Dormant means it has, but its most recent activity is more than ${cfg.originationWindowMonths} months ago. Existing means there has been activity within the last ${cfg.originationWindowMonths} months. Qualified versus Strong is decided by SEAT COUNT, counted on paid and collected seats: the Strong threshold is ${cfg.strongSeatThresholdB2c} seats or more on B2C and ${cfg.strongSeatThresholdB2b} seats or more on B2B.`,
       ],
       bullets: [
-        `Basic Introduction: ${pct(cfg.basicIntroductionBp)} on B2C and B2B. It requires a genuine, pre-existing warm relationship, which you attest to with a note naming the person and the relationship, and it pays only when that introduced contact becomes a closed, paid deal. It confers no account ownership or protection.`,
-        `Qualified Origination: ${pct(cfg.qualifiedOriginationB2cBp)} on B2C, ${pct(cfg.qualifiedOriginationB2bBp)} on B2B. This is a new department, branch or unit of a company we already know (an Existing domain).`,
-        `Strong Origination: ${pct(cfg.strongOriginationB2cBp)} on B2C, ${pct(cfg.strongOriginationB2bBp)} on B2B. Two things must both be true: the company's domain is genuinely New or Dormant, and the sale amount is strictly above the high-value threshold for its type. If the domain is New or Dormant but the sale is at or below that threshold, the deal keeps its new-company classification but is paid the Qualified rate. A deal with no recorded domain cannot claim the Strong rate.`,
-        `Closing: ${pct(cfg.closingB2cBp)} on B2C, ${pct(cfg.closingB2bBp)} on B2B, payable only once the deal carries a recorded signed-agreement date.`,
+        `Basic Introduction: ${pct(cfg.basicIntroductionBp)} on B2C and B2B. You actively introduce and explain us to a person or organisation you have a genuine, pre-existing warm relationship with (attested, with a note naming the person and the relationship), and then step away: zero meetings and no follow-up. A genuinely valuable introduction is confirmed and rewarded even though you introduce and step aside. It pays only when that introduced contact becomes a closed, paid deal, and it confers no account ownership or protection.`,
+        `Qualified Origination: ${pct(cfg.qualifiedOriginationB2cBp)} on B2C, ${pct(cfg.qualifiedOriginationB2bBp)} on B2B. Origination goes beyond an introduction: you attend the meetings and take on the follow-up, actively advancing the account. On B2B this is a new department, branch or unit of a company we already know, or a new company below the Strong seat threshold.`,
+        `Strong Origination: ${pct(cfg.strongOriginationB2cBp)} on B2C, ${pct(cfg.strongOriginationB2bBp)} on B2B. On B2C the test is seats alone: ${cfg.strongSeatThresholdB2c} paid-collected seats or more (an individual has no domain, so the domain plays no role). On B2B two things must both be true: the company's domain is genuinely New or Dormant, and the deal reaches ${cfg.strongSeatThresholdB2b} paid-collected seats or more. Below the threshold, a new-company B2B deal keeps its new-company classification but is paid the Qualified rate, and a deal with no recorded seat count is always Qualified, never Strong.`,
+        `Closing: ${pct(cfg.closingB2cBp)} on B2C, ${pct(cfg.closingB2bBp)} on B2B, payable only once the deal carries a recorded signed-agreement date. Closing means you drive the deal to a signed, started contract yourself: our team contributes at most one online meeting of under one hour, and you carry everything else through payment cleared, contract signed, and the engagement started.`,
         `Delivery or Coaching: ${pct(cfg.deliveryPercentBp)} of Net Receipts, a single rate the company sets. Delivery is normally performed by the company; this line is paid only when the company engages a partner to help it scale, and only once the deal carries a recorded delivered date. A fixed fee is possible only as a company exception, recorded with a reason.`,
         `Cap per deal: total partner compensation, across every function and every partner on the deal, is ${pct(cfg.capB2cBp)} of Net Receipts on B2C and ${pct(cfg.capB2bBp)} on B2B, with a Tier 3 focus account able to rise gradually to ${pct(cfg.tier3FocusHardCeilingBp)}. When functions stack above the cap, the percentage lines scale down in proportion to fit it exactly.`,
       ],
@@ -101,7 +100,7 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
       title: "Renewals, trail and the origination tail",
       body: [
         `Commission on a Closed Deal is payable on Net Receipts collected for up to ${cfg.trailPeriodMonths} months from signing. This trail is vested and is not affected by your later activity, subject to the clawback rules.`,
-        `On a B2B account, a same-scope renewal within the first ${cfg.originationWindowMonths} months also pays an Origination Override of ${pct(cfg.overrideShareBp)} of the rate the account was opened at. The override is credited to the account's opener, the partner who originated it, not to whoever records the renewal, and only while that opener still holds Active Status by actively supporting the account. After ${cfg.originationWindowMonths} months, or if the opener goes inactive, the override ends. It is one line on the renewal and sits inside that renewal's single cap.`,
+        `On a B2B account (the override is B2B only, and the engine enforces it), a same-scope renewal within the first ${cfg.originationWindowMonths} months also pays an Origination Override of ${pct(cfg.overrideShareBp)} of the rate the account was opened at. The override is credited to the account's opener, the partner who originated it, not to whoever records the renewal, and only while that opener still holds Active Status by actively supporting the account. After ${cfg.originationWindowMonths} months, or if the opener goes inactive, the override ends. It is one line on the renewal and sits inside that renewal's single cap.`,
         `Where several partners contribute to one deal, each line is credited to the partner who actually performed it, so an introducer, an originator, a closer and a delivery partner can each be paid on the same deal. A single genuinely shared contribution may be split between partners by a company-set weight, recorded with a reason. However the credit is divided, the deal total can never exceed the cap.`,
       ],
     },

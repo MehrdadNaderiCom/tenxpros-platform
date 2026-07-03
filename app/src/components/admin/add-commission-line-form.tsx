@@ -58,8 +58,9 @@ export function AddCommissionLineForm({
 
   // The rate the engine will apply, shown read-only. The server re-derives it
   // authoritatively on save, so this preview can never produce a wrong stored rate.
-  // Origination is derived from the company's newness and the sale amount, which the
-  // form cannot know, so it is shown as "derived on save" rather than a fixed number.
+  // Origination is derived from the paid-collected seat count (and on B2B, the
+  // company's domain newness), which the form cannot know, so it is shown as
+  // "derived on save" rather than a fixed number.
   const previewRateBp = useMemo(() => {
     if (isOrigination) return null;
     if (isDelivery) return deliverySingleRateBp;
@@ -124,9 +125,10 @@ export function AddCommissionLineForm({
 
       {isOrigination ? (
         <p className="text-xs text-slate-500">
-          The server sets Qualified or Strong objectively from the company&apos;s newness (by domain) and the sale amount. The Strong rate
-          applies only to a genuinely New or Dormant company on a sale above the high-value threshold; otherwise a new-company deal is paid
-          the Qualified rate, and a deal with no domain is always Qualified.
+          The server sets Qualified or Strong objectively from the paid-collected seat count (and on B2B, the company&apos;s
+          domain newness). B2C Strong is seats alone; B2B Strong needs a genuinely New or Dormant domain AND the seat
+          threshold. Below the threshold a new-company B2B deal is paid the Qualified rate but keeps its new-company
+          standing, and a deal with no paid seats yet is always Qualified.
         </p>
       ) : null}
 
