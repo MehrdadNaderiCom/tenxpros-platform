@@ -1185,8 +1185,9 @@ export async function recomputeDealCommissions(formData: FormData) {
     return;
   }
 
-  // The Tier-3 focus 35% ceiling applies ONLY to a deal in the partner's active
-  // focus industry/region, never to ordinary deals (which keep the 25%/30% cap).
+  // The Tier-3 focus ceiling (tier3FocusHardCeilingBp) applies ONLY to a deal in
+  // the partner's active focus industry/region, never to ordinary deals (which
+  // keep the configured capB2cBp / capB2bBp cap).
   const grant = deal.industryOrRegion
     ? await prisma.focusGrant.findFirst({
         where: { partnerId: deal.partnerId, status: "ACTIVE", industryOrRegion: { equals: deal.industryOrRegion, mode: "insensitive" } },

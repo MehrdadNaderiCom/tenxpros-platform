@@ -2033,7 +2033,7 @@ model ProgramConfig {
   strongSeatThresholdB2b       Int          @default(10)
 
   // Caps (basis points)
-  capB2cBp                Int @default(2500)
+  capB2cBp                Int @default(2800)
   capB2bBp                Int @default(3000)
   tier3FocusHardCeilingBp Int @default(3500)
 

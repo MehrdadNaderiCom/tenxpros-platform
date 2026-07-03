@@ -19,7 +19,7 @@ describe("config defaults", () => {
     expect(base.qualifiedOriginationB2bBp).toBe(800);
     expect(base.strongOriginationB2bBp).toBe(1200);
     expect(base.closingB2bBp).toBe(1000);
-    expect(base.capB2cBp).toBe(2500);
+    expect(base.capB2cBp).toBe(2800);
     expect(base.capB2bBp).toBe(3000);
     expect(base.tier3FocusHardCeilingBp).toBe(3500);
     expect(base.overrideShareBp).toBe(5000);

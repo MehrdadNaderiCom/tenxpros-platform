@@ -425,12 +425,62 @@ describe("fixed-fee lines are committed and idempotent under the cap clamp", () 
   });
 });
 
+describe("the raised B2C cap: the realistic full stack pays in full, a further line clamps", () => {
+  // Owner decision (docs/phase1-b2c-cap-raise-plan.md): capB2cBp = 2800 so the
+  // realistic B2C full stack (strong 15% + closing 5% + delivery 8% = 28%)
+  // lands EXACTLY on the cap and pays in full, to the last line.
+  it("strong + closing + delivery (28%) passes UNCAPPED at exactly the cap", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2C",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: cfg.strongOriginationB2cBp },
+        { function: "CLOSING", rateBp: cfg.closingB2cBp },
+        { function: "DELIVERY", rateBp: cfg.deliveryPercentMaxBp },
+      ],
+    });
+    expect(cfg.strongOriginationB2cBp + cfg.closingB2cBp + cfg.deliveryPercentMaxBp).toBe(cfg.capB2cBp);
+    expect(r.capped).toBe(false);
+    expect(r.totalCents).toBe(bpToCents(USD_20K, cfg.capB2cBp)); // $5,600, in full
+    expect(r.entries.every((e) => e.amountCents === bpToCents(USD_20K, e.rateBp))).toBe(true);
+  });
+
+  // The m03 worked example, pinned against the engine: a basic introduction by
+  // ANOTHER partner joins the fully stacked deal (33%), so every percentage
+  // line scales by 28/33 and the total lands exactly on the cap, cents-exact.
+  it("the two-partner 33% stack clamps to 28% with the taught per-line scale-down", () => {
+    const r = computeDealCommission({
+      netReceiptsCents: USD_20K,
+      dealKind: "B2C",
+      config: cfg,
+      functions: [
+        { function: "STRONG_ORIGINATION", rateBp: cfg.strongOriginationB2cBp }, // raw $3,000
+        { function: "CLOSING", rateBp: cfg.closingB2cBp }, // raw $1,000
+        { function: "DELIVERY", rateBp: cfg.deliveryPercentMaxBp }, // raw $1,600
+        { function: "BASIC_INTRO", rateBp: cfg.basicIntroductionBp }, // raw $1,000 (another partner)
+      ],
+    });
+    expect(r.rawTotalCents).toBe(660_000); // 33% of $20k
+    expect(r.capped).toBe(true);
+    expect(r.totalCents).toBe(bpToCents(USD_20K, cfg.capB2cBp)); // exactly $5,600
+    const byFn = Object.fromEntries(r.entries.map((e) => [e.function, e.amountCents]));
+    // scaleToTarget: floor(raw * 56/66) per line, remainder cents to the largest lines first.
+    expect(byFn.STRONG_ORIGINATION).toBe(254_546); // ~12.73% of net
+    expect(byFn.CLOSING).toBe(84_848); // ~4.24%
+    expect(byFn.DELIVERY).toBe(135_758); // ~6.79%
+    expect(byFn.BASIC_INTRO).toBe(84_848); // ~4.24%
+    expect(r.entries.reduce((t, e) => t + e.amountCents, 0)).toBe(560_000);
+  });
+});
+
 describe("computeDealCommission:already-committed (PAID) amounts consume cap headroom", () => {
-  // B2C net $20k, cap 25% = $5,000. A CLOSING line was already PAID at 5% = $1,000
-  // and is excluded from the recompute set. The operator then adds strong
-  // origination 15% ($3,000) + delivery 8% ($1,600) = $4,600 of new percentage lines.
+  // B2C net $20k, cap 28% = $5,600. A fixed-fee DELIVERY of $2,000 was already
+  // PAID (a recorded superadmin exception) and is excluded from the recompute
+  // set. The operator then adds strong origination 15% ($3,000) + closing 5%
+  // ($1,000) = $4,000 of new percentage lines.
   it("clamps recomputed lines so PAID + recomputed can never breach the per-deal cap (pay-then-add ordering)", () => {
-    const paidCents = 100_000; // $1,000 already PAID, outside the recompute set
+    const paidCents = 200_000; // $2,000 already PAID, outside the recompute set
     const r = computeDealCommission({
       netReceiptsCents: USD_20K,
       dealKind: "B2C",
@@ -438,16 +488,16 @@ describe("computeDealCommission:already-committed (PAID) amounts consume cap hea
       committedExternalCents: paidCents,
       functions: [
         { function: "STRONG_ORIGINATION", rateBp: cfg.strongOriginationB2cBp }, // 15% = $3,000
-        { function: "DELIVERY", rateBp: cfg.deliveryPercentMaxBp }, // 8% = $1,600
+        { function: "CLOSING", rateBp: cfg.closingB2cBp }, // 5% = $1,000
       ],
     });
-    expect(r.capCents).toBe(bpToCents(USD_20K, cfg.capB2cBp)); // $5,000
-    expect(r.rawTotalCents).toBe(460_000); // $4,600 of new lines
-    // Without the fix this would stay $4,600 (it fits under $5,000 alone) and
-    // $1,000 + $4,600 = $5,600 would breach. With the paid $1,000 consuming
-    // headroom, the new lines clamp to the remaining $4,000.
+    expect(r.capCents).toBe(bpToCents(USD_20K, cfg.capB2cBp)); // $5,600
+    expect(r.rawTotalCents).toBe(400_000); // $4,000 of new lines
+    // Without the fix this would stay $4,000 (it fits under $5,600 alone) and
+    // $2,000 + $4,000 = $6,000 would breach. With the paid $2,000 consuming
+    // headroom, the new lines clamp to the remaining $3,600.
     expect(r.capped).toBe(true);
-    expect(r.totalCents).toBe(400_000);
+    expect(r.totalCents).toBe(360_000);
     expect(paidCents + r.totalCents).toBe(r.capCents); // exactly at the cap
     expect(paidCents + r.totalCents).toBeLessThanOrEqual(r.capCents); // never above it
   });
@@ -474,7 +524,7 @@ describe("computeDealCommission:already-committed (PAID) amounts consume cap hea
       netReceiptsCents: USD_20K,
       dealKind: "B2C",
       config: cfg,
-      committedExternalCents: bpToCents(USD_20K, cfg.capB2cBp), // already at the full 25% cap
+      committedExternalCents: bpToCents(USD_20K, cfg.capB2cBp), // already at the full cap
       functions: [{ function: "QUALIFIED_ORIGINATION", rateBp: cfg.qualifiedOriginationB2cBp }],
     });
     expect(r.totalCents).toBe(0);

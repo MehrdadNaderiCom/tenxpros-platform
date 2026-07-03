@@ -46,7 +46,7 @@ export const PROGRAM_CONFIG_DEFAULTS: EffectiveConfig = {
   strongSeatThresholdB2c: 15,
   strongSeatThresholdB2b: 10,
   // Caps (basis points)
-  capB2cBp: 2500,
+  capB2cBp: 2800,
   capB2bBp: 3000,
   tier3FocusHardCeilingBp: 3500,
   // Origination window & override

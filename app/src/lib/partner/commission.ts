@@ -630,8 +630,9 @@ function splitByWeight(total: number, weights: number[]): number[] {
 /**
  * Compute every commission line for a deal and clamp total partner compensation
  * (across all partners and functions, including override and bonuses) to the
- * deal cap, an ABSOLUTE ceiling (25% B2C / 30% B2B; a Tier-3 focus account may
- * reach 35%). Fixed-fee lines are treated as committed (counted toward the cap
+ * deal cap, an ABSOLUTE ceiling (capB2cBp / capB2bBp from config; a Tier-3
+ * focus account may reach tier3FocusHardCeilingBp). Fixed-fee lines are
+ * treated as committed (counted toward the cap
  * but never scaled, so recompute is idempotent); only percentage lines are
  * scaled down, cents-exact, to fit the remaining headroom under the cap.
  *
