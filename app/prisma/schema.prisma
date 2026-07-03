@@ -1974,6 +1974,8 @@ model Partner {
   academyExerciseAttempts AcademyExerciseAttempt[]
   academyExamSittings     AcademyExamSitting[]
   academyBadge            PartnerAcademyBadge?
+  academyEngagements      AcademyEngagement[]
+  academyEvents           AcademyEvent[]
   notifications           PartnerNotification[]
   specialDealRequests     SpecialDealRequest[]
   supportTickets          PartnerSupportTicket[]
@@ -2022,6 +2024,11 @@ model ProgramConfig {
   deliveryPercentBp            Int          @default(800)
   strongValueThresholdB2cCents Int          @default(500000)
   strongValueThresholdB2bCents Int          @default(1500000)
+  // Involvement redesign: Strong is decided by SEAT COUNT (paid-collected seats),
+  // not dollars. B2C strong is seats only; B2B strong needs a New/Dormant domain
+  // AND the seat threshold. The dollar thresholds above are retained but retired.
+  strongSeatThresholdB2c       Int          @default(15)
+  strongSeatThresholdB2b       Int          @default(10)
 
   // Caps (basis points)
   capB2cBp                Int @default(2500)
@@ -2114,6 +2121,13 @@ model PartnerConfig {
   deliveryMode                 DeliveryMode?
   deliveryPercentMinBp         Int?
   deliveryPercentMaxBp         Int?
+  // Per-partner overrides for the redesign keys, matching ProgramConfig so the
+  // two-layer resolver (and the override editor) covers every configurable field.
+  deliveryPercentBp            Int?
+  strongValueThresholdB2cCents Int?
+  strongValueThresholdB2bCents Int?
+  strongSeatThresholdB2c       Int?
+  strongSeatThresholdB2b       Int?
 
   capB2cBp                Int?
   capB2bBp                Int?
@@ -2242,12 +2256,42 @@ model DealRegistration {
 
   registeredAccount RegisteredAccount?
   messages          DealMessage[]
+  functionClaims    DealFunctionClaim[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([partnerId, status])
   @@index([status, submittedAt])
+}
+
+/// One claimed function on a registration, with the evidence that justifies it.
+/// Involvement is the dividing line between functions: an introduction steps
+/// away (zero meetings, no follow-up), an origination attends meetings and takes
+/// the follow-up, a closing drives the deal to signature and start with at most
+/// one short online meeting from our side. Evidence is encouraged, not submit
+/// blocking; the one hard requirement is the warm-relationship attestation on a
+/// Basic Introduction claim (the engine also requires it before the line pays).
+model DealFunctionClaim {
+  id                 String           @id @default(cuid())
+  dealRegistrationId String
+  dealRegistration   DealRegistration @relation(fields: [dealRegistrationId], references: [id], onDelete: Cascade)
+  /// BASIC_INTRO, ORIGINATION, CLOSING, or DELIVERY.
+  function           String
+  /// Basic Introduction: who the warm contact is (name and role).
+  contactName        String?
+  /// Basic Introduction: the genuine pre-existing relationship, described.
+  relationshipDescription String? @db.Text
+  /// Basic Introduction: how the partner introduced and explained us.
+  introDescription   String?          @db.Text
+  /// Origination and Closing: the involvement the partner takes on.
+  involvementStatement String?        @db.Text
+  /// Basic Introduction only: the required warm-relationship attestation.
+  warmRelationshipAttested Boolean    @default(false)
+  createdAt          DateTime         @default(now())
+
+  @@unique([dealRegistrationId, function])
+  @@index([dealRegistrationId])
 }
 
 /// A confirmed registration becomes a Registered Account, scoped per clause 7.
@@ -2268,6 +2312,12 @@ model RegisteredAccount {
   isHouseAccount         Boolean      @default(false)
   isDirectRegistration   Boolean      @default(false)
   managed                Boolean      @default(true)
+  /// Admin classification decision on the Panel: null means the objective rule
+  /// classifies as usual; "EXISTING" forces the company to be treated as already
+  /// ours (Qualified rate, no new-company credit), with the reason logged. The
+  /// admin can only make the classification stricter, never grant Strong by hand.
+  classificationOverride       String?
+  classificationOverrideReason String?
   protectionExpiresAt    DateTime?
   lastMeaningfulUpdateAt DateTime?
   lapsedAt               DateTime?
@@ -2504,6 +2554,8 @@ model AcademyModule {
   questions         AcademyQuestion[]
   progress          AcademyProgress[]
   examSittings      AcademyExamSitting[]
+  engagements       AcademyEngagement[]
+  events            AcademyEvent[]
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
 
@@ -2620,6 +2672,55 @@ model AcademyExamSitting {
 
   @@index([partnerId, moduleId])
   @@index([partnerId, isFinal])
+}
+
+/// Per-partner, per-module engagement aggregates for the superadmin analytics:
+/// how long they read, how they read (scroll depth, repeat views, audio), and
+/// when they were active. Written by a visibility-aware client heartbeat whose
+/// credit is CLAMPED server-side, so idle or replayed beats cannot inflate time.
+model AcademyEngagement {
+  id             String        @id @default(cuid())
+  partnerId      String
+  partner        Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  moduleId       String
+  module         AcademyModule @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  /// Seconds actually spent on the lesson page while it was visible.
+  readSeconds    Int           @default(0)
+  /// Seconds of lesson audio playback, client reported and capped by presence
+  /// (never counted into time totals; shown separately in the admin analytics).
+  audioSeconds   Int           @default(0)
+  /// Times the module page was opened (repeat views signal re-reading).
+  lessonViews    Int           @default(0)
+  /// Deepest scroll reached on the lesson, 0 to 100.
+  maxScrollPct   Int           @default(0)
+  firstViewedAt  DateTime?
+  lastActivityAt DateTime?
+  /// Anchor for the server-side beat clamp (never credit more than the window).
+  lastBeatAt     DateTime?
+  /// Anchor for the view throttle's compare-and-set (concurrent spam counts once).
+  lastViewAt     DateTime?
+  updatedAt      DateTime      @updatedAt
+
+  @@unique([partnerId, moduleId])
+  @@index([partnerId])
+}
+
+/// Append-only behavior log for the superadmin analytics: module opens, lesson
+/// reads, exercise answers, exam starts and submissions, audio use. Written
+/// server-side inside the real actions wherever possible, so it is tamper
+/// resistant, and telemetry failures never break the partner-facing flow.
+model AcademyEvent {
+  id        String         @id @default(cuid())
+  partnerId String
+  partner   Partner        @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  moduleId  String?
+  module    AcademyModule? @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  kind      String
+  meta      Json?
+  createdAt DateTime       @default(now())
+
+  @@index([partnerId, createdAt])
+  @@index([moduleId, kind])
 }
 
 model PartnerAcademyBadge {
