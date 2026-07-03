@@ -83,7 +83,7 @@ const COMMISSION_ROWS: Array<[string, string, string]> = [
   ["Strong Origination", formatBp(CFG.strongOriginationB2cBp), formatBp(CFG.strongOriginationB2bBp)],
   ["Closing", formatBp(CFG.closingB2cBp), formatBp(CFG.closingB2bBp)],
   ["Delivery or Coaching", deliveryRate, deliveryRate],
-  ["Renewal Override", overrideShare, overrideShare],
+  ["Renewal Override", "B2B only", overrideShare],
 ];
 
 function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {

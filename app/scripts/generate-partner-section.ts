@@ -179,7 +179,7 @@ const COMMISSION_ROWS: Array<[string, string, string]> = [
   ["Strong Origination", pct(CFG.strongOriginationB2cBp), pct(CFG.strongOriginationB2bBp)],
   ["Closing", pct(CFG.closingB2cBp), pct(CFG.closingB2bBp)],
   ["Delivery or Coaching", deliveryRate, deliveryRate],
-  ["Renewal Override", overrideShare, overrideShare],
+  ["Renewal Override", "B2B only", overrideShare],
 ];
 
 out.push(`<a id="part-public"></a>`);
