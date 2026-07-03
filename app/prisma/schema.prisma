@@ -2576,8 +2576,34 @@ model AcademyLesson {
   updatedAt      DateTime?              @updatedAt
   updatedByEmail String?
   versions       AcademyLessonVersion[]
+  audio          AcademyLessonAudio[]
 
   @@index([moduleId, order])
+}
+
+/// Server-generated narration for a lesson, one row per curated voice. The
+/// audio is synthesized inside the app container (Piper TTS, encoded to MP3)
+/// so every device and browser hears the same professional voice; the browser
+/// only plays a plain audio file. `textHash` is the sha256 of the exact
+/// audioText the row was generated from: when the lesson is edited the hash
+/// stops matching and the row is regenerated in the background.
+model AcademyLessonAudio {
+  id              String        @id @default(cuid())
+  lessonId        String
+  lesson          AcademyLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  /// Curated voice id from the voice catalog (see lib/academy/voices.ts).
+  voice           String
+  textHash        String
+  /// Engine identity (binary plus model), so an engine upgrade can invalidate.
+  engine          String
+  mimeType        String        @default("audio/mpeg")
+  sizeBytes       Int
+  durationSeconds Int
+  data            Bytes
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([lessonId, voice])
 }
 
 /// Immutable snapshot of a lesson's content, written every time a superadmin
