@@ -78,12 +78,17 @@ export async function setModuleCompletion(formData: FormData) {
   revalidatePath(`/admin/partners/academy/${partnerId}`);
 }
 
-/** Mark every published module complete for a partner (full manual completion). */
+/** Mark every published exam-bearing module complete for a partner (full manual completion). */
 export async function markAllModulesComplete(formData: FormData) {
   await requireSuperAdmin();
   const partnerId = String(formData.get("partnerId") ?? "");
   if (!partnerId) return;
-  const modules = await prisma.academyModule.findMany({ where: { isPublished: true }, select: { id: true, contentVersion: true } });
+  // Informational reference pages carry no exam, so an "examPassed" row for them is
+  // meaningless and would break the n-of-total completion counts.
+  const modules = await prisma.academyModule.findMany({
+    where: { isPublished: true, isInformational: false },
+    select: { id: true, contentVersion: true },
+  });
   for (const m of modules) {
     const data = { ...COMPLETE, lessonReadAt: new Date(), passedContentVersion: m.contentVersion };
     await prisma.academyProgress.upsert({

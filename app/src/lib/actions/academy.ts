@@ -20,6 +20,7 @@ import {
 } from "@/lib/academy/engine";
 import { safeSendEmail } from "@/lib/services/email";
 import { superAdminEmail } from "@/lib/authz";
+import { applyLessonBeat, recordAcademyEvent, recordModuleView } from "@/lib/academy/telemetry";
 
 function randomSeed(): number {
   return Math.floor(Math.random() * 2 ** 31);
@@ -43,8 +44,42 @@ export async function markLessonRead(formData: FormData) {
     update: { lessonReadAt: new Date(), status: "in_progress" },
     create: { partnerId: partner.id, moduleId: m.id, lessonReadAt: new Date(), status: "in_progress" },
   });
+  await recordAcademyEvent({ partnerId: partner.id, kind: "LESSON_READ", moduleId: m.id });
   safeRevalidatePath(`/partner/academy/${slug}`);
   safeRevalidatePath("/partner/academy");
+}
+
+/**
+ * Telemetry: one module page view (bumps the view counter and logs the event).
+ * Called from a client effect on mount; a previewing super admin never reaches
+ * here because requirePartner ignores the preview cookie.
+ */
+export async function recordAcademyModuleOpened(slug: string): Promise<void> {
+  const { partner } = await requirePartner();
+  const m = await prisma.academyModule.findFirst({ where: { slug, isPublished: true }, select: { id: true } });
+  if (!m) return;
+  await recordModuleView(partner.id, m.id);
+}
+
+/**
+ * Telemetry: one visibility-aware reading heartbeat. The credited seconds are
+ * clamped server-side from the stored anchor, so an idle tab or replayed beat
+ * cannot inflate reading time. Never throws into the caller's flow.
+ */
+export async function recordAcademyLessonBeat(input: {
+  slug: string;
+  scrollPct?: number;
+  audioSecondsDelta?: number;
+}): Promise<void> {
+  const { partner } = await requirePartner();
+  const m = await prisma.academyModule.findFirst({ where: { slug: input.slug, isPublished: true }, select: { id: true } });
+  if (!m) return;
+  await applyLessonBeat({
+    partnerId: partner.id,
+    moduleId: m.id,
+    scrollPct: input.scrollPct,
+    audioSecondsDelta: input.audioSecondsDelta,
+  });
 }
 
 export type ExerciseAttemptResult = {
@@ -89,6 +124,12 @@ export async function recordExerciseAttempt(input: {
         selected: input.selected,
         correct: outcome.correct,
       },
+    });
+    await recordAcademyEvent({
+      partnerId: partner.id,
+      kind: "EXERCISE_ANSWERED",
+      moduleId: question.moduleId,
+      meta: { questionId: question.id, attemptNo, correct: outcome.correct },
     });
   }
 
@@ -199,6 +240,7 @@ export async function startOrResumeExam(slug: string): Promise<
       data: { partnerId: partner.id, moduleId: m.id, questionIds: served as object, answers: [], score: 0, passed: false },
     });
     sittingId = created.id;
+    await recordAcademyEvent({ partnerId: partner.id, kind: "EXAM_STARTED", moduleId: m.id, meta: { sittingId } });
   }
 
   const qById = new Map(m.questions.map((q) => [q.id, q]));
@@ -238,9 +280,21 @@ export async function submitExam(input: { sittingId: string; selections: number[
   });
   const result = gradeSitting(gradeInput, input.selections, m.passMark);
 
+  const submittedAt = new Date();
   await prisma.academyExamSitting.update({
     where: { id: sitting.id },
-    data: { answers: input.selections as object, score: result.percent, passed: result.passed, submittedAt: new Date() },
+    data: { answers: input.selections as object, score: result.percent, passed: result.passed, submittedAt },
+  });
+  await recordAcademyEvent({
+    partnerId: partner.id,
+    kind: "EXAM_SUBMITTED",
+    moduleId: m.id,
+    meta: {
+      sittingId: sitting.id,
+      percent: result.percent,
+      passed: result.passed,
+      durationSeconds: Math.max(0, Math.round((submittedAt.getTime() - sitting.startedAt.getTime()) / 1000)),
+    },
   });
 
   await prisma.academyProgress.update({
@@ -368,6 +422,7 @@ export async function startOrResumeFinalExam(): Promise<
       data: { partnerId: partner.id, moduleId: null, isFinal: true, questionIds: served as object, answers: [], score: 0, passed: false },
     });
     sittingId = created.id;
+    await recordAcademyEvent({ partnerId: partner.id, kind: "FINAL_EXAM_STARTED", meta: { sittingId } });
   }
 
   const qById = new Map(examQuestions.map((q) => [q.id, q]));
@@ -396,9 +451,20 @@ export async function submitFinalExam(input: { sittingId: string; selections: nu
   });
   const result = gradeSitting(gradeInput, input.selections, FINAL_EXAM_PASS_MARK);
 
+  const submittedAt = new Date();
   await prisma.academyExamSitting.update({
     where: { id: sitting.id },
-    data: { answers: input.selections as object, score: result.percent, passed: result.passed, submittedAt: new Date() },
+    data: { answers: input.selections as object, score: result.percent, passed: result.passed, submittedAt },
+  });
+  await recordAcademyEvent({
+    partnerId: partner.id,
+    kind: "FINAL_EXAM_SUBMITTED",
+    meta: {
+      sittingId: sitting.id,
+      percent: result.percent,
+      passed: result.passed,
+      durationSeconds: Math.max(0, Math.round((submittedAt.getTime() - sitting.startedAt.getTime()) / 1000)),
+    },
   });
 
   let badgeAwarded = false;

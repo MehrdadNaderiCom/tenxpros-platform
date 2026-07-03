@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentPartner } from "@/lib/partner/auth";
+import { prisma } from "@/lib/prisma";
 import { startOrResumeExam } from "@/lib/actions/academy";
 import { ExamPlayer } from "@/components/academy/exam-player";
 import { Card } from "@/components/ui/card";
@@ -48,13 +49,31 @@ export default async function ExamPage({ params }: { params: { slug: string } })
     );
   }
 
+  // On a pass, send the partner straight to the module that just unlocked.
+  const currentModule = await prisma.academyModule.findFirst({ where: { slug: params.slug }, select: { order: true } });
+  const nextModule = currentModule
+    ? await prisma.academyModule.findFirst({
+        where: { order: { gt: currentModule.order }, isPublished: true, isInformational: false },
+        orderBy: { order: "asc" },
+        select: { order: true, slug: true },
+      })
+    : null;
+  const neededCorrect = Math.ceil((result.passMark / 100) * result.questions.length);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Module exam"
-        description={`One sitting, ${result.questions.length} questions, ${result.passMark}% to pass. Answers are shown only after you submit.`}
+        description={`One sitting, ${result.questions.length} questions, ${result.passMark}% to pass (${neededCorrect} of ${result.questions.length} correct). ${nextModule ? "Passing unlocks the next module." : "Passing completes the last module and unlocks the comprehensive final exam."} Answers are shown only after you submit.`}
       />
-      <ExamPlayer sittingId={result.sittingId} questions={result.questions} passMark={result.passMark} failHref={`/partner/academy/${params.slug}`} />
+      <ExamPlayer
+        sittingId={result.sittingId}
+        questions={result.questions}
+        passMark={result.passMark}
+        failHref={`/partner/academy/${params.slug}`}
+        passHref={nextModule ? `/partner/academy/${nextModule.slug}` : "/partner/academy"}
+        passLabel={nextModule ? `Continue to Module ${nextModule.order}` : "Back to the Academy"}
+      />
     </div>
   );
 }

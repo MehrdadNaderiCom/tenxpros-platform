@@ -21,6 +21,10 @@ export interface ModuleView {
   bestExamScore: number;
   examAttempts: number;
   lockedUntil: Date | null;
+  /** Questions that must be answered correctly to pass (from passMark x examSize). */
+  neededCorrect: number;
+  /** When locked: the module whose exam opens this one, with ITS OWN exam numbers. */
+  blockedBy: { order: number; title: string; neededCorrect: number; examSize: number } | null;
 }
 
 /** A reference/benefit module: a lesson only, always open, not exam-gated. */
@@ -73,6 +77,7 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
 
   const views: ModuleView[] = [];
   let previousPassed = true; // module one is always unlocked
+  let previousModule: { order: number; title: string; neededCorrect: number; examSize: number } | null = null;
   for (const m of modules) {
     const p = progressByModule.get(m.id);
     const lessonRead = Boolean(p?.lessonReadAt);
@@ -105,9 +110,17 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
       bestExamScore: p?.bestExamScore ?? 0,
       examAttempts: p?.examAttempts ?? 0,
       lockedUntil: p?.lockedUntil ?? null,
+      neededCorrect: Math.ceil((m.passMark / 100) * m.examSize),
+      blockedBy: unlocked ? null : previousModule,
     });
 
     previousPassed = examPassed;
+    previousModule = {
+      order: m.order,
+      title: m.title,
+      neededCorrect: Math.ceil((m.passMark / 100) * m.examSize),
+      examSize: m.examSize,
+    };
   }
 
   const passedCount = views.filter((v) => v.examPassed).length;
@@ -151,23 +164,53 @@ export async function getModuleForLesson(partnerId: string, slug: string) {
   });
   if (!m) return null;
 
-  const [progress, attempts, prevPassed] = await Promise.all([
+  const [progress, attempts, prevModule, nextModule] = await Promise.all([
     prisma.academyProgress.findUnique({ where: { partnerId_moduleId: { partnerId, moduleId: m.id } } }),
     prisma.academyExerciseAttempt.findMany({ where: { partnerId, questionId: { in: m.questions.map((q) => q.id) } } }),
     // Informational modules are always open; exam-bearing modules unlock when the
     // previous exam-bearing module is passed.
     m.isInformational || m.order <= 1
-      ? Promise.resolve(true)
-      : prisma.academyModule
-          .findFirst({ where: { order: { lt: m.order }, isPublished: true, isInformational: false }, orderBy: { order: "desc" } })
-          .then((prev) =>
-            prev
-              ? prisma.academyProgress
-                  .findUnique({ where: { partnerId_moduleId: { partnerId, moduleId: prev.id } } })
-                  .then((pp) => Boolean(pp?.examPassed))
-              : true,
-          ),
+      ? Promise.resolve(null)
+      : prisma.academyModule.findFirst({
+          where: { order: { lt: m.order }, isPublished: true, isInformational: false },
+          orderBy: { order: "desc" },
+          select: { id: true, order: true, title: true, slug: true, passMark: true, examSize: true },
+        }),
+    // The next exam-bearing module, so a pass can point straight at it.
+    prisma.academyModule.findFirst({
+      where: { order: { gt: m.order }, isPublished: true, isInformational: false },
+      orderBy: { order: "asc" },
+      select: { order: true, title: true, slug: true },
+    }),
   ]);
+  const prevPassed = prevModule
+    ? Boolean(
+        (
+          await prisma.academyProgress.findUnique({
+            where: { partnerId_moduleId: { partnerId, moduleId: prevModule.id } },
+          })
+        )?.examPassed,
+      )
+    : true;
 
-  return { module: m, progress, attempts, unlocked: m.isInformational || m.order <= 1 || prevPassed };
+  return {
+    module: m,
+    progress,
+    attempts,
+    unlocked: m.isInformational || m.order <= 1 || prevPassed,
+    // For the locked screen: name exactly which module's exam opens this one, with
+    // THAT module's own exam numbers (never the locked module's).
+    blockedBy:
+      prevPassed || !prevModule
+        ? null
+        : {
+            order: prevModule.order,
+            title: prevModule.title,
+            slug: prevModule.slug,
+            passMark: prevModule.passMark,
+            examSize: prevModule.examSize,
+            neededCorrect: Math.ceil((prevModule.passMark / 100) * prevModule.examSize),
+          },
+    nextModule,
+  };
 }

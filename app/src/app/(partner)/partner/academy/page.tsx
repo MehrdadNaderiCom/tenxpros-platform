@@ -25,12 +25,70 @@ export default async function AcademyHome() {
   const overview = await getAcademyOverview(current.partner.id);
   const pct = overview.totalCount ? Math.round((overview.passedCount / overview.totalCount) * 100) : 0;
 
+  // The one concrete next action, so nobody ever wonders what to do now. A module
+  // (or the final exam) on cooldown is pointed at the lesson to review, never at an
+  // exam the engine would refuse.
+  const now = Date.now();
+  const resume = overview.resumeSlug ? overview.modules.find((v) => v.slug === overview.resumeSlug) ?? null : null;
+  const resumeOnCooldown = Boolean(resume?.lockedUntil && resume.lockedUntil.getTime() > now);
+  const finalOnCooldown = Boolean(overview.finalExam.lockedUntil && overview.finalExam.lockedUntil.getTime() > now);
+  const nextAction = resume
+    ? !resume.lessonRead
+      ? { label: `Read the Module ${resume.order} lesson`, href: `/partner/academy/${resume.slug}` }
+      : !resume.exercisesDone
+        ? { label: `Finish the Module ${resume.order} exercises`, href: `/partner/academy/${resume.slug}` }
+        : resumeOnCooldown
+          ? {
+              label: `Review Module ${resume.order} while its exam cooldown runs. Retake opens ${resume.lockedUntil!.toLocaleString()}.`,
+              href: `/partner/academy/${resume.slug}`,
+            }
+          : { label: `Take the Module ${resume.order} exam`, href: `/partner/academy/${resume.slug}/exam` }
+    : overview.allPassed && !overview.finalExam.passed && !finalOnCooldown
+      ? { label: "Take the comprehensive final exam", href: "/partner/academy/final-exam" }
+      : null;
+  const first = overview.modules[0] ?? null;
+
   return (
     <div className="space-y-8">
       <PageHeader
         title="Partner Academy"
         description="A step by step training that turns the program into something you can explain and represent with confidence. Read each lesson, work the exercises, and pass the module exam to unlock the next one. A comprehensive final exam at the end earns your certificate."
       />
+
+      {/* How the Academy works: the rule nobody should ever be unsure about. */}
+      <Card className="space-y-3">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">How the Academy works</p>
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            ["1. Read the lesson", "Read it to the end, then mark it read. Reading alone does not complete a module."],
+            ["2. Work the exercises", "Short practice questions with explanations. A wrong answer never blocks you: after the last attempt the answer is shown and the exercise counts as done."],
+            ["3. Pass the module exam", "This is what completes a module and unlocks the next one. Fail it and you can retake after a short cooldown."],
+          ].map(([t, d]) => (
+            <div key={t} className="rounded-md border border-neutral-200 bg-neutral-50 p-3">
+              <p className="text-sm font-semibold text-navy-900">{t}</p>
+              <p className="mt-1 text-xs leading-5 text-slate-600">{d}</p>
+            </div>
+          ))}
+        </div>
+        {first ? (
+          <p className="text-sm leading-6 text-slate-600">
+            Every module stays locked until you pass the exam of the module before it, and your certificate arrives only
+            after every module is passed plus the comprehensive final exam. Each module exam is one sitting of {first.examSize}{" "}
+            questions and a pass mark of {first.passMark}%, which means {first.neededCorrect} correct answers of {first.examSize}.
+            A retake is always available after a short cooldown, so one hard sitting never ends your progress.
+          </p>
+        ) : null}
+      </Card>
+
+      {nextAction ? (
+        <Card className="flex flex-wrap items-center justify-between gap-3 border-navy-300 bg-navy-50">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-navy-700">Your next step</p>
+            <p className="mt-1 text-lg font-semibold text-navy-900">{nextAction.label}</p>
+          </div>
+          <ButtonLink href={nextAction.href}>Continue</ButtonLink>
+        </Card>
+      ) : null}
 
       <Card className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -92,11 +150,24 @@ export default async function AcademyHome() {
                 <Badge status={s.badge}>{s.label}</Badge>
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                {m.examPassed ? <span>Best score {m.bestExamScore}%</span> : null}
-                {!m.unlocked ? <span>Pass the previous module to unlock this one.</span> : null}
-                {m.unlocked && !m.examPassed ? (
+                {m.examPassed ? <span className="font-medium text-emerald-700">Complete. Best score {m.bestExamScore}%.</span> : null}
+                {!m.unlocked ? (
                   <span>
-                    {m.lessonRead ? "Lesson read" : "Lesson not read"} {String.fromCharCode(183)} {m.exercisesDone ? "exercises done" : `${m.exerciseCount} exercises`}
+                    Locked. It opens when you pass the Module {m.blockedBy?.order ?? m.order - 1} exam
+                    {m.blockedBy ? ` (${m.blockedBy.title}) with ${m.blockedBy.neededCorrect} of ${m.blockedBy.examSize} correct` : ""}.
+                  </span>
+                ) : null}
+                {m.unlocked && !m.examPassed ? (
+                  <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className={m.lessonRead ? "font-medium text-emerald-700" : ""}>
+                      1. Lesson {m.lessonRead ? "read" : "to read"}
+                    </span>
+                    <span className={m.exercisesDone ? "font-medium text-emerald-700" : ""}>
+                      2. Exercises {m.exercisesDone ? "done" : `(${m.exerciseCount})`}
+                    </span>
+                    <span className={m.canTakeExam ? "font-semibold text-navy-900" : ""}>
+                      3. Exam to pass ({m.neededCorrect} of {m.examSize} correct)
+                    </span>
                   </span>
                 ) : null}
               </div>
