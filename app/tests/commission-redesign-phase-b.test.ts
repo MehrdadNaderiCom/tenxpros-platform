@@ -65,38 +65,38 @@ describe("companyNewnessState: the three states and the 12-month boundary", () =
 // Origination classification and rate: all four combinations, B2B and B2C
 // ---------------------------------------------------------------------------
 
-describe("classifyOrigination: B2B, all four combinations", () => {
+describe("classifyOrigination: B2B, the seat test with the New/Dormant domain", () => {
   const kind = "B2B" as const;
   const strong = cfg.strongOriginationB2bBp; // 1200
   const qualified = cfg.qualifiedOriginationB2bBp; // 800
-  const threshold = cfg.strongValueThresholdB2bCents; // 1500000
+  const seats = cfg.strongSeatThresholdB2b; // 10
 
-  it("Existing company + new unit: QUALIFIED, qualified rate, never Strong", () => {
-    const r = classifyOrigination({ newness: "EXISTING", hasDomain: true, dealKind: kind, saleAmountCents: threshold + 1_000_000, cfg });
+  it("Existing company + new unit: QUALIFIED, qualified rate, never Strong (whatever the seats)", () => {
+    const r = classifyOrigination({ newness: "EXISTING", hasDomain: true, dealKind: kind, seatCount: seats + 50, cfg });
     expect(r.function).toBe("QUALIFIED_ORIGINATION");
     expect(r.rateBp).toBe(qualified);
     expect(r.isNewCompany).toBe(false);
     expect(r.paidStrongRate).toBe(false);
   });
 
-  it.each(["NEW", "DORMANT"] as NewnessState[])("New/Dormant (%s) ABOVE threshold: STRONG rate", (newness) => {
-    const r = classifyOrigination({ newness, hasDomain: true, dealKind: kind, saleAmountCents: threshold + 1, cfg });
+  it.each(["NEW", "DORMANT"] as NewnessState[])("New/Dormant (%s) AT the seat threshold: STRONG rate (inclusive)", (newness) => {
+    const r = classifyOrigination({ newness, hasDomain: true, dealKind: kind, seatCount: seats, cfg });
     expect(r.function).toBe("STRONG_ORIGINATION");
     expect(r.rateBp).toBe(strong);
     expect(r.isNewCompany).toBe(true);
     expect(r.paidStrongRate).toBe(true);
   });
 
-  it("New/Dormant EXACTLY AT threshold is NOT above: keeps new-company class, pays Qualified rate", () => {
-    const r = classifyOrigination({ newness: "NEW", hasDomain: true, dealKind: kind, saleAmountCents: threshold, cfg });
+  it("New/Dormant ONE BELOW the seat threshold: keeps new-company class, pays Qualified rate", () => {
+    const r = classifyOrigination({ newness: "NEW", hasDomain: true, dealKind: kind, seatCount: seats - 1, cfg });
     expect(r.function).toBe("STRONG_ORIGINATION"); // new-company classification kept
     expect(r.rateBp).toBe(qualified); // but paid at the Qualified rate
     expect(r.isNewCompany).toBe(true); // still counts toward the Growth Bonus
     expect(r.paidStrongRate).toBe(false);
   });
 
-  it("New/Dormant BELOW threshold: keeps new-company class, pays Qualified rate", () => {
-    const r = classifyOrigination({ newness: "DORMANT", hasDomain: true, dealKind: kind, saleAmountCents: threshold - 1, cfg });
+  it("New/Dormant with NO paid-collected seats (null): Qualified rate, class kept, never Strong on missing data", () => {
+    const r = classifyOrigination({ newness: "DORMANT", hasDomain: true, dealKind: kind, seatCount: null, cfg });
     expect(r.function).toBe("STRONG_ORIGINATION");
     expect(r.rateBp).toBe(qualified);
     expect(r.isNewCompany).toBe(true);
@@ -104,7 +104,7 @@ describe("classifyOrigination: B2B, all four combinations", () => {
   });
 
   it("No domain: QUALIFIED only, cannot be Strong, does not count toward the Growth Bonus", () => {
-    const r = classifyOrigination({ newness: "NEW", hasDomain: false, dealKind: kind, saleAmountCents: threshold + 5_000_000, cfg });
+    const r = classifyOrigination({ newness: "NEW", hasDomain: false, dealKind: kind, seatCount: seats + 100, cfg });
     expect(r.function).toBe("QUALIFIED_ORIGINATION");
     expect(r.rateBp).toBe(qualified);
     expect(r.isNewCompany).toBe(false);
@@ -112,40 +112,39 @@ describe("classifyOrigination: B2B, all four combinations", () => {
   });
 });
 
-describe("classifyOrigination: B2C, all four combinations", () => {
+describe("classifyOrigination: B2C is person-level, seats ONLY (the domain plays no role)", () => {
   const kind = "B2C" as const;
   const strong = cfg.strongOriginationB2cBp; // 1500
   const qualified = cfg.qualifiedOriginationB2cBp; // 1000
-  const threshold = cfg.strongValueThresholdB2cCents; // 500000
+  const seats = cfg.strongSeatThresholdB2c; // 15
 
-  it("Existing company + new unit: QUALIFIED, qualified rate, never Strong", () => {
-    const r = classifyOrigination({ newness: "EXISTING", hasDomain: true, dealKind: kind, saleAmountCents: threshold + 100_000, cfg });
-    expect(r.function).toBe("QUALIFIED_ORIGINATION");
-    expect(r.rateBp).toBe(qualified);
-    expect(r.paidStrongRate).toBe(false);
-  });
-
-  it.each(["NEW", "DORMANT"] as NewnessState[])("New/Dormant (%s) ABOVE threshold: STRONG rate", (newness) => {
-    const r = classifyOrigination({ newness, hasDomain: true, dealKind: kind, saleAmountCents: threshold + 1, cfg });
+  it("AT the seat threshold: STRONG rate, even with NO domain (a person is not a domain)", () => {
+    const r = classifyOrigination({ newness: "NEW", hasDomain: false, dealKind: kind, seatCount: seats, cfg });
     expect(r.function).toBe("STRONG_ORIGINATION");
     expect(r.rateBp).toBe(strong);
-    expect(r.isNewCompany).toBe(true);
     expect(r.paidStrongRate).toBe(true);
+    expect(r.isNewCompany).toBe(false); // B2C never feeds the (B2B-only) Growth Bonus
   });
 
-  it("New EXACTLY AT threshold is NOT above: keeps new-company class, pays Qualified rate", () => {
-    const r = classifyOrigination({ newness: "NEW", hasDomain: true, dealKind: kind, saleAmountCents: threshold, cfg });
-    expect(r.function).toBe("STRONG_ORIGINATION");
+  it("ONE BELOW the seat threshold: QUALIFIED, whatever the domain newness says", () => {
+    const r = classifyOrigination({ newness: "NEW", hasDomain: true, dealKind: kind, seatCount: seats - 1, cfg });
+    expect(r.function).toBe("QUALIFIED_ORIGINATION");
     expect(r.rateBp).toBe(qualified);
-    expect(r.isNewCompany).toBe(true);
     expect(r.paidStrongRate).toBe(false);
   });
 
-  it("No domain: QUALIFIED only, never Strong", () => {
-    const r = classifyOrigination({ newness: "DORMANT", hasDomain: false, dealKind: kind, saleAmountCents: threshold + 1_000_000, cfg });
+  it("NO paid-collected seats (null): QUALIFIED, never Strong on missing data", () => {
+    const r = classifyOrigination({ newness: "DORMANT", hasDomain: true, dealKind: kind, seatCount: null, cfg });
     expect(r.function).toBe("QUALIFIED_ORIGINATION");
     expect(r.rateBp).toBe(qualified);
-    expect(r.isNewCompany).toBe(false);
+    expect(r.paidStrongRate).toBe(false);
+  });
+
+  it("an Existing domain does NOT block a seat-qualified B2C strong (domain is irrelevant on B2C)", () => {
+    const r = classifyOrigination({ newness: "EXISTING", hasDomain: true, dealKind: kind, seatCount: seats + 5, cfg });
+    expect(r.function).toBe("STRONG_ORIGINATION");
+    expect(r.rateBp).toBe(strong);
+    expect(r.paidStrongRate).toBe(true);
   });
 });
 
@@ -216,9 +215,9 @@ describe("delivery single rate", () => {
 });
 
 describe("legacy-shaped single-partner deals compute identically once the gates are satisfied", () => {
-  it("B2B new-company-above-threshold full stack: Strong 12% + Closing 10% + Delivery 8% = the 30% cap", () => {
-    const net = 2_000_000; // above the 1,500,000 B2B threshold
-    const strong = classifyOrigination({ newness: "NEW", hasDomain: true, dealKind: "B2B", saleAmountCents: net, cfg });
+  it("B2B new-company-at-seat-threshold full stack: Strong 12% + Closing 10% + Delivery 8% = the 30% cap", () => {
+    const net = 2_000_000;
+    const strong = classifyOrigination({ newness: "NEW", hasDomain: true, dealKind: "B2B", seatCount: cfg.strongSeatThresholdB2b, cfg });
     expect(strong.rateBp).toBe(cfg.strongOriginationB2bBp);
     const r = computeDealCommission({
       netReceiptsCents: net,
@@ -236,7 +235,7 @@ describe("legacy-shaped single-partner deals compute identically once the gates 
 
   it("B2C existing-company full stack: Qualified 10% + Closing 5% + Delivery 8% = 23% under the cap", () => {
     const net = 400000;
-    const qualified = classifyOrigination({ newness: "EXISTING", hasDomain: true, dealKind: "B2C", saleAmountCents: net, cfg });
+    const qualified = classifyOrigination({ newness: "EXISTING", hasDomain: true, dealKind: "B2C", seatCount: cfg.strongSeatThresholdB2c - 1, cfg });
     expect(qualified.rateBp).toBe(cfg.qualifiedOriginationB2cBp);
     const r = computeDealCommission({
       netReceiptsCents: net,
