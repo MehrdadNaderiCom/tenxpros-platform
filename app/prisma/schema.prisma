@@ -2017,6 +2017,11 @@ model ProgramConfig {
   deliveryMode                 DeliveryMode @default(PERCENTAGE)
   deliveryPercentMinBp         Int          @default(500)
   deliveryPercentMaxBp         Int          @default(800)
+  // Commission redesign: single delivery rate, and the high value thresholds that
+  // (with the domain newness state) decide the Strong vs Qualified origination rate.
+  deliveryPercentBp            Int          @default(800)
+  strongValueThresholdB2cCents Int          @default(500000)
+  strongValueThresholdB2bCents Int          @default(1500000)
 
   // Caps (basis points)
   capB2cBp                Int @default(2500)
@@ -2213,6 +2218,8 @@ model DealRegistration {
   productLine         DealProductLine @default(TENXPROS)
   offering            OfferingType    @default(B2B_ENGAGEMENT)
   legalEntity         String
+  // Canonical company identifier for the objective newness check (New/Dormant/Existing).
+  domain              String?
   country             String
   businessUnit        String?
   contactName         String?
@@ -2252,6 +2259,8 @@ model RegisteredAccount {
   partner            Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   legalEntity            String
+  // Canonical company identifier; businessUnit is reused as the unit/branch label.
+  domain                 String?
   country                String
   businessUnit           String?
   offering               OfferingType
@@ -2298,6 +2307,8 @@ model ClosedDeal {
   dealType                DealType
   productLine             DealProductLine @default(TENXPROS)
   netReceiptsCents        Int
+  // Canonical company identifier, denormalized at record time for the newness check.
+  domain                  String?
   currency                String          @default("USD")
   deliveredAt             DateTime?
   paymentClearedAt        DateTime?
@@ -2320,6 +2331,8 @@ model ClosedDeal {
   updatedAt DateTime @updatedAt
 
   @@index([partnerId])
+  // The newness check queries a company's closed-deal history by canonical domain.
+  @@index([domain])
 }
 
 /// A group of seats on a closed deal. Only PAID_COLLECTED (and not quality-
@@ -2353,6 +2366,9 @@ model CommissionEntry {
   rateBp          Int
   baseAmountCents Int
   amountCents     Int
+  // Weighted split: when a single contribution is genuinely shared, a superadmin sets
+  // a weight and this line's amount is divided by it. Null means a whole, unshared line.
+  weightBp        Int?
   // Idempotent partial/cumulative refund reversal: net payable = amountCents - reversedCents.
   reversedCents   Int              @default(0)
   // A fixed-fee line keeps its exact amount through recompute (not re-derived from rateBp).
@@ -2369,6 +2385,9 @@ model CommissionEntry {
   // Short evidence describing what qualifies this function for this deal, recorded
   // when the line is created so a function claim is never just a name on a list.
   evidenceNote    String?          @db.Text
+  // Basic Introduction only: an explicit attestation that a genuine warm relationship
+  // pre-existed. Required (with the evidence note) before a BASIC_INTRO line is created.
+  warmRelationshipAttested Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
