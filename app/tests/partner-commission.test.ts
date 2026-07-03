@@ -72,7 +72,7 @@ describe("closing / delivery rates", () => {
   });
 });
 
-describe("computeDealCommission — the Schedule F worked example", () => {
+describe("computeDealCommission:the Schedule F worked example", () => {
   it("strong origination 12% + closing 10% on a $20k B2B deal = $4,400, under the 30% cap", () => {
     const r = computeDealCommission({
       netReceiptsCents: USD_20K,
@@ -90,7 +90,7 @@ describe("computeDealCommission — the Schedule F worked example", () => {
   });
 });
 
-describe("computeDealCommission — cap is an absolute ceiling", () => {
+describe("computeDealCommission:cap is an absolute ceiling", () => {
   it("a full function stack exactly at 30% is not clamped", () => {
     const r = computeDealCommission({
       netReceiptsCents: USD_20K,
@@ -147,7 +147,7 @@ describe("computeDealCommission — cap is an absolute ceiling", () => {
   });
 });
 
-describe("computeDealCommission — multi-partner stacking", () => {
+describe("computeDealCommission:multi-partner stacking", () => {
   it("the cap applies across all partners on one deal", () => {
     const r = computeDealCommission({
       netReceiptsCents: USD_20K,
@@ -425,7 +425,7 @@ describe("fixed-fee lines are committed and idempotent under the cap clamp", () 
   });
 });
 
-describe("computeDealCommission — already-committed (PAID) amounts consume cap headroom", () => {
+describe("computeDealCommission:already-committed (PAID) amounts consume cap headroom", () => {
   // B2C net $20k, cap 25% = $5,000. A CLOSING line was already PAID at 5% = $1,000
   // and is excluded from the recompute set. The operator then adds strong
   // origination 15% ($3,000) + delivery 8% ($1,600) = $4,600 of new percentage lines.
@@ -516,10 +516,11 @@ describe("deriveFunctionRate (single source of truth, no operator-typed rates)",
       rateBp: cfg.strongOriginationB2cBp,
     });
   });
-  it("delivery: FLAT under fixed-fee mode, else clamped into the band", () => {
-    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg: { ...cfg, deliveryMode: "FIXED_FEE" } })).toEqual({ kind: "FLAT" });
-    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentMinBp });
-    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg, deliveryApprovedBp: 99999 })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentMaxBp });
+  it("delivery: the single configured rate, ignoring the retired band and fixed-fee mode", () => {
+    // Delivery now pays one company-set rate; deliveryMode and deliveryApprovedBp are inert.
+    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentBp });
+    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg: { ...cfg, deliveryMode: "FIXED_FEE" } })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentBp });
+    expect(deriveFunctionRate("DELIVERY", { dealKind: "B2C", cfg, deliveryApprovedBp: 99999 })).toEqual({ kind: "PERCENT", rateBp: cfg.deliveryPercentBp });
   });
   it("override is zero outside the window or when inactive, else a share of the open rate", () => {
     expect(deriveFunctionRate("OVERRIDE", { dealKind: "B2B", cfg, openRateBp: 1200, withinOriginationWindow: false, activeStatus: true })).toEqual({ kind: "PERCENT", rateBp: 0 });
