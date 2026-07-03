@@ -301,8 +301,8 @@ export const CONFIG_FIELD_META: ConfigFieldMeta[] = [
   { key: "closingB2cBp", label: "Closing, B2C", unit: "bp", group: "Commission rates" },
   { key: "closingB2bBp", label: "Closing, B2B", unit: "bp", group: "Commission rates" },
   { key: "deliveryPercentBp", label: "Delivery rate (single default)", unit: "bp", group: "Commission rates" },
-  { key: "strongValueThresholdB2cCents", label: "Strong Origination high value threshold, B2C", unit: "cents", group: "Commission rates" },
-  { key: "strongValueThresholdB2bCents", label: "Strong Origination high value threshold, B2B", unit: "cents", group: "Commission rates" },
+  { key: "strongSeatThresholdB2c", label: "Strong Origination seat threshold, B2C (seats or more)", unit: "seats", group: "Commission rates" },
+  { key: "strongSeatThresholdB2b", label: "Strong Origination seat threshold, B2B (seats or more)", unit: "seats", group: "Commission rates" },
   // Caps
   { key: "capB2cBp", label: "Cap per deal, B2C", unit: "bp", group: "Caps" },
   { key: "capB2bBp", label: "Cap per deal, B2B", unit: "bp", group: "Caps" },
@@ -362,12 +362,15 @@ export const CONFIG_FIELD_META: ConfigFieldMeta[] = [
   { key: "nonSolicitationMonths", label: "Non-solicitation tail", unit: "months", group: "Restrictions" },
   { key: "lateStageTailDays", label: "Late-stage tail", unit: "days", group: "Restrictions" },
   // Retired knobs: kept for continuity (never dropped) but NOT used by the current
-  // rules. Origination strength is derived objectively from domain newness and the
-  // sale amount, and delivery pays the single configured rate; these are inert.
-  { key: "strongOriginationUnlockSeats", label: "B2C strong seat unlock (retired, superseded by domain newness)", unit: "seats", group: "Retired (not used by current rules)" },
+  // rules. Origination strength is derived objectively from the PAID-COLLECTED seat
+  // count (and on B2B, domain newness), and delivery pays the single configured
+  // rate; these are inert.
+  { key: "strongOriginationUnlockSeats", label: "B2C strong seat unlock (retired, superseded by the seat threshold)", unit: "seats", group: "Retired (not used by current rules)" },
   { key: "deliveryMode", label: "Delivery pay mode (retired, delivery is a single rate)", unit: "enum", group: "Retired (not used by current rules)", options: ["FIXED_FEE", "PERCENTAGE"] },
   { key: "deliveryPercentMinBp", label: "Delivery percent min (retired band)", unit: "bp", group: "Retired (not used by current rules)" },
   { key: "deliveryPercentMaxBp", label: "Delivery percent max (retired band)", unit: "bp", group: "Retired (not used by current rules)" },
+  { key: "strongValueThresholdB2cCents", label: "Strong high value threshold B2C (retired, superseded by the seat threshold)", unit: "cents", group: "Retired (not used by current rules)" },
+  { key: "strongValueThresholdB2bCents", label: "Strong high value threshold B2B (retired, superseded by the seat threshold)", unit: "cents", group: "Retired (not used by current rules)" },
 ];
 
 export const CONFIG_GROUPS = Array.from(new Set(CONFIG_FIELD_META.map((f) => f.group)));

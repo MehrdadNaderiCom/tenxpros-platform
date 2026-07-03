@@ -73,33 +73,60 @@ export const AUDIENCE_OPTIONS = [
 // ---------------------------------------------------------------------------
 
 export const DEAL_FUNCTION_OPTIONS = [
+  ["BASIC_INTRO", "Basic Introduction (introduce and step away)"],
   ["ORIGINATION", "Origination (open the account)"],
   ["CLOSING", "Closing (lead the sale to signature)"],
   ["DELIVERY", "Delivery or Coaching"],
 ] as const;
 
-export const dealRegistrationSchema = z.object({
-  productLine: z.enum(["TENXPROS", "TENXOPS"], { error: "Select the type." }),
-  offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
-  legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
-  // Canonical company identity for the objective newness / origination rule. Optional
-  // at submission (an individual may have none), normalized server side before storage.
-  domain: z.string().trim().max(253).optional(),
-  country: z.string().trim().min(2, "Enter the country."),
-  businessUnit: z.string().trim().max(160).optional(),
-  contactName: z.string().trim().max(160).optional(),
-  contactTitle: z.string().trim().max(160).optional(),
-  // Kept as validated strings (not z.coerce) so the form's RHF input/output types
-  // align; converted to numbers in the server action.
-  estSeats: z.string().trim().regex(/^\d*$/, "Enter a whole number.").optional(),
-  estValueUsd: z.string().trim().regex(/^\d*(\.\d{1,2})?$/, "Enter a valid amount.").optional(),
-  functionsIntended: z.array(z.enum(["ORIGINATION", "CLOSING", "DELIVERY"])).optional(),
-  justification: z
-    .string()
-    .trim()
-    .min(40, "Give your case for this account: relationship, warm contact, sector experience, or a concrete route in."),
-  widerScopeRequested: z.string().trim().max(500).optional(),
-});
+/**
+ * Per-function evidence at registration. Every evidence field is OPTIONAL: it is
+ * strongly encouraged (it materially affects confirmation and classification) but
+ * never blocks a submission. The ONE exception is the warm-relationship attestation
+ * when Basic Introduction is claimed, mirroring the engine's pay-time requirement.
+ */
+export const dealRegistrationSchema = z
+  .object({
+    productLine: z.enum(["TENXPROS", "TENXOPS"], { error: "Select the type." }),
+    offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
+    legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
+    // Canonical company identity for the objective newness / origination rule. Optional
+    // at submission (an individual may have none), normalized server side before storage.
+    domain: z.string().trim().max(253).optional(),
+    country: z.string().trim().min(2, "Enter the country."),
+    businessUnit: z.string().trim().max(160).optional(),
+    contactName: z.string().trim().max(160).optional(),
+    contactTitle: z.string().trim().max(160).optional(),
+    // Kept as validated strings (not z.coerce) so the form's RHF input/output types
+    // align; converted to numbers in the server action.
+    estSeats: z.string().trim().regex(/^\d*$/, "Enter a whole number.").optional(),
+    estValueUsd: z.string().trim().regex(/^\d*(\.\d{1,2})?$/, "Enter a valid amount.").optional(),
+    functionsIntended: z.array(z.enum(["BASIC_INTRO", "ORIGINATION", "CLOSING", "DELIVERY"])).optional(),
+    // Basic Introduction claim evidence (encouraged, not blocking).
+    introContactName: z.string().trim().max(160).optional(),
+    introRelationship: z.string().trim().max(2000).optional(),
+    introHow: z.string().trim().max(2000).optional(),
+    // The one hard requirement when Basic Introduction is claimed.
+    introWarmAttested: z.boolean().optional(),
+    // Origination and Closing involvement statements (encouraged, not blocking).
+    originationInvolvement: z.string().trim().max(2000).optional(),
+    closingPlan: z.string().trim().max(2000).optional(),
+    deliveryScope: z.string().trim().max(2000).optional(),
+    justification: z
+      .string()
+      .trim()
+      .min(40, "Give your case for this account: relationship, warm contact, sector experience, or a concrete route in."),
+    widerScopeRequested: z.string().trim().max(500).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.functionsIntended?.includes("BASIC_INTRO") && !data.introWarmAttested) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["introWarmAttested"],
+        message: "A Basic Introduction claim needs your attestation of a genuine, pre-existing warm relationship.",
+      });
+    }
+  });
 
 export type DealRegistrationInput = z.infer<typeof dealRegistrationSchema>;
 
@@ -171,27 +198,44 @@ export const dealRevisionRequestSchema = z.object({
 
 /** Partner edits and resubmits a NEEDS_REVISION opportunity. Same shape as the
  *  original registration, minus the immutable product line. */
-export const resubmitDealSchema = z.object({
-  dealRegistrationId: z.string().min(1),
-  offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
-  legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
-  // Canonical company identity for the objective newness / origination rule. Optional
-  // at submission (an individual may have none), normalized server side before storage.
-  domain: z.string().trim().max(253).optional(),
-  country: z.string().trim().min(2, "Enter the country."),
-  businessUnit: z.string().trim().max(160).optional(),
-  contactName: z.string().trim().max(160).optional(),
-  contactTitle: z.string().trim().max(160).optional(),
-  estSeats: z.string().trim().regex(/^\d*$/, "Enter a whole number.").optional(),
-  estValueUsd: z.string().trim().regex(/^\d*(\.\d{1,2})?$/, "Enter a valid amount.").optional(),
-  functionsIntended: z.array(z.enum(["ORIGINATION", "CLOSING", "DELIVERY"])).optional(),
-  justification: z
-    .string()
-    .trim()
-    .min(40, "Give your case for this account: relationship, warm contact, sector experience, or a concrete route in."),
-  widerScopeRequested: z.string().trim().max(500).optional(),
-  note: z.string().trim().max(2000).optional(),
-});
+export const resubmitDealSchema = z
+  .object({
+    dealRegistrationId: z.string().min(1),
+    offering: z.enum(["B2C_CHARTER", "B2B_ENGAGEMENT", "OTHER"], { error: "Select the offering in view." }),
+    legalEntity: z.string().trim().min(2, "Name the exact legal entity or individual."),
+    // Canonical company identity for the objective newness / origination rule. Optional
+    // at submission (an individual may have none), normalized server side before storage.
+    domain: z.string().trim().max(253).optional(),
+    country: z.string().trim().min(2, "Enter the country."),
+    businessUnit: z.string().trim().max(160).optional(),
+    contactName: z.string().trim().max(160).optional(),
+    contactTitle: z.string().trim().max(160).optional(),
+    estSeats: z.string().trim().regex(/^\d*$/, "Enter a whole number.").optional(),
+    estValueUsd: z.string().trim().regex(/^\d*(\.\d{1,2})?$/, "Enter a valid amount.").optional(),
+    functionsIntended: z.array(z.enum(["BASIC_INTRO", "ORIGINATION", "CLOSING", "DELIVERY"])).optional(),
+    introContactName: z.string().trim().max(160).optional(),
+    introRelationship: z.string().trim().max(2000).optional(),
+    introHow: z.string().trim().max(2000).optional(),
+    introWarmAttested: z.boolean().optional(),
+    originationInvolvement: z.string().trim().max(2000).optional(),
+    closingPlan: z.string().trim().max(2000).optional(),
+    deliveryScope: z.string().trim().max(2000).optional(),
+    justification: z
+      .string()
+      .trim()
+      .min(40, "Give your case for this account: relationship, warm contact, sector experience, or a concrete route in."),
+    widerScopeRequested: z.string().trim().max(500).optional(),
+    note: z.string().trim().max(2000).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.functionsIntended?.includes("BASIC_INTRO") && !data.introWarmAttested) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["introWarmAttested"],
+        message: "A Basic Introduction claim needs your attestation of a genuine, pre-existing warm relationship.",
+      });
+    }
+  });
 
 // ---------------------------------------------------------------------------
 // Admin: application review & deal decisions

@@ -36,11 +36,15 @@ export const PROGRAM_CONFIG_DEFAULTS: EffectiveConfig = {
   deliveryMode: "PERCENTAGE",
   deliveryPercentMinBp: 500,
   deliveryPercentMaxBp: 800,
-  // Commission redesign: single delivery rate, and the high value thresholds that
-  // (with the domain newness state) decide the Strong vs Qualified origination rate.
+  // Commission redesign: single delivery rate. The dollar thresholds below are
+  // RETAINED but retired; the involvement redesign decides Strong by SEAT COUNT
+  // (paid-collected seats): B2C strong is seats only, B2B strong needs a
+  // New/Dormant domain AND the seat threshold.
   deliveryPercentBp: 800,
   strongValueThresholdB2cCents: 500000,
   strongValueThresholdB2bCents: 1500000,
+  strongSeatThresholdB2c: 15,
+  strongSeatThresholdB2b: 10,
   // Caps (basis points)
   capB2cBp: 2500,
   capB2bBp: 3000,

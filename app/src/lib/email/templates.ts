@@ -702,6 +702,157 @@ export function partnerDealConfirmedEmail(params: {
   };
 }
 
+/** Acknowledgement on submit: received, pending review, decision within N business days. */
+export function partnerDealReceivedEmail(params: {
+  fullName: string;
+  legalEntity: string;
+  decisionBusinessDays: number;
+}): EmailContent {
+  const { fullName, legalEntity, decisionBusinessDays } = params;
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph(
+      `We received your registration for ${esc(legalEntity)}. It is now pending review, and we confirm or decline within ${decisionBusinessDays} business days.`,
+    ) +
+    paragraph(
+      "The evidence you gave for each function you claimed is what the review reads first, so a well described claim moves faster. You can follow the status any time on your Partner Panel.",
+    );
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    `We received your registration for ${legalEntity}. It is now pending review, and we confirm or decline within ${decisionBusinessDays} business days.`,
+    "",
+    "The evidence you gave for each function you claimed is what the review reads first. You can follow the status any time on your Partner Panel.",
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+  return {
+    subject: `We received your registration: ${legalEntity}`,
+    html: layout({
+      preheader: `Received. Decision within ${decisionBusinessDays} business days.`,
+      eyebrow: "Registration received",
+      heading: "Your registration is in review",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+/** Decline notice, with the reason and encouraging next steps. */
+export function partnerDealDeclinedEmail(params: {
+  fullName: string;
+  legalEntity: string;
+  reason: string;
+}): EmailContent {
+  const { fullName, legalEntity, reason } = params;
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph(`We reviewed your registration for ${esc(legalEntity)} and could not confirm it this time.`) +
+    infoBox([{ label: "Reason", value: reason }]) +
+    paragraph(
+      "This does not affect your other registrations or your standing. If circumstances change, or you have a stronger route in, you are welcome to register it again with the new evidence.",
+    );
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    `We reviewed your registration for ${legalEntity} and could not confirm it this time.`,
+    "",
+    `Reason: ${reason}`,
+    "",
+    "This does not affect your other registrations or your standing. If circumstances change, you are welcome to register it again with the new evidence.",
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+  return {
+    subject: `Registration decision: ${legalEntity}`,
+    html: layout({
+      preheader: "Your registration was reviewed.",
+      eyebrow: "Registration decision",
+      heading: "We could not confirm this one",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+/** A deal was recorded as closed on an account the partner works. */
+export function partnerDealClosedEmail(params: {
+  fullName: string;
+  entity: string;
+  panelUrl: string;
+}): EmailContent {
+  const { fullName, entity, panelUrl } = params;
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph(`A closed deal has been recorded for ${esc(entity)}.`) +
+    paragraph(
+      "Commission lines are added for the functions you performed, and each becomes payable once the offering is delivered and the customer payment has cleared. You can follow every line on your Partner Panel.",
+    ) +
+    button(panelUrl, "Open the Partner Panel");
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    `A closed deal has been recorded for ${entity}.`,
+    "",
+    "Commission lines are added for the functions you performed, and each becomes payable once the offering is delivered and the customer payment has cleared.",
+    "",
+    `Open the Partner Panel: ${panelUrl}`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+  return {
+    subject: `Deal recorded: ${entity}`,
+    html: layout({
+      preheader: "A closed deal was recorded on your account.",
+      eyebrow: "Deal recorded",
+      heading: "A deal you worked has closed",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
+/** A commission line was marked paid. */
+export function partnerCommissionPaidEmail(params: {
+  fullName: string;
+  functionLabel: string;
+  amountLabel: string;
+  panelUrl: string;
+}): EmailContent {
+  const { fullName, functionLabel, amountLabel, panelUrl } = params;
+  const bodyHtml =
+    paragraph(`Hi ${esc(fullName)},`) +
+    paragraph("A commission payment has been made to you.") +
+    infoBox([
+      { label: "Function", value: functionLabel },
+      { label: "Amount", value: amountLabel },
+    ]) +
+    button(panelUrl, "See your commission statement") +
+    paragraph("If anything on your statement looks wrong, raise a query within thirty days and we will look at it together.");
+  const text = [
+    `Hi ${fullName},`,
+    "",
+    "A commission payment has been made to you.",
+    "",
+    `Function: ${functionLabel}`,
+    `Amount: ${amountLabel}`,
+    "",
+    `See your commission statement: ${panelUrl}`,
+    "",
+    "TenXPros · hello@tenxpros.com · Support: support@tenxpros.com",
+  ].join("\n");
+  return {
+    subject: `You have been paid: ${functionLabel}`,
+    html: layout({
+      preheader: "A commission payment has been made.",
+      eyebrow: "Commission paid",
+      heading: "You have been paid",
+      bodyHtml,
+    }),
+    text,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Newsletter campaign (per recipient, with a one-click unsubscribe link)
 // ---------------------------------------------------------------------------

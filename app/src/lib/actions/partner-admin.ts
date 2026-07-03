@@ -9,8 +9,12 @@ import { absoluteUrl } from "@/lib/utils";
 import { safeSendEmail } from "@/lib/services/email";
 import {
   partnerApplicationDecisionEmail,
+  partnerCommissionPaidEmail,
+  partnerDealClosedEmail,
   partnerDealConfirmedEmail,
+  partnerDealDeclinedEmail,
 } from "@/lib/email/templates";
+import { notifyOwner } from "@/lib/services/owner-notify";
 import {
   confirmDealSchema,
   dealMessageSchema,
@@ -23,6 +27,7 @@ import {
 } from "@/lib/validations/partner";
 import {
   ACTIVATION_GATE_ITEMS,
+  PARTNER_FUNCTION_LABELS,
   SCORECARD_CHECKPOINTS,
   TIER_RECOGNITION,
 } from "@/lib/partner/constants";
@@ -41,6 +46,7 @@ import {
   focusBonusBp,
   focusBonusRecomputeAction,
   normalizeDomain,
+  normalizeEntityName,
   originationOpener,
   originationOverrideBp,
   proportionalReversalCents,
@@ -57,7 +63,7 @@ import {
   withinOriginationWindow,
 } from "@/lib/partner/rules";
 import { countNewCompanyDomainsRolling } from "@/lib/partner/growth";
-import { normalizeCurrencyCode, toMinorUnits } from "@/lib/partner/currency";
+import { formatMoney, normalizeCurrencyCode, toMinorUnits } from "@/lib/partner/currency";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
 
@@ -299,27 +305,46 @@ export async function confirmDealRegistration(formData: FormData) {
     throw new Error("Only a submitted or under-revision registration can be confirmed.");
   }
 
-  // House Account guard.
-  const house = await prisma.houseAccount.findFirst({
-    where: { entityName: { equals: reg.legalEntity, mode: "insensitive" } },
-    select: { id: true },
-  });
-  if (house || isHouseAccount) {
+  // The already-ours hard blocks work on NORMALIZED identity (name suffixes folded,
+  // domain canonicalized), so "Acme, Inc." with a fresh domain cannot slip past a
+  // house account or another partner's "Acme Incorporated".
+  const regNameNorm = normalizeEntityName(reg.legalEntity);
+  const regDomainNorm = normalizeDomain(reg.domain);
+
+  // House Account guard: exact name, normalized name, or domain.
+  const houseRows = await prisma.houseAccount.findMany({ select: { entityName: true, domain: true } });
+  const houseHit = houseRows.some(
+    (h) =>
+      normalizeEntityName(h.entityName) === regNameNorm ||
+      (regDomainNorm != null && normalizeDomain(h.domain) === regDomainNorm),
+  );
+  if (houseHit || isHouseAccount) {
     throw new Error("This entity is a House Account and cannot be registered. Decline the registration instead.");
   }
 
-  // Duplicate / priority guard: a confirmed account for the same entity+country
-  // already held by another partner blocks this one (priority by first confirmation).
-  const dupe = await prisma.registeredAccount.findFirst({
-    where: {
-      legalEntity: { equals: reg.legalEntity, mode: "insensitive" },
-      country: { equals: reg.country, mode: "insensitive" },
-      lapsedAt: null,
-      partnerId: { not: reg.partnerId },
-    },
-    select: { id: true },
+  // Duplicate / priority guard: another partner's live account with the same
+  // normalized name in the same country, or the same canonical domain anywhere,
+  // blocks this one (priority by first confirmation).
+  const liveAccounts = await prisma.registeredAccount.findMany({
+    where: { lapsedAt: null, partnerId: { not: reg.partnerId } },
+    select: { legalEntity: true, country: true, domain: true },
   });
-  if (dupe) throw new Error("Another partner already holds a confirmed registration for this entity and country.");
+  const dupe = liveAccounts.some(
+    (a) =>
+      (normalizeEntityName(a.legalEntity) === regNameNorm && a.country.toLowerCase() === reg.country.toLowerCase()) ||
+      (regDomainNorm != null && normalizeDomain(a.domain) === regDomainNorm),
+  );
+  if (dupe) throw new Error("Another partner already holds a confirmed registration for this entity (matched by name or domain).");
+
+  // The classification decision on the Panel: objective by default; the admin may
+  // only make it STRICTER (treat as an existing company, Qualified rate, no
+  // new-company credit), never grant Strong by hand. A forced decision requires a
+  // logged reason and notifies the owner.
+  const classificationDecision = String(formData.get("classificationDecision") ?? "OBJECTIVE");
+  const classificationReason = String(formData.get("classificationReason") ?? "").trim();
+  if (classificationDecision === "EXISTING" && classificationReason.length < 5) {
+    throw new Error("Forcing the existing-company classification requires a logged reason (at least 5 characters).");
+  }
 
   const cfg = await resolvePartnerConfig(reg.partnerId);
   const now = new Date();
@@ -350,6 +375,8 @@ export async function confirmDealRegistration(formData: FormData) {
         scope: confirmedScope,
         protectionExpiresAt,
         lastMeaningfulUpdateAt: now,
+        classificationOverride: classificationDecision === "EXISTING" ? "EXISTING" : null,
+        classificationOverrideReason: classificationDecision === "EXISTING" ? classificationReason : null,
       },
     });
     await tx.auditLog.create({
@@ -359,10 +386,26 @@ export async function confirmDealRegistration(formData: FormData) {
         action: "PANEL_CONFIRM_DEAL_REGISTRATION",
         entity: "DealRegistration",
         entityId: reg.id,
-        changes: { before: { status: reg.status }, after: { status: "CONFIRMED", confirmedScope } },
+        changes: {
+          before: { status: reg.status },
+          after: {
+            status: "CONFIRMED",
+            confirmedScope,
+            classificationDecision,
+            ...(classificationDecision === "EXISTING" ? { classificationReason } : {}),
+          },
+        },
       },
     });
   });
+  if (classificationDecision === "EXISTING") {
+    await notifyOwner({
+      subject: `Classification forced to existing: ${reg.legalEntity}`,
+      template: "owner_classification_override",
+      body: `${admin.email ?? "An admin"} confirmed ${reg.legalEntity} with the existing-company classification forced (reason: ${classificationReason}). Originations on this account pay the Qualified rate.`,
+      href: "/admin/partners/deal-registrations",
+    });
+  }
 
   const mail = partnerDealConfirmedEmail({
     fullName: reg.partner.displayName,
@@ -384,7 +427,10 @@ export async function declineDealRegistration(formData: FormData) {
     declineReason: formData.get("declineReason"),
   });
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Invalid decline.");
-  const reg = await prisma.dealRegistration.findUniqueOrThrow({ where: { id: parsed.data.dealRegistrationId } });
+  const reg = await prisma.dealRegistration.findUniqueOrThrow({
+    where: { id: parsed.data.dealRegistrationId },
+    include: { partner: { select: { displayName: true, contactEmail: true } } },
+  });
   if (reg.status !== "SUBMITTED" && reg.status !== "NEEDS_REVISION") {
     throw new Error("Only a submitted or under-revision registration can be declined.");
   }
@@ -393,6 +439,15 @@ export async function declineDealRegistration(formData: FormData) {
     data: { status: "DECLINED", declineReason: parsed.data.declineReason, decidedAt: new Date(), confirmedByUserId: admin.id },
   });
   await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "DEAL_REGISTRATION_DECLINED", entity: "DealRegistration", entityId: reg.id, after: { declineReason: parsed.data.declineReason } });
+  // Tell the partner, with the reason: a decline is never silent.
+  if (reg.partner.contactEmail) {
+    const mail = partnerDealDeclinedEmail({
+      fullName: reg.partner.displayName,
+      legalEntity: reg.legalEntity,
+      reason: parsed.data.declineReason,
+    });
+    await safeSendEmail({ to: reg.partner.contactEmail, subject: mail.subject, template: "partner_deal_declined", text: mail.text, html: mail.html });
+  }
   safeRevalidatePath("/admin/partners/deal-registrations");
   safeRevalidatePath("/partner/deals");
 }
@@ -749,6 +804,21 @@ export async function recordClosedDeal(formData: FormData) {
       industryOrRegion,
     },
   });
+  // Keep both sides informed: the partner sees the close, the owner gets the signal.
+  const dealPartner = await prisma.partner.findUnique({ where: { id: partnerId }, select: { displayName: true, contactEmail: true } });
+  const dealEntity = registeredAccountId
+    ? (await prisma.registeredAccount.findUnique({ where: { id: registeredAccountId }, select: { legalEntity: true } }))?.legalEntity ?? "your account"
+    : "your account";
+  if (dealPartner?.contactEmail) {
+    const mail = partnerDealClosedEmail({ fullName: dealPartner.displayName, entity: dealEntity, panelUrl: absoluteUrl("/partner/commissions") });
+    await safeSendEmail({ to: dealPartner.contactEmail, subject: mail.subject, template: "partner_deal_closed", text: mail.text, html: mail.html });
+  }
+  await notifyOwner({
+    subject: `Closed deal recorded: ${dealPartner?.displayName ?? partnerId}`,
+    template: "owner_deal_closed",
+    body: `A closed ${dealType} deal was recorded for ${dealEntity} (partner ${dealPartner?.displayName ?? partnerId}).`,
+    href: `/admin/partners/${partnerId}`,
+  });
   await recordAudit({
     actorId: admin.id,
     actorRole: admin.role,
@@ -822,8 +892,22 @@ export async function addCommissionLine(formData: FormData) {
   // Superadmin identity (email-based) gates the fixed-fee delivery exception, the
   // cross-partner attribution, and the weighted split.
   const superAdmin = isSuperAdmin(admin.email);
-  const warmRelationshipAttested =
+  let warmRelationshipAttested =
     formData.get("warmRelationshipAttested") === "on" || formData.get("warmRelationshipAttested") === "true";
+  // A Basic Introduction claim made at registration already carries the partner's
+  // own attestation; source it so the admin is never asked to re-attest what the
+  // partner attested first-hand.
+  if (fn === "BASIC_INTRO" && !warmRelationshipAttested && deal.registeredAccountId) {
+    const claim = await prisma.dealFunctionClaim.findFirst({
+      where: {
+        function: "BASIC_INTRO",
+        warmRelationshipAttested: true,
+        dealRegistration: { registeredAccount: { id: deal.registeredAccountId } },
+      },
+      select: { id: true },
+    });
+    if (claim) warmRelationshipAttested = true;
+  }
   const fixedFeeRequested =
     formData.get("fixedFeeException") === "on" || formData.get("fixedFeeException") === "true";
   const fixedFeeReason = String(formData.get("fixedFeeReason") ?? "").trim();
@@ -876,10 +960,26 @@ export async function addCommissionLine(formData: FormData) {
   }
 
   if (fn === "QUALIFIED_ORIGINATION" || fn === "STRONG_ORIGINATION") {
-    // Origination strength AND rate are SERVER-DERIVED from the company's newness
-    // (by canonical domain) and the sale amount, never operator-chosen. Newness is a
-    // program-wide fact, so the history is queried across ALL partners by domain.
-    // Supersedes the old B2C 40-seat unlock and the Panel bypass (both retired here).
+    // One origination per deal: a second unweighted line would double-pay the same
+    // function. If the paid seat count changed after the line was added (seats
+    // collected later), REVERSE the old line and re-add it; the engine reclassifies
+    // from the current paid-collected seats. Weighted-split siblings (all carrying
+    // weightBp) remain allowed: the engine counts the group once against the cap.
+    const existingOrigination = await prisma.commissionEntry.findMany({
+      where: { closedDealId: deal.id, function: { in: ["QUALIFIED_ORIGINATION", "STRONG_ORIGINATION"] }, status: { notIn: ["REVERSED"] } },
+      select: { weightBp: true },
+    });
+    if (existingOrigination.length > 0 && (weightBp == null || existingOrigination.some((e) => e.weightBp == null))) {
+      return {
+        ok: false,
+        message:
+          "This deal already carries an origination line. If the paid seat count changed, reverse the old line and add it again so the engine reclassifies from the current paid-collected seats. For a genuinely shared origination, use weighted split lines instead.",
+      };
+    }
+    // Origination strength AND rate are SERVER-DERIVED, never operator-chosen.
+    // Strong is decided by SEAT COUNT (paid-collected only): B2C by seats alone,
+    // B2B by a New/Dormant domain AND the seat threshold. Newness is a program-wide
+    // fact, queried across ALL partners by domain.
     const domainNorm = normalizeDomain(deal.domain);
     const hasDomain = domainNorm != null;
     let newness: NewnessState = "NEW";
@@ -890,14 +990,50 @@ export async function addCommissionLine(formData: FormData) {
       });
       newness = companyNewnessState(priorDomainDeals, now, cfg);
     }
-    const cls = classifyOrigination({ newness, hasDomain, dealKind, saleAmountCents: deal.netReceiptsCents, cfg });
+    // The admin classification decision on the Panel: a stored force-existing
+    // override (with its logged reason) makes the company count as already ours.
+    // The admin can only make the classification stricter, never grant Strong.
+    // Consulted through the linked account AND by canonical domain, so leaving the
+    // account selector blank when recording the deal cannot bypass the decision.
+    let forcedExisting = false;
+    const overrideAcct = deal.registeredAccountId
+      ? await prisma.registeredAccount.findFirst({
+          where: { id: deal.registeredAccountId, classificationOverride: "EXISTING" },
+          select: { classificationOverride: true, classificationOverrideReason: true },
+        })
+      : null;
+    const overrideByDomain =
+      !overrideAcct && domainNorm
+        ? await prisma.registeredAccount.findFirst({
+            where: { classificationOverride: "EXISTING", domain: { equals: domainNorm, mode: "insensitive" } },
+            select: { classificationOverride: true, classificationOverrideReason: true },
+          })
+        : null;
+    const override = overrideAcct ?? overrideByDomain;
+    if (override) {
+      forcedExisting = true;
+      newness = "EXISTING";
+      auditExtra.classificationOverride = "EXISTING";
+      auditExtra.classificationOverrideReason = override.classificationOverrideReason ?? "";
+    }
+    // The seat count for the Strong test: PAID_COLLECTED seats only (pending does
+    // not count; refunded and cancelled never count). No paid seats yet means the
+    // count is unavailable and the classification stays Qualified, never Strong.
+    const paidSeatAgg = await prisma.seatRecord.aggregate({
+      where: { closedDealId: deal.id, status: "PAID_COLLECTED" },
+      _sum: { count: true },
+    });
+    const seatCount = paidSeatAgg._sum.count ?? null;
+    const cls = classifyOrigination({ newness, hasDomain, dealKind, seatCount, cfg });
     recordedFn = cls.function;
     rateBp = cls.rateBp;
     if (rateBp <= 0) {
       return { ok: false, message: "The engine computed a 0% origination rate. Check the deal kind and the configured rates." };
     }
     amountCents = bpToCents(deal.netReceiptsCents, rateBp);
-    auditExtra.newness = newness;
+    auditExtra.newness = forcedExisting ? "EXISTING (forced)" : newness;
+    auditExtra.seatCount = seatCount;
+    auditExtra.seatThreshold = dealKind === "B2B" ? cfg.strongSeatThresholdB2b : cfg.strongSeatThresholdB2c;
     auditExtra.isNewCompany = cls.isNewCompany;
     auditExtra.paidStrongRate = cls.paidStrongRate;
     auditExtra.classification = cls.reason;
@@ -923,9 +1059,13 @@ export async function addCommissionLine(formData: FormData) {
       amountCents = bpToCents(deal.netReceiptsCents, rateBp);
     }
   } else if (fn === "OVERRIDE") {
-    // The renewal OVERRIDE is credited to the account OPENER, and Active Status is
-    // checked against the OPENER, not the renewal deal's owner. If opener == owner the
-    // behavior is unchanged. If no opener can be identified, no override line is created.
+    // The renewal OVERRIDE is B2B ONLY (enforced here, not just stated in the terms),
+    // credited to the account OPENER, and Active Status is checked against the OPENER,
+    // not the renewal deal's owner. If opener == owner the behavior is unchanged. If
+    // no opener can be identified, no override line is created.
+    if (dealKind !== "B2B") {
+      return { ok: false, message: "The renewal override applies to B2B accounts only." };
+    }
     if (!deal.registeredAccountId) {
       return { ok: false, message: "This deal has no registered account, so there is no origination opener to trail an override to." };
     }
@@ -966,6 +1106,10 @@ export async function addCommissionLine(formData: FormData) {
     auditExtra.overrideOpenerActive = openerPartner?.activeStatus ?? false;
   } else {
     // BASIC_INTRO, CLOSING, GROWTH_BONUS, FOCUS_BONUS: config-derived rate.
+    // The Growth Bonus counts new B2B organisations and is B2B ONLY, enforced here.
+    if (fn === "GROWTH_BONUS" && dealKind !== "B2B") {
+      return { ok: false, message: "The growth bonus counts new B2B organisations and is paid on B2B deals only." };
+    }
     const newB2bOrgsRolling12 = fn === "GROWTH_BONUS" ? await countNewCompanyDomainsRolling(deal.partnerId, now, cfg) : 0;
     const derived = deriveFunctionRate(fn, {
       dealKind,
@@ -1154,6 +1298,23 @@ export async function setCommissionStatus(formData: FormData) {
     data: { status, paidOn: status === "PAID" ? new Date() : entry.paidOn },
   });
   await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_STATUS_CHANGE", entity: "CommissionEntry", entityId: id, before: { status: entry.status }, after: { status } });
+  // A payment is never silent: tell the partner what was paid and for what.
+  if (status === "PAID" && entry.status !== "PAID") {
+    const paidPartner = await prisma.partner.findUnique({
+      where: { id: entry.partnerId },
+      select: { displayName: true, contactEmail: true },
+    });
+    if (paidPartner?.contactEmail) {
+      const net = Math.max(0, entry.amountCents - entry.reversedCents);
+      const mail = partnerCommissionPaidEmail({
+        fullName: paidPartner.displayName,
+        functionLabel: PARTNER_FUNCTION_LABELS[entry.function] ?? entry.function,
+        amountLabel: formatMoney(net, entry.currency),
+        panelUrl: absoluteUrl("/partner/commissions"),
+      });
+      await safeSendEmail({ to: paidPartner.contactEmail, subject: mail.subject, template: "partner_commission_paid", text: mail.text, html: mail.html });
+    }
+  }
   safeRevalidatePath("/admin/partners/commissions");
   safeRevalidatePath(`/admin/partners/${entry.partnerId}`);
 }

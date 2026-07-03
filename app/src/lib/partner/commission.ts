@@ -34,11 +34,11 @@ export function basicIntroRateBp(cfg: EffectiveConfig): number {
 /**
  * RETIRED helper, kept for back-compat and its unit tests. The CURRENT rule does
  * NOT use this: origination strength is decided objectively by
- * {@link classifyOrigination} (domain newness + sale amount vs the high-value
- * threshold), and the live server action never calls this. The old B2C seat-unlock
- * and Panel-Confirmation path below is superseded and no longer reachable on the pay
- * path; it survives only so a caller with an already-known strength still resolves a
- * rate. Do not treat the seat unlock as a current rule.
+ * {@link classifyOrigination} (the PAID-COLLECTED seat count, and on B2B also the
+ * domain newness), and the live server action never calls this. The old B2C
+ * seat-unlock and Panel-Confirmation path below is superseded and no longer
+ * reachable on the pay path; it survives only so a caller with an already-known
+ * strength still resolves a rate. Do not treat the seat unlock as a current rule.
  */
 export function originationRateBp(
   args: {
@@ -176,13 +176,14 @@ export function capBpForDeal(args: { dealKind: DealKind; focusActive?: boolean }
 }
 
 // ---------------------------------------------------------------------------
-// Objective company-newness classification (commission redesign)
+// Objective origination classification (involvement redesign)
 //
-// The redesign removes human judgment from origination pricing. Three facts,
-// each observable and dispute-proof, decide the rate: the company's canonical
-// DOMAIN (identity), its NEWNESS state (New/Dormant/Existing), and the SALE
-// AMOUNT versus a high-value threshold. The functions below are pure and take
-// their "now" injected, so the derivation is fully unit-testable.
+// The redesign removes human judgment from origination pricing. Observable,
+// dispute-proof facts decide the rate: the PAID-COLLECTED SEAT COUNT (the Strong
+// test on both sides), and on B2B additionally the company's canonical DOMAIN
+// (identity) with its NEWNESS state (New/Dormant/Existing). The retired dollar
+// thresholds remain in config but play no role. The functions below are pure and
+// take their "now" injected, so the derivation is fully unit-testable.
 // ---------------------------------------------------------------------------
 
 export type NewnessState = "NEW" | "DORMANT" | "EXISTING";
@@ -203,6 +204,53 @@ export function normalizeDomain(raw: string | null | undefined): string | null {
   d = d.split("/")[0].split("?")[0].split("#")[0];
   d = d.replace(/^\.+/, "").replace(/\.+$/, "").trim();
   return d.length > 0 ? d : null;
+}
+
+/**
+ * Canonicalize a legal entity name for the already-ours defenses: lowercased,
+ * punctuation stripped, whitespace collapsed, and common legal suffixes folded
+ * (inc, ltd, gmbh and friends), so "Acme, Inc." and "ACME Incorporated" are one
+ * identity. Used by the house-account and duplicate hard blocks and the
+ * near-match warning. Returns an empty string for empty input.
+ */
+export function normalizeEntityName(raw: string | null | undefined): string {
+  if (!raw) return "";
+  let s = raw.toLowerCase();
+  s = s.replace(/[^\p{L}\p{N}]+/gu, " ").replace(/\s+/g, " ").trim();
+  const suffixes = new Set([
+    "inc", "incorporated", "llc", "llp", "lp", "ltd", "limited", "gmbh", "ag", "sa", "sarl",
+    "srl", "bv", "nv", "oy", "ab", "as", "aps", "pty", "plc", "pllc", "co", "corp",
+    "corporation", "company", "holdings", "group",
+  ]);
+  const words = s.split(" ");
+  while (words.length > 1 && suffixes.has(words[words.length - 1])) words.pop();
+  return words.join(" ");
+}
+
+/**
+ * Whether two ALREADY-NORMALIZED entity names are suspiciously similar: equal,
+ * one containing the other (at meaningful length), or within a small edit
+ * distance for short names. A soft signal for the admin near-match panel, never
+ * a hard block. Pure and unit-tested.
+ */
+export function similarName(a: string, b: string): boolean {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const [shorter, longer] = a.length <= b.length ? [a, b] : [b, a];
+  if (shorter.length >= 4 && longer.includes(shorter)) return true;
+  // Small edit distance (<= 2) for names of comparable length.
+  if (Math.abs(a.length - b.length) > 2 || longer.length > 40) return false;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => i);
+  for (let j = 1; j <= b.length; j++) {
+    let prev = dp[0];
+    dp[0] = j;
+    for (let i = 1; i <= a.length; i++) {
+      const tmp = dp[i];
+      dp[i] = Math.min(dp[i] + 1, dp[i - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return dp[a.length] <= 2;
 }
 
 /**
@@ -258,32 +306,64 @@ export interface OriginationClassification {
 }
 
 /**
- * Derive the origination classification AND rate objectively from the newness
- * state, the deal kind, and the sale amount versus the high-value threshold for
- * that kind. The operator never chooses strength; the server derives it.
- *   - No domain            Qualified only. The Strong rate and Growth-Bonus credit
+ * Derive the origination classification AND rate objectively. Strong is decided
+ * by SEAT COUNT (paid-collected seats only), never by dollars and never by
+ * anyone's judgment. The operator never chooses strength; the server derives it.
+ *   - B2C (person level)   Seats are the ONLY test: Strong when the paid-collected
+ *                          seat count is at or above the B2C seat threshold, else
+ *                          Qualified. A person is not a domain, so the domain and
+ *                          newness play NO role on B2C, and B2C is never a
+ *                          "new company" (the Growth Bonus is B2B only).
+ *   - B2B, no domain       Qualified only. The Strong rate and Growth-Bonus credit
  *                          both require a canonical company domain.
- *   - Existing company     Qualified on the new unit; the Strong rate is never
- *                          available on an existing company.
- *   - New/Dormant company  a new-company origination. Pays the Strong rate ONLY
- *                          when the sale is STRICTLY above the threshold; otherwise
- *                          it keeps its new-company classification (recorded as
+ *   - B2B, Existing        Qualified on the new unit; Strong is never available on
+ *                          an existing company, whatever the seat count.
+ *   - B2B, New/Dormant     a new-company origination. Pays the Strong rate ONLY
+ *                          when the seat count is at or above the B2B seat
+ *                          threshold; below it (or with no paid-collected seats)
+ *                          it keeps the new-company classification (recorded as
  *                          STRONG_ORIGINATION so it still counts toward the Growth
  *                          Bonus by domain and anchors the override opener at the
  *                          rate actually paid) but pays the Qualified rate.
- * "Strictly above": a sale exactly AT the threshold is not above it.
+ * The comparison is INCLUSIVE ("the threshold or more"): seatCount >= threshold.
+ * A `null` seat count means the count is not available and always classifies
+ * Qualified, never Strong, consistent with never granting Strong on missing data.
  */
 export function classifyOrigination(args: {
   newness: NewnessState;
   hasDomain: boolean;
   dealKind: DealKind;
-  saleAmountCents: number;
+  seatCount: number | null;
   cfg: EffectiveConfig;
 }): OriginationClassification {
-  const { newness, hasDomain, dealKind, saleAmountCents, cfg } = args;
+  const { newness, hasDomain, dealKind, seatCount, cfg } = args;
   const qualifiedRate = dealKind === "B2B" ? cfg.qualifiedOriginationB2bBp : cfg.qualifiedOriginationB2cBp;
   const strongRate = dealKind === "B2B" ? cfg.strongOriginationB2bBp : cfg.strongOriginationB2cBp;
-  const threshold = dealKind === "B2B" ? cfg.strongValueThresholdB2bCents : cfg.strongValueThresholdB2cCents;
+  const threshold = dealKind === "B2B" ? cfg.strongSeatThresholdB2b : cfg.strongSeatThresholdB2c;
+  const meetsSeats = seatCount != null && seatCount >= threshold;
+
+  if (dealKind === "B2C") {
+    // Person-level: seats decide everything; the domain plays no role.
+    if (meetsSeats) {
+      return {
+        function: "STRONG_ORIGINATION",
+        rateBp: strongRate,
+        isNewCompany: false,
+        paidStrongRate: true,
+        reason: `B2C origination with ${seatCount} paid-collected seats, at or above the ${threshold}-seat threshold: Strong Origination.`,
+      };
+    }
+    return {
+      function: "QUALIFIED_ORIGINATION",
+      rateBp: qualifiedRate,
+      isNewCompany: false,
+      paidStrongRate: false,
+      reason:
+        seatCount == null
+          ? "B2C origination with no paid-collected seats recorded yet: Qualified Origination (the Strong rate needs the seat threshold, never granted on missing data)."
+          : `B2C origination with ${seatCount} paid-collected seats, below the ${threshold}-seat threshold: Qualified Origination.`,
+    };
+  }
 
   if (!hasDomain) {
     return {
@@ -303,15 +383,14 @@ export function classifyOrigination(args: {
       reason: "Existing company (recent activity on this domain): Qualified Origination on the new unit. The Strong rate is not available on an existing company.",
     };
   }
-  // New or Dormant: a new-company origination.
-  const aboveThreshold = saleAmountCents > threshold;
-  if (aboveThreshold) {
+  // New or Dormant B2B: a new-company origination.
+  if (meetsSeats) {
     return {
       function: "STRONG_ORIGINATION",
       rateBp: strongRate,
       isNewCompany: true,
       paidStrongRate: true,
-      reason: `New or Dormant company and the sale is above the ${dealKind} high-value threshold: Strong Origination.`,
+      reason: `New or Dormant company with ${seatCount} paid-collected seats, at or above the ${threshold}-seat B2B threshold: Strong Origination.`,
     };
   }
   return {
@@ -319,7 +398,10 @@ export function classifyOrigination(args: {
     rateBp: qualifiedRate,
     isNewCompany: true,
     paidStrongRate: false,
-    reason: `New or Dormant company but the sale is at or below the ${dealKind} high-value threshold: recorded as a new-company origination (so it still counts toward the Growth Bonus and anchors the override opener) but paid at the Qualified rate.`,
+    reason:
+      seatCount == null
+        ? "New or Dormant company with no paid-collected seats recorded yet: kept as a new-company origination (Growth Bonus credit and the opener anchor survive) but paid at the Qualified rate, never Strong on missing data."
+        : `New or Dormant company with ${seatCount} paid-collected seats, below the ${threshold}-seat B2B threshold: kept as a new-company origination (Growth Bonus credit and the opener anchor survive) but paid at the Qualified rate.`,
   };
 }
 
@@ -410,10 +492,10 @@ export interface DeriveContext {
  * Derive the rate for a commission function purely from config + deal/partner
  * context, using the per-function helpers above: no operator types a percentage.
  * Note on the redesign: origination strength is decided objectively by
- * {@link classifyOrigination} (domain newness + sale amount), and delivery pays the
- * single {@link deliverySingleRateBp}. The origination branches here are retained for
- * back-compat with a known strength, but the server action classifies origination
- * before it ever reaches this function.
+ * {@link classifyOrigination} (the paid-collected seat count, and on B2B also the
+ * domain newness), and delivery pays the single {@link deliverySingleRateBp}. The
+ * origination branches here are retained for back-compat with a known strength,
+ * but the server action classifies origination before it ever reaches this function.
  */
 export function deriveFunctionRate(fn: PartnerFunction, ctx: DeriveContext): DerivedRate {
   switch (fn) {

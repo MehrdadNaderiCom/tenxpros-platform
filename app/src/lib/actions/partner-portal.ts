@@ -13,6 +13,9 @@ import {
 } from "@/lib/validations/partner";
 import { requirePartner } from "@/lib/partner/auth";
 import { normalizeDomain } from "@/lib/partner/commission";
+import { resolvePartnerConfig } from "@/lib/partner/config-server";
+import { safeSendEmail } from "@/lib/services/email";
+import { partnerDealReceivedEmail } from "@/lib/email/templates";
 import { startReadiness, notReadyMessage, type StartReadiness } from "@/lib/partner/readiness";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
@@ -81,6 +84,59 @@ export async function setActivationItem(formData: FormData) {
 }
 
 /** Submit a deal registration (Schedule B). Effective only on Panel Confirmation. */
+/** Shared parse of the per-function claim evidence fields from a form post. */
+function claimFieldsFrom(formData: FormData) {
+  return {
+    introContactName: formData.get("introContactName") || undefined,
+    introRelationship: formData.get("introRelationship") || undefined,
+    introHow: formData.get("introHow") || undefined,
+    introWarmAttested: formData.get("introWarmAttested") === "true" || formData.get("introWarmAttested") === "on",
+    originationInvolvement: formData.get("originationInvolvement") || undefined,
+    closingPlan: formData.get("closingPlan") || undefined,
+    deliveryScope: formData.get("deliveryScope") || undefined,
+  };
+}
+
+/**
+ * Store one DealFunctionClaim row per intended function, with its evidence.
+ * Idempotent: a resubmission replaces the registration's claims wholesale.
+ */
+async function syncFunctionClaims(
+  dealRegistrationId: string,
+  data: {
+    functionsIntended?: string[];
+    introContactName?: string;
+    introRelationship?: string;
+    introHow?: string;
+    introWarmAttested?: boolean;
+    originationInvolvement?: string;
+    closingPlan?: string;
+    deliveryScope?: string;
+  },
+) {
+  // Dedupe defensively: a crafted duplicate function must never violate the
+  // unique key mid-replace and wipe the stored claims (and the attestation).
+  const fns = [...new Set(data.functionsIntended ?? [])];
+  await prisma.dealFunctionClaim.deleteMany({ where: { dealRegistrationId } });
+  const rows = fns.map((fn) => ({
+    dealRegistrationId,
+    function: fn,
+    contactName: fn === "BASIC_INTRO" ? data.introContactName || null : null,
+    relationshipDescription: fn === "BASIC_INTRO" ? data.introRelationship || null : null,
+    introDescription: fn === "BASIC_INTRO" ? data.introHow || null : null,
+    involvementStatement:
+      fn === "ORIGINATION"
+        ? data.originationInvolvement || null
+        : fn === "CLOSING"
+          ? data.closingPlan || null
+          : fn === "DELIVERY"
+            ? data.deliveryScope || null
+            : null,
+    warmRelationshipAttested: fn === "BASIC_INTRO" ? Boolean(data.introWarmAttested) : false,
+  }));
+  if (rows.length > 0) await prisma.dealFunctionClaim.createMany({ data: rows, skipDuplicates: true });
+}
+
 export async function submitDealRegistration(formData: FormData) {
   const { partner } = await requirePartner();
   const readiness = await partnerStartReadiness(partner);
@@ -102,6 +158,7 @@ export async function submitDealRegistration(formData: FormData) {
     functionsIntended: formData.getAll("functionsIntended").map(String),
     justification: formData.get("justification"),
     widerScopeRequested: formData.get("widerScopeRequested") || undefined,
+    ...claimFieldsFrom(formData),
   });
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
@@ -126,6 +183,7 @@ export async function submitDealRegistration(formData: FormData) {
       widerScopeRequested: data.widerScopeRequested || null,
     },
   });
+  await syncFunctionClaims(registration.id, data);
 
   await prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: new Date() } });
   await recordAudit({
@@ -134,7 +192,7 @@ export async function submitDealRegistration(formData: FormData) {
     action: "DEAL_REGISTRATION_SUBMITTED",
     entity: "DealRegistration",
     entityId: registration.id,
-    after: { legalEntity: data.legalEntity, country: data.country, offering: data.offering },
+    after: { legalEntity: data.legalEntity, country: data.country, offering: data.offering, functions: data.functionsIntended ?? [] },
   });
 
   await notifyOwner({
@@ -143,6 +201,16 @@ export async function submitDealRegistration(formData: FormData) {
     body: `${partner.displayName} registered a deal (${data.legalEntity}, ${data.country}). It is awaiting your review and confirmation.`,
     href: "/admin/partners/deal-registrations",
   });
+  // Acknowledge to the partner, with the decision window stated (config-sourced).
+  if (partner.contactEmail) {
+    const cfg = await resolvePartnerConfig(partner.id);
+    const mail = partnerDealReceivedEmail({
+      fullName: partner.displayName,
+      legalEntity: data.legalEntity,
+      decisionBusinessDays: cfg.dealConfirmationWindowBusinessDays,
+    });
+    await safeSendEmail({ to: partner.contactEmail, subject: mail.subject, template: "partner_deal_received", text: mail.text, html: mail.html });
+  }
 
   safeRevalidatePath("/partner/deals");
   safeRevalidatePath("/admin/partners/deal-registrations");
@@ -367,6 +435,7 @@ export async function resubmitDealRegistration(formData: FormData) {
     justification: formData.get("justification"),
     widerScopeRequested: formData.get("widerScopeRequested") || undefined,
     note: formData.get("note") || undefined,
+    ...claimFieldsFrom(formData),
   });
   if (!parsed.success) {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Please check the form." };
@@ -417,6 +486,7 @@ export async function resubmitDealRegistration(formData: FormData) {
     }),
     prisma.partner.update({ where: { id: partner.id }, data: { lastActivityAt: now } }),
   ]);
+  await syncFunctionClaims(reg.id, data);
 
   await recordAudit({
     actorId: partner.userId,
@@ -432,6 +502,16 @@ export async function resubmitDealRegistration(formData: FormData) {
     body: `${partner.displayName} revised and resubmitted the opportunity for ${data.legalEntity}. It is awaiting Panel Confirmation again.`,
     href: "/admin/partners/deal-registrations",
   });
+  // Acknowledge the resubmission with the same decision window.
+  if (partner.contactEmail) {
+    const cfgResubmit = await resolvePartnerConfig(partner.id);
+    const mail = partnerDealReceivedEmail({
+      fullName: partner.displayName,
+      legalEntity: data.legalEntity,
+      decisionBusinessDays: cfgResubmit.dealConfirmationWindowBusinessDays,
+    });
+    await safeSendEmail({ to: partner.contactEmail, subject: mail.subject, template: "partner_deal_received", text: mail.text, html: mail.html });
+  }
   safeRevalidatePath(`/partner/deals/${reg.id}`);
   safeRevalidatePath("/partner/deals");
   safeRevalidatePath("/admin/partners/deal-registrations");
