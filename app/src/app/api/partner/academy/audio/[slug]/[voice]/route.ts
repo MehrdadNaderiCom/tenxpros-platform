@@ -54,9 +54,11 @@ export async function GET(req: Request, { params }: { params: { slug: string; vo
     });
   }
   if (range) {
-    // Fetch only the requested slice (bytea substring is 1-indexed).
+    // Fetch only the requested slice (bytea substring is 1-indexed; the
+    // explicit int casts matter because the driver binds numbers as bigint,
+    // and substring(bytea, bigint, bigint) does not exist in Postgres).
     const sliced = await prisma.$queryRaw<Array<{ chunk: Buffer }>>`
-      SELECT substring("data" FROM ${range.start + 1} FOR ${range.end - range.start + 1}) AS chunk
+      SELECT substring("data" FROM ${range.start + 1}::int FOR ${range.end - range.start + 1}::int) AS chunk
       FROM "AcademyLessonAudio" WHERE id = ${row.id}`;
     const chunk = sliced[0]?.chunk;
     if (!chunk) return new Response("Preparing", { status: 404 });
