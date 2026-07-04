@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser, isSuperAdmin } from "@/lib/authz";
+import { moveToolkitPost, toggleToolkitPostPublished, deleteToolkitPost } from "@/lib/actions/toolkit";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +18,7 @@ type PostRow = {
   _count: { files: number; links: number };
 };
 
-function PostLine({ p }: { p: PostRow }) {
+function PostLine({ p, index, count }: { p: PostRow; index: number; count: number }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-neutral-200 p-4">
       <div>
@@ -27,11 +29,33 @@ function PostLine({ p }: { p: PostRow }) {
           {p._count.files} file(s) , {p._count.links} link(s) , /{p.slug}
         </p>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1">
         <Badge status={p.isPublished ? "APPROVED" : "DRAFT"}>{p.isPublished ? "Published" : "Draft"}</Badge>
+        <form action={moveToolkitPost}>
+          <input type="hidden" name="id" value={p.id} />
+          <input type="hidden" name="direction" value="up" />
+          <Button type="submit" variant="ghost" size="sm" disabled={index === 0}>Up</Button>
+        </form>
+        <form action={moveToolkitPost}>
+          <input type="hidden" name="id" value={p.id} />
+          <input type="hidden" name="direction" value="down" />
+          <Button type="submit" variant="ghost" size="sm" disabled={index === count - 1}>Down</Button>
+        </form>
+        <form action={toggleToolkitPostPublished}>
+          <input type="hidden" name="id" value={p.id} />
+          <Button type="submit" variant="ghost" size="sm">{p.isPublished ? "Unpublish" : "Publish"}</Button>
+        </form>
         <ButtonLink href={`/admin/partners/toolkit/${p.id}`} variant="secondary" size="sm">
           Edit
         </ButtonLink>
+        <ConfirmDialog
+          action={deleteToolkitPost}
+          hidden={{ id: p.id }}
+          triggerLabel="Delete"
+          title="Delete this toolkit post?"
+          description="The post and all its attachments will be permanently removed."
+          confirmLabel="Delete"
+        />
       </div>
     </div>
   );
@@ -87,7 +111,7 @@ export default async function AdminToolkitPage() {
             <Badge status={c.isPublished ? "APPROVED" : "DRAFT"}>{c.isPublished ? "Published" : "Hidden"}</Badge>
           </div>
           {c.posts.length > 0 ? (
-            c.posts.map((p) => <PostLine key={p.id} p={p} />)
+            c.posts.map((p, i) => <PostLine key={p.id} p={p} index={i} count={c.posts.length} />)
           ) : (
             <p className="text-sm text-slate-500">No posts in this category yet.</p>
           )}
@@ -98,8 +122,8 @@ export default async function AdminToolkitPage() {
         <Card className="space-y-3">
           <h2 className="text-lg font-semibold text-navy-900">Uncategorized</h2>
           <p className="text-xs text-slate-500">These posts have no managed category. Open each one and pick a category.</p>
-          {ungrouped.map((p) => (
-            <PostLine key={p.id} p={p} />
+          {ungrouped.map((p, i) => (
+            <PostLine key={p.id} p={p} index={i} count={ungrouped.length} />
           ))}
         </Card>
       ) : null}

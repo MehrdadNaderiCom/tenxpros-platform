@@ -240,6 +240,100 @@ export async function deleteToolkitLink(formData: FormData) {
   if (postId) redirect(`/admin/partners/toolkit/${postId}`);
 }
 
+/** Edit an existing external link/embed on a post (superadmin only). */
+export async function updateToolkitLink(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = String(formData.get("id") ?? "");
+  const postId = String(formData.get("postId") ?? "");
+  if (!id) throw new Error("Missing link id.");
+  const url = normalizeLinkUrl(String(formData.get("url") ?? ""));
+  if (!url) throw new Error("Enter a valid https link.");
+  const rawKind = String(formData.get("kind") ?? "LINK").toUpperCase();
+  const kind = isToolkitLinkKind(rawKind) ? rawKind : "LINK";
+  const title = String(formData.get("title") ?? "").trim().slice(0, 200) || "Resource";
+  await prisma.toolkitLink.update({ where: { id }, data: { title, url, kind } });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "TOOLKIT_LINK_UPDATED",
+    entity: "ToolkitLink",
+    entityId: id,
+    after: { title, kind },
+  });
+  revalidateToolkit();
+  if (postId) redirect(`/admin/partners/toolkit/${postId}`);
+}
+
+/** Reorder a link within its post by swapping with the adjacent one (superadmin). */
+export async function moveToolkitLink(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = String(formData.get("id") ?? "");
+  const postId = String(formData.get("postId") ?? "");
+  const direction = String(formData.get("direction") ?? "");
+  if (!id || !postId) throw new Error("Missing link or post id.");
+  if (direction !== "up" && direction !== "down") throw new Error("Invalid move direction.");
+  const all = await prisma.toolkitLink.findMany({ where: { postId }, orderBy: [{ order: "asc" }, { createdAt: "asc" }], select: { id: true } });
+  const index = all.findIndex((l) => l.id === id);
+  if (index < 0) throw new Error("Link not found.");
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (swapIndex < 0 || swapIndex >= all.length) redirect(`/admin/partners/toolkit/${postId}`);
+  const ids = all.map((l) => l.id);
+  [ids[index], ids[swapIndex]] = [ids[swapIndex], ids[index]];
+  await prisma.$transaction(ids.map((lid, i) => prisma.toolkitLink.update({ where: { id: lid }, data: { order: i } })));
+  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "TOOLKIT_LINK_REORDERED", entity: "ToolkitLink", entityId: id, after: { direction } });
+  revalidateToolkit();
+  redirect(`/admin/partners/toolkit/${postId}`);
+}
+
+/** Publish or unpublish a post from the list view (superadmin only). */
+export async function toggleToolkitPostPublished(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) throw new Error("Missing post id.");
+  const existing = await prisma.toolkitPost.findUnique({ where: { id }, select: { isPublished: true } });
+  if (!existing) throw new Error("Post not found.");
+  await prisma.toolkitPost.update({ where: { id }, data: { isPublished: !existing.isPublished } });
+  await recordAudit({
+    actorId: admin.id,
+    actorRole: admin.role,
+    action: "TOOLKIT_POST_PUBLISH_TOGGLED",
+    entity: "ToolkitPost",
+    entityId: id,
+    after: { isPublished: !existing.isPublished },
+  });
+  revalidateToolkit();
+  redirect("/admin/partners/toolkit");
+}
+
+/**
+ * Reorder a post within its category by swapping with the adjacent post
+ * (superadmin only). Posts with no category reorder among themselves.
+ */
+export async function moveToolkitPost(formData: FormData) {
+  const admin = await requireSuperAdmin();
+  const id = String(formData.get("id") ?? "");
+  const direction = String(formData.get("direction") ?? "");
+  if (!id) throw new Error("Missing post id.");
+  if (direction !== "up" && direction !== "down") throw new Error("Invalid move direction.");
+  const target = await prisma.toolkitPost.findUnique({ where: { id }, select: { categoryId: true } });
+  if (!target) throw new Error("Post not found.");
+  // Match the admin list ordering so up/down aligns with what the admin sees.
+  const all = await prisma.toolkitPost.findMany({
+    where: { categoryId: target.categoryId },
+    orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+    select: { id: true },
+  });
+  const index = all.findIndex((p) => p.id === id);
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (swapIndex < 0 || swapIndex >= all.length) redirect("/admin/partners/toolkit");
+  const ids = all.map((p) => p.id);
+  [ids[index], ids[swapIndex]] = [ids[swapIndex], ids[index]];
+  await prisma.$transaction(ids.map((pid, i) => prisma.toolkitPost.update({ where: { id: pid }, data: { order: i } })));
+  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "TOOLKIT_POST_REORDERED", entity: "ToolkitPost", entityId: id, after: { direction } });
+  revalidateToolkit();
+  redirect("/admin/partners/toolkit");
+}
+
 // ---------------------------------------------------------------------------
 // Managed categories (superadmin authoring)
 // ---------------------------------------------------------------------------

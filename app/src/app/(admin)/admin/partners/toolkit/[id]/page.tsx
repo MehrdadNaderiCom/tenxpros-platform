@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser, isSuperAdmin } from "@/lib/authz";
-import { saveToolkitPost, deleteToolkitPost, deleteToolkitFile, deleteToolkitLink } from "@/lib/actions/toolkit";
+import { saveToolkitPost, deleteToolkitPost, deleteToolkitFile, deleteToolkitLink, updateToolkitLink, moveToolkitLink } from "@/lib/actions/toolkit";
 import { LessonEditor } from "@/components/admin/academy/lesson-editor";
 import { TOOLKIT_LINK_KINDS, TOOLKIT_LINK_KIND_LABELS } from "@/lib/toolkit/embeds";
 import { ConfirmDialog } from "@/components/ui/dialog";
@@ -24,7 +24,7 @@ export default async function AdminToolkitEditorPage({ params }: { params: { id:
 
   const isNew = params.id === "new";
   const [post, categories] = await Promise.all([
-    isNew ? null : prisma.toolkitPost.findUnique({ where: { id: params.id }, include: { files: true, links: { orderBy: { order: "asc" } } } }),
+    isNew ? null : prisma.toolkitPost.findUnique({ where: { id: params.id }, include: { files: true, links: { orderBy: [{ order: "asc" }, { createdAt: "asc" }] } } }),
     prisma.toolkitCategory.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),
   ]);
   if (!isNew && !post) notFound();
@@ -127,22 +127,45 @@ export default async function AdminToolkitEditorPage({ params }: { params: { id:
       {post && post.links.length > 0 ? (
         <Card className="space-y-3">
           <h2 className="text-lg font-semibold text-navy-900">Links and embeds</h2>
-          <ul className="space-y-2">
-            {post.links.map((l) => (
-              <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-neutral-200 p-3">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-navy-700">
-                    {l.title} <span className="text-xs font-normal text-slate-400">({TOOLKIT_LINK_KIND_LABELS[l.kind as keyof typeof TOOLKIT_LINK_KIND_LABELS] ?? l.kind})</span>
-                  </p>
-                  <p className="truncate text-xs text-slate-500">{l.url}</p>
-                </div>
-                <form action={deleteToolkitLink}>
+          <p className="text-xs text-slate-500">Edit a link in place and Save, reorder with Up and Down, or Remove it.</p>
+          <ul className="space-y-3">
+            {post.links.map((l, i) => (
+              <li key={l.id} className="space-y-2 rounded-md border border-neutral-200 p-3">
+                <form action={updateToolkitLink} className="grid gap-2 md:grid-cols-[1fr,2fr,auto,auto]">
                   <input type="hidden" name="id" value={l.id} />
                   <input type="hidden" name="postId" value={post.id} />
-                  <Button type="submit" variant="ghost" size="sm">
-                    Remove
+                  <Input name="title" defaultValue={l.title} placeholder="Label" aria-label="Link label" />
+                  <Input name="url" type="url" defaultValue={l.url} aria-label="Link URL" />
+                  <Select name="kind" defaultValue={l.kind} aria-label="Link type">
+                    {TOOLKIT_LINK_KINDS.map((k) => (
+                      <option key={k} value={k}>
+                        {TOOLKIT_LINK_KIND_LABELS[k]}
+                      </option>
+                    ))}
+                  </Select>
+                  <Button type="submit" variant="secondary" size="sm">
+                    Save
                   </Button>
                 </form>
+                <div className="flex items-center gap-1">
+                  <form action={moveToolkitLink}>
+                    <input type="hidden" name="id" value={l.id} />
+                    <input type="hidden" name="postId" value={post.id} />
+                    <input type="hidden" name="direction" value="up" />
+                    <Button type="submit" variant="ghost" size="sm" disabled={i === 0}>Up</Button>
+                  </form>
+                  <form action={moveToolkitLink}>
+                    <input type="hidden" name="id" value={l.id} />
+                    <input type="hidden" name="postId" value={post.id} />
+                    <input type="hidden" name="direction" value="down" />
+                    <Button type="submit" variant="ghost" size="sm" disabled={i === post.links.length - 1}>Down</Button>
+                  </form>
+                  <form action={deleteToolkitLink}>
+                    <input type="hidden" name="id" value={l.id} />
+                    <input type="hidden" name="postId" value={post.id} />
+                    <Button type="submit" variant="ghost" size="sm">Remove</Button>
+                  </form>
+                </div>
               </li>
             ))}
           </ul>
