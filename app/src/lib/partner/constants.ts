@@ -227,6 +227,45 @@ export const PARTNER_FUNCTION_LABELS: Record<PartnerFunction, string> = {
   GROWTH_BONUS: "Growth Bonus",
 };
 
+/**
+ * The label to SHOW for a commission line, so it always agrees with the rate
+ * beside it, plus whether the "paid at Qualified" explanation applies.
+ *
+ * A new-company B2B origination below the seat threshold is STORED as
+ * STRONG_ORIGINATION (so it keeps counting toward the Growth Bonus and anchors
+ * the renewal override) but PAID at the Qualified rate. On a statement that
+ * would read "Strong Origination" beside the Qualified rate, which looks like a
+ * shortchange. This helper shows "Qualified Origination" for exactly that line
+ * and flags the note. Every other combination, including a null flag (a line
+ * written before the flag existed, or any non-origination line), returns the
+ * stored label unchanged with no note. Pure: the flag is the engine's own
+ * `paidStrongRate`, decided from the paid-collected seats; nothing is re-derived
+ * here and no number is compared, so it is stable across future rate changes.
+ */
+export function commissionLineDisplay(
+  fn: PartnerFunction,
+  paidStrongRate: boolean | null | undefined,
+): { label: string; qualifiedBySeats: boolean } {
+  if (fn === "STRONG_ORIGINATION" && paidStrongRate === false) {
+    return { label: PARTNER_FUNCTION_LABELS.QUALIFIED_ORIGINATION, qualifiedBySeats: true };
+  }
+  return { label: PARTNER_FUNCTION_LABELS[fn] ?? fn, qualifiedBySeats: false };
+}
+
+/**
+ * The plain, encouraging explanation shown on that one divergent line. The seat
+ * threshold is rendered from the caller's resolved config (the same resolver the
+ * engine pays through), so a per-partner override shows that partner their own
+ * number, and no threshold is ever hardcoded.
+ */
+export function qualifiedBySeatsNote(cfg: EffectiveConfig): string {
+  return (
+    `Registered as a new company origination, and that standing is kept: this deal still counts toward your growth bonus and anchors your renewal override. ` +
+    `It is paid at the Qualified rate because the deal has collected fewer than the ${cfg.strongSeatThresholdB2b}-seat threshold of paid seats. ` +
+    `If later collections reach the threshold, the company reverses and re-adds the line so it reclassifies at the Strong rate.`
+  );
+}
+
 export const SCORECARD_DAY_LABELS: Record<ScorecardDay, string> = {
   DAY_14: "Day 14",
   DAY_30: "Day 30",

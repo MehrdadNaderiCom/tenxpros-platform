@@ -27,7 +27,8 @@ import {
 } from "@/lib/validations/partner";
 import {
   ACTIVATION_GATE_ITEMS,
-  PARTNER_FUNCTION_LABELS,
+  commissionLineDisplay,
+  qualifiedBySeatsNote,
   SCORECARD_CHECKPOINTS,
   TIER_RECOGNITION,
 } from "@/lib/partner/constants";
@@ -929,6 +930,10 @@ export async function addCommissionLine(formData: FormData) {
   let rateBp: number;
   let amountCents: number;
   let isFlat = false;
+  // Display only: whether an origination line was paid at the Strong rate. Stored
+  // beside the line so the statement label always matches the rate paid; null for
+  // every non-origination function. Never read by the engine or the growth counter.
+  let paidStrongRate: boolean | null = null;
   // Dispute-proof context recorded alongside the line in the audit trail.
   const auditExtra: Record<string, unknown> = {};
 
@@ -1026,6 +1031,10 @@ export async function addCommissionLine(formData: FormData) {
     const seatCount = paidSeatAgg._sum.count ?? null;
     const cls = classifyOrigination({ newness, hasDomain, dealKind, seatCount, cfg });
     recordedFn = cls.function;
+    // The classifier already computed this; store it for the display so the label
+    // shown to the partner matches the rate actually paid. A weighted-split sibling
+    // reuses the same classification, so each split line carries the same flag.
+    paidStrongRate = cls.paidStrongRate;
     rateBp = cls.rateBp;
     if (rateBp <= 0) {
       return { ok: false, message: "The engine computed a 0% origination rate. Check the deal kind and the configured rates." };
@@ -1152,6 +1161,8 @@ export async function addCommissionLine(formData: FormData) {
       evidenceNote,
       // Stored only for Basic Introduction (the precheck guarantees it is attested).
       warmRelationshipAttested: recordedFn === "BASIC_INTRO",
+      // Display only (null for non-origination lines); never read by any pay logic.
+      paidStrongRate,
       currency: deal.currency,
     },
   });
@@ -1307,11 +1318,18 @@ export async function setCommissionStatus(formData: FormData) {
     });
     if (paidPartner?.contactEmail) {
       const net = Math.max(0, entry.amountCents - entry.reversedCents);
+      // Show the label that matches the rate paid; add the plain note only on the
+      // one divergent line, with the threshold from this partner's resolved config.
+      const display = commissionLineDisplay(entry.function, entry.paidStrongRate);
+      const note = display.qualifiedBySeats
+        ? qualifiedBySeatsNote(await resolvePartnerConfig(entry.partnerId))
+        : undefined;
       const mail = partnerCommissionPaidEmail({
         fullName: paidPartner.displayName,
-        functionLabel: PARTNER_FUNCTION_LABELS[entry.function] ?? entry.function,
+        functionLabel: display.label,
         amountLabel: formatMoney(net, entry.currency),
         panelUrl: absoluteUrl("/partner/commissions"),
+        note,
       });
       await safeSendEmail({ to: paidPartner.contactEmail, subject: mail.subject, template: "partner_commission_paid", text: mail.text, html: mail.html });
     }

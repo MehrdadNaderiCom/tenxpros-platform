@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { resolvePartnerConfig } from "@/lib/partner/config-server";
 import { flagCommissionQuery } from "@/lib/actions/partner-portal";
-import { COMMISSION_STATUS_LABELS, PARTNER_FUNCTION_LABELS, formatBp, formatCents } from "@/lib/partner/constants";
+import { COMMISSION_STATUS_LABELS, commissionLineDisplay, qualifiedBySeatsNote, formatBp, formatCents } from "@/lib/partner/constants";
 import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,14 @@ export default async function PartnerCommissionsPage() {
             {entries.map((e) => (
               <TR key={e.id}>
                 <Td className="text-slate-700">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</Td>
-                <Td>{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</Td>
+                <Td>
+                  {(() => { const d = commissionLineDisplay(e.function, e.paidStrongRate); return (
+                    <>
+                      {d.label}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}
+                      {d.qualifiedBySeats ? <p className="mt-1 max-w-md text-xs leading-5 text-slate-500">{qualifiedBySeatsNote(cfg)}</p> : null}
+                    </>
+                  ); })()}
+                </Td>
                 <Td>{e.isFlat ? "Flat" : formatBp(e.rateBp)}</Td>
                 <Td className="font-medium text-navy-900">
                   {formatCents(e.amountCents - e.reversedCents, e.currency)}

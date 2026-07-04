@@ -2,7 +2,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { setCommissionStatus } from "@/lib/actions/partner-admin";
 import { resolveGlobalConfig } from "@/lib/partner/config-server";
-import { COMMISSION_STATUS_LABELS, PARTNER_FUNCTION_LABELS, formatBp, formatCents } from "@/lib/partner/constants";
+import { COMMISSION_STATUS_LABELS, commissionLineDisplay, formatBp, formatCents } from "@/lib/partner/constants";
 import { entryPayoutMinor, formatMoney } from "@/lib/partner/currency";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
@@ -67,7 +67,7 @@ export default async function AdminCommissionsPage() {
                 <Link href={`/admin/partners/${e.partner.id}`} className="text-navy-700 hover:underline">{e.partner.displayName}</Link>
               </Td>
               <Td className="text-slate-600">{e.closedDeal.registeredAccount?.legalEntity ?? "-"}</Td>
-              <Td>{PARTNER_FUNCTION_LABELS[e.function]}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</Td>
+              <Td>{commissionLineDisplay(e.function, e.paidStrongRate).label}{e.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{commissionLineDisplay(e.function, e.paidStrongRate).qualifiedBySeats ? <span className="ml-1 text-xs text-slate-400">(new company, paid Qualified by seats)</span> : null}{e.queryFlag ? <span className="ml-1 text-xs text-amber-700">(queried)</span> : null}</Td>
               <Td>{e.isFlat ? "Flat" : formatBp(e.rateBp)}</Td>
               <Td className="font-medium text-navy-900">
                 {formatCents(e.amountCents - e.reversedCents, e.currency)}

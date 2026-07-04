@@ -2442,6 +2442,15 @@ model CommissionEntry {
   // pre-existed. Required (with the evidence note) before a BASIC_INTRO line is created.
   warmRelationshipAttested Boolean @default(false)
 
+  // Origination only: whether the deal was paid at the Strong rate, as classified
+  // by the engine from the paid-collected seats. A new-company B2B origination below
+  // the seat threshold is STORED as STRONG_ORIGINATION (so it still counts toward the
+  // Growth Bonus and anchors the override) but paid at the Qualified rate; this flag
+  // lets the statement SHOW the label that matches the rate actually paid. Display
+  // only: it is never read by the engine, the growth counter, or any pay logic. Null
+  // for non-origination lines and for any row written before this column existed.
+  paidStrongRate Boolean?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

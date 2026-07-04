@@ -818,8 +818,11 @@ export function partnerCommissionPaidEmail(params: {
   functionLabel: string;
   amountLabel: string;
   panelUrl: string;
+  // Shown only on the one divergent line (a new-company origination paid at the
+  // Qualified rate), so the emailed label and rate never look like a shortchange.
+  note?: string;
 }): EmailContent {
-  const { fullName, functionLabel, amountLabel, panelUrl } = params;
+  const { fullName, functionLabel, amountLabel, panelUrl, note } = params;
   const bodyHtml =
     paragraph(`Hi ${esc(fullName)},`) +
     paragraph("A commission payment has been made to you.") +
@@ -827,6 +830,7 @@ export function partnerCommissionPaidEmail(params: {
       { label: "Function", value: functionLabel },
       { label: "Amount", value: amountLabel },
     ]) +
+    (note ? paragraph(esc(note)) : "") +
     button(panelUrl, "See your commission statement") +
     paragraph("If anything on your statement looks wrong, raise a query within thirty days and we will look at it together.");
   const text = [
@@ -836,6 +840,7 @@ export function partnerCommissionPaidEmail(params: {
     "",
     `Function: ${functionLabel}`,
     `Amount: ${amountLabel}`,
+    ...(note ? ["", note] : []),
     "",
     `See your commission statement: ${panelUrl}`,
     "",

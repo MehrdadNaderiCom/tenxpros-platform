@@ -10,6 +10,7 @@ import {
   COMMISSION_STATUS_LABELS,
   OFFERING_LABELS,
   PARTNER_FUNCTION_LABELS,
+  commissionLineDisplay,
   PARTNER_STATUS_LABELS,
   PARTNER_TIER_LABELS,
   SCORECARD_DAY_LABELS,
@@ -370,7 +371,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                 <tbody>
                   {deal.commissions.map((c) => (
                     <tr key={c.id} className="border-b border-neutral-100">
-                      <td className="py-1 pr-2">{PARTNER_FUNCTION_LABELS[c.function]}{c.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}</td>
+                      <td className="py-1 pr-2">{commissionLineDisplay(c.function, c.paidStrongRate).label}{c.isFlat ? <span className="ml-1 text-xs text-slate-400">(fixed)</span> : null}{commissionLineDisplay(c.function, c.paidStrongRate).qualifiedBySeats ? <span className="ml-1 text-xs text-slate-400">(new company, paid Qualified by seats)</span> : null}</td>
                       <td className="py-1 pr-2 text-slate-500">{c.isFlat ? "Flat" : formatBp(c.rateBp)}</td>
                       <td className="py-1 pr-2 font-medium text-navy-900">
                         {formatCents(c.amountCents - c.reversedCents, c.currency)}
