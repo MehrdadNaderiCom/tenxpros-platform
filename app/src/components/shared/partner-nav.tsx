@@ -43,6 +43,10 @@ export function PartnerNav({ name, status, unread = 0 }: { name?: string | null;
                 <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-navy-900 px-1.5 text-xs font-semibold text-white">
                   {unread}
                 </span>
+              ) : href === "/partner/toolkit" ? (
+                <span className="inline-flex h-5 items-center justify-center rounded-full bg-gold-100 px-2 text-[10px] font-semibold uppercase tracking-wide text-gold-800">
+                  New
+                </span>
               ) : null}
             </Link>
           ))}
