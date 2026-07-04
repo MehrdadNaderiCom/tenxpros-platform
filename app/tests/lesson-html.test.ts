@@ -67,6 +67,57 @@ describe("sanitizeLessonHtml", () => {
   });
 });
 
+describe("safeUrl scheme-hiding hardening", () => {
+  // safeUrl is not exported, so exercise it through the sanitizer. A rejected URL
+  // means the <a> is emitted with no href at all, so the output has no "href=".
+  const hrefOut = (href: string) => sanitizeLessonHtml(`<a href="${href}">x</a>`);
+  const TAB = String.fromCharCode(9);
+  const NL = String.fromCharCode(10);
+  const CR = String.fromCharCode(13);
+
+  it("rejects javascript: hidden by a numeric HTML entity (hex or decimal)", () => {
+    for (const bad of ["jav&#x09;ascript:alert(1)", "&#106;avascript:alert(1)", "j&#x61;vascript:alert(1)"]) {
+      const out = hrefOut(bad);
+      expect(out, bad).not.toMatch(/javascript/i);
+      expect(out, bad).not.toContain("href=");
+    }
+  });
+
+  it("rejects a scheme hidden by a named HTML entity (e.g. &colon;)", () => {
+    expect(hrefOut("javascript&colon;alert(1)")).not.toContain("href=");
+  });
+
+  it("rejects a scheme hidden by a raw control character (tab, newline, carriage return)", () => {
+    expect(hrefOut(`java${TAB}script:alert(1)`)).not.toContain("href=");
+    expect(hrefOut(`jav${NL}ascript:alert(1)`)).not.toContain("href=");
+    expect(hrefOut(`java${CR}script:alert(1)`)).not.toContain("href=");
+  });
+
+  it("rejects a leading-space javascript: and other disallowed schemes", () => {
+    for (const bad of ["  javascript:alert(1)", "javascript:alert(1)", "data:text/html;base64,PHN2Zz4=", "vbscript:msgbox(1)", "file:///etc/passwd"]) {
+      expect(hrefOut(bad), bad).not.toContain("href=");
+    }
+  });
+
+  it("keeps legitimate links unchanged (https, http, mailto, root-relative, anchor)", () => {
+    expect(hrefOut("https://tenxpros.com/x?a=1")).toContain('href="https://tenxpros.com/x?a=1"');
+    expect(hrefOut("http://example.com/page")).toContain('href="http://example.com/page"');
+    expect(hrefOut("mailto:mail@mehrdadnaderi.com")).toContain('href="mailto:mail@mehrdadnaderi.com"');
+    expect(hrefOut("#section-2")).toContain('href="#section-2"');
+    expect(hrefOut("./relative/page.html")).toContain('href="./relative/page.html"');
+  });
+
+  it("keeps a legitimate https query string that contains an encoded ampersand", () => {
+    const out = hrefOut("https://example.com/s?a=1&amp;b=2");
+    expect(out).toContain('href="https://example.com/s?a=1&amp;b=2"');
+  });
+
+  it("keeps a root-relative image src (the real academy-screens shape)", () => {
+    const out = sanitizeLessonHtml('<img src="/academy/screens/field-journey-explorer.png" alt="ok">');
+    expect(out).toContain('src="/academy/screens/field-journey-explorer.png"');
+  });
+});
+
 describe("htmlToPlainText", () => {
   it("renders block boundaries as paragraph breaks and strips tags", () => {
     const text = htmlToPlainText("<h2>A</h2><p>B</p><p>C</p>");

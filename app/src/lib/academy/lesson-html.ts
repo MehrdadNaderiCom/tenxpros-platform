@@ -21,10 +21,40 @@ const ALLOWED_CLASSES = new Set([
 
 function safeUrl(raw: string): string | null {
   const v = raw.trim();
-  if (/^(https?:|mailto:|\/)/i.test(v)) return v;
-  // Allow bare anchors and relative paths; reject javascript:, data:, etc.
-  if (/^[#.a-z0-9_/-]/i.test(v) && !/^[a-z]+:/i.test(v)) return v;
-  return null;
+  if (!v) return null;
+  // A raw ASCII control or whitespace character is never part of a legitimate
+  // URL, and such characters (tab, newline, carriage return) are used to hide a
+  // scheme, for example "java\tscript:". Reject them outright.
+  for (let i = 0; i < v.length; i += 1) {
+    const code = v.charCodeAt(i);
+    if (code < 0x20 || code === 0x7f) return null;
+  }
+
+  // If the value carries an explicit scheme, allow only http, https, and mailto.
+  // The scheme is matched at the very start with a strict scheme grammar, so a
+  // scheme disguised with an HTML entity ("jav&#x09;ascript:" or "javascript&colon;")
+  // never matches here; it falls through to the relative branch below, which
+  // forbids "&" and ":". For http and https we also parse with URL(), matching
+  // the toolkit link validator so the two code paths agree.
+  const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(v)?.[1]?.toLowerCase();
+  if (scheme) {
+    if (scheme === "http" || scheme === "https") {
+      try {
+        new URL(v);
+        return v;
+      } catch {
+        return null;
+      }
+    }
+    if (scheme === "mailto") return v;
+    return null; // javascript, data, vbscript, file, and anything else
+  }
+
+  // No explicit scheme: a relative path or an anchor. Reject any "&" (which begins
+  // every HTML entity, numeric or named) and any ":" so a scheme can never be
+  // hidden through an entity or a stray colon, then require a safe leading char.
+  if (v.includes("&") || v.includes(":")) return null;
+  return /^[#/.]/.test(v) || /^[a-z0-9_-]/i.test(v) ? v : null;
 }
 
 /**
