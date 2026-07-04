@@ -93,10 +93,11 @@ function placeholder(guide: string): string {
 type StarterPost = { slug: string; title: string; categorySlug: string; order: number; isPublished: boolean; bodyHtml: string };
 
 async function main() {
-  // Ensure the eight categories exist. Upsert by slug, never overwriting edits.
+  // Ensure the eight categories exist. Upsert by the stable id (not the slug, which
+  // the owner may rename), and never overwrite later edits.
   for (const c of CATEGORIES) {
     await prisma.toolkitCategory.upsert({
-      where: { slug: c.slug },
+      where: { id: c.id },
       update: {},
       create: { id: c.id, slug: c.slug, title: c.title, description: c.description, order: c.order, isPublished: true },
     });

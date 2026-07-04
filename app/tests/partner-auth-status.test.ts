@@ -75,13 +75,14 @@ describe("toolkit download gate (finding 3)", () => {
     expect(source).toContain("!isActivePartnerStatus(partner.status)");
   });
 
-  it("requires the parent post to be published for non-admin downloads", () => {
-    expect(source).toContain("include: { post: { select: { isPublished: true } } }");
-    expect(source).toContain("!isAdmin && !file.post?.isPublished");
+  it("requires the parent post (and its category) to be published for non-admin downloads", () => {
+    expect(source).toContain("post: { select: { isPublished: true, categoryRef: { select: { isPublished: true } } } }");
+    expect(source).toContain("categoryHidden = Boolean(file.post?.categoryRef && !file.post.categoryRef.isPublished)");
+    expect(source).toContain("!isAdmin && (!file.post?.isPublished || categoryHidden)");
   });
 
   it("still lets an admin fetch drafts and orphans (published check is admin-scoped)", () => {
     // The publication check is guarded by !isAdmin, so an admin path is unaffected.
-    expect(source).toMatch(/if \(!isAdmin && !file\.post\?\.isPublished\)/);
+    expect(source).toMatch(/if \(!isAdmin && \(!file\.post\?\.isPublished \|\| categoryHidden\)\)/);
   });
 });

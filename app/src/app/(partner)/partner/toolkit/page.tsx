@@ -21,23 +21,32 @@ export default async function PartnerToolkitPage() {
   const current = await getCurrentPartner();
   if (!current) redirect("/login");
 
-  const categories = await prisma.toolkitCategory.findMany({
-    where: { isPublished: true },
-    orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-    include: {
-      posts: {
-        where: { isPublished: true },
-        orderBy: [{ order: "asc" }, { createdAt: "desc" }],
-        include: { _count: { select: { files: true, links: true } } },
+  const [categories, otherPosts] = await Promise.all([
+    prisma.toolkitCategory.findMany({
+      where: { isPublished: true },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      include: {
+        posts: {
+          where: { isPublished: true },
+          orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+          include: { _count: { select: { files: true, links: true } } },
+        },
       },
-    },
-  });
+    }),
+    // Published posts with no managed category (for example older posts created
+    // before categories existed) still appear here, so nothing published is lost.
+    prisma.toolkitPost.findMany({
+      where: { isPublished: true, categoryId: null },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
+      include: { _count: { select: { files: true, links: true } } },
+    }),
+  ]);
 
   const presentSlugs = new Set(categories.map((c) => c.slug));
   const paths = PATHS.map((p) => ({ label: p.label, blurb: p.blurb, anchor: p.targets.find((t) => presentSlugs.has(t)) }))
     .filter((p) => p.anchor);
 
-  const hasAnything = categories.some((c) => c.posts.length > 0);
+  const hasAnything = categories.some((c) => c.posts.length > 0) || otherPosts.length > 0;
 
   return (
     <div className="space-y-8">
@@ -93,6 +102,30 @@ export default async function PartnerToolkitPage() {
           )}
         </div>
       ))}
+
+      {otherPosts.length > 0 ? (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold text-navy-900">More resources</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {otherPosts.map((p) => {
+              const attachments = p._count.files + p._count.links;
+              return (
+                <Card key={p.id} className="flex flex-col justify-between gap-3">
+                  <div>
+                    <Link href={`/partner/toolkit/${p.slug}`} className="font-semibold text-navy-900 hover:underline">
+                      {p.title}
+                    </Link>
+                    <p className="mt-1 text-xs text-slate-500">{attachments > 0 ? `${attachments} attachment(s)` : "Reference"}</p>
+                  </div>
+                  <Link href={`/partner/toolkit/${p.slug}`} className="text-sm font-medium text-navy-700 hover:underline">
+                    Open
+                  </Link>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {!hasAnything ? (
         <Card>

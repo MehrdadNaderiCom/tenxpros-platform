@@ -22,12 +22,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
   const file = await prisma.toolkitFile.findUnique({
     where: { id: params.id },
-    include: { post: { select: { isPublished: true } } },
+    include: { post: { select: { isPublished: true, categoryRef: { select: { isPublished: true } } } } },
   });
   if (!file) return new Response("Not found", { status: 404 });
-  // Non-admins may only download an attachment of a published post; a draft post
-  // or an orphaned file (no parent post) is hidden from them, matching the UI.
-  if (!isAdmin && !file.post?.isPublished) return new Response("Not found", { status: 404 });
+  // Non-admins may only download an attachment of a published post whose category
+  // is also published (or has none); a draft post, a post under a hidden category,
+  // or an orphaned file is hidden from them, matching the partner UI.
+  const categoryHidden = Boolean(file.post?.categoryRef && !file.post.categoryRef.isPublished);
+  if (!isAdmin && (!file.post?.isPublished || categoryHidden)) return new Response("Not found", { status: 404 });
 
   const safeName = file.filename.replace(/[^\w.()\- ]+/g, "_") || "file";
   return new Response(Buffer.from(file.data), {
