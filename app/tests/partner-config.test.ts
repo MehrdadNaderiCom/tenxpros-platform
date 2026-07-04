@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   CONFIG_FIELD_KEYS,
   PROGRAM_CONFIG_DEFAULTS,
+  diffConfigFromDefaults,
   activeStatusCureDaysForTier,
   maxOpenAccountsForTier,
   mergeConfig,
@@ -92,5 +95,57 @@ describe("per-tier accessors", () => {
     expect(pipelineProtectionDaysForTier(base, "TIER3")).toBe(180);
     expect(quietAccountLapseDaysForTier(base, "TIER2")).toBe(45);
     expect(activeStatusCureDaysForTier(base, "TIER3")).toBe(60);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The config drift alarm: the engine pays from the live DB row while the
+// public surfaces render the compile-time defaults; this check is the alarm
+// that they have diverged.
+// ---------------------------------------------------------------------------
+
+describe("diffConfigFromDefaults", () => {
+  it("reports in sync when the live row matches the defaults exactly", () => {
+    const live = { ...PROGRAM_CONFIG_DEFAULTS } as Record<string, unknown>;
+    expect(diffConfigFromDefaults(live)).toEqual([]);
+  });
+
+  it("reports exactly the diverging field with both values", () => {
+    const live = { ...PROGRAM_CONFIG_DEFAULTS, capB2cBp: 2500 } as Record<string, unknown>;
+    expect(diffConfigFromDefaults(live)).toEqual([
+      { field: "capB2cBp", live: 2500, default: PROGRAM_CONFIG_DEFAULTS.capB2cBp },
+    ]);
+  });
+
+  it("ignores bookkeeping columns by construction (only CONFIG_FIELD_KEYS are compared)", () => {
+    const live = {
+      ...PROGRAM_CONFIG_DEFAULTS,
+      id: "singleton",
+      updatedAt: new Date(0),
+      updatedBy: "someone else entirely",
+    } as Record<string, unknown>;
+    expect(diffConfigFromDefaults(live)).toEqual([]);
+    expect(CONFIG_FIELD_KEYS).not.toContain("updatedAt");
+    expect(CONFIG_FIELD_KEYS).not.toContain("updatedBy");
+  });
+});
+
+describe("config drift wiring (source inspection)", () => {
+  const root = join(__dirname, "..");
+  const health = readFileSync(join(root, "src/app/api/health/route.ts"), "utf8");
+  const server = readFileSync(join(root, "src/lib/partner/config-server.ts"), "utf8");
+
+  it("the health endpoint surfaces the drift without ever failing on it", () => {
+    expect(health).toContain("configDrift");
+    expect(health).toContain("checkConfigDrift");
+    // Drift or a failed check never flips liveness: the container healthcheck
+    // curls this endpoint, and a deliberate DB-side change must not kill it.
+    expect(health).toContain("ok: true, configDrift");
+    expect(health).toContain('"check_failed"');
+    expect(health).toContain('export const dynamic = "force-dynamic"');
+  });
+
+  it("a missing singleton row is a reported status, never a throw", () => {
+    expect(server).toContain('return { status: "row_missing", differences: [] };');
   });
 });

@@ -1,6 +1,6 @@
 import type { ProgramConfig } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { type EffectiveConfig, mergeConfig } from "./config";
+import { type ConfigDriftDifference, type EffectiveConfig, diffConfigFromDefaults, mergeConfig } from "./config";
 
 /**
  * DB-backed config resolvers. Kept separate from the pure `config.ts` so the
@@ -31,4 +31,27 @@ export async function resolvePartnerConfig(partnerId?: string | null): Promise<E
     ? await prisma.partnerConfig.findUnique({ where: { partnerId } })
     : null;
   return mergeConfig(global, override);
+}
+
+/** The drift check result: in sync, diverging fields, or no row to compare. */
+export interface ConfigDriftReport {
+  status: "in_sync" | "drift" | "row_missing";
+  differences: ConfigDriftDifference[];
+}
+
+/**
+ * Compare the live ProgramConfig row (what the engine pays from) against the
+ * compile-time defaults (what the public page, the terms, and the reference
+ * generator render). One indexed singleton read; a missing row is reported as
+ * its own status rather than thrown (the resolver self-heals the row on first
+ * use, so missing simply means the app has not served yet). Database errors
+ * are left to the caller, so a health endpoint can degrade gracefully.
+ */
+export async function checkConfigDrift(): Promise<ConfigDriftReport> {
+  const row = await prisma.programConfig.findUnique({ where: { id: "singleton" } });
+  if (!row) return { status: "row_missing", differences: [] };
+  const differences = diffConfigFromDefaults(row as unknown as Record<string, unknown>);
+  return differences.length === 0
+    ? { status: "in_sync", differences: [] }
+    : { status: "drift", differences };
 }

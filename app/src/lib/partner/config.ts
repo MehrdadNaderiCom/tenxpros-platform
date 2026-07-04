@@ -108,6 +108,45 @@ export const PROGRAM_CONFIG_DEFAULTS: EffectiveConfig = {
 /** Runtime list of every configurable field key. */
 export const CONFIG_FIELD_KEYS = Object.keys(PROGRAM_CONFIG_DEFAULTS) as (keyof EffectiveConfig)[];
 
+/** One field where the live DB row diverges from the compile-time defaults. */
+export interface ConfigDriftDifference {
+  field: string;
+  live: number | string;
+  default: number | string;
+}
+
+/**
+ * Compare a live ProgramConfig row against the compile-time defaults that the
+ * public partners page, the plain-language terms, and the reference generator
+ * render from. The engine pays from the LIVE ROW; the published surfaces
+ * render the DEFAULTS; the owner's standing rule is that any config change
+ * ships with a redeploy so the two always move together. This is the alarm
+ * for that rule: it returns exactly which commercial fields diverge.
+ *
+ * The comparison covers exactly CONFIG_FIELD_KEYS, meaning every commercial
+ * field of PROGRAM_CONFIG_DEFAULTS: the rates, the caps, the seat and the
+ * retired dollar thresholds, the windows, the account and payout limits, and
+ * the bonus values. That is the right set because it is, by construction, the
+ * full set of numbers any surface can render and the engine can pay from.
+ * Bookkeeping columns (id, updatedAt, updatedBy) are not commercial values
+ * and are excluded by the same construction.
+ */
+export function diffConfigFromDefaults(live: Record<string, unknown>): ConfigDriftDifference[] {
+  const differences: ConfigDriftDifference[] = [];
+  for (const key of CONFIG_FIELD_KEYS) {
+    const liveValue = live[key];
+    const defaultValue = PROGRAM_CONFIG_DEFAULTS[key];
+    if (liveValue !== defaultValue) {
+      differences.push({
+        field: key,
+        live: liveValue as number | string,
+        default: defaultValue as number | string,
+      });
+    }
+  }
+  return differences;
+}
+
 /** A nullable shape (per-partner override) of every configurable field. */
 export type PartnerConfigOverride = Partial<
   Record<keyof EffectiveConfig, EffectiveConfig[keyof EffectiveConfig] | null>
