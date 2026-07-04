@@ -295,18 +295,35 @@ export const decideSpecialDealRequestSchema = z.object({
 
 export const TOOLKIT_MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB per file
 export const TOOLKIT_MAX_FILES = 10;
+export const TOOLKIT_MAX_LINKS = 12;
+
+const slugRule = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a URL-friendly slug: lowercase letters, numbers, and hyphens.")
+  .max(120)
+  .optional();
 
 export const toolkitPostSchema = z.object({
   id: z.string().trim().optional(),
   title: z.string().trim().min(3, "Give the post a title.").max(200),
-  slug: z
-    .string()
-    .trim()
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use a URL-friendly slug: lowercase letters, numbers, and hyphens.")
-    .max(120)
-    .optional(),
-  category: z.string().trim().min(2, "Choose or name a category.").max(80),
+  slug: slugRule,
+  // Managed category reference drives grouping. The free-text `category` string
+  // is derived from the chosen category's title in the action (back-compat) and
+  // is accepted here only as an optional fallback.
+  categoryId: z.string().trim().optional(),
+  category: z.string().trim().max(80).optional(),
   bodyHtml: z.string().trim().min(1, "Write the post body."),
+  order: z.string().trim().regex(/^\d*$/, "Order must be a whole number.").optional(),
+  isPublished: z.boolean().optional(),
+});
+
+/** Managed Toolkit category (superadmin authoring). */
+export const toolkitCategorySchema = z.object({
+  id: z.string().trim().optional(),
+  title: z.string().trim().min(2, "Give the category a title.").max(80),
+  slug: slugRule,
+  description: z.string().trim().max(300).optional(),
   order: z.string().trim().regex(/^\d*$/, "Order must be a whole number.").optional(),
   isPublished: z.boolean().optional(),
 });
