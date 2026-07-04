@@ -3,6 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { ToolkitBody } from "@/components/portal/toolkit-body";
+import { ToolkitEmbeds } from "@/components/portal/toolkit-embeds";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
@@ -15,20 +16,32 @@ export default async function PartnerToolkitPostPage({ params }: { params: { slu
 
   const post = await prisma.toolkitPost.findFirst({
     where: { slug: params.slug, isPublished: true },
-    include: { files: true },
+    include: { files: true, links: { orderBy: { order: "asc" } }, categoryRef: true },
   });
   if (!post) notFound();
+  // A published post filed under an unpublished category stays hidden, matching
+  // the list which shows only published categories.
+  if (post.categoryRef && !post.categoryRef.isPublished) notFound();
+
+  const categoryLabel = post.categoryRef?.title ?? post.category;
 
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <Badge status="OPEN">{post.category}</Badge>
+        <Badge status="OPEN">{categoryLabel}</Badge>
         <PageHeader title={post.title} description="" />
       </div>
 
       <Card>
         <ToolkitBody html={post.bodyHtml} />
       </Card>
+
+      {post.links.length > 0 ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold text-navy-900">Watch and view</h2>
+          <ToolkitEmbeds links={post.links} />
+        </Card>
+      ) : null}
 
       {post.files.length > 0 ? (
         <Card className="space-y-3">
