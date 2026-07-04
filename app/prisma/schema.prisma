@@ -2943,10 +2943,34 @@ model ToolkitPost {
   title       String
   bodyHtml    String        @db.Text
   category    String        @default("General")
+  // Managed category reference (additive). The legacy `category` string is kept
+  // in sync on save for back-compatibility; `categoryRef` is the source of truth
+  // for grouping. SetNull so deleting a category never deletes its posts.
+  categoryId  String?
+  categoryRef ToolkitCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   isPublished Boolean       @default(true)
   authorEmail String?
   order       Int           @default(0)
   files       ToolkitFile[]
+  links       ToolkitLink[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([isPublished, order])
+  @@index([categoryId])
+}
+
+/// Managed, superadmin-editable category for the Partner Toolkit. Replaces the
+/// old free-text category string as the source of truth for grouping, while the
+/// string column is retained for back-compatibility.
+model ToolkitCategory {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  title       String
+  description String?       @db.Text
+  order       Int           @default(0)
+  isPublished Boolean       @default(true)
+  posts       ToolkitPost[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -2962,6 +2986,23 @@ model ToolkitFile {
   size      Int
   data      Bytes
   createdAt DateTime     @default(now())
+
+  @@index([postId])
+}
+
+/// External link or embed attached to a Toolkit post (video, slide deck,
+/// document, or plain link). Kept as structured data rendered by a dedicated
+/// safe component, never as raw HTML, so large media and video live off the
+/// database blob column and no embed HTML is ever injected.
+model ToolkitLink {
+  id        String      @id @default(cuid())
+  postId    String
+  post      ToolkitPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  title     String
+  url       String
+  kind      String      @default("LINK")
+  order     Int         @default(0)
+  createdAt DateTime    @default(now())
 
   @@index([postId])
 }
