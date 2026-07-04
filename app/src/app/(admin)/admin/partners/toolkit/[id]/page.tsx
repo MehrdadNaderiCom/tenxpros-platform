@@ -1,17 +1,16 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAdminUser, isSuperAdmin } from "@/lib/authz";
-import { saveToolkitPost, deleteToolkitPost, deleteToolkitFile } from "@/lib/actions/toolkit";
+import { saveToolkitPost, deleteToolkitPost, deleteToolkitFile, deleteToolkitLink } from "@/lib/actions/toolkit";
 import { LessonEditor } from "@/components/admin/academy/lesson-editor";
+import { TOOLKIT_LINK_KINDS, TOOLKIT_LINK_KIND_LABELS } from "@/lib/toolkit/embeds";
 import { ConfirmDialog } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/form-fields";
+import { Field, Input, Select } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
 
 export const dynamic = "force-dynamic";
-
-const CATEGORY_SUGGESTIONS = ["Generic assets", "Industry and role templates"];
 
 export default async function AdminToolkitEditorPage({ params }: { params: { id: string } }) {
   const admin = await requireAdminUser();
@@ -24,17 +23,32 @@ export default async function AdminToolkitEditorPage({ params }: { params: { id:
   }
 
   const isNew = params.id === "new";
-  const post = isNew
-    ? null
-    : await prisma.toolkitPost.findUnique({ where: { id: params.id }, include: { files: true } });
+  const [post, categories] = await Promise.all([
+    isNew ? null : prisma.toolkitPost.findUnique({ where: { id: params.id }, include: { files: true, links: { orderBy: { order: "asc" } } } }),
+    prisma.toolkitCategory.findMany({ orderBy: [{ order: "asc" }, { createdAt: "asc" }] }),
+  ]);
   if (!isNew && !post) notFound();
+
+  const hasCategories = categories.length > 0;
 
   return (
     <div className="space-y-8">
       <PageHeader
         title={isNew ? "New toolkit post" : "Edit toolkit post"}
-        description="Write the post and attach any files. The body is sanitized on save with the same rules as lessons."
+        description="Write the post and attach any files or external links. The body is sanitized on save with the same rules as lessons. Links and embeds are stored separately and rendered safely."
       />
+
+      {!hasCategories ? (
+        <Card className="border-amber-200">
+          <p className="text-sm text-slate-700">
+            There are no categories yet. Create at least one in{" "}
+            <ButtonLink href="/admin/partners/toolkit/categories" variant="ghost" size="sm">
+              Manage categories
+            </ButtonLink>{" "}
+            so you can file this post.
+          </p>
+        </Card>
+      ) : null}
 
       <Card>
         <form action={saveToolkitPost} className="space-y-5">
@@ -47,12 +61,17 @@ export default async function AdminToolkitEditorPage({ params }: { params: { id:
             </label>
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-700">Category</span>
-              <Input name="category" required list="toolkit-categories" defaultValue={post?.category ?? CATEGORY_SUGGESTIONS[0]} />
-              <datalist id="toolkit-categories">
-                {CATEGORY_SUGGESTIONS.map((c) => (
-                  <option key={c} value={c} />
+              <Select name="categoryId" defaultValue={post?.categoryId ?? ""} required>
+                <option value="" disabled>
+                  Choose a category
+                </option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                    {c.isPublished ? "" : " (hidden)"}
+                  </option>
                 ))}
-              </datalist>
+              </Select>
             </label>
             <label className="space-y-1">
               <span className="text-sm font-medium text-slate-700">Slug (optional)</span>
@@ -77,12 +96,58 @@ export default async function AdminToolkitEditorPage({ params }: { params: { id:
           <div className="space-y-1">
             <span className="text-sm font-medium text-slate-700">Attach files (optional)</span>
             <input type="file" name="files" multiple className="block text-sm text-slate-600" />
-            <p className="text-xs text-slate-500">Up to 10 files per save, 15 MB each.</p>
+            <p className="text-xs text-slate-500">Up to 10 files per save, 15 MB each. For video and large decks, use a link below instead.</p>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-slate-700">Add external links or embeds (optional)</span>
+            <p className="text-xs text-slate-500">
+              Paste an https link. A YouTube, Vimeo, Loom, Google Slides, or Google Drive link marked Video or Slide deck is
+              embedded inline; anything else shows as a link. Leave a row blank to skip it.
+            </p>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="grid gap-2 md:grid-cols-[1fr,2fr,auto]">
+                <Input name="linkTitle" placeholder="Label (e.g. Walkthrough video)" />
+                <Input name="linkUrl" type="url" placeholder="https://..." />
+                <Select name="linkKind" defaultValue="LINK" aria-label="Link type">
+                  {TOOLKIT_LINK_KINDS.map((k) => (
+                    <option key={k} value={k}>
+                      {TOOLKIT_LINK_KIND_LABELS[k]}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+            ))}
           </div>
 
           <Button type="submit">{isNew ? "Create post" : "Save changes"}</Button>
         </form>
       </Card>
+
+      {post && post.links.length > 0 ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold text-navy-900">Links and embeds</h2>
+          <ul className="space-y-2">
+            {post.links.map((l) => (
+              <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-neutral-200 p-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-navy-700">
+                    {l.title} <span className="text-xs font-normal text-slate-400">({TOOLKIT_LINK_KIND_LABELS[l.kind as keyof typeof TOOLKIT_LINK_KIND_LABELS] ?? l.kind})</span>
+                  </p>
+                  <p className="truncate text-xs text-slate-500">{l.url}</p>
+                </div>
+                <form action={deleteToolkitLink}>
+                  <input type="hidden" name="id" value={l.id} />
+                  <input type="hidden" name="postId" value={post.id} />
+                  <Button type="submit" variant="ghost" size="sm">
+                    Remove
+                  </Button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      ) : null}
 
       {post && post.files.length > 0 ? (
         <Card className="space-y-3">
