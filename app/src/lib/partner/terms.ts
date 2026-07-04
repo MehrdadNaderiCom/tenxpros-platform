@@ -8,9 +8,11 @@
  * Every rate, cap, threshold and window is rendered from the config source of
  * truth (PROGRAM_CONFIG_DEFAULTS) via buildPartnerTermsSections, so a change to a
  * number there updates the terms and the public partners page together. A few
- * values that have no config field (a focus grant duration, the recognition
- * letter waiting period, the statement query window, and fixed legal periods)
- * are stated as literals and noted as such.
+ * values that have no config field (the focus grant duration, the recognition
+ * letter waiting period, the statement query window, the dispute negotiation
+ * period, and the governing document's own name) are stated as literals; every
+ * period that does have a config field, including the pilot notice and the
+ * non-circumvention and non-solicitation periods, renders from it.
  */
 import { PROGRAM_CONFIG_DEFAULTS, type EffectiveConfig } from "./config";
 import { formatBp } from "./constants";
@@ -53,7 +55,7 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
     {
       title: `The ${cfg.pilotDays}-day pilot`,
       body: [
-        `Every partner starts on a ${cfg.pilotDays}-day pilot, on a commission-only basis, so you can test the opportunity and the company can see your fit. Either party may end the pilot on 7 days written notice, for any reason.`,
+        `Every partner starts on a ${cfg.pilotDays}-day pilot, on a commission-only basis, so you can test the opportunity and the company can see your fit. Either party may end the pilot on ${cfg.pilotTerminationNoticeDays} days written notice, for any reason.`,
         "Ending the pilot does not remove commission already earned on a Closed Deal, subject to the clawback rules below. A partner who performs well in the pilot may be offered the full Partner Program Agreement.",
       ],
     },
@@ -153,7 +155,7 @@ export function buildPartnerTermsSections(cfg: EffectiveConfig): TermsSection[] 
     {
       title: "Non-circumvention and non-solicitation",
       body: [
-        "During the relationship, and for 24 months after it ends, you will not use the company's confidential information, registered accounts, introduced opportunities or materials to divert business to a competing offering. There is no general restriction on you working in the field. You will also not solicit the company's staff, contractors, coaches or other partners for 12 months after the relationship ends.",
+        `During the relationship, and for ${cfg.nonCircumventionMonths} months after it ends, you will not use the company's confidential information, registered accounts, introduced opportunities or materials to divert business to a competing offering. There is no general restriction on you working in the field. You will also not solicit the company's staff, contractors, coaches or other partners for ${cfg.nonSolicitationMonths} months after the relationship ends.`,
       ],
     },
     {
