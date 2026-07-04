@@ -163,7 +163,7 @@ const STAGES: Array<[string, string]> = [
 ];
 const TIERS = [
   { eyebrow: "Tier 1", name: "Referral Partner", blurb: `Where every partner begins, on a ${CFG.pilotDays}-day pilot.`, points: ["Register opportunities and earn on every confirmed deal", `Hold up to ${CFG.maxOpenAccountsTier1} open registered accounts`, "Use the TenXPros Referral Partner credential"] },
-  { eyebrow: "Tier 2", name: "Certified Partner", blurb: "Earned by real, collected results across sales and delivery.", points: [`Hold up to ${CFG.maxOpenAccountsTier2} open accounts, with longer protection`, "Priority on company leads, and a growth bonus on genuinely new B2B organisations", "Certified credential, a public listing, and a letter of recognition"] },
+  { eyebrow: "Tier 2", name: "Certified Partner", blurb: "Earned by real, collected results across sales and delivery.", points: [`Hold up to ${CFG.maxOpenAccountsTier2} open accounts, with longer protection`, "Priority on company leads, and a growth bonus on genuinely new organisations (B2B only, and the engine enforces it)", "Certified credential, a public listing, and a letter of recognition"] },
   { eyebrow: "Tier 3", name: "Territory Builder", blurb: "For a proven partner with a focus on one industry or region.", points: [`Hold up to ${CFG.maxOpenAccountsTier3} open accounts, with the longest protection`, "First priority on leads within your focus", "A focus bonus and public recognition as the lead partner"] },
 ];
 const FUNCTIONS: Array<[string, string]> = [

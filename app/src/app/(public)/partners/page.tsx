@@ -53,7 +53,7 @@ const TIERS = [
     blurb: "Earned by real, collected results across sales and delivery.",
     points: [
       `Hold up to ${CFG.maxOpenAccountsTier2} open accounts, with longer protection`,
-      "Priority on company leads, and a growth bonus on genuinely new B2B organisations",
+      "Priority on company leads, and a growth bonus on genuinely new organisations (B2B only, and the engine enforces it)",
       "Certified credential, a public listing, and a letter of recognition",
     ],
   },
