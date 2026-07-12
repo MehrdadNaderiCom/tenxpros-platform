@@ -15,10 +15,13 @@ export function ExercisePlayer({
   index,
   question,
   initialCompleted,
+  onCompleted,
 }: {
   index: number;
   question: { id: string; stem: string; options: string[] };
   initialCompleted: boolean;
+  /** Fired when this exercise becomes completed (correct or final attempt). */
+  onCompleted?: (result: ExerciseAttemptResult) => void;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [last, setLast] = useState<ExerciseAttemptResult | null>(null);
@@ -30,7 +33,10 @@ export function ExercisePlayer({
     startTransition(async () => {
       const r = await recordExerciseAttempt({ questionId: question.id, selected });
       setLast(r);
-      if (r.completed) setCompleted(true);
+      if (r.completed) {
+        setCompleted(true);
+        onCompleted?.(r);
+      }
     });
   };
 

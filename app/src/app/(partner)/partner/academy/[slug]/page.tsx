@@ -7,9 +7,10 @@ import { AudioReader } from "@/components/academy/audio-reader";
 import { LessonReader } from "@/components/academy/lesson-reader";
 import { TelemetryBeacon } from "@/components/academy/telemetry-beacon";
 import { sanitizeLessonHtml } from "@/lib/academy/lesson-html";
-import { ExercisePlayer } from "@/components/academy/exercise-player";
+import { ExerciseSection } from "@/components/academy/exercise-section";
 import { Card } from "@/components/ui/card";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { formatUtcDateTime } from "@/lib/utils";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-shell";
 
@@ -70,6 +71,10 @@ export default async function LessonPage({ params }: { params: { slug: string } 
   const exercisesDone = m.questions.every((q) => isCompleted(q.id));
   const examPassed = Boolean(progress?.examPassed);
   const canExam = lessonRead && exercisesDone && !examPassed;
+  const examCooldownUntilLabel =
+    !examPassed && progress?.lockedUntil && progress.lockedUntil.getTime() > Date.now()
+      ? formatUtcDateTime(progress.lockedUntil)
+      : null;
 
   const steps: Array<{ label: string; done: boolean; active: boolean }> = m.isInformational
     ? []
@@ -172,14 +177,14 @@ export default async function LessonPage({ params }: { params: { slug: string } 
             {preview ? (
               <Card><p className="text-sm text-slate-500">Exercises are interactive for partners. They are not available in admin preview.</p></Card>
             ) : (
-              m.questions.map((q, i) => (
-                <ExercisePlayer
-                  key={q.id}
-                  index={i + 1}
-                  question={{ id: q.id, stem: q.stem, options: q.options as string[] }}
-                  initialCompleted={isCompleted(q.id)}
-                />
-              ))
+              <ExerciseSection
+                slug={m.slug}
+                lessonRead={lessonRead}
+                examPassed={examPassed}
+                examCooldownUntilLabel={examCooldownUntilLabel}
+                questions={m.questions.map((q) => ({ id: q.id, stem: q.stem, options: q.options as string[] }))}
+                initialCompletedIds={m.questions.filter((q) => isCompleted(q.id)).map((q) => q.id)}
+              />
             )}
           </section>
 
@@ -193,9 +198,27 @@ export default async function LessonPage({ params }: { params: { slug: string } 
               </p>
             </div>
             {examPassed ? (
-              <span className="text-sm font-medium text-emerald-700">Module complete</span>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium text-emerald-700">Module complete</span>
+                {!preview ? (
+                  <ButtonLink href={`/partner/academy/${m.slug}/exam`} variant="secondary" size="sm">
+                    Review your exam
+                  </ButtonLink>
+                ) : null}
+              </div>
             ) : canExam && !preview ? (
-              <ButtonLink href={`/partner/academy/${m.slug}/exam`}>Start module exam</ButtonLink>
+              examCooldownUntilLabel ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-sm text-slate-500">
+                    On a short cooldown after your last attempt. Available again after {examCooldownUntilLabel}.
+                  </span>
+                  <ButtonLink href={`/partner/academy/${m.slug}/exam`} variant="secondary" size="sm">
+                    Review your last attempt
+                  </ButtonLink>
+                </div>
+              ) : (
+                <ButtonLink href={`/partner/academy/${m.slug}/exam`}>Start module exam</ButtonLink>
+              )
             ) : (
               <span className="text-sm text-slate-500">{lessonRead ? "Finish the exercises" : "Read the lesson"} to unlock the exam.</span>
             )}

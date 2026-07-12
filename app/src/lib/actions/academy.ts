@@ -90,6 +90,8 @@ export type ExerciseAttemptResult = {
   completed: boolean;
   attemptNo: number;
   attemptsLeft: number;
+  /** True once every exercise in this question's module is completed. */
+  moduleExercisesDone: boolean;
 };
 
 /**
@@ -104,6 +106,7 @@ export async function recordExerciseAttempt(input: {
   const { partner } = await requirePartner();
   const question = await prisma.academyQuestion.findFirstOrThrow({
     where: { id: input.questionId, pool: "EXERCISE" },
+    include: { module: { select: { slug: true } } },
   });
   await ensureProgress(partner.id, question.moduleId);
 
@@ -157,6 +160,11 @@ export async function recordExerciseAttempt(input: {
       where: { partnerId_moduleId: { partnerId: partner.id, moduleId: question.moduleId } },
       data: { exercisesDone: true, status: "exercises_done" },
     });
+    // The exam gate just opened: refresh the server-rendered module page (step
+    // checklist, exam card) and the overview so the exam CTA appears without a
+    // manual reload.
+    safeRevalidatePath(`/partner/academy/${question.module.slug}`);
+    safeRevalidatePath("/partner/academy");
   }
 
   return {
@@ -167,10 +175,21 @@ export async function recordExerciseAttempt(input: {
     completed: outcome.completed,
     attemptNo,
     attemptsLeft: Math.max(0, EXERCISE_MAX_ATTEMPTS - attemptNo),
+    moduleExercisesDone: allDone,
   };
 }
 
-type ServedQuestion = { questionId: string; optionOrder: number[] };
+type ServedQuestion = {
+  questionId: string;
+  optionOrder: number[];
+  /**
+   * Frozen display copy taken when the sitting was created (options already in
+   * displayed order). Reviews render from this, so later content edits or
+   * reseeds never distort a past sitting. Absent on sittings that predate it.
+   * Server-only: it is never included in what an open sitting sends the client.
+   */
+  snapshot?: { stem: string; options: string[]; correctOption: number; explanation: string };
+};
 
 /**
  * Create or resume an exam sitting for a module. Eligibility: unlocked, lesson
@@ -233,8 +252,18 @@ export async function startOrResumeExam(slug: string): Promise<
     const chosen = selectExamQuestionIds(poolIds, m.examSize, seenIds, rng);
     served = chosen.map((id) => {
       const q = m.questions.find((x) => x.id === id)!;
-      const layout = shuffleOptions((q.options as string[]).length, q.correctIndex, rng);
-      return { questionId: id, optionOrder: layout.order };
+      const opts = q.options as string[];
+      const layout = shuffleOptions(opts.length, q.correctIndex, rng);
+      return {
+        questionId: id,
+        optionOrder: layout.order,
+        snapshot: {
+          stem: q.stem,
+          options: layout.order.map((i) => opts[i]),
+          correctOption: layout.correctIndex,
+          explanation: q.explanation,
+        },
+      };
     });
     const created = await prisma.academyExamSitting.create({
       data: { partnerId: partner.id, moduleId: m.id, questionIds: served as object, answers: [], score: 0, passed: false },
@@ -415,8 +444,18 @@ export async function startOrResumeFinalExam(): Promise<
     const chosen = selectExamQuestionIds(poolIds, FINAL_EXAM_SIZE, seenIds, rng);
     served = chosen.map((id) => {
       const q = examQuestions.find((x) => x.id === id)!;
-      const layout = shuffleOptions((q.options as string[]).length, q.correctIndex, rng);
-      return { questionId: id, optionOrder: layout.order };
+      const opts = q.options as string[];
+      const layout = shuffleOptions(opts.length, q.correctIndex, rng);
+      return {
+        questionId: id,
+        optionOrder: layout.order,
+        snapshot: {
+          stem: q.stem,
+          options: layout.order.map((i) => opts[i]),
+          correctOption: layout.correctIndex,
+          explanation: q.explanation,
+        },
+      };
     });
     const created = await prisma.academyExamSitting.create({
       data: { partnerId: partner.id, moduleId: null, isFinal: true, questionIds: served as object, answers: [], score: 0, passed: false },

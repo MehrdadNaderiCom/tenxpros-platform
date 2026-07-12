@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { submitExam, type ExamSubmitResult } from "@/lib/actions/academy";
+import { ExamQuestionReview } from "@/components/academy/exam-review";
 import { cn } from "@/lib/utils";
 
 type SubmitAction = (input: { sittingId: string; selections: number[] }) => Promise<ExamSubmitResult>;
@@ -76,33 +77,14 @@ export function ExamPlayer({
 
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-navy-900">Review</h2>
-          {result.review.map((r, i) => {
-            const correct = r.selected === r.correctOption;
-            return (
-              <div key={i} className="rounded-lg border border-neutral-200 bg-white p-5">
-                <p className="font-medium text-navy-900">
-                  <span className="mr-2 text-sm text-slate-400">{i + 1}.</span>
-                  {r.stem}
-                </p>
-                <div className="mt-3 space-y-2">
-                  {r.options.map((opt, j) => (
-                    <div
-                      key={j}
-                      className={cn(
-                        "rounded-md border px-3 py-2 text-sm",
-                        j === r.correctOption ? "border-emerald-300 bg-emerald-50 text-emerald-800" : j === r.selected ? "border-red-300 bg-red-50 text-red-700" : "border-neutral-200 text-slate-700",
-                      )}
-                    >
-                      {opt}
-                      {j === r.correctOption ? <span className="ml-2 text-xs font-medium">correct</span> : null}
-                      {j === r.selected && j !== r.correctOption ? <span className="ml-2 text-xs font-medium">your answer</span> : null}
-                    </div>
-                  ))}
-                </div>
-                <p className={cn("mt-3 text-sm", correct ? "text-emerald-800" : "text-slate-600")}>{r.explanation}</p>
-              </div>
-            );
-          })}
+          <p className="text-sm text-slate-600">
+            {result.passed
+              ? "This review stays available on the exam page, so you can come back to it any time."
+              : "You can revisit this review from the exam page until your next attempt."}
+          </p>
+          {result.review.map((r, i) => (
+            <ExamQuestionReview key={i} item={r} index={i} />
+          ))}
         </div>
       </div>
     );

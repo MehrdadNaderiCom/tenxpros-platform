@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { startOrResumeFinalExam } from "@/lib/actions/academy";
 import { submitFinalExam } from "@/lib/actions/academy";
+import { getSubmittedSittingReviews } from "@/lib/academy/queries";
 import { ExamPlayer } from "@/components/academy/exam-player";
+import { ExamReviewList } from "@/components/academy/exam-review";
 import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { ButtonLink } from "@/components/ui/button";
@@ -39,6 +41,8 @@ export default async function FinalExamPage() {
       result.reason === "cooldown" && result.lockedUntil
         ? ` Available again after ${new Date(result.lockedUntil).toLocaleString()}.`
         : "";
+    // No sitting is open here, so past submitted sittings are safe to review.
+    const pastSittings = await getSubmittedSittingReviews(current.partner.id, { final: true });
     return (
       <div className="space-y-6">
         <PageHeader title="Final exam" description="The comprehensive exam that earns your Partner Academy certificate." />
@@ -46,6 +50,7 @@ export default async function FinalExamPage() {
         <ButtonLink href={passed ? "/partner/academy/certificate" : "/partner/academy"} variant="secondary" size="sm">
           {passed ? "View your certificate" : "Back to the Academy"}
         </ButtonLink>
+        <ExamReviewList sittings={pastSittings} />
       </div>
     );
   }

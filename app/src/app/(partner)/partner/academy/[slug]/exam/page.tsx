@@ -2,7 +2,9 @@ import { redirect } from "next/navigation";
 import { getCurrentPartner } from "@/lib/partner/auth";
 import { prisma } from "@/lib/prisma";
 import { startOrResumeExam } from "@/lib/actions/academy";
+import { getSubmittedSittingReviews } from "@/lib/academy/queries";
 import { ExamPlayer } from "@/components/academy/exam-player";
+import { ExamReviewList } from "@/components/academy/exam-review";
 import { Card } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-shell";
@@ -38,6 +40,8 @@ export default async function ExamPage({ params }: { params: { slug: string } })
       result.reason === "cooldown" && result.lockedUntil
         ? ` Available again after ${new Date(result.lockedUntil).toLocaleString()}.`
         : "";
+    // No sitting is open here, so past submitted sittings are safe to review.
+    const pastSittings = await getSubmittedSittingReviews(current.partner.id, { moduleSlug: params.slug });
     return (
       <div className="space-y-6">
         <PageHeader title="Module exam" description="" />
@@ -45,6 +49,7 @@ export default async function ExamPage({ params }: { params: { slug: string } })
           <p className="text-sm text-slate-600">{(REASONS[result.reason] ?? "This exam is not available right now.") + cooldownNote}</p>
           <ButtonLink href={`/partner/academy/${params.slug}`} variant="secondary" size="sm" className="mt-4">Back to the lesson</ButtonLink>
         </Card>
+        <ExamReviewList sittings={pastSittings} />
       </div>
     );
   }

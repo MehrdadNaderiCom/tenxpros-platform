@@ -153,6 +153,107 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
   };
 }
 
+/** One question of a submitted sitting, reconstructed exactly as it was served. */
+export type SittingReviewQuestion = {
+  stem: string;
+  /** Options in the order they were displayed during the sitting. */
+  options: string[];
+  correctOption: number;
+  /** The displayed index the partner chose; -1 when left unanswered. */
+  selected: number;
+  explanation: string;
+};
+
+export type SittingReview = {
+  id: string;
+  submittedAt: Date;
+  score: number;
+  passed: boolean;
+  review: SittingReviewQuestion[];
+  /** Served questions that can no longer be displayed (content changed since). */
+  missingCount: number;
+};
+
+/**
+ * Reconstruct every submitted exam sitting for review, newest first. Sittings
+ * created since the review feature carry a frozen display snapshot (stem,
+ * displayed options, correct index, explanation) taken when the exam was served,
+ * so later content edits or reseeds never distort them; older sittings fall back
+ * to the current question rows, skipping any question deleted or reshaped since.
+ *
+ * SECURITY: a review must never overlap an open (unsubmitted) sitting's question
+ * pool, or it becomes that sitting's answer key in another tab. The final exam
+ * draws from every module's pool, so final reviews hide while ANY sitting is
+ * open, and module reviews hide while a final (or a same-module) sitting is
+ * open. An abandoned sitting of some OTHER module never hides a module review:
+ * module pools are disjoint, and sittings never expire, so hiding globally would
+ * lock reviews away indefinitely.
+ */
+export async function getSubmittedSittingReviews(
+  partnerId: string,
+  scope: { moduleSlug: string } | { final: true },
+): Promise<SittingReview[]> {
+  const openSitting = await prisma.academyExamSitting.findFirst({
+    where: {
+      partnerId,
+      submittedAt: null,
+      ...("final" in scope ? {} : { OR: [{ isFinal: true }, { module: { slug: scope.moduleSlug } }] }),
+    },
+    select: { id: true },
+  });
+  if (openSitting) return [];
+
+  const sittings = await prisma.academyExamSitting.findMany({
+    where:
+      "final" in scope
+        ? { partnerId, isFinal: true, submittedAt: { not: null } }
+        : { partnerId, isFinal: false, submittedAt: { not: null }, module: { slug: scope.moduleSlug } },
+    orderBy: { submittedAt: "desc" },
+  });
+  if (sittings.length === 0) return [];
+
+  type Served = {
+    questionId: string;
+    optionOrder: number[];
+    snapshot?: { stem: string; options: string[]; correctOption: number; explanation: string };
+  };
+  const questionIds = [...new Set(sittings.flatMap((s) => (s.questionIds as unknown as Served[]).map((q) => q.questionId)))];
+  const questions = await prisma.academyQuestion.findMany({ where: { id: { in: questionIds } } });
+  const qById = new Map(questions.map((q) => [q.id, q]));
+
+  return sittings.map((s) => {
+    const served = s.questionIds as unknown as Served[];
+    const answers = (s.answers as unknown as number[]) ?? [];
+    const review = served.flatMap((sv, i) => {
+      const selected = answers[i];
+      const selectedIndex = typeof selected === "number" ? selected : -1;
+      if (sv.snapshot) {
+        return [{ ...sv.snapshot, selected: selectedIndex }];
+      }
+      const q = qById.get(sv.questionId);
+      const opts = q?.options as string[] | undefined;
+      if (!q || !opts || sv.optionOrder.length !== opts.length) return [];
+      return [
+        {
+          stem: q.stem,
+          options: sv.optionOrder.map((idx) => opts[idx]),
+          correctOption: sv.optionOrder.indexOf(q.correctIndex),
+          selected: selectedIndex,
+          explanation: q.explanation,
+        },
+      ];
+    });
+    return {
+      id: s.id,
+      submittedAt: s.submittedAt as Date,
+      score: s.score,
+      passed: s.passed,
+      review,
+      missingCount: served.length - review.length,
+    };
+  });
+}
+
 /** Load one module's lesson and exercises for the lesson view (no exam answers). */
 export async function getModuleForLesson(partnerId: string, slug: string) {
   const m = await prisma.academyModule.findFirst({
