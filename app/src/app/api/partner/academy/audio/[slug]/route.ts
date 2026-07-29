@@ -8,6 +8,7 @@ import {
   resolveVersionedNarrationAsset,
 } from "@/lib/academy/narration-release";
 import { DEFAULT_NARRATION_VOICE_ID, NARRATION_VOICES } from "@/lib/academy/voices";
+import { academyAudioResumeKey } from "@/lib/academy/resume-server";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +73,15 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
             asset?.audioStatus ?? "MISSING",
           durationSeconds:
             asset?.durationSeconds ?? null,
+          resumeKey: asset
+            ? academyAudioResumeKey({
+                source: "versioned",
+                assetId: asset.id,
+                identityHash:
+                  asset.checksumSha256,
+                voiceId: asset.voiceId,
+              })
+            : null,
         },
       ],
     });
@@ -80,7 +90,9 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
   const rows = await prisma.academyLessonAudio.findMany({
     where: { lessonId: lesson.id },
     select: {
+      id: true,
       voice: true,
+      textHash: true,
       durationSeconds: true,
     },
   });
@@ -94,6 +106,14 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
       tagline: v.tagline,
       ready,
       durationSeconds: ready ? row?.durationSeconds ?? null : null,
+      resumeKey: row
+        ? academyAudioResumeKey({
+            source: "legacy",
+            assetId: row.id,
+            identityHash: row.textHash,
+            voiceId: row.voice,
+          })
+        : null,
     };
   });
 

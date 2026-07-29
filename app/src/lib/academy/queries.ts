@@ -45,6 +45,8 @@ export interface AcademyOverview {
   allPassed: boolean;
   /** The next module to act on (first not-passed unlocked module), for resume. */
   resumeSlug: string | null;
+  /** Most recently saved reading/audio lesson, across devices. */
+  lastResumeSlug: string | null;
   badge: { serial: string; year: number; awardedAt: Date } | null;
   /** The comprehensive final exam (unlocks once every module is passed). */
   finalExam: { unlocked: boolean; passed: boolean; lockedUntil: Date | null; attempts: number };
@@ -56,7 +58,7 @@ export interface AcademyOverview {
  * the previous module being passed (the first module is always open).
  */
 export async function getAcademyOverview(partnerId: string): Promise<AcademyOverview> {
-  const [modules, informational, progressRows, exerciseCounts, badge, finalSittings] = await Promise.all([
+  const [modules, informational, progressRows, exerciseCounts, badge, finalSittings, lastResume] = await Promise.all([
     prisma.academyModule.findMany({ where: { isPublished: true, isInformational: false }, orderBy: { order: "asc" } }),
     prisma.academyModule.findMany({
       where: { isPublished: true, isInformational: true },
@@ -69,6 +71,20 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
     prisma.academyExamSitting.findMany({
       where: { partnerId, isFinal: true, submittedAt: { not: null } },
       orderBy: { submittedAt: "desc" },
+    }),
+    prisma.academyLessonResume.findFirst({
+      where: {
+        partnerId,
+        lesson: { module: { isPublished: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        lesson: {
+          select: {
+            module: { select: { slug: true } },
+          },
+        },
+      },
     }),
   ]);
 
@@ -143,6 +159,7 @@ export async function getAcademyOverview(partnerId: string): Promise<AcademyOver
     totalCount,
     allPassed,
     resumeSlug: resume?.slug ?? null,
+    lastResumeSlug: lastResume?.lesson.module.slug ?? null,
     badge: badge ? { serial: badge.serial, year: badge.year, awardedAt: badge.awardedAt } : null,
     finalExam: {
       unlocked: allPassed,

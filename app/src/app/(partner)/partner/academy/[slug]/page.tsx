@@ -13,6 +13,11 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { formatUtcDateTime } from "@/lib/utils";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-shell";
+import {
+  academyReadingContentKey,
+  getAcademyLessonResumeSnapshot,
+  type AcademyLessonResumeSnapshot,
+} from "@/lib/academy/resume-server";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +58,31 @@ export default async function LessonPage({ params }: { params: { slug: string } 
   const lesson = m.lessons[0];
   const lessonHtml = lesson?.bodyHtml ? sanitizeLessonHtml(lesson.bodyHtml) : null;
   const paragraphs = lesson ? lesson.body.split("\n\n") : [];
+  const resumeEndpoint = `/api/partner/academy/resume/${encodeURIComponent(m.slug)}`;
+  const lessonResume: AcademyLessonResumeSnapshot | null = lesson
+    ? preview
+      ? {
+          reading: {
+            contentKey: academyReadingContentKey(lesson),
+            blockKey: null,
+            blockIndex: null,
+            offsetRatio: null,
+            progressPct: null,
+            revision: 0,
+          },
+          audio: {
+            resumeKey: null,
+            positionSeconds: null,
+            durationSeconds: null,
+            revision: 0,
+          },
+        }
+      : await getAcademyLessonResumeSnapshot({
+          userId: current.user.id,
+          partnerId: current.partner.id,
+          lesson,
+        })
+    : null;
 
   // Exercise completion from recorded attempts.
   const byQuestion = new Map<string, { count: number; anyCorrect: boolean }>();
@@ -144,10 +174,28 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         </Card>
       ) : null}
 
-      <AudioReader slug={m.slug} text={lesson?.audioText ?? ""} title={m.title} />
+      {lessonResume ? (
+        <AudioReader
+          key={`audio-${lesson?.id ?? m.id}`}
+          slug={m.slug}
+          title={m.title}
+          resume={lessonResume.audio}
+          resumeEndpoint={resumeEndpoint}
+          resumeEnabled={!preview}
+        />
+      ) : null}
 
       <Card>
-        <LessonReader paragraphs={paragraphs} html={lessonHtml} />
+        {lessonResume ? (
+          <LessonReader
+            key={`reading-${lesson?.id ?? m.id}`}
+            paragraphs={paragraphs}
+            html={lessonHtml}
+            resume={lessonResume.reading}
+            resumeEndpoint={resumeEndpoint}
+            resumeEnabled={!preview}
+          />
+        ) : null}
         {!preview && !lessonRead ? (
           <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
             <input type="hidden" name="slug" value={m.slug} />

@@ -1,5 +1,20 @@
 "use client";
 
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { BookmarkCheck } from "lucide-react";
+import type { AcademyReadingResumeSnapshot } from "@/lib/academy/resume-server";
+import {
+  useAcademyResumeSaver,
+  type AcademyReadingResumePosition,
+} from "@/lib/academy/resume-client";
+
 /**
  * Renders lesson content with copy-protection as a deterrent: selection, copy,
  * context menu, and the obvious copy shortcut are suppressed while focus is in
@@ -9,6 +24,11 @@
  * Rich lessons pass sanitized `html` (from the content manager or seed); legacy
  * lessons pass plain `paragraphs`. The styling classes cover headings, lists,
  * blockquotes, links, tables, images, callouts, and form-preview frames.
+ *
+ * The durable reading bookmark is semantic rather than a raw page scroll
+ * offset. It stores the block nearest the reader's eye line, an offset within
+ * that block, and a lesson-relative percentage fallback. That remains useful
+ * when the same person moves between desktop and mobile.
  */
 
 const GUARD = {
@@ -16,7 +36,12 @@ const GUARD = {
   onCut: (e: React.ClipboardEvent) => e.preventDefault(),
   onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
   onKeyDown: (e: React.KeyboardEvent) => {
-    if ((e.ctrlKey || e.metaKey) && ["c", "x"].includes(e.key.toLowerCase())) e.preventDefault();
+    if (
+      (e.ctrlKey || e.metaKey) &&
+      ["c", "x"].includes(e.key.toLowerCase())
+    ) {
+      e.preventDefault();
+    }
   },
 };
 
@@ -43,15 +68,447 @@ const RICH_CLASS =
   "[&_.form-preview-label]:mb-2 [&_.form-preview-label]:text-xs [&_.form-preview-label]:font-semibold [&_.form-preview-label]:uppercase [&_.form-preview-label]:tracking-wide [&_.form-preview-label]:text-slate-500 " +
   "[&_.checklist]:my-3 [&_.checklist]:list-none [&_.checklist]:pl-0 [&_.lead]:text-[1.08rem] [&_.lead]:text-slate-600";
 
-export function LessonReader({ paragraphs, html }: { paragraphs: string[]; html?: string | null }) {
-  if (html) {
-    return <div className={RICH_CLASS} {...GUARD} dangerouslySetInnerHTML={{ __html: html }} />;
+const BLOCK_SELECTOR =
+  "h2,h3,h4,p,li,blockquote,tr,img";
+const SAVE_DEBOUNCE_MS = 650;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+/** Stable, browser-safe FNV-1a key; occurrence disambiguates repeated copy. */
+export function academyReadingBlockBaseKey(
+  element: Element,
+): string {
+  const source =
+    element instanceof HTMLImageElement
+      ? element.alt
+      : element.textContent ?? "";
+  const normalized = source
+    .replace(/\s+/gu, " ")
+    .trim()
+    .toLocaleLowerCase()
+    .slice(0, 320);
+  let hash = 0x811c9dc5;
+  const input = `${element.tagName.toLowerCase()}:${normalized}`;
+  for (let i = 0; i < input.length; i += 1) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
   }
+  return `${element.tagName.toLowerCase()}:${(hash >>> 0).toString(36)}`;
+}
+
+function prepareBlocks(root: HTMLElement): HTMLElement[] {
+  const elements = Array.from(
+    root.querySelectorAll<HTMLElement>(BLOCK_SELECTOR),
+  );
+  const blocks = elements.length > 0 ? elements : [root];
+  const occurrences = new Map<string, number>();
+  for (const block of blocks) {
+    const base = academyReadingBlockBaseKey(block);
+    const occurrence = occurrences.get(base) ?? 0;
+    occurrences.set(base, occurrence + 1);
+    block.dataset.academyResumeKey = `${base}:${occurrence}`;
+  }
+  return blocks;
+}
+
+function viewportReadingLine(): number {
+  return clamp(window.innerHeight * 0.32, 120, 260);
+}
+
+function measureReadingPosition(
+  root: HTMLElement,
+): AcademyReadingResumePosition {
+  const blocks = prepareBlocks(root);
+  const marker =
+    (window.scrollY || document.documentElement.scrollTop) +
+    viewportReadingLine();
+  const rootRect = root.getBoundingClientRect();
+  const rootTop = rootRect.top + window.scrollY;
+  const rootHeight = Math.max(1, rootRect.height);
+  const progressPct =
+    Math.round(
+      clamp(((marker - rootTop) / rootHeight) * 100, 0, 100) *
+        1000,
+    ) / 1000;
+
+  let index = 0;
+  for (let i = 0; i < blocks.length; i += 1) {
+    const top =
+      blocks[i].getBoundingClientRect().top + window.scrollY;
+    if (top <= marker) index = i;
+    else break;
+  }
+  if (marker >= rootTop + rootHeight) {
+    index = Math.max(0, blocks.length - 1);
+  }
+
+  const block = blocks[index];
+  const rect = block.getBoundingClientRect();
+  const blockTop = rect.top + window.scrollY;
+  const offsetRatio = clamp(
+    (marker - blockTop) / Math.max(1, rect.height),
+    0,
+    1,
+  );
+  return {
+    kind: "reading",
+    contentKey: "",
+    blockKey: block.dataset.academyResumeKey ?? null,
+    blockIndex: index,
+    offsetRatio:
+      Math.round(offsetRatio * 10000) / 10000,
+    progressPct,
+  };
+}
+
+function restoreReadingPosition(
+  root: HTMLElement,
+  resume: AcademyReadingResumeSnapshot,
+) {
+  const blocks = prepareBlocks(root);
+  const byKey = resume.blockKey
+    ? blocks.find(
+        (block) =>
+          block.dataset.academyResumeKey === resume.blockKey,
+      )
+    : null;
+  const byIndex =
+    resume.blockIndex != null
+      ? blocks[
+          clamp(
+            resume.blockIndex,
+            0,
+            Math.max(0, blocks.length - 1),
+          )
+        ]
+      : null;
+  const block = byKey ?? byIndex;
+  const rootRect = root.getBoundingClientRect();
+  const rootTop = rootRect.top + window.scrollY;
+  let marker: number;
+  if (block) {
+    const rect = block.getBoundingClientRect();
+    marker =
+      rect.top +
+      window.scrollY +
+      clamp(resume.offsetRatio ?? 0, 0, 1) *
+        Math.max(1, rect.height);
+  } else {
+    marker =
+      rootTop +
+      clamp((resume.progressPct ?? 0) / 100, 0, 1) *
+        Math.max(1, rootRect.height);
+  }
+  window.scrollTo({
+    top: Math.max(0, marker - viewportReadingLine()),
+    behavior: "auto",
+  });
+}
+
+function hasMeaningfulReadingResume(
+  resume: AcademyReadingResumeSnapshot,
+) {
   return (
-    <div className="academy-lesson max-w-prose select-none space-y-5 text-[1.02rem] leading-8 text-slate-700" {...GUARD}>
-      {paragraphs.map((p, i) => (
-        <p key={i}>{p}</p>
+    (resume.progressPct ?? 0) >= 1 ||
+    (resume.blockIndex ?? 0) > 0 ||
+    (resume.offsetRatio ?? 0) > 0.05
+  );
+}
+
+export function LessonReader({
+  paragraphs,
+  html,
+  resume,
+  resumeEndpoint,
+  resumeEnabled = true,
+}: {
+  paragraphs: string[];
+  html?: string | null;
+  resume: AcademyReadingResumeSnapshot;
+  resumeEndpoint: string;
+  resumeEnabled?: boolean;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const readyToSaveRef = useRef(false);
+  const readingDirtyRef = useRef(false);
+  const suppressScrollRef = useRef(false);
+  const timerRef = useRef<number | null>(null);
+  const [startedOver, setStartedOver] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const initiallySaved = useMemo(
+    () => hasMeaningfulReadingResume(resume),
+    [resume],
+  );
+  const saveResume = useAcademyResumeSaver({
+    endpoint: resumeEndpoint,
+    initialRevision: resume.revision,
+    enabled: resumeEnabled,
+  });
+
+  const snapshot = useCallback(() => {
+    const root = rootRef.current;
+    if (!root) return null;
+    return {
+      ...measureReadingPosition(root),
+      contentKey: resume.contentKey,
+    };
+  }, [resume.contentKey]);
+
+  // Restore only after fonts and in-lesson images have had a short opportunity
+  // to settle. Any deliberate wheel/touch/key action before then cancels the
+  // automatic jump.
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    let cancelled = false;
+    let userActed = false;
+    const markUserAction = () => {
+      userActed = true;
+      readingDirtyRef.current = true;
+    };
+    const markKeyboardReadingAction = (
+      event: KeyboardEvent,
+    ) => {
+      if (
+        [
+          "ArrowDown",
+          "ArrowUp",
+          "End",
+          "Home",
+          "PageDown",
+          "PageUp",
+          " ",
+        ].includes(event.key)
+      ) {
+        markUserAction();
+      }
+    };
+    const options = { passive: true } as const;
+    window.addEventListener("wheel", markUserAction, options);
+    window.addEventListener("touchmove", markUserAction, options);
+    window.addEventListener(
+      "keydown",
+      markKeyboardReadingAction,
+    );
+
+    const settle = async () => {
+      try {
+        await document.fonts?.ready;
+      } catch {
+        /* use the current metrics */
+      }
+      const images = Array.from(root.querySelectorAll("img"));
+      if (images.length > 0) {
+        await Promise.race([
+          Promise.all(
+            images.map((image) =>
+              image.complete
+                ? Promise.resolve()
+                : new Promise<void>((resolve) => {
+                    image.addEventListener("load", () => resolve(), {
+                      once: true,
+                    });
+                    image.addEventListener("error", () => resolve(), {
+                      once: true,
+                    });
+                  }),
+            ),
+          ),
+          new Promise<void>((resolve) =>
+            window.setTimeout(resolve, 800),
+          ),
+        ]);
+      }
+      await new Promise<void>((resolve) =>
+        window.requestAnimationFrame(() =>
+          window.requestAnimationFrame(() => resolve()),
+        ),
+      );
+
+      if (cancelled) return;
+      if (
+        !userActed &&
+        resumeEnabled &&
+        initiallySaved &&
+        !window.location.hash
+      ) {
+        suppressScrollRef.current = true;
+        restoreReadingPosition(root, resume);
+        setRestored(true);
+        window.requestAnimationFrame(() => {
+          suppressScrollRef.current = false;
+        });
+      }
+      readyToSaveRef.current = true;
+      if (userActed) {
+        // A deliberate scroll before layout settled is the new reading place,
+        // not a reason to silently keep or overwrite the old one at page top.
+        window.dispatchEvent(new Event("scroll"));
+      }
+    };
+    void settle();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("wheel", markUserAction);
+      window.removeEventListener("touchmove", markUserAction);
+      window.removeEventListener(
+        "keydown",
+        markKeyboardReadingAction,
+      );
+    };
+  }, [initiallySaved, resume, resumeEnabled]);
+
+  useEffect(() => {
+    if (!resumeEnabled) return;
+    const flush = () => {
+      if (
+        !readyToSaveRef.current ||
+        !readingDirtyRef.current
+      ) {
+        return;
+      }
+      const position = snapshot();
+      if (position) saveResume(position, { keepalive: true });
+    };
+    const onScroll = () => {
+      if (suppressScrollRef.current) return;
+      readingDirtyRef.current = true;
+      if (!readyToSaveRef.current) return;
+      if (timerRef.current != null) {
+        window.clearTimeout(timerRef.current);
+      }
+      timerRef.current = window.setTimeout(() => {
+        const position = snapshot();
+        if (position) saveResume(position);
+      }, SAVE_DEBOUNCE_MS);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("pagehide", flush);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      if (timerRef.current != null) {
+        window.clearTimeout(timerRef.current);
+      }
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("pagehide", flush);
+      document.removeEventListener(
+        "visibilitychange",
+        onVisibility,
+      );
+    };
+  }, [resumeEnabled, saveResume, snapshot]);
+
+  // React runs layout-effect cleanup before removing the lesson DOM. This is
+  // the reliable final checkpoint for Next.js client-side navigation, where
+  // pagehide does not fire and passive cleanup may see a detached ref.
+  useLayoutEffect(
+    () => () => {
+      if (
+        !resumeEnabled ||
+        !readyToSaveRef.current ||
+        !readingDirtyRef.current
+      ) {
+        return;
+      }
+      const position = snapshot();
+      if (position) {
+        saveResume(position, { keepalive: true });
+      }
+    },
+    [resumeEnabled, saveResume, snapshot],
+  );
+
+  const startFromBeginning = () => {
+    const root = rootRef.current;
+    if (!root) return;
+    const blocks = prepareBlocks(root);
+    const position: AcademyReadingResumePosition = {
+      kind: "reading",
+      contentKey: resume.contentKey,
+      blockKey:
+        blocks[0]?.dataset.academyResumeKey ?? null,
+      blockIndex: blocks.length > 0 ? 0 : null,
+      offsetRatio: 0,
+      progressPct: 0,
+    };
+    suppressScrollRef.current = true;
+    readingDirtyRef.current = false;
+    saveResume(position);
+    setStartedOver(true);
+    setRestored(false);
+    window.scrollTo({
+      top: Math.max(
+        0,
+        root.getBoundingClientRect().top +
+          window.scrollY -
+          96,
+      ),
+      behavior: "auto",
+    });
+    window.requestAnimationFrame(() => {
+      suppressScrollRef.current = false;
+    });
+  };
+
+  const bookmarkActive = initiallySaved && !startedOver;
+  const content = html ? (
+    <div
+      ref={rootRef}
+      className={RICH_CLASS}
+      {...GUARD}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  ) : (
+    <div
+      ref={rootRef}
+      className="academy-lesson max-w-prose select-none space-y-5 text-[1.02rem] leading-8 text-slate-700"
+      {...GUARD}
+    >
+      {paragraphs.map((paragraph, index) => (
+        <p key={index}>{paragraph}</p>
       ))}
     </div>
+  );
+
+  return (
+    <>
+      {resumeEnabled ? (
+        <div
+          className="mb-5 flex min-h-12 flex-wrap items-center justify-between gap-3 rounded-md border border-blue-100 bg-blue-50 px-3 py-2.5"
+          data-testid="academy-reading-bookmark"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="flex items-center gap-2 text-sm text-navy-800">
+            <BookmarkCheck
+              className="h-4 w-4 shrink-0 text-blue-600"
+              aria-hidden="true"
+            />
+            {bookmarkActive
+              ? restored
+                ? "You are back at your saved reading position."
+                : "Your saved reading position will open automatically."
+              : "Your reading position is saved automatically on this account."}
+          </span>
+          {bookmarkActive ? (
+            <button
+              type="button"
+              onClick={startFromBeginning}
+              className="text-xs font-semibold text-navy-700 underline decoration-blue-300 underline-offset-2 hover:text-navy-900"
+            >
+              Start from the beginning
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {content}
+    </>
   );
 }

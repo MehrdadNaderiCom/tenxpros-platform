@@ -120,7 +120,9 @@ describe("narration wiring (source inspection)", () => {
   const lib = readFileSync(join(root, "src/lib/academy/lesson-audio.ts"), "utf8");
 
   it("the lesson page passes the slug so the player reaches the narration API", () => {
-    expect(lessonPage).toContain("<AudioReader slug={m.slug}");
+    expect(lessonPage).toMatch(
+      /<AudioReader[\s\S]*?slug=\{m\.slug\}/u,
+    );
   });
 
   it("the player keeps the engagement telemetry event and plays through a real audio element", () => {

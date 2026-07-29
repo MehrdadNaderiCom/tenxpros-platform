@@ -61,6 +61,9 @@ model User {
 
   // Partner Program: a User may be linked to exactly one Partner record.
   partner Partner?
+
+  // Cross-device reading and narration bookmarks for the Partner Academy.
+  academyLessonResumes AcademyLessonResume[]
 }
 
 enum UserRole {
@@ -1976,6 +1979,7 @@ model Partner {
   academyBadge            PartnerAcademyBadge?
   academyEngagements      AcademyEngagement[]
   academyEvents           AcademyEvent[]
+  academyLessonResumes    AcademyLessonResume[]
   notifications           PartnerNotification[]
   specialDealRequests     SpecialDealRequest[]
   supportTickets          PartnerSupportTicket[]
@@ -2591,8 +2595,50 @@ model AcademyLesson {
   audio            AcademyLessonAudio[]
   narrationAssets  AcademyNarrationAsset[]
   narrationPending AcademyNarrationPending?
+  resumes          AcademyLessonResume[]
 
   @@index([moduleId, order])
+}
+
+/// A durable, cross-device bookmark for one authenticated partner and lesson.
+/// Reading and audio use independent revision lanes so simultaneous saves never
+/// overwrite one another. The User key keeps the bookmark person-specific; the
+/// Partner relation additionally removes it if that partner record is deleted.
+model AcademyLessonResume {
+  id        String        @id @default(cuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partnerId String
+  partner   Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  lessonId  String
+  lesson    AcademyLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  // Reading bookmark: semantic block plus responsive-layout fallbacks.
+  readingContentKey  String?   @db.Char(64)
+  readingBlockKey    String?   @db.VarChar(96)
+  readingBlockIndex  Int?
+  readingOffsetRatio Float?
+  readingProgressPct Float?
+  readingRevision    Int       @default(0)
+  readingClientId    String?   @db.VarChar(36)
+  readingClientSeq   Int       @default(0)
+  readingUpdatedAt   DateTime?
+
+  // Narration bookmark: bound to one immutable audio asset identity.
+  audioResumeKey       String?   @db.Char(64)
+  audioPositionSeconds Float?
+  audioDurationSeconds Float?
+  audioRevision        Int       @default(0)
+  audioClientId        String?   @db.VarChar(36)
+  audioClientSeq       Int       @default(0)
+  audioUpdatedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+  @@unique([partnerId, lessonId])
+  @@index([userId, updatedAt])
 }
 
 /// Server-generated narration for a lesson, one row per curated voice. The
