@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Illustrative Verification Example · TenXPros</title>
+<meta name="description" content="An illustrative example of a TenXPros credential verification page. Not a real credential. Fictional participant; no real personal data." />
+<meta name="robots" content="noindex" />
+<style>
+  :root{
+    --navy:#070B14; --panel:#0B1120; --line:rgba(255,255,255,0.10); --line-soft:rgba(255,255,255,0.06);
+    --ink:#E9EBF4; --ink-soft:#9aa3b8; --ink-faint:#6b7387;
+    --indigo:#818cf8; --indigo-deep:#6366f1; --gold:#C9A961;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--navy);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.55;}
+  .wrap{max-width:640px;margin:0 auto;padding:48px 20px 64px;}
+  .eyebrow{font-family:var(--mono);font-size:0.66rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--indigo);}
+  .banner{margin-top:18px;border:1px solid rgba(201,169,97,0.32);background:rgba(201,169,97,0.06);border-radius:12px;padding:14px 16px;
+    font-size:0.86rem;color:#e7dcc0;}
+  .banner strong{color:var(--gold);}
+  .card{margin-top:22px;border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:22px;box-shadow:0 30px 60px rgba(0,0,0,0.4);}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px;}
+  .brand{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-soft);}
+  .seal{width:16px;height:16px;border-radius:50%;border:1px solid rgba(201,169,97,0.5);display:inline-block;}
+  .tag{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink-faint);
+    border:1px solid var(--line);border-radius:999px;padding:4px 10px;}
+  dl{margin:6px 0 0;padding:0;}
+  .row{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line-soft);padding:12px 0;}
+  .row:last-child{border-bottom:0;}
+  dt{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-faint);margin:0;}
+  dd{margin:0;text-align:right;font-size:0.95rem;font-weight:500;color:var(--ink);}
+  .status{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--gold);border:1px solid rgba(201,169,97,0.4);border-radius:999px;padding:3px 10px;}
+  .disclaimer{margin-top:16px;border-top:1px solid var(--line);padding-top:14px;font-size:0.78rem;line-height:1.6;color:var(--ink-faint);}
+  .back{margin-top:28px;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.14em;text-transform:uppercase;}
+  .back a{color:var(--indigo);text-decoration:none;}
+  .back a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+  <main class="wrap">
+    <p class="eyebrow">Illustrative verification example</p>
+    <div class="banner">
+      <strong>This is an illustrative example.</strong> It is not a real credential and does not
+      verify a real participant. No real personal data is shown.
+    </div>
+
+    <section class="card" aria-label="Illustrative credential verification">
+      <div class="card-head">
+        <span class="brand"><span class="seal" aria-hidden="true"></span>TenXPros verification</span>
+        <span class="tag">Illustrative</span>
+      </div>
+      <dl>
+        <div class="row"><dt>Recipient</dt><dd>Maya R. (fictional)</dd></div>
+        <div class="row"><dt>Credential</dt><dd>Certified TenXPro</dd></div>
+        <div class="row"><dt>Status</dt><dd><span class="status">Illustrative — not a real credential</span></dd></div>
+        <div class="row"><dt>Issue date</dt><dd>Illustrative</dd></div>
+        <div class="row"><dt>Verification code</dt><dd>TENX-SAMPLE-0000</dd></div>
+      </dl>
+      <p class="disclaimer">
+        This is an illustrative example. It is not a real credential and does not verify a real
+        participant. When a credential is earned, verification confirms credential metadata
+        (recipient, status, issue date, code) without exposing the contents of the dossier.
+      </p>
+    </section>
+
+    <p class="back"><a href="/certification">← Back to certification</a></p>
+  </main>
+</body>
+</html>

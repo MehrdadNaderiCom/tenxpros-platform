@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Living AI Solution Dossier — Illustrative Sample Excerpt · TenXPros</title>
+<meta name="description" content="An illustrative sample excerpt of a TenXPros Living AI Solution Dossier. Fictional participant. No real client data. Review labels are illustrative, not a certification decision." />
+<meta name="robots" content="noindex" />
+<style>
+/* =========================================================================
+   TenXPros — Living AI Solution Dossier (Illustrative Sample)
+   Visual system: "The Instrument" — engineered precision, restrained, premium.
+   Near-black / deep navy · cool indigo accent · restrained gold seal motif.
+   Public artifact only. Build-team notes from the source draft are omitted by design.
+   ========================================================================= */
+
+:root{
+  --ink:#16181D;
+  --ink-soft:#454B59;
+  --ink-faint:#767C8C;
+  --line:#E5E7EE;
+  --line-strong:#CBD0DB;
+  --bg:#FFFFFF;
+  --bg-tint:#F6F7FB;
+
+  --navy:#0A0D18;
+  --navy-2:#10152A;
+  --navy-3:#0D1222;
+
+  --indigo:#5664E6;
+  --indigo-deep:#3A47C7;
+  --indigo-tint:#F1F2FD;
+  --indigo-line:#CBD0F7;
+
+  --gold:#C2A057;
+  --gold-deep:#9F8038;
+  --gold-tint:#FAF5E9;
+  --gold-line:#E6D6AC;
+
+  --on-navy:#E9EBF4;
+  --on-navy-soft:#9DA4C2;
+  --on-navy-faint:#5E667F;
+
+  --serif:"Iowan Old Style","Charter","Sorts Mill Goudy","Georgia","Times New Roman",serif;
+  --sans:"Inter","Helvetica Neue","Segoe UI",Roboto,Arial,system-ui,-apple-system,sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,monospace;
+}
+
+*{ box-sizing:border-box; }
+
+html{ -webkit-text-size-adjust:100%; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--serif);
+  font-size:10pt;
+  line-height:1.4;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ---------- Page / sheet model ------------------------------------------ */
+/* Default printed page carries top/bottom margins so flowing content keeps
+   breathing room on every physical page. The cover uses a margin-free named
+   page so its dark field bleeds to the paper edge. */
+@page{ size:A4; margin:14mm 0; }
+@page cover{ size:A4; margin:0; }
+
+.sheet{
+  position:relative;
+  background:var(--bg);
+  padding:0 14mm;
+  width:210mm;
+}
+
+/* Cover + the three overview pages are full-height, self-contained pages. */
+.sheet.cover{ page:cover; min-height:297mm; break-after:page; overflow:hidden; }
+.sheet.a{
+  display:flex; flex-direction:column;
+  min-height:268mm;            /* 297 − 2×14mm page margin, minus a hair */
+  break-before:page;
+  padding:1mm 14mm;
+}
+
+/* Section content flows continuously and packs each page full. Only the first
+   content page starts fresh; the rest continue immediately after it. */
+.sheet.c{ display:block; }
+.sheet.c.first{ break-before:page; }
+.sheet.c .runhead, .sheet.c .runfoot{ display:none; }
+.sheet.c + .sheet.c::before{
+  content:""; display:block; border-top:.8px solid var(--line); margin:9px 0 9px;
+}
+
+/* Pagination control for flowing content */
+.sec-head{ break-after:avoid; break-inside:avoid; }
+.sec{ break-inside:auto; }
+
+/* Recurring motif on every flowing section header */
+.sheet.c .sec-head{ position:relative; }
+.sheet.c .sec-head::after{
+  content:"AI drafts · a human owns the output";
+  position:absolute; top:1px; right:0;
+  font-family:var(--mono); font-size:6pt; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-faint); white-space:nowrap;
+}
+
+/* Screen presentation: anchor pages as cards; flowing content as one column */
+@media screen{
+  body{ background:#23262E; padding:24px 0; }
+  .sheet{ margin:0 auto; }
+  .sheet.cover, .sheet.a{
+    margin-bottom:22px;
+    box-shadow:0 1px 0 rgba(255,255,255,.04), 0 18px 50px rgba(0,0,0,.45);
+  }
+  .sheet.c{
+    box-shadow:22px 0 34px -22px rgba(0,0,0,.5), -22px 0 34px -22px rgba(0,0,0,.5);
+    padding-top:9px; padding-bottom:9px;
+  }
+  .sheet.c.first{ padding-top:20px; box-shadow:22px -14px 30px -22px rgba(0,0,0,.45), -22px -14px 30px -22px rgba(0,0,0,.45); }
+  .sheet.c:last-of-type{ margin-bottom:22px; padding-bottom:24px; box-shadow:0 18px 50px rgba(0,0,0,.45); }
+}
+
+@media print{
+  .sheet{ margin:0; box-shadow:none; width:auto; }
+  .sheet.cover{ min-height:297mm; }
+  /* Prevent single-line orphans/widows at page boundaries (hardening). */
+  p, li, dd, dt, .note, .panel, .block{ orphans:3; widows:3; }
+  h1, h2, h3, .sec-head, thead, .note-head{ break-after:avoid; }
+  /* A lead-in label directly under a section heading must travel with the body
+     it introduces, so a section never begins at the foot of a page with its
+     content stranded overleaf. */
+  .sec-head + p{ break-after:avoid; }
+  .callout-quote{ break-before:avoid; }
+}
+
+/* ---------- Cover-only capture mode (used by the cover PNG generator) ---- */
+@media screen{
+  body.shot{ background:var(--navy); padding:0; }
+  body.shot .sheet{ display:none !important; }
+  body.shot .sheet.cover{
+    display:flex !important;
+    margin:0; box-shadow:none;
+    width:100vw; min-height:100vh;
+  }
+}
+
+/* ---------- Running header / footer (recurring motif) ------------------- */
+.runhead{
+  flex:none;
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:var(--mono); font-size:6.6pt; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink-faint);
+  padding-bottom:5px; margin-bottom:10px;
+  border-bottom:.6px solid var(--line);
+}
+.runhead .motif{ color:var(--indigo-deep); }
+.runfoot{
+  margin-top:auto; padding-top:7px; border-top:.6px solid var(--line);
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-family:var(--mono); font-size:6.4pt; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--ink-faint);
+}
+.runfoot .mid{ color:var(--ink-soft); }
+
+/* ---------- Typography --------------------------------------------------- */
+h1,h2,h3,h4{ font-family:var(--sans); font-weight:650; color:var(--ink); margin:0; }
+.kicker{
+  font-family:var(--mono); font-size:7pt; letter-spacing:.22em;
+  text-transform:uppercase; color:var(--indigo-deep); font-weight:600;
+}
+.kicker.muted{ color:var(--ink-faint); }
+
+.sec-head{ margin:0 0 8px; }
+.sec-head .num{
+  font-family:var(--mono); font-size:7.6pt; letter-spacing:.16em;
+  color:var(--indigo-deep); text-transform:uppercase;
+}
+.sec-head h2{
+  font-size:14pt; line-height:1.14; letter-spacing:-.012em; margin:3px 0 0;
+}
+.sec-head .phase{
+  display:inline-block; margin-top:6px;
+  font-family:var(--mono); font-size:6.6pt; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--indigo-deep); border:.7px solid var(--indigo-line);
+  border-radius:2px; padding:2px 7px; background:var(--indigo-tint);
+}
+
+p{ margin:0 0 5px; }
+strong{ font-weight:700; color:var(--ink); }
+em{ font-style:italic; }
+.lead{ font-size:10.4pt; color:var(--ink-soft); margin-bottom:8px; }
+
+ul.tight{ margin:3px 0 7px; padding-left:16px; }
+ul.tight li{ margin:0 0 3px; }
+ul.tight li::marker{ color:var(--indigo); }
+
+.label{
+  font-family:var(--mono); font-size:7.4pt; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-soft); font-weight:600;
+}
+.divider{ height:.7px; background:var(--line); border:0; margin:11px 0; }
+.divider.strong{ background:var(--line-strong); }
+
+/* ---------- Tables ------------------------------------------------------- */
+table{ width:100%; border-collapse:collapse; margin:6px 0 7px; font-size:8.7pt; }
+caption{ caption-side:top; text-align:left; margin-bottom:5px; }
+thead th{
+  font-family:var(--mono); font-size:6.6pt; letter-spacing:.09em; text-transform:uppercase;
+  font-weight:600; color:var(--ink-soft); text-align:left;
+  padding:5px 8px; border-bottom:1.1px solid var(--ink); white-space:nowrap;
+}
+tbody td{
+  padding:4px 8px; border-bottom:.6px solid var(--line);
+  vertical-align:top; line-height:1.3;
+}
+tbody tr:last-child td{ border-bottom:.7px solid var(--line-strong); }
+td.num, th.num{ text-align:center; white-space:nowrap; }
+.tbl-note{ font-family:var(--sans); font-size:7.4pt; color:var(--ink-faint); margin:-4px 0 12px; }
+.row-primary td{ background:var(--indigo-tint); }
+.row-primary td:first-child{ box-shadow:inset 2.5px 0 0 var(--indigo); }
+.row-gap td{ background:var(--gold-tint); }
+.row-gap td:first-child{ box-shadow:inset 2.5px 0 0 var(--gold); }
+.score-hi{ color:var(--indigo-deep); font-weight:700; }
+.lbl-strong{ color:var(--indigo-deep); font-weight:700; }
+.lbl-mid{ color:var(--ink); font-weight:700; }
+.lbl-gap{ color:var(--gold-deep); font-weight:700; }
+
+/* ---------- Reviewer notes (review is the product) ---------------------- */
+.note{
+  position:relative; margin:7px 0 7px; padding:7px 12px 7px 14px;
+  background:var(--indigo-tint); border:.7px solid var(--indigo-line);
+  border-left:3px solid var(--indigo); border-radius:3px;
+}
+.note .nlabel{
+  font-family:var(--mono); font-size:6.6pt; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--indigo-deep); font-weight:700; display:block; margin-bottom:3px;
+}
+.note p{ margin:0; font-size:9pt; color:var(--ink); line-height:1.42; }
+.note p + p{ margin-top:4px; }
+.note--key{ box-shadow:0 0 0 .7px var(--indigo-line); }
+.note--key .nlabel::before{
+  content:"◆"; margin-right:6px; color:var(--indigo); font-size:6pt; vertical-align:1px;
+}
+.note--gap{
+  background:var(--gold-tint); border-color:var(--gold-line); border-left-color:var(--gold);
+}
+.note--gap .nlabel{ color:var(--gold-deep); }
+.note--map{
+  background:var(--bg-tint); border-color:var(--line-strong); border-left-color:var(--ink-faint);
+}
+.note--map .nlabel{ color:var(--ink-soft); }
+
+/* ---------- Panels / banners / boxes ------------------------------------ */
+.panel{
+  border:1px solid var(--line-strong); border-radius:4px; padding:13px 16px;
+  background:var(--bg-tint);
+}
+.panel .panel-title{ font-family:var(--sans); font-weight:650; font-size:11pt; margin:0 0 9px; }
+.panel ul{ margin:0; padding-left:0; list-style:none; }
+.panel li{ position:relative; padding:7px 0 7px 22px; border-top:.6px solid var(--line); line-height:1.42; }
+.panel li:first-child{ border-top:0; }
+.panel li::before{
+  content:""; position:absolute; left:2px; top:12px;
+  width:7px; height:7px; border:1.4px solid var(--indigo); border-radius:50%;
+}
+
+.banner{
+  display:flex; align-items:center; gap:11px;
+  border:.7px solid var(--indigo-line); background:var(--indigo-tint);
+  border-radius:3px; padding:8px 12px; margin:9px 0;
+}
+.banner .bdot{ width:8px; height:8px; border-radius:50%; background:var(--indigo); flex:none; }
+.banner .btext{ font-family:var(--sans); font-size:9.4pt; color:var(--ink); }
+.banner .btext strong{ color:var(--indigo-deep); }
+
+.certbox{
+  border:1px solid var(--gold-line); border-top:3px solid var(--gold);
+  border-radius:4px; background:linear-gradient(180deg,var(--gold-tint),#fff 70%);
+  padding:13px 16px;
+}
+.certbox .ctitle{ font-family:var(--sans); font-weight:650; font-size:13pt; margin:0; letter-spacing:-.01em; }
+.certbox .cintro{ color:var(--ink-soft); margin:6px 0 10px; }
+.certbox table{ margin-bottom:4px; }
+.certbox tbody td{ border-bottom-color:var(--gold-line); }
+.certbox .ckey{ font-weight:700; color:var(--gold-deep); white-space:nowrap; }
+.certbox .close{ margin:11px 0 0; font-size:10pt; }
+
+.disclaimer{
+  border:.8px solid var(--line-strong); border-radius:4px; background:var(--bg-tint);
+  padding:11px 14px; margin:10px 0;
+}
+.disclaimer .dlabel{
+  font-family:var(--mono); font-size:6.8pt; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--ink-faint); font-weight:600; display:block; margin-bottom:5px;
+}
+.disclaimer p{ margin:0; font-size:9pt; color:var(--ink-soft); line-height:1.5; }
+
+.callout-quote{
+  border-left:2.5px solid var(--indigo-line); padding:2px 0 2px 13px; margin:9px 0 11px;
+  color:var(--ink-soft); font-style:italic;
+}
+.snippet{
+  border:.7px solid var(--line); border-radius:3px; background:var(--bg-tint);
+  padding:9px 12px; margin:8px 0; font-size:8.9pt;
+}
+.snippet .sl{ font-family:var(--mono); font-size:6.6pt; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); }
+.snippet .sio{ color:var(--ink-soft); }
+
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; }
+.block{ break-inside:avoid; }
+.note, .panel, .banner, .certbox, .snippet, .disclaimer, .block, .seal-block, .callout-quote{ break-inside:avoid; }
+/* Tables may flow across pages: keep rows whole, repeat headers, no orphan header */
+table{ break-inside:auto; }
+thead{ break-after:avoid; }
+tr{ break-inside:avoid; }
+tbody tr:first-child{ break-before:avoid; }
+
+/* ---------- Section stack (multiple sections on one sheet) -------------- */
+.stack{ flex:1 0 auto; }
+.stack > .sec + .sec{ margin-top:7px; padding-top:7px; border-top:.7px solid var(--line); }
+
+/* =========================================================================
+   COVER
+   ========================================================================= */
+.cover{
+  background:
+    radial-gradient(120% 80% at 78% 8%, rgba(86,100,230,.16), transparent 55%),
+    radial-gradient(90% 70% at 12% 100%, rgba(86,100,230,.10), transparent 60%),
+    linear-gradient(168deg, var(--navy-2) 0%, var(--navy) 62%, #05070F 100%);
+  color:var(--on-navy);
+  display:flex; flex-direction:column;
+  padding:20mm 19mm 16mm;
+}
+.cover::before{
+  content:""; position:absolute; inset:9mm;
+  border:.8px solid rgba(255,255,255,.10); border-radius:2px; pointer-events:none;
+}
+.cover-top{ display:flex; justify-content:space-between; align-items:flex-start; position:relative; z-index:1; }
+.brandmark{ display:flex; align-items:center; gap:9px; }
+.brandmark .bm-x{
+  font-family:var(--sans); font-weight:700; font-size:13pt; color:var(--on-navy);
+  border:1.2px solid rgba(255,255,255,.32); border-radius:4px; padding:2px 8px; letter-spacing:.02em;
+}
+.brandmark .bm-x b{ color:var(--indigo); font-weight:700; }
+.brandmark .bm-name{ font-family:var(--mono); font-size:7.4pt; letter-spacing:.26em; text-transform:uppercase; color:var(--on-navy-soft); }
+.cover-doctype{ font-family:var(--mono); font-size:6.8pt; letter-spacing:.2em; text-transform:uppercase; color:var(--on-navy-soft); text-align:right; line-height:1.7; }
+
+.cover-mid{ position:relative; z-index:1; margin-top:auto; padding-top:14mm; }
+.cover-kicker{
+  font-family:var(--mono); font-size:7.6pt; letter-spacing:.3em; text-transform:uppercase;
+  color:var(--indigo); font-weight:600; margin-bottom:14px;
+}
+.cover h1{
+  font-family:var(--sans); color:var(--on-navy); font-weight:600;
+  font-size:34pt; line-height:1.04; letter-spacing:-.022em; margin:0;
+}
+.cover h1 .thin{ display:block; font-weight:300; color:var(--on-navy-soft); font-size:18pt; letter-spacing:-.01em; margin-top:10px; }
+.cover-method{
+  margin-top:20px; display:flex; align-items:center; gap:11px; flex-wrap:wrap;
+  font-family:var(--mono); font-size:8.2pt; letter-spacing:.16em; text-transform:uppercase; color:var(--on-navy);
+}
+.cover-method .step{ color:var(--on-navy); }
+.cover-method .sep{ color:var(--indigo); }
+.cover-rule{ height:.8px; background:linear-gradient(90deg, rgba(255,255,255,.30), rgba(255,255,255,0)); margin:20px 0 0; }
+
+.cover-meta{ position:relative; z-index:1; margin-top:14px; display:grid; grid-template-columns:1fr 1fr; gap:5px 26px; }
+.cover-meta .m{ display:flex; gap:9px; align-items:baseline; padding:4px 0; border-top:.6px solid rgba(255,255,255,.09); }
+.cover-meta .mk{ font-family:var(--mono); font-size:6.6pt; letter-spacing:.13em; text-transform:uppercase; color:var(--on-navy-faint); width:30mm; flex:none; }
+.cover-meta .mv{ font-family:var(--sans); font-size:9pt; color:var(--on-navy); }
+
+.cover-bottom{ position:relative; z-index:1; margin-top:16px; display:flex; align-items:flex-end; justify-content:space-between; gap:18px; }
+.cover-disc{
+  font-family:var(--sans); font-size:7.6pt; line-height:1.5; color:var(--on-navy-soft);
+  max-width:118mm; border-left:2px solid rgba(194,160,87,.5); padding-left:11px;
+}
+.cover-disc b{ color:var(--on-navy); font-weight:600; }
+.cover-thread{ font-family:var(--serif); font-style:italic; font-size:8.4pt; color:var(--on-navy-soft); margin-top:9px; }
+
+/* ---------- Seal (restrained gold credential motif) --------------------- */
+/* Seals are self-contained inline SVG (presentation attributes, no CSS fills),
+   so they render identically in the browser and in Chromium's print path. */
+.seal{ width:23mm; height:23mm; flex:none; }
+.seal--sm{ width:18mm; height:18mm; }
+
+/* Seal block beside rubric */
+.seal-block{ display:flex; gap:14px; align-items:center; border:.8px solid var(--gold-line); background:var(--gold-tint); border-radius:4px; padding:12px 15px; margin:10px 0 4px; }
+.seal-block .sb-text .sb-t{ font-family:var(--sans); font-weight:650; font-size:9.6pt; color:var(--ink); }
+.seal-block .sb-text .sb-d{ font-size:8.6pt; color:var(--ink-soft); margin-top:3px; }
+
+.final-verify{ font-family:var(--mono); font-size:6.6pt; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); text-align:center; margin-top:10px; }
+
+a{ color:var(--indigo-deep); text-decoration:none; }
+</style>
+</head>
+<body>
+
+<!-- Seals are inlined at each use site (cover + rubric) for reliable print rendering. -->
+
+<!-- ============================ PAGE 1 · COVER ============================ -->
+<section class="sheet cover">
+  <div class="cover-top">
+    <div class="brandmark">
+      <span class="bm-x">Ten<b>X</b>Pros</span>
+      <span class="bm-name">The Instrument of AI Adoption</span>
+    </div>
+    <div class="cover-doctype">
+      Illustrative Sample<br/>Excerpt · v2<br/>Public Artifact
+    </div>
+  </div>
+
+  <div class="cover-mid">
+    <div class="cover-kicker">Living AI Solution Dossier</div>
+    <h1>Illustrative Sample<br/>Excerpt
+      <span class="thin">The reviewed artifact at the center of the program.</span>
+    </h1>
+    <div class="cover-method">
+      <span class="step">Frame</span><span class="sep">·</span>
+      <span class="step">Design</span><span class="sep">·</span>
+      <span class="step">Prove</span><span class="sep">·</span>
+      <span class="step">Foresee</span>
+    </div>
+    <div class="cover-rule"></div>
+
+    <div class="cover-meta">
+      <div class="m"><span class="mk">Participant</span><span class="mv">Maya R. <em style="color:var(--on-navy-soft);font-style:italic">(fictional)</em></span></div>
+      <div class="m"><span class="mk">Field</span><span class="mv">Professional services / advisory ops</span></div>
+      <div class="m"><span class="mk">Role</span><span class="mv">Senior Client Delivery &amp; Operations Lead</span></div>
+      <div class="m"><span class="mk">Organization</span><span class="mv">Mid-sized advisory firm (anonymized)</span></div>
+      <div class="m"><span class="mk">Dossier status</span><span class="mv">Illustrative — pre-final review stage</span></div>
+      <div class="m"><span class="mk">Method</span><span class="mv">The TenX Method</span></div>
+    </div>
+  </div>
+
+  <div class="cover-bottom">
+    <div>
+      <div class="cover-disc">
+        <b>This is an illustrative sample.</b> It is not a real participant dossier and contains no
+        client-confidential information. “Maya R.” is a fictional persona created to show the structure,
+        depth, and review standard of a TenXPros Living AI Solution Dossier. Names, figures, and examples
+        are invented for demonstration. The review labels are illustrative and are not a certification decision.
+        <div class="cover-thread">You bring the expertise. We bring the AI method. Together, your professional work becomes TenX.</div>
+      </div>
+    </div>
+    <svg class="seal" viewBox="0 0 200 200" aria-label="The TenX Method seal">
+      <defs>
+        <path id="ax-t" d="M 36,100 A 64,64 0 0 1 164,100"/>
+        <path id="ax-b" d="M 38,100 A 62,62 0 0 0 162,100"/>
+      </defs>
+      <circle cx="100" cy="100" r="78" fill="none" stroke="#C2A057" stroke-width="1.4"/>
+      <circle cx="100" cy="100" r="72" fill="none" stroke="#C2A057" stroke-width="0.7"/>
+      <circle cx="100" cy="100" r="50" fill="none" stroke="#C2A057" stroke-width="0.7"/>
+      <text font-family="monospace" font-size="11" letter-spacing="3.2" fill="#CBAA63" text-anchor="middle"><textPath href="#ax-t" startOffset="50%">THE TENX METHOD</textPath></text>
+      <text font-family="monospace" font-size="8" letter-spacing="2" fill="#CBAA63" text-anchor="middle"><textPath href="#ax-b" startOffset="50%">FRAME · DESIGN · PROVE · FORESEE</textPath></text>
+      <text x="100" y="96" font-family="Arial, sans-serif" font-weight="700" font-size="30" letter-spacing="1" fill="#CBAA63" text-anchor="middle">TXP</text>
+      <text x="100" y="118" font-family="monospace" font-size="9" letter-spacing="3" fill="#A8863F" text-anchor="middle">10×</text>
+      <circle cx="100" cy="138" r="1.4" fill="#CBAA63"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ===================== PAGE 2 · WHAT THIS SAMPLE SHOWS ===================== -->
+<section class="sheet a">
+  <div class="runhead"><span>Living AI Solution Dossier — Illustrative Sample</span><span class="motif">AI drafts; a human owns the output</span></div>
+
+  <div class="sec-head">
+    <span class="num">Orientation</span>
+    <h2>What this sample shows</h2>
+  </div>
+  <p class="lead">Five things to hold in mind as you read. This excerpt is built to demonstrate a standard, not to make a claim.</p>
+
+  <div class="panel">
+    <ul>
+      <li><strong>It’s an illustrative sample, not a real participant case.</strong> Maya R. is fictional. Nothing here represents a real person, client, or outcome.</li>
+      <li><strong>It shows the thinking, structure, and evidence we expect.</strong> This is the <em>kind</em> of work a TenXPros dossier contains — judgment made explicit, not notes or a quiz score.</li>
+      <li><strong>It includes reviewer notes, because review is the product.</strong> You’re seeing how work is assessed, not just what it looks like. The credential is earned through that review.</li>
+      <li><strong>It intentionally leaves one evidence gap.</strong> The value case is built but not yet measured — included on purpose, to show exactly where the certification bar sits.</li>
+      <li><strong>A fully certifiable dossier closes that gap with measured pilot evidence.</strong> This sample sits one honest step short of certification, and the final pages show precisely what that step is.</li>
+    </ul>
+  </div>
+
+  <div class="banner">
+    <span class="bdot"></span>
+    <span class="btext">Throughout this dossier, one boundary holds: <strong>AI drafts; a named human reviews and owns every client-facing output.</strong></span>
+  </div>
+
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Orientation</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 3 · EXECUTIVE SNAPSHOT ===================== -->
+<section class="sheet a">
+  <div class="runhead"><span>Living AI Solution Dossier — Illustrative Sample</span><span class="motif">AI drafts; a human owns the output</span></div>
+
+  <div class="sec-head">
+    <span class="num">Executive Snapshot</span>
+    <h2>The case at a glance</h2>
+  </div>
+
+  <div class="two-col">
+    <div class="block">
+      <p><span class="label">Professional context.</span> Maya leads client delivery and operations at a mid-sized advisory firm. She owns the path from first client conversation to signed proposal to the handoff that begins delivery. Three to four engagement teams rely on her to keep that path consistent.</p>
+      <p><span class="label">The problem.</span> Discovery, proposal drafting, and handoff are inconsistent, slow, and dependent on individual memory. Quality varies with who staffs the work. Context captured in discovery is often lost by delivery, forcing teams to re-interview clients.</p>
+      <p><span class="label">Why AI is relevant.</span> The lost value sits in <em>unstructured language work</em> — notes, briefs, draft sections, summaries — where AI drafting genuinely helps. The opportunity is a responsible, human-reviewed workflow, not a system that makes client judgments.</p>
+    </div>
+    <div class="block">
+      <p><span class="label">What AI will do.</span> Draft first-pass discovery summaries from approved notes; assemble proposal sections from a vetted library; produce structured handoff briefs; flag missing information.</p>
+      <p><span class="label">What AI will not do.</span> Decide whether to pursue a client, set pricing, make commitments, or replace judgment on scope and risk. <strong>AI drafts; a named human reviews and owns every client-facing output.</strong></p>
+      <p><span class="label">Expected value (hypothesis, not guarantee).</span> More consistent discovery and proposals; less context lost at handoff; faster drafting; a clearer audit trail. Each must be measured against a baseline before it is treated as proven.</p>
+    </div>
+  </div>
+
+  <div class="banner">
+    <span class="bdot"></span>
+    <span class="btext"><strong>Illustrative review outcome:</strong> a strong draft, certifiable after evidence revision. The design and governance are sound; the one open item is measured pilot evidence (see <em>What would make this fully certifiable?</em>).</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Dimension</th><th>Illustrative label</th></tr></thead>
+    <tbody>
+      <tr><td>Problem definition</td><td class="lbl-strong">Strong</td></tr>
+      <tr><td>Risk &amp; boundaries</td><td class="lbl-strong">Strong</td></tr>
+      <tr><td>Use-case selection</td><td class="lbl-strong">Strong</td></tr>
+      <tr><td>Evaluation rubric &amp; test set</td><td>Solid — quantify thresholds</td></tr>
+      <tr><td>Workflow usability</td><td>Solid — one gap to close</td></tr>
+      <tr class="row-gap"><td><strong>Value evidence</strong></td><td class="lbl-gap">Not yet measured (the intentional gap)</td></tr>
+      <tr><td>Governance &amp; confidentiality</td><td class="lbl-strong">Strong</td></tr>
+      <tr><td>90-day roadmap</td><td>Solid — add numeric gates</td></tr>
+    </tbody>
+  </table>
+
+  <p><span class="label">90-day direction.</span> A narrow, measured pilot on one use case (discovery summary), with a human review gate at every step, before any expansion.</p>
+
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Executive Snapshot</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 4 · DOSSIER AT A GLANCE ===================== -->
+<section class="sheet c first">
+  <div class="runhead"><span>Living AI Solution Dossier — Illustrative Sample</span><span class="motif">AI drafts; a human owns the output</span></div>
+
+  <div class="sec-head">
+    <span class="num">Structure</span>
+    <h2>The dossier at a glance</h2>
+  </div>
+  <p class="lead">A complete Living AI Solution Dossier has <strong>twelve sections</strong>, produced across the four phases of the TenX Method. This excerpt presents the full structure and shows the key sections in depth; lighter sections are summarized to keep the sample readable.</p>
+
+  <table>
+    <thead><tr><th class="num">#</th><th>Section</th><th>Phase</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>Professional Context</td><td>Frame</td></tr>
+      <tr><td class="num">2</td><td>Problem Definition</td><td>Frame</td></tr>
+      <tr><td class="num">3</td><td>AI Suitability Assessment</td><td>Frame</td></tr>
+      <tr><td class="num">4</td><td>Context, Stakeholder &amp; Initial Foresight Analysis</td><td>Frame</td></tr>
+      <tr><td class="num">5</td><td>Data &amp; Evidence Review</td><td>Design</td></tr>
+      <tr><td class="num">6</td><td>Workflow Before / After</td><td>Design</td></tr>
+      <tr><td class="num">7</td><td>Risk, Ethics, Privacy &amp; Compliance Review</td><td>Design</td></tr>
+      <tr><td class="num">8</td><td>Responsible AI Solution Design</td><td>Design</td></tr>
+      <tr><td class="num">9</td><td>Adoption &amp; Communication Plan</td><td>Prove</td></tr>
+      <tr><td class="num">10</td><td>Value, Roadmap &amp; Proof Plan</td><td>Prove</td></tr>
+      <tr><td class="num">11</td><td>Personal AI Foresight Plan</td><td>Foresee</td></tr>
+      <tr><td class="num">12</td><td>Final Recommendation</td><td>Foresee</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note note--map">
+    <span class="nlabel">Mapping note</span>
+    <p>This excerpt follows the canonical twelve-section structure above. In an earlier instructional draft, the use-case portfolio, grounded-knowledge pack, and evaluation rubric appeared as standalone sections; here they sit inside their canonical homes — the use-case portfolio under §4, the knowledge pack under §5, and the rubric and test set under §10 (the proof plan). The content is the same; the labels now match the dossier’s official anatomy.</p>
+  </div>
+
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Structure</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 5 · SECTIONS 1–3 ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Phase · Frame</span><span class="motif">AI drafts; a human owns the output</span></div>
+  <div class="stack">
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 1</span>
+        <h2>Professional Context</h2>
+        <span class="phase">Phase · Frame</span>
+      </div>
+      <p>Maya is accountable for the operational quality of client engagements from first contact to the start of delivery. In practice, three responsibilities sit with her:</p>
+      <ul class="tight">
+        <li><strong>Discovery integrity</strong> — making sure the firm understands a client before proposing work, and that what’s learned is written down usefully.</li>
+        <li><strong>Proposal consistency</strong> — ensuring proposals reflect the firm’s standards and prior experience, not whoever happens to be free.</li>
+        <li><strong>Handoff clarity</strong> — transferring context so delivery starts informed, not from zero.</li>
+      </ul>
+      <p>The work is <strong>language-heavy and judgment-heavy</strong>. Most of what she produces is written, but the value is in knowing what matters, what to ask, and what to leave out. Her constraint isn’t effort; it’s consistency and memory. When she’s involved, quality is high. When she’s not, it varies.</p>
+      <div class="note note--key">
+        <span class="nlabel">Reviewer note — strong</span>
+        <p>Maya separates <strong>language work</strong> (AI-suitable) from <strong>judgment work</strong> (not) before naming a single tool. Weak dossiers describe a job title; strong ones describe the decisions and failure modes inside the work.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 2</span>
+        <h2>Problem Definition</h2>
+        <span class="phase">Phase · Frame</span>
+      </div>
+      <p><span class="label">Problem statement.</span></p>
+      <div class="callout-quote">Across discovery, proposal drafting, and handoff, quality depends on which individual is involved. Knowledge captured early is lost later. The result is rework, inconsistent proposals, and engagements that begin under-informed — a cost the firm absorbs invisibly.</div>
+      <div class="two-col">
+        <div class="block">
+          <p><span class="label">Current pain.</span></p>
+          <ul class="tight">
+            <li>Discovery notes live in personal formats and are rarely reusable.</li>
+            <li>Proposals are rebuilt each time; strong past language isn’t systematically reused.</li>
+            <li>Handoff is often a short verbal summary, so delivery re-interviews clients.</li>
+            <li>The firm can’t easily see <em>why</em> a past proposal was structured as it was.</li>
+          </ul>
+        </div>
+        <div class="block">
+          <p><span class="label">Out of scope (deliberately).</span> Client selection, pricing, and scope decisions; any confidential data entering an un-vetted tool; replacing human review of client-facing work; automating the relationship or the judgment.</p>
+          <p><span class="label">Why it’s worth solving.</span> The cost is recurring and compounding, and it lives in exactly the structured language work a reviewed AI workflow can help — without touching client judgment. Solving it reduces key-person dependency, an operational risk.</p>
+        </div>
+      </div>
+      <p><span class="label">What “good” looks like.</span> Discovery captured in a consistent, reusable structure; proposals that start from vetted components; handoff briefs complete enough to start delivery informed; a human reviewing and owning every client-facing output; a visible trail.</p>
+      <div class="note">
+        <span class="nlabel">Reviewer note — strong, with one fix</span>
+        <p>Clear, bounded problem, and the out-of-scope list does real protective work. <strong>To certify:</strong> at least one dimension of “good” (e.g. context lost at handoff) needs a measurable definition so success can be proven, not asserted.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 3</span>
+        <h2>AI Suitability Assessment</h2>
+        <span class="phase">Phase · Frame</span>
+      </div>
+      <div class="two-col">
+        <div class="block">
+          <p><span class="label">Where AI helps.</span> The bottleneck is repeated, unstructured language work — summarizing notes, assembling sections, producing briefs. Language models are well-suited to <em>first drafts</em> and <em>structured extraction</em> from approved material: the low-judgment, high-volume layer of Maya’s work.</p>
+          <p><span class="label">Where AI should not be trusted.</span> Client judgment (whether to pursue, what to charge, what to promise); factual claims about a client not traceable to an approved source; final client-facing language without review; anything implying a commitment.</p>
+        </div>
+        <div class="block">
+          <p><span class="label">Where human judgment stays.</span> Every client-facing artifact passes through a named, accountable human. <strong>AI produces a draft; a person owns the output.</strong></p>
+          <p><span class="label">Confidentiality &amp; data boundaries.</span> No confidential names or identifiers enter the workflow without redaction; only approved, firm-owned sources are used; sensitive engagements are excluded; the posture is moderate sensitivity, designed for redacted inputs and human verification.</p>
+        </div>
+      </div>
+      <p><span class="label">Suitability judgment.</span> <strong>Suitable, with guardrails.</strong> A strong fit for AI <em>assistance</em> at the drafting layer; a poor fit for AI <em>decision-making</em>. Suitability holds only while human review and data boundaries are enforced.</p>
+      <div class="note note--key">
+        <span class="nlabel">Reviewer note — strong</span>
+        <p>Conditional suitability (“suitable <em>while</em> these guardrails hold”) is more mature than a numeric score, because it names what would invalidate the assessment. <strong>Open question:</strong> name the specific control that stops a confidential name entering the tool — a redaction step, a checklist, or a filter.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Frame · §1–3</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 6 · SECTION 4 ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Phase · Frame</span><span class="motif">AI drafts; a human owns the output</span></div>
+
+  <div class="sec-head">
+    <span class="num">Section 4</span>
+    <h2>Context, Stakeholder &amp; Initial Foresight Analysis</h2>
+    <span class="phase">Phase · Frame</span>
+  </div>
+
+  <p class="label">Who is affected.</p>
+  <table>
+    <thead><tr><th>Stakeholder</th><th>How the problem affects them</th></tr></thead>
+    <tbody>
+      <tr><td>Clients</td><td>Repeated questions; slower starts; uneven experience</td></tr>
+      <tr><td>Delivery teams</td><td>Begin under-informed; absorb rework</td></tr>
+      <tr><td>Partners</td><td>Inconsistent proposal quality reaching review</td></tr>
+      <tr><td>Maya</td><td>A personal bottleneck; quality drops when unavailable</td></tr>
+      <tr><td>The firm</td><td>Invisible cost in time, rework, inconsistency</td></tr>
+    </tbody>
+  </table>
+
+  <p><span class="label">The AI opportunity landscape (use-case portfolio).</span> Maya scored seven candidates on <strong>value</strong>, <strong>risk</strong>, <strong>feasibility</strong>, and <strong>time-to-value</strong> (1–5; 5 = most favorable, i.e. high value, <em>low</em> risk, high feasibility, fast).</p>
+  <table>
+    <thead><tr><th class="num">#</th><th>Use case</th><th class="num">Value</th><th class="num">Risk<br/>(5=low)</th><th class="num">Feas.</th><th class="num">Time-to<br/>-value</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr class="row-primary"><td class="num">1</td><td><strong>Discovery summary from approved notes</strong></td><td class="num score-hi">4</td><td class="num score-hi">4</td><td class="num score-hi">5</td><td class="num score-hi">5</td><td><strong>Primary.</strong> Low risk, high frequency, clear review point</td></tr>
+      <tr><td class="num">2</td><td>Proposal section assembly (vetted library)</td><td class="num">5</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td>High value; needs a curated library first</td></tr>
+      <tr><td class="num">3</td><td>Delivery handoff brief generation</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td>Strong phase two once #1 is reliable</td></tr>
+      <tr><td class="num">4</td><td>Missing-information flagging</td><td class="num">3</td><td class="num">4</td><td class="num">4</td><td class="num">4</td><td>Useful guardrail; pairs with #1</td></tr>
+      <tr><td class="num">5</td><td>Meeting-notes structuring</td><td class="num">3</td><td class="num">4</td><td class="num">5</td><td class="num">5</td><td>Easy, lower standalone value</td></tr>
+      <tr><td class="num">6</td><td>Proposal consistency checklist</td><td class="num">3</td><td class="num">3</td><td class="num">3</td><td class="num">2</td><td>Valuable later; needs a defined standard</td></tr>
+      <tr><td class="num">7</td><td>Past-engagement search</td><td class="num">4</td><td class="num">2</td><td class="num">2</td><td class="num">2</td><td>High value, higher risk; access control. <strong>Deferred</strong></td></tr>
+    </tbody>
+  </table>
+  <p class="tbl-note">Scores are illustrative judgments, not benchmarks. 5 = most favorable on each axis.</p>
+
+  <div class="two-col">
+    <div class="block">
+      <p><span class="label">Primary use case.</span> <strong>#1 — Discovery summary from approved notes.</strong></p>
+      <p><span class="label">Why this first.</span> Highest feasibility, lowest risk, fastest to value, frequent enough to measure quickly, and it produces the structured input later use cases (#3, #4) depend on.</p>
+    </div>
+    <div class="block">
+      <p><span class="label">Initial foresight.</span> If #1 proves reliable, the natural sequence is #4 (flagging) → #3 (handoff briefs) → #2 (proposal assembly). Each step expands only on evidence from the last.</p>
+    </div>
+  </div>
+
+  <div class="note note--key">
+    <span class="nlabel">Reviewer note — strong</span>
+    <p>Correct sequencing. Maya chose the highest-<em>confidence</em> use case over the highest-<em>value</em> one (#2), and deferred the riskiest (#7) on access-control grounds. This prioritization judgment is exactly what the program rewards.</p>
+  </div>
+
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Frame · §4</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 7 · SECTIONS 5–6 ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Phase · Design</span><span class="motif">AI drafts; a human owns the output</span></div>
+  <div class="stack">
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 5</span>
+        <h2>Data &amp; Evidence Review</h2>
+        <span class="phase">Phase · Design</span>
+      </div>
+      <p>The workflow must be <strong>grounded</strong> — it works only from approved material, never from open-ended guesses about a client.</p>
+      <div class="two-col">
+        <div class="block">
+          <p><span class="label">Approved sources.</span> Maya’s discovery notes (redacted of identifiers); the firm’s standard question set; the engagement taxonomy; anonymized structural patterns from past summaries (format, not content).</p>
+          <p><span class="label">Reusable, firm-owned context.</span> The standard discovery template; service-line definitions; an internal glossary so summaries use consistent language.</p>
+          <p><span class="label">Forbidden data (never enters).</span> Confidential names, logos, or identifiers (pre-redaction); pricing, contracts, commercial terms; third-party confidential material; unnecessary personal data.</p>
+        </div>
+        <div class="block">
+          <p><span class="label">Source quality rules.</span></p>
+          <ul class="tight">
+            <li>Every factual statement must trace to an approved source.</li>
+            <li>If a required field has no source, the output marks it <strong>“open question”</strong> — it never invents an answer.</li>
+            <li>Redaction happens <em>before</em> material enters the workflow; a human confirms it.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="snippet">
+        <p style="margin:0 0 5px"><span class="sl">Illustrative snippet — input → grounded output (redacted)</span></p>
+        <p style="margin:0 0 6px"><span class="sl">Input</span> <span class="sio">“[CLIENT], a [SECTOR] org with ~[N] staff. Concern: [ISSUE], handled manually. Wants [OUTCOME] within [TIMEFRAME]. Constraints: limited capacity; a prior rollout stalled.”</span></p>
+        <p style="margin:0"><span class="sl">Output</span> “<strong>Situation:</strong> a mid-sized [SECTOR] organization seeks to improve [PROCESS]. <strong>Goal:</strong> [OUTCOME] within [TIMEFRAME]. <strong>Constraints:</strong> limited capacity; one prior stalled rollout. <strong>Open questions:</strong> budget authority; success metric; appetite for change. <em>(Draft — requires human review.)</em>”</p>
+      </div>
+
+      <div class="note note--key">
+        <span class="nlabel">Reviewer note — strong</span>
+        <p>The rule <em>“if no source, mark as open question, never invent”</em> converts the model’s biggest weakness — confident fabrication — into a visible, reviewable signal. Redaction-before-entry is the correct sequence.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 6</span>
+        <h2>Workflow Before / After</h2>
+        <span class="phase">Phase · Design</span>
+      </div>
+      <div class="two-col" style="gap:13px 18px">
+        <div class="block">
+          <p class="label">Current workflow.</p>
+          <table style="font-size:8.4pt">
+            <thead><tr><th>Step</th><th>Who</th><th>Today</th><th>Failure point</th></tr></thead>
+            <tbody>
+              <tr><td>Discovery call</td><td>Maya / lead</td><td>Personal-format notes</td><td>Inconsistent capture</td></tr>
+              <tr><td>Summary</td><td>Maya</td><td>Written if time allows</td><td>Often skipped</td></tr>
+              <tr><td>Proposal draft</td><td>Whoever staffed</td><td>Rebuilt from memory</td><td>Quality varies</td></tr>
+              <tr><td>Handoff</td><td>Maya → delivery</td><td>Short verbal summary</td><td>Context lost</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="block">
+          <p class="label">AI-assisted workflow (primary use case).</p>
+          <table style="font-size:8.4pt">
+            <thead><tr><th>Step</th><th>Who</th><th>Review checkpoint</th></tr></thead>
+            <tbody>
+              <tr><td>Discovery call</td><td>Maya / lead</td><td>—</td></tr>
+              <tr><td>Redaction</td><td>Lead</td><td><strong>Human confirms redaction</strong></td></tr>
+              <tr><td>Draft summary</td><td>AI</td><td>—</td></tr>
+              <tr><td>Review &amp; approve</td><td>Maya</td><td><strong>Human owns the output</strong></td></tr>
+              <tr><td>Feeds handoff</td><td>Maya → delivery</td><td><strong>Human confirms completeness</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p style="font-size:9.6pt"><span class="label">What is not automated.</span> The discovery conversation, the judgment about what matters, the decision to pursue work, and final approval of any client-facing artifact. The workflow speeds the <em>writing around</em> the judgment, not the judgment.</p>
+      <div class="note">
+        <span class="nlabel">Reviewer note — solid, one gap</span>
+        <p>Checkpoints sit at the right moments. <strong>To certify:</strong> specify <em>who</em> performs the final completeness check when Maya is unavailable — otherwise the key-person dependency quietly returns at handoff.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Design · §5–6</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 8 · SECTIONS 7–8 ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Phase · Design</span><span class="motif">AI drafts; a human owns the output</span></div>
+  <div class="stack">
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 7</span>
+        <h2>Risk, Ethics, Privacy &amp; Compliance Review</h2>
+        <span class="phase">Phase · Design</span>
+      </div>
+      <table>
+        <thead><tr><th>Risk</th><th>Concern</th><th>Mitigation</th></tr></thead>
+        <tbody>
+          <tr><td>Data privacy</td><td>Client data in an un-vetted tool</td><td>Redaction before entry; approved sources only; sensitive work excluded</td></tr>
+          <tr><td>Hallucination</td><td>Invented client facts</td><td>Grounding rule (“open question,” never invented); faithfulness check</td></tr>
+          <tr><td>Over-reliance</td><td>Drafts treated as final</td><td>Outputs labeled “draft — requires review”; human owns every output</td></tr>
+          <tr><td>Confidentiality</td><td>Identifiers leak</td><td>Mandatory redaction-confirm step; test case gates the pilot</td></tr>
+          <tr><td>Bias / inconsistency</td><td>Summaries skew or vary</td><td>Standard template + rubric; periodic spot-checks</td></tr>
+          <tr><td>Accountability</td><td>Unclear ownership</td><td>Named approver per artifact; approval recorded</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:9.6pt"><span class="label">Accountability principle.</span> AI is a drafting assistant. A named person is accountable for every client-facing output, exactly as today. <strong>Accountability does not move to a tool.</strong></p>
+      <div class="note note--key">
+        <span class="nlabel">Reviewer note — strong</span>
+        <p>Governance is designed in, not bolted on. This is where many dossiers overclaim safety; this one names specific, checkable controls instead.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 8</span>
+        <h2>Responsible AI Solution Design</h2>
+        <span class="phase">Phase · Design</span>
+      </div>
+      <p>The designed solution is a <strong>grounded, human-reviewed assistant</strong> built around one recurring task.</p>
+      <div class="two-col">
+        <div class="block">
+          <p><span class="label">Design principles.</span></p>
+          <ul class="tight">
+            <li><strong>Grounded:</strong> the assistant answers only from approved notes and templates; unsourced fields become open questions.</li>
+            <li><strong>Labeled draft:</strong> every output is explicitly a draft, never a final.</li>
+            <li><strong>Reusable interaction pattern:</strong> a fixed structure — capture → redact → draft → review → approve — applied the same way each time, so the team builds a shared habit, not ad-hoc prompting.</li>
+            <li><strong>Human-owned:</strong> a named reviewer approves before anything moves downstream.</li>
+          </ul>
+        </div>
+        <div class="block">
+          <p><span class="label">Failure points the design anticipates.</span> Fabrication (mitigated by grounding); redaction slips (mitigated by a confirm step); over-trust (mitigated by draft labeling); silent drift (mitigated by rubric spot-checks).</p>
+        </div>
+      </div>
+      <div class="note">
+        <span class="nlabel">Reviewer note — solid</span>
+        <p>The reusable capture → redact → draft → review → approve pattern is the difference between a tool and a <em>workflow</em>. <strong>To strengthen:</strong> document the assistant’s instructions as a reusable artifact so a second person could run it identically.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Design · §7–8</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 9 · SECTIONS 9–10 ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Phase · Prove</span><span class="motif">AI drafts; a human owns the output</span></div>
+  <div class="stack">
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 9</span>
+        <h2>Adoption &amp; Communication Plan</h2>
+        <span class="phase">Phase · Prove</span>
+      </div>
+      <p>A workflow only creates value if the teams actually use it — correctly.</p>
+      <ul class="tight">
+        <li><strong>Who leads it.</strong> Maya owns the pilot; one delivery lead acts as a second reviewer so the practice isn’t dependent on her alone.</li>
+        <li><strong>How it’s introduced.</strong> A short working session for the three to four teams: what the assistant does, what it does <em>not</em> do, and the one rule that matters — <em>it’s a draft; you own the output.</em></li>
+        <li><strong>What’s communicated.</strong> The redaction step is mandatory; “open questions” are normal and good; nothing client-facing skips review.</li>
+        <li><strong>How feedback flows.</strong> Reviewers log any weak output against the rubric, so issues are visible and fixable rather than quietly worked around.</li>
+      </ul>
+      <div class="note">
+        <span class="nlabel">Reviewer note — adequate</span>
+        <p>Sensible and lightweight. <strong>To strengthen:</strong> name how adoption itself is observed — e.g. the share of summaries produced through the workflow versus written from scratch.</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 10</span>
+        <h2>Value, Roadmap &amp; Proof Plan</h2>
+        <span class="phase">Phase · Prove</span>
+      </div>
+      <p>This is the heart of the evidence — and the section that shows where certification standards bite.</p>
+
+      <div class="two-col" style="gap:13px 18px">
+        <div class="block">
+          <p class="label">Proof plan — evaluation rubric.</p>
+          <table style="font-size:8.6pt">
+            <thead><tr><th>Criterion</th><th>“Pass” means</th></tr></thead>
+            <tbody>
+              <tr><td>Faithfulness</td><td>Every statement traces to the notes; nothing invented</td></tr>
+              <tr><td>Completeness</td><td>All template fields present, or marked “open question”</td></tr>
+              <tr><td>No fabricated specifics</td><td>No invented facts, names, numbers, or commitments</td></tr>
+              <tr><td>Appropriate uncertainty</td><td>Gaps surfaced honestly</td></tr>
+              <tr><td>Usable structure</td><td>A delivery lead could act on it without rewriting</td></tr>
+              <tr><td>Confidentiality</td><td>No un-redacted identifiers</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="block">
+          <p class="label">Proof plan — test set (5 cases).</p>
+          <table style="font-size:8.2pt">
+            <thead><tr><th class="num">#</th><th>Input</th><th>Expected behavior</th><th class="num">Risk if failed</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td>Clean, complete notes</td><td>Accurate summary, no gaps</td><td class="num">Low</td></tr>
+              <tr><td class="num">2</td><td>Missing budget field</td><td>Marks budget “open question”; no invented figure</td><td class="num lbl-gap">High</td></tr>
+              <tr><td class="num">3</td><td>Client name (redaction missed)</td><td>Flags or omits the identifier</td><td class="num lbl-gap">High</td></tr>
+              <tr><td class="num">4</td><td>Ambiguous / contradictory notes</td><td>Surfaces the contradiction</td><td class="num">Med</td></tr>
+              <tr><td class="num">5</td><td>Sparse notes</td><td>Short summary; flags what’s missing</td><td class="num">Med</td></tr>
+            </tbody>
+          </table>
+          <p class="tbl-note">Cases <strong>2 and 3 must pass every time</strong> before the pilot is trusted; a failure halts expansion.</p>
+        </div>
+      </div>
+
+      <p class="label">Value case — hypotheses, not results.</p>
+      <p style="font-size:9.4pt;margin-top:-2px"><em>No value below is claimed as achieved. Each is a hypothesis with a measurement.</em></p>
+      <table style="font-size:8.8pt">
+        <thead><tr><th>Hypothesis</th><th>How it’s measured</th><th>Honest framing</th></tr></thead>
+        <tbody>
+          <tr><td>Time saved on summaries</td><td>Net time per summary, before vs. during pilot</td><td>Real only after review time is included</td></tr>
+          <tr><td>More consistent proposals</td><td>Rubric-score variance across authors</td><td>Consistency is the goal; speed is secondary</td></tr>
+          <tr><td>Less rework at handoff</td><td>Count of re-interviews / clarifications</td><td>Hardest to attribute; needs a clean baseline</td></tr>
+          <tr><td>Faster handoff</td><td>Days from discovery to informed start</td><td>Confounded by client factors; read cautiously</td></tr>
+          <tr><td>Lower key-person dependency</td><td>Quality when Maya is <em>not</em> involved</td><td>The real prize; slow to observe</td></tr>
+        </tbody>
+      </table>
+
+      <p class="label">90-day roadmap.</p>
+      <table style="font-size:8.6pt">
+        <thead><tr><th>Phase</th><th>Focus</th><th>Success criteria</th><th>Review gate</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Days 1–30</strong></td><td>Baseline &amp; build</td><td>Baselines recorded; passes test cases 2 &amp; 3 in trials</td><td><strong>Gate 1:</strong> no expansion until high-risk cases pass</td></tr>
+          <tr><td><strong>Days 31–60</strong></td><td>Narrow pilot</td><td>≥ agreed pass rate on rubric; zero confidentiality incidents</td><td><strong>Gate 2:</strong> halt on any case-2/3 failure or incident</td></tr>
+          <tr><td><strong>Days 61–90</strong></td><td>Measure &amp; decide</td><td>A measured before/after on ≥1 metric; documented decision</td><td><strong>Gate 3:</strong> expand only if value <em>and</em> safety hold</td></tr>
+        </tbody>
+      </table>
+
+      <div class="note note--gap note--key">
+        <span class="nlabel">Reviewer note — the decisive section</span>
+        <p>The proof plan is well-targeted: the two high-risk test cases protect against the failures that would actually cause harm, and the gates have teeth. <strong>The intentional gap lives here:</strong> there is no baseline yet, so value cannot be <em>shown</em>. As written, this is a strong plan to prove value — not yet proof of value. Closing that is the step from “strong draft” to “certified” (see next page).</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Prove · §9–10</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 10 · SECTIONS 11–12 + CERTIFIABLE ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Phase · Foresee</span><span class="motif">AI drafts; a human owns the output</span></div>
+  <div class="stack">
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 11</span>
+        <h2>Personal AI Foresight Plan</h2>
+        <span class="phase">Phase · Foresee</span>
+      </div>
+      <p>Beyond the first workflow, Maya’s role is to lead how AI enters her function responsibly.</p>
+      <ul class="tight">
+        <li><strong>The strategic aim.</strong> Reduce key-person dependency: make discovery quality a property of the <em>system</em>, not of who is in the room.</li>
+        <li><strong>What she’ll govern.</strong> The redaction discipline, the review standard, and the decision to expand — each tied to evidence, not enthusiasm.</li>
+        <li><strong>What she’s learning to watch.</strong> Over-trust in drafts; quiet drift in quality; any erosion of the “human owns it” boundary.</li>
+        <li><strong>How she’ll decide what’s next.</strong> Expansion to handoff briefs and proposal assembly is considered only after the pilot clears its gates.</li>
+      </ul>
+      <div class="note">
+        <span class="nlabel">Reviewer note — strong direction</span>
+        <p>This reframes the participant from <em>tool user</em> to <em>adoption leader</em> — the program’s actual outcome. <strong>To strengthen:</strong> add one forward indicator she’ll review quarterly (e.g. summary quality on engagements she didn’t touch).</p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Section 12</span>
+        <h2>Final Recommendation</h2>
+        <span class="phase">Phase · Foresee</span>
+      </div>
+      <div class="banner" style="border-color:var(--indigo-line)">
+        <span class="bdot"></span>
+        <span class="btext"><strong>Recommendation: PILOT</strong> — proceed to a narrow, measured pilot, not a full rollout.</span>
+      </div>
+      <div class="two-col">
+        <div class="block">
+          <p><span class="label">Why.</span> The primary use case is high-value, low-risk, frequent, and reviewable. The design turns the model’s main weakness into a visible signal, governance is concrete, and value is measured honestly rather than assumed.</p>
+          <p><span class="label">Conditions.</span> Capture a baseline <em>before</em> any change; high-risk test cases pass before the pilot is trusted; every client-facing output is human-reviewed and owned; any confidentiality incident halts the pilot.</p>
+        </div>
+        <div class="block">
+          <p><span class="label">What stays human-led, permanently.</span> The discovery conversation; the judgment about what matters; client-pursuit, scope, and pricing; and final approval of every client-facing artifact. <strong>The workflow assists the writing around these decisions — it never makes them.</strong></p>
+        </div>
+      </div>
+      <div class="note note--key">
+        <span class="nlabel">Reviewer summary (illustrative)</span>
+        <p>A disciplined, defensible plan with the right first use case and honest economics. <strong>Illustrative review outcome: a strong draft, certifiable after evidence revision</strong> — the work is sound; what remains is measured pilot evidence and a few quantified thresholds. This is a <em>pre-final</em> review state, shown deliberately so you can see where the bar sits. <em>(Illustrative only; not an actual decision.)</em></p>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">The Review Standard</span>
+        <h2 style="font-size:15pt">What would make this fully certifiable?</h2>
+      </div>
+      <div class="certbox">
+        <p class="cintro">This sample sits one honest step short of certification. The step is <strong>evidence</strong>. To move from <em>strong draft</em> to <em>certified</em>, the dossier would add:</p>
+        <table>
+          <thead><tr><th>Item</th><th>What’s needed</th></tr></thead>
+          <tbody>
+            <tr><td class="ckey">Baseline measurement</td><td>Capture each metric (net time, rework, handoff days) <em>before</em> the pilot changes anything.</td></tr>
+            <tr><td class="ckey">Pilot sample size</td><td>A stated number of summaries large enough that a difference isn’t noise (e.g. a defined N across the 30–60 day window).</td></tr>
+            <tr><td class="ckey">Pass-rate threshold</td><td>A named target for the rubric (e.g. high-risk cases 2 &amp; 3 at 100%; cases 1/4/5 at an agreed rate).</td></tr>
+            <tr><td class="ckey">Before/after comparison</td><td>At least one metric measured both before and after, reporting <em>net</em> effect (drafting time saved minus review time added).</td></tr>
+            <tr><td class="ckey">Named handoff owner</td><td>A specific second reviewer who performs the completeness check when Maya is unavailable.</td></tr>
+            <tr><td class="ckey">Quantified review gates</td><td>Each 90-day gate stated as a number, so it’s an objective stop/go — not a judgment call in the moment.</td></tr>
+          </tbody>
+        </table>
+        <p class="close">Close these six, and the same dossier reads as <strong>certified</strong>: strong thinking <em>plus</em> evidence it held up.</p>
+      </div>
+    </div>
+
+  </div>
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Foresee · §11–12</span>
+  </div>
+</section>
+
+<!-- ===================== PAGE 11 · ASSETS MAP + RUBRIC MAPPING + CLOSE ===================== -->
+<section class="sheet c">
+  <div class="runhead"><span>Living AI Solution Dossier — Illustrative Sample</span><span class="motif">AI drafts; a human owns the output</span></div>
+  <div class="stack">
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Reference</span>
+        <h2>Eight Assets Map</h2>
+      </div>
+      <p style="font-size:9.6pt">A Living AI Solution Dossier assembles the eight assets every participant builds. Here is where each appears in this sample, and why it matters professionally.</p>
+      <table style="font-size:8.8pt">
+        <thead><tr><th>Asset</th><th>Where it appears</th><th>Why it matters</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Personal AI Strategy Brief</strong></td><td>§1–3 — where AI adds value, where it’s dangerous</td><td>The judgment layer: deciding where AI belongs before touching a tool</td></tr>
+          <tr><td><strong>AI Use-Case Portfolio</strong></td><td>§4 — seven candidates, ranked</td><td>Prioritizing under value, risk, and feasibility is the core adoption skill</td></tr>
+          <tr><td><strong>Interaction &amp; Decision Kit</strong></td><td>§5 question set + §8 capture → review pattern</td><td>Reusable patterns that make outputs consistent and decisions sharper</td></tr>
+          <tr><td><strong>Grounded Domain Knowledge Pack</strong></td><td>§5 — approved sources, forbidden data, rules</td><td>Makes your expertise safe and reusable for AI</td></tr>
+          <tr><td><strong>AI Evaluation Rubric &amp; Test Set</strong></td><td>§10 — rubric + five test cases</td><td>How you measure quality and catch failure modes; the basis of trust</td></tr>
+          <tr><td><strong>Custom Assistants &amp; AI Workflows</strong></td><td>§6 + §8 — the designed, grounded workflow</td><td>A working tool built around a real, recurring task</td></tr>
+          <tr><td><strong>AI Value &amp; Economics Case</strong></td><td>§10 — hypotheses + measurement plan</td><td>Impact stated in terms a stakeholder will accept</td></tr>
+          <tr><td><strong>Final Portfolio &amp; 90-Day Roadmap</strong></td><td>§10 roadmap + §12 + the dossier as a whole</td><td>The defended artifact and a credible plan for what’s next</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sec">
+      <div class="sec-head">
+        <span class="num">Reference</span>
+        <h2>Rubric Mapping — the TenXPros 8 review criteria</h2>
+      </div>
+      <div class="seal-block">
+        <svg class="seal seal--sm" viewBox="0 0 200 200" aria-label="The TenX Method seal">
+          <defs>
+            <path id="bx-t" d="M 36,100 A 64,64 0 0 1 164,100"/>
+            <path id="bx-b" d="M 38,100 A 62,62 0 0 0 162,100"/>
+          </defs>
+          <circle cx="100" cy="100" r="78" fill="none" stroke="#9F8338" stroke-width="1.4"/>
+          <circle cx="100" cy="100" r="72" fill="none" stroke="#9F8338" stroke-width="0.7"/>
+          <circle cx="100" cy="100" r="50" fill="none" stroke="#9F8338" stroke-width="0.7"/>
+          <text font-family="monospace" font-size="11" letter-spacing="3.2" fill="#9F8338" text-anchor="middle"><textPath href="#bx-t" startOffset="50%">THE TENX METHOD</textPath></text>
+          <text font-family="monospace" font-size="8" letter-spacing="2" fill="#9F8338" text-anchor="middle"><textPath href="#bx-b" startOffset="50%">FRAME · DESIGN · PROVE · FORESEE</textPath></text>
+          <text x="100" y="96" font-family="Arial, sans-serif" font-weight="700" font-size="30" letter-spacing="1" fill="#9F8338" text-anchor="middle">TXP</text>
+          <text x="100" y="118" font-family="monospace" font-size="9" letter-spacing="3" fill="#9F8338" text-anchor="middle">10×</text>
+          <circle cx="100" cy="138" r="1.4" fill="#9F8338"/>
+        </svg>
+        <div class="sb-text">
+          <div class="sb-t">The credential is earned through reviewed evidence — not attendance.</div>
+          <div class="sb-d">How this illustrative dossier maps to the public review standard. Labels are illustrative.</div>
+        </div>
+      </div>
+      <table style="font-size:8.7pt">
+        <thead><tr><th class="num">#</th><th>Criterion</th><th>Label</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="num">1</td><td>The problem is clearly defined</td><td class="lbl-strong">Strong</td><td>Specific, bounded, with stakeholders and explicit out-of-scope lines (§2, §4)</td></tr>
+          <tr><td class="num">2</td><td>Risks and boundaries are explicit</td><td class="lbl-strong">Strong</td><td>Named risks with mitigations; “what AI will not do” stated and held (§3, §7, §12)</td></tr>
+          <tr><td class="num">3</td><td>Use-cases are correctly chosen and prioritized</td><td class="lbl-strong">Strong</td><td>Scored portfolio; highest-confidence use case first; risky retrieval deferred (§4)</td></tr>
+          <tr><td class="num">4</td><td>An evaluation rubric and test set exist</td><td class="lbl-mid">Adequate</td><td>Rubric and five well-targeted test cases present; thresholds and sample size to be quantified (§10)</td></tr>
+          <tr><td class="num">5</td><td>The workflow is genuinely usable</td><td class="lbl-mid">Adequate</td><td>Clear before/after with review gates; one coverage gap — handoff owner when Maya is away (§6)</td></tr>
+          <tr class="row-gap"><td class="num">6</td><td>Value and impact are shown with evidence</td><td class="lbl-gap">Needs revision</td><td>Honest hypotheses and a measurement plan, but no baseline captured yet — the intentional gap (§10)</td></tr>
+          <tr><td class="num">7</td><td>Governance and confidentiality are respected</td><td class="lbl-strong">Strong</td><td>Redaction-before-entry, grounded sources, named accountability, incident-halt rule (§5, §7)</td></tr>
+          <tr><td class="num">8</td><td>The 90-day roadmap is realistic</td><td class="lbl-mid">Adequate</td><td>Phased, gated, cautious; gates need numeric thresholds to be objective (§10)</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:9.4pt"><strong>Overall (illustrative):</strong> strong design and governance; the path to full certification runs through <strong>evidence</strong>. This is precisely the difference between <em>attendance</em> and <em>reviewed work</em> — the dossier is judged on whether the thinking holds up, not on whether the program was finished.</p>
+    </div>
+
+    <div class="disclaimer">
+      <span class="dlabel">Disclaimer</span>
+      <p>This is an illustrative sample created to demonstrate the structure and review standard of a TenXPros Living AI Solution Dossier. “Maya R.” is fictional. No real client, person, organization, or confidential information is represented. Review labels are illustrative and do not constitute a certification decision.</p>
+    </div>
+    <p style="text-align:center;font-style:italic;color:var(--ink-soft);font-size:9.4pt;margin:6px 0 0">The TenX Method: Frame · Design · Prove · Foresee — You bring the expertise. We bring the AI method.</p>
+    <div class="final-verify">TenXPros · tenxpros.com — credential verification applies to issued certifications, not to this illustrative sample</div>
+
+  </div>
+  <div class="runfoot">
+    <span>TenXPros · The TenX Method</span>
+    <span class="mid">Illustrative sample — not a certification decision</span>
+    <span>Reference</span>
+  </div>
+</section>
+
+</body>
+</html>

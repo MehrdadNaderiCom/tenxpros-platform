@@ -1,0 +1,57 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tenxpros_ir
+      POSTGRES_USER: tenxpros_ir
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - tenxpros_ir_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenxpros_ir -d tenxpros_ir"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - tenxpros_ir_private
+
+  web:
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      UPLOAD_DIR: /app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - tenxpros_ir_uploads:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3100/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - tenxpros_ir_private
+      - tenxpros_ir_public
+
+volumes:
+  tenxpros_ir_db:
+  tenxpros_ir_uploads:
+
+networks:
+  tenxpros_ir_private:
+    internal: true
+  tenxpros_ir_public:

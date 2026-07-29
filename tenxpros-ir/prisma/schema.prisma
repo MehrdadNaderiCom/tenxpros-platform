@@ -1,0 +1,563 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
+enum MembershipStatus {
+  INVITED
+  PENDING_PAYMENT
+  ACTIVE
+  SUSPENDED
+  GRADUATED
+  REVOKED
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  PENDING_REVIEW
+  ACCEPTED_AWAITING_PAYMENT
+  PAYMENT_UNDER_REVIEW
+  ACTIVE
+  REJECTED
+  SUSPENDED
+  GRADUATED
+  WITHDRAWN
+}
+
+enum PaymentReceiptStatus {
+  SUBMITTED
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+enum AiExperienceLevel {
+  BEGINNER
+  PRACTICAL
+  ADVANCED
+}
+
+enum WeeklyAvailability {
+  THREE_TO_FIVE
+  FIVE_TO_SEVEN
+  SEVEN_PLUS
+}
+
+enum OfficeHourSlotStatus {
+  OPEN
+  RESERVED
+  BLOCKED
+  CANCELLED
+}
+
+enum OfficeHourBookingStatus {
+  RESERVED
+  ZOOM_PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED_BY_MEMBER
+  CANCELLED_BY_ADMIN
+  NO_SHOW
+  NEEDS_ATTENTION
+}
+
+enum CoachingInquiryStatus {
+  NEW
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  DECLINED
+}
+
+enum WeeklyGatheringStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+enum DiagnosticStatus {
+  IN_PROGRESS
+  SUBMITTED
+  REVIEWED
+}
+
+enum ProgramModuleStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum DossierStatus {
+  DRAFT
+  SUBMITTED
+  CHANGES_REQUESTED
+  APPROVED
+}
+
+enum DossierReviewDecision {
+  APPROVE
+  REQUEST_CHANGES
+}
+
+enum CredentialStatus {
+  ISSUED
+  REVOKED
+}
+
+enum SiteSettingType {
+  STRING
+  INTEGER
+  BOOLEAN
+  JSON
+}
+
+model User {
+  id               String           @id @default(cuid())
+  email            String           @unique @db.VarChar(320)
+  fullName         String           @db.VarChar(200)
+  phone            String?          @db.VarChar(32)
+  role             UserRole         @default(MEMBER)
+  membershipStatus MembershipStatus @default(INVITED)
+  passwordHash     String?
+  accessCodeHash   String?
+  emailVerifiedAt  DateTime?        @db.Timestamptz(3)
+  lastSignedInAt   DateTime?        @db.Timestamptz(3)
+  createdAt        DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime         @updatedAt @db.Timestamptz(3)
+
+  sessions                Session[]
+  emailVerificationTokens EmailVerificationToken[]
+  applications            Application[]                 @relation("ApplicationMember")
+  reviewedApplications    Application[]                 @relation("ApplicationReviewer")
+  submittedReceipts       PaymentReceipt[]              @relation("ReceiptSubmitter")
+  reviewedReceipts        PaymentReceipt[]              @relation("ReceiptReviewer")
+  createdOfficeHourSlots  OfficeHourSlot[]              @relation("OfficeHourSlotCreator")
+  officeHourBookings      OfficeHourBooking[]
+  coachingInquiries       CoachingInquiry[]             @relation("CoachingRequester")
+  managedCoaching         CoachingInquiry[]             @relation("CoachingManager")
+  createdGatherings       WeeklyGathering[]             @relation("GatheringCreator")
+  gatheringRegistrations  WeeklyGatheringRegistration[]
+  updatedSiteSettings     SiteSetting[]                 @relation("SiteSettingUpdater")
+  diagnostic              Diagnostic?                   @relation("DiagnosticMember")
+  reviewedDiagnostics     Diagnostic[]                  @relation("DiagnosticReviewer")
+  programModuleProgress   ProgramModuleProgress[]       @relation("ProgramModuleMember")
+  dossier                 Dossier?                      @relation("DossierMember")
+  dossierReviews          DossierReview[]               @relation("DossierReviewer")
+  credential              Credential?                   @relation("CredentialMember")
+  issuedCredentials       Credential[]                  @relation("CredentialIssuer")
+
+  @@index([role, membershipStatus])
+}
+
+/// One-time, short-lived email verification capabilities. Only the SHA-256
+/// digest is persisted, so a database read does not expose usable links.
+model EmailVerificationToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique @db.Char(64)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime  @db.Timestamptz(3)
+  consumedAt DateTime? @db.Timestamptz(3)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt, consumedAt])
+}
+
+/// A server-side session. Only a one-way hash of the bearer token is persisted.
+model Session {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique @db.Char(64)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime  @db.Timestamptz(3)
+  lastSeenAt DateTime? @db.Timestamptz(3)
+  revokedAt  DateTime? @db.Timestamptz(3)
+  ipHash     String?   @db.Char(64)
+  userAgent  String?   @db.VarChar(512)
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt  DateTime  @updatedAt @db.Timestamptz(3)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+/// A Founding Charter application. Its User is created atomically during Apply
+/// with INVITED membership so the applicant can securely track the review.
+model Application {
+  id                 String             @id @default(cuid())
+  referenceCode      String             @unique @db.VarChar(40)
+  fullName           String             @db.VarChar(200)
+  email              String             @db.VarChar(320)
+  phone              String             @db.VarChar(32)
+  professionalRole   String             @db.VarChar(200)
+  domain             String             @db.VarChar(200)
+  linkedinUrl        String?            @db.VarChar(500)
+  aiExperience       AiExperienceLevel
+  motivation         String             @db.Text
+  realProblem        String             @db.Text
+  weeklyAvailability WeeklyAvailability
+  organization       String?            @db.VarChar(200)
+  experienceYears    Int?
+  challenge          String?            @db.Text
+  goals              String?            @db.Text
+  weeklyCommitment   Int?
+  applicantNote      String?            @db.Text
+  standardPriceToman Int                @default(90000000)
+  offeredPriceToman  Int                @default(60000000)
+  status             ApplicationStatus  @default(SUBMITTED)
+  termsVersion       String             @db.VarChar(40)
+  termsAcceptedAt    DateTime           @db.Timestamptz(3)
+  privacyAcceptedAt  DateTime?          @db.Timestamptz(3)
+  submittedAt        DateTime           @default(now()) @db.Timestamptz(3)
+  reviewedAt         DateTime?          @db.Timestamptz(3)
+  acceptedAt         DateTime?          @db.Timestamptz(3)
+  activatedAt        DateTime?          @db.Timestamptz(3)
+  suspendedAt        DateTime?          @db.Timestamptz(3)
+  graduatedAt        DateTime?          @db.Timestamptz(3)
+  reviewerNote       String?            @db.Text
+  source             String?            @db.VarChar(120)
+  utmSource          String?            @db.VarChar(120)
+  utmMedium          String?            @db.VarChar(120)
+  utmCampaign        String?            @db.VarChar(160)
+  ipHash             String?            @db.Char(64)
+  createdAt          DateTime           @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime           @updatedAt @db.Timestamptz(3)
+
+  userId String
+  user   User   @relation("ApplicationMember", fields: [userId], references: [id], onDelete: Restrict)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  paymentReceipts PaymentReceipt[]
+
+  @@index([email, createdAt])
+  @@index([status, submittedAt])
+  @@index([userId])
+  @@index([reviewedById])
+}
+
+/// Private bank-transfer evidence. storageKey must resolve only through an
+/// authenticated server-side download path, never through a public URL.
+model PaymentReceipt {
+  id             String               @id @default(cuid())
+  applicationId  String
+  application    Application          @relation(fields: [applicationId], references: [id], onDelete: Restrict)
+  amountToman    Int                  @default(60000000)
+  payerName      String               @db.VarChar(200)
+  paidAt         DateTime             @db.Timestamptz(3)
+  bankReference  String               @db.VarChar(100)
+  sourceLastFour String               @db.Char(4)
+  applicantNote  String?              @db.Text
+  storageKey     String               @unique @db.VarChar(500)
+  originalName   String               @db.VarChar(255)
+  mimeType       String               @db.VarChar(100)
+  byteSize       Int
+  sha256         String               @db.Char(64)
+  status         PaymentReceiptStatus @default(SUBMITTED)
+  reviewerNote   String?              @db.Text
+  submittedAt    DateTime             @default(now()) @db.Timestamptz(3)
+  reviewedAt     DateTime?            @db.Timestamptz(3)
+  createdAt      DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime             @updatedAt @db.Timestamptz(3)
+
+  submittedById String?
+  submittedBy   User?   @relation("ReceiptSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("ReceiptReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([applicationId, status])
+  @@index([status, submittedAt])
+  @@index([sha256])
+  @@index([submittedById])
+  @@index([reviewedById])
+}
+
+/// A single 30-minute interval. All instants are persisted as PostgreSQL
+/// timestamptz values and are rendered to administrators in Asia/Tehran.
+model OfficeHourSlot {
+  id          String               @id @default(cuid())
+  startsAt    DateTime             @unique @db.Timestamptz(3)
+  endsAt      DateTime             @db.Timestamptz(3)
+  status      OfficeHourSlotStatus @default(OPEN)
+  note        String?              @db.VarChar(500)
+  createdAt   DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime             @updatedAt @db.Timestamptz(3)
+  createdById String
+  createdBy   User                 @relation("OfficeHourSlotCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  booking     OfficeHourBooking?
+
+  @@index([status, startsAt])
+  @@index([createdById])
+}
+
+model OfficeHourBooking {
+  id                 String                  @id @default(cuid())
+  userId             String
+  user               User                    @relation(fields: [userId], references: [id], onDelete: Restrict)
+  slotId             String                  @unique
+  slot               OfficeHourSlot          @relation(fields: [slotId], references: [id], onDelete: Restrict)
+  iranWeekStartAt    DateTime                @db.Timestamptz(3)
+  status             OfficeHourBookingStatus @default(RESERVED)
+  zoomMeetingId      String?                 @unique @db.VarChar(100)
+  zoomMeetingUuid    String?                 @db.VarChar(200)
+  zoomJoinUrl        String?                 @db.Text
+  zoomCreatedAt      DateTime?               @db.Timestamptz(3)
+  confirmationSentAt DateTime?               @db.Timestamptz(3)
+  cancelledAt        DateTime?               @db.Timestamptz(3)
+  completedAt        DateTime?               @db.Timestamptz(3)
+  lastError          String?                 @db.Text
+  createdAt          DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime                @updatedAt @db.Timestamptz(3)
+
+  /// Enforces one consumed Office Hour entitlement per Iranian week.
+  @@unique([userId, iranWeekStartAt])
+  /// Speeds weekly availability and operational status views.
+  @@index([iranWeekStartAt, status])
+  @@index([userId, status])
+}
+
+/// A request for paid one-to-one coaching. The hourly rate is snapshotted so
+/// historical inquiries keep the price shown when they were submitted.
+model CoachingInquiry {
+  id                String                @id @default(cuid())
+  subject           String                @db.VarChar(200)
+  message           String                @db.Text
+  preferredSchedule String?               @db.VarChar(500)
+  requestedMinutes  Int                   @default(60)
+  hourlyRateToman   Int                   @default(5000000)
+  status            CoachingInquiryStatus @default(NEW)
+  adminNote         String?               @db.Text
+  contactedAt       DateTime?             @db.Timestamptz(3)
+  scheduledAt       DateTime?             @db.Timestamptz(3)
+  completedAt       DateTime?             @db.Timestamptz(3)
+  createdAt         DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime              @updatedAt @db.Timestamptz(3)
+
+  requestedById String
+  requestedBy   User   @relation("CoachingRequester", fields: [requestedById], references: [id], onDelete: Restrict)
+
+  managedById String?
+  managedBy   User?   @relation("CoachingManager", fields: [managedById], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([requestedById, createdAt])
+  @@index([managedById])
+}
+
+/// The weekly 90-minute AI discussion and networking session for active members
+/// and graduates. Eligibility is enforced at registration time.
+model WeeklyGathering {
+  id              String                @id @default(cuid())
+  title           String                @db.VarChar(200)
+  topic           String                @db.VarChar(300)
+  description     String?               @db.Text
+  startsAt        DateTime              @db.Timestamptz(3)
+  endsAt          DateTime              @db.Timestamptz(3)
+  timeZone        String                @default("Asia/Tehran") @db.VarChar(100)
+  status          WeeklyGatheringStatus @default(DRAFT)
+  capacity        Int?
+  zoomMeetingId   String?               @unique @db.VarChar(100)
+  zoomMeetingUuid String?               @db.VarChar(200)
+  zoomJoinUrl     String?               @db.Text
+  publishedAt     DateTime?             @db.Timestamptz(3)
+  cancelledAt     DateTime?             @db.Timestamptz(3)
+  createdAt       DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
+
+  createdById String
+  createdBy   User   @relation("GatheringCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  registrations WeeklyGatheringRegistration[]
+
+  @@index([status, startsAt])
+  @@index([createdById])
+}
+
+model WeeklyGatheringRegistration {
+  id           String    @id @default(cuid())
+  registeredAt DateTime  @default(now()) @db.Timestamptz(3)
+  attendedAt   DateTime? @db.Timestamptz(3)
+  cancelledAt  DateTime? @db.Timestamptz(3)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  gatheringId String
+  gathering   WeeklyGathering @relation(fields: [gatheringId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, gatheringId])
+  @@index([gatheringId, registeredAt])
+  @@index([userId, registeredAt])
+}
+
+/// A member self-assessment reviewed by an administrator before certification.
+model Diagnostic {
+  id              String           @id @default(cuid())
+  status          DiagnosticStatus @default(IN_PROGRESS)
+  strategyScore   Int?
+  workflowScore   Int?
+  dataScore       Int?
+  deliveryScore   Int?
+  governanceScore Int?
+  primaryGoal     String?          @db.Text
+  coreChallenge   String?          @db.Text
+  evidenceContext String?          @db.Text
+  overallScore    Int?
+  submittedAt     DateTime?        @db.Timestamptz(3)
+  reviewedAt      DateTime?        @db.Timestamptz(3)
+  reviewerNote    String?          @db.Text
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(3)
+
+  memberId String @unique
+  member   User   @relation("DiagnosticMember", fields: [memberId], references: [id], onDelete: Restrict)
+
+  reviewedById String?
+  reviewedBy   User?   @relation("DiagnosticReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([status, submittedAt])
+  @@index([reviewedById])
+}
+
+/// A durable completion record for one of the eleven learning modules.
+model ProgramModuleProgress {
+  id           String              @id @default(cuid())
+  moduleNumber Int
+  status       ProgramModuleStatus @default(IN_PROGRESS)
+  reflection   String?             @db.Text
+  evidenceUrl  String?             @db.VarChar(500)
+  startedAt    DateTime            @default(now()) @db.Timestamptz(3)
+  completedAt  DateTime?           @db.Timestamptz(3)
+  createdAt    DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime            @updatedAt @db.Timestamptz(3)
+
+  memberId String
+  member   User   @relation("ProgramModuleMember", fields: [memberId], references: [id], onDelete: Restrict)
+
+  @@unique([memberId, moduleNumber])
+  @@index([memberId, status])
+  @@index([status, completedAt])
+}
+
+/// The member-owned dossier that contains exactly twelve numbered sections.
+model Dossier {
+  id          String        @id @default(cuid())
+  status      DossierStatus @default(DRAFT)
+  submittedAt DateTime?     @db.Timestamptz(3)
+  approvedAt  DateTime?     @db.Timestamptz(3)
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+
+  memberId String @unique
+  member   User   @relation("DossierMember", fields: [memberId], references: [id], onDelete: Restrict)
+
+  sections   DossierSection[]
+  reviews    DossierReview[]
+  credential Credential?
+
+  @@index([status, updatedAt])
+}
+
+model DossierSection {
+  id            String   @id @default(cuid())
+  sectionNumber Int
+  content       String   @default("") @db.Text
+  evidenceUrl   String?  @db.VarChar(500)
+  createdAt     DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @db.Timestamptz(3)
+
+  dossierId String
+  dossier   Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  @@unique([dossierId, sectionNumber])
+  @@index([dossierId, updatedAt])
+}
+
+model DossierReview {
+  id        String                @id @default(cuid())
+  decision  DossierReviewDecision
+  note      String?               @db.Text
+  createdAt DateTime              @default(now()) @db.Timestamptz(3)
+
+  dossierId String
+  dossier   Dossier @relation(fields: [dossierId], references: [id], onDelete: Cascade)
+
+  reviewerId String
+  reviewer   User   @relation("DossierReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+
+  @@index([dossierId, createdAt])
+  @@index([reviewerId, createdAt])
+}
+
+/// A public credential exists only after an administrator issues it.
+model Credential {
+  id                 String           @id @default(cuid())
+  code               String           @unique @db.VarChar(40)
+  recipientName      String           @db.VarChar(200)
+  certificationTitle String           @db.VarChar(200)
+  status             CredentialStatus @default(ISSUED)
+  issuedAt           DateTime         @default(now()) @db.Timestamptz(3)
+  revokedAt          DateTime?        @db.Timestamptz(3)
+  revocationReason   String?          @db.Text
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
+
+  memberId String @unique
+  member   User   @relation("CredentialMember", fields: [memberId], references: [id], onDelete: Restrict)
+
+  dossierId String  @unique
+  dossier   Dossier @relation(fields: [dossierId], references: [id], onDelete: Restrict)
+
+  issuedById String
+  issuedBy   User   @relation("CredentialIssuer", fields: [issuedById], references: [id], onDelete: Restrict)
+
+  @@index([status, issuedAt])
+  @@index([issuedById, issuedAt])
+}
+
+/// Fixed-window counters keyed by a non-reversible hash of the subject.
+model RateLimitBucket {
+  id           String    @id @default(cuid())
+  scope        String    @db.VarChar(100)
+  subjectHash  String    @db.Char(64)
+  windowStart  DateTime  @db.Timestamptz(3)
+  windowEnd    DateTime  @db.Timestamptz(3)
+  hitCount     Int       @default(1)
+  blockedUntil DateTime? @db.Timestamptz(3)
+  createdAt    DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @db.Timestamptz(3)
+
+  @@unique([scope, subjectHash, windowStart])
+  @@index([windowEnd])
+  @@index([blockedUntil])
+}
+
+model SiteSetting {
+  key         String          @id @db.VarChar(160)
+  value       String          @db.Text
+  type        SiteSettingType @default(STRING)
+  isPublic    Boolean         @default(false)
+  description String?         @db.VarChar(500)
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @db.Timestamptz(3)
+
+  updatedById String?
+  updatedBy   User?   @relation("SiteSettingUpdater", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([isPublic])
+  @@index([updatedById])
+}

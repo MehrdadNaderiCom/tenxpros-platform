@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    margin: 0;
+    background: #ffffff;
+    color: #0f172a;
+    font-family: "Vazirmatn Variable", Vazirmatn, Tahoma, sans-serif;
+    font-feature-settings: "ss01";
+    letter-spacing: 0;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    letter-spacing: 0;
+  }
+
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  ::selection {
+    color: #ffffff;
+    background: #554ee8;
+  }
+}
+
+@layer components {
+  .container-shell {
+    width: min(100% - 2rem, 76rem);
+    margin-inline: auto;
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 3px rgba(105, 100, 245, 0.32);
+  }
+
+  .dark-focus-ring {
+    outline: none;
+  }
+
+  .dark-focus-ring:focus-visible {
+    box-shadow:
+      0 0 0 2px #060914,
+      0 0 0 5px rgba(167, 165, 255, 0.7);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
+  }
+
+  .fine-grid {
+    background-size: 34px 34px;
+  }
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+input[type="file"]::file-selector-button {
+  margin-left: 0.75rem;
+  border: 0;
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  color: #ffffff;
+  background: #554ee8;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+[dir="ltr"] {
+  unicode-bidi: isolate;
+}
+
+@media (max-width: 640px) {
+  .container-shell {
+    width: min(100% - 1.25rem, 76rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
