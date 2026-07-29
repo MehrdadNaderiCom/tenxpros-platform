@@ -11,6 +11,7 @@ import {
 } from "../src/lib/academy/resume-contract";
 import {
   academyAudioResumeKey,
+  academyAudioResumeShadowScope,
   academyReadingContentKey,
   isSameOriginAcademyResumeRequest,
 } from "../src/lib/academy/resume-core";
@@ -381,6 +382,30 @@ describe("academy resume server identities and request boundary", () => {
     ).not.toBe(base);
   });
 
+  it("uses an opaque account-and-lesson scope for browser shadow checkpoints", () => {
+    const scope = academyAudioResumeShadowScope({
+      userId: "user-a",
+      partnerId: "partner-a",
+      lessonId: "lesson-a",
+    });
+    expect(scope).toMatch(/^[a-f0-9]{64}$/u);
+    expect(scope).not.toContain("user-a");
+    expect(
+      academyAudioResumeShadowScope({
+        userId: "user-a",
+        partnerId: "partner-a",
+        lessonId: "lesson-a",
+      }),
+    ).toBe(scope);
+    expect(
+      academyAudioResumeShadowScope({
+        userId: "user-b",
+        partnerId: "partner-a",
+        lessonId: "lesson-a",
+      }),
+    ).not.toBe(scope);
+  });
+
   it("accepts same-origin POST metadata across a trusted proxy", () => {
     expect(
       isSameOriginAcademyResumeRequest(
@@ -495,5 +520,30 @@ describe("academy single-voice and resume wiring", () => {
     expect(player).toContain(
       "pendingCheckpoint ??",
     );
+    expect(player).toContain(
+      "!allowAudioSaveRef.current &&",
+    );
+    expect(player).toMatch(
+      /!allowAudioSaveRef\.current\s*&&\s*pendingCheckpoint !== null[\s\S]{0,120}\?\s*pendingCheckpoint/u,
+    );
+  });
+
+  it("reconciles the post-refresh server lane and keeps a synchronous local shadow", () => {
+    expect(player).toContain(
+      'await fetch(resumeEndpoint, {',
+    );
+    expect(player).toContain(
+      "writeAcademyAudioResumeShadow",
+    );
+    expect(player).toContain(
+      "selectFreshestAcademyAudioResume",
+    );
+    expect(player).toContain(
+      "now - lastShadowSaveAtRef.current >= 250",
+    );
+    expect(player).toContain(
+      "RESUME_RECONCILE_TIMEOUT_MS",
+    );
+    expect(player).toContain("serverNow");
   });
 });

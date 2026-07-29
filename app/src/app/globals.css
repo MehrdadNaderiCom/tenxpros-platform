@@ -39,6 +39,56 @@ a {
   color: #1a202c;
 }
 
+/*
+ * Read-along passage marker. The logical start rail is a second, non-color
+ * signal; the warm wash never reduces the original text contrast.
+ */
+.academy-narration-active,
+.academy-lesson .academy-narration-active {
+  position: relative;
+  border-inline-start: 4px solid #b78b2e;
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(248 239 211 / 0.92),
+      rgb(255 251 235 / 0.62)
+    );
+  box-shadow:
+    0 0 0 1px rgb(183 139 46 / 0.16),
+    0 8px 24px rgb(27 43 68 / 0.06);
+  margin-inline: -0.75rem;
+  padding-inline: calc(0.75rem - 4px) 0.75rem;
+  scroll-margin-block: 24vh;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.academy-narration-active[data-narration-state="paused"],
+.academy-lesson
+  .academy-narration-active[data-narration-state="paused"] {
+  border-inline-start-style: dashed;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(248 239 211 / 0.62),
+      rgb(255 251 235 / 0.36)
+    );
+  box-shadow: 0 0 0 1px rgb(183 139 46 / 0.12);
+}
+
+tr.academy-narration-active {
+  outline: 2px solid rgb(183 139 46 / 0.7);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .academy-narration-active {
+    transition: none;
+  }
+}
+
 @media print {
   body {
     background: #fff;

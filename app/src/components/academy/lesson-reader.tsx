@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import { BookmarkCheck } from "lucide-react";
+import { useAcademyFollowAlong } from "@/components/academy/follow-along-context";
 import type { AcademyReadingResumeSnapshot } from "@/lib/academy/resume-server";
 import {
   useAcademyResumeSaver,
@@ -71,6 +72,7 @@ const RICH_CLASS =
 const BLOCK_SELECTOR =
   "h2,h3,h4,p,li,blockquote,tr,img";
 const SAVE_DEBOUNCE_MS = 650;
+const FOLLOW_SCROLL_SETTLE_MS = 180;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -111,6 +113,65 @@ function prepareBlocks(root: HTMLElement): HTMLElement[] {
     block.dataset.academyResumeKey = `${base}:${occurrence}`;
   }
   return blocks;
+}
+
+/**
+ * Resolve the frozen semantic renderer's path against the sanitized lesson
+ * DOM. Each numeric suffix is an nth-of-type index, not a CSS selector. Long
+ * spoken paragraphs may have several #segment cues; all correctly highlight
+ * their one visible paragraph.
+ */
+export function academyNarrationElementForPath(
+  root: HTMLElement,
+  sourceHtmlPath: string,
+): HTMLElement | null {
+  if (sourceHtmlPath === "title") {
+    return document.querySelector<HTMLElement>(
+      "[data-academy-narration-title] h1",
+    );
+  }
+  if (!sourceHtmlPath.startsWith("root/")) return null;
+  const segments = sourceHtmlPath
+    .slice("root/".length)
+    .split("/");
+  let current: HTMLElement = root;
+  for (const rawSegment of segments) {
+    const segment = rawSegment.replace(
+      /#segment\[\d+\]$/u,
+      "",
+    );
+    const match = /^([a-z][a-z0-9-]*)\[(\d+)\]$/u.exec(
+      segment,
+    );
+    if (!match) return null;
+    const [, tagName, ordinalText] = match;
+    const ordinal = Number(ordinalText);
+    if (
+      !Number.isSafeInteger(ordinal) ||
+      ordinal < 1 ||
+      ordinal > 10_000
+    ) {
+      return null;
+    }
+    const matches = Array.from(current.children).filter(
+      (element): element is HTMLElement =>
+        element instanceof HTMLElement &&
+        element.localName === tagName,
+    );
+    const next = matches[ordinal - 1];
+    if (!next) return null;
+    current = next;
+  }
+  return current;
+}
+
+function activePassageNeedsScroll(
+  element: HTMLElement,
+): boolean {
+  const rect = element.getBoundingClientRect();
+  const safeTop = window.innerHeight * 0.18;
+  const safeBottom = window.innerHeight * 0.82;
+  return rect.top < safeTop || rect.bottom > safeBottom;
 }
 
 function viewportReadingLine(): number {
@@ -230,11 +291,27 @@ export function LessonReader({
   resumeEndpoint: string;
   resumeEnabled?: boolean;
 }) {
+  const {
+    activeCue,
+    available: followAlongAvailable,
+    mode: followMode,
+    playing: audioPlaying,
+    reducedMotion,
+    showRequest,
+    suspendFollow,
+  } = useAcademyFollowAlong();
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const activePassageRef = useRef<HTMLElement | null>(null);
   const readyToSaveRef = useRef(false);
   const readingDirtyRef = useRef(false);
   const suppressScrollRef = useRef(false);
   const timerRef = useRef<number | null>(null);
+  const followScrollTimerRef = useRef<number | null>(
+    null,
+  );
+  const followResumeGraceUntilRef = useRef(0);
+  const previousFollowModeRef = useRef(followMode);
+  const previousAudioPlayingRef = useRef(audioPlaying);
   const [startedOver, setStartedOver] = useState(false);
   const [restored, setRestored] = useState(false);
   const initiallySaved = useMemo(
@@ -456,6 +533,222 @@ export function LessonReader({
       suppressScrollRef.current = false;
     });
   };
+
+  const showActivePassage = useCallback(
+    (force: boolean) => {
+      const element = activePassageRef.current;
+      if (
+        !element ||
+        (!force && !activePassageNeedsScroll(element))
+      ) {
+        return;
+      }
+      suppressScrollRef.current = true;
+      element.scrollIntoView({
+        block: "center",
+        inline: "nearest",
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+      if (followScrollTimerRef.current !== null) {
+        window.clearTimeout(
+          followScrollTimerRef.current,
+        );
+      }
+      followScrollTimerRef.current = window.setTimeout(
+        () => {
+          suppressScrollRef.current = false;
+          followScrollTimerRef.current = null;
+        },
+        FOLLOW_SCROLL_SETTLE_MS,
+      );
+    },
+    [reducedMotion],
+  );
+
+  // Keep exactly one semantic passage current. The original heading,
+  // paragraph, list, callout, or table-row semantics remain untouched.
+  useEffect(() => {
+    const previous = activePassageRef.current;
+    if (previous) {
+      previous.classList.remove(
+        "academy-narration-active",
+      );
+      previous.removeAttribute(
+        "data-academy-narration-active",
+      );
+      previous.removeAttribute("data-narration-state");
+      previous.removeAttribute("aria-current");
+    }
+    activePassageRef.current = null;
+    const root = rootRef.current;
+    if (!root || !activeCue) return;
+    const element = academyNarrationElementForPath(
+      root,
+      activeCue.sourceHtmlPath,
+    );
+    if (!element) return;
+    element.classList.add("academy-narration-active");
+    element.dataset.academyNarrationActive = "true";
+    element.dataset.narrationState = audioPlaying
+      ? "playing"
+      : "paused";
+    element.setAttribute("aria-current", "true");
+    activePassageRef.current = element;
+    if (audioPlaying && followMode === "following") {
+      window.requestAnimationFrame(() => {
+        showActivePassage(false);
+      });
+    }
+    return () => {
+      element.classList.remove("academy-narration-active");
+      element.removeAttribute(
+        "data-academy-narration-active",
+      );
+      element.removeAttribute("data-narration-state");
+      element.removeAttribute("aria-current");
+      if (activePassageRef.current === element) {
+        activePassageRef.current = null;
+      }
+    };
+  }, [
+    activeCue,
+    audioPlaying,
+    followMode,
+    showActivePassage,
+  ]);
+
+  useEffect(() => {
+    if (showRequest <= 0) return;
+    window.requestAnimationFrame(() => {
+      showActivePassage(true);
+    });
+  }, [showActivePassage, showRequest]);
+
+  useEffect(() => {
+    if (
+      followMode === "following" &&
+      previousFollowModeRef.current !== "following"
+    ) {
+      // Ignore only the tail of the scroll gesture that caused suspension.
+      // Fresh gestures after this short window still take control immediately.
+      followResumeGraceUntilRef.current =
+        performance.now() + 300;
+    }
+    previousFollowModeRef.current = followMode;
+  }, [followMode]);
+
+  useEffect(() => {
+    if (
+      audioPlaying &&
+      !previousAudioPlayingRef.current
+    ) {
+      // A wheel/touch gesture made just before pressing Play can still emit a
+      // trailing scroll event in WebKit. It must not instantly undo Follow.
+      followResumeGraceUntilRef.current = Math.max(
+        followResumeGraceUntilRef.current,
+        performance.now() + 300,
+      );
+    }
+    previousAudioPlayingRef.current = audioPlaying;
+  }, [audioPlaying]);
+
+  // A deliberate reading gesture always wins over automatic following. The
+  // highlight continues, but no further scroll occurs until the listener asks
+  // to resume from the player.
+  useEffect(() => {
+    if (
+      !followAlongAvailable ||
+      followMode !== "following" ||
+      !audioPlaying
+    ) {
+      return;
+    }
+    const suspend = () => {
+      if (
+        performance.now() <
+        followResumeGraceUntilRef.current
+      ) {
+        return;
+      }
+      suspendFollow();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target =
+        event.target instanceof Element
+          ? event.target
+          : null;
+      if (
+        event.defaultPrevented ||
+        target?.closest(
+          'button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]',
+        )
+      ) {
+        return;
+      }
+      if (
+        [
+          "ArrowDown",
+          "ArrowUp",
+          "End",
+          "Home",
+          "PageDown",
+          "PageUp",
+          " ",
+        ].includes(event.key)
+      ) {
+        suspend();
+      }
+    };
+    const options = { passive: true } as const;
+    const onScroll = () => {
+      if (!suppressScrollRef.current) {
+        suspend();
+        return;
+      }
+      // `scrollIntoView()` has no cross-browser completion promise. Keep
+      // suppression alive until scrolling has actually been quiet, instead of
+      // guessing a fixed animation duration. Wheel/touch/key listeners above
+      // still let a deliberate user gesture take control immediately.
+      if (followScrollTimerRef.current !== null) {
+        window.clearTimeout(
+          followScrollTimerRef.current,
+        );
+      }
+      followScrollTimerRef.current = window.setTimeout(
+        () => {
+          suppressScrollRef.current = false;
+          followScrollTimerRef.current = null;
+        },
+        FOLLOW_SCROLL_SETTLE_MS,
+      );
+    };
+    window.addEventListener("wheel", suspend, options);
+    window.addEventListener("touchmove", suspend, options);
+    window.addEventListener("scroll", onScroll, options);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("wheel", suspend);
+      window.removeEventListener("touchmove", suspend);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [
+    audioPlaying,
+    followAlongAvailable,
+    followMode,
+    suspendFollow,
+  ]);
+
+  useEffect(
+    () => () => {
+      if (followScrollTimerRef.current !== null) {
+        window.clearTimeout(
+          followScrollTimerRef.current,
+        );
+      }
+    },
+    [],
+  );
 
   const bookmarkActive = initiallySaved && !startedOver;
   const content = html ? (

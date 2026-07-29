@@ -4,6 +4,7 @@ import { getModuleForLesson } from "@/lib/academy/queries";
 import { markLessonRead } from "@/lib/actions/academy";
 import { EXERCISE_MAX_ATTEMPTS } from "@/lib/academy/engine";
 import { AudioReader } from "@/components/academy/audio-reader";
+import { AcademyFollowAlongProvider } from "@/components/academy/follow-along-context";
 import { LessonReader } from "@/components/academy/lesson-reader";
 import { TelemetryBeacon } from "@/components/academy/telemetry-beacon";
 import { sanitizeLessonHtml } from "@/lib/academy/lesson-html";
@@ -14,6 +15,7 @@ import { formatUtcDateTime } from "@/lib/utils";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-shell";
 import {
+  academyAudioResumeShadowScope,
   academyReadingContentKey,
   getAcademyLessonResumeSnapshot,
   type AcademyLessonResumeSnapshot,
@@ -74,6 +76,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
             resumeKey: null,
             positionSeconds: null,
             durationSeconds: null,
+            updatedAt: null,
             revision: 0,
           },
         }
@@ -122,10 +125,12 @@ export default async function LessonPage({ params }: { params: { slug: string } 
     <div className="space-y-8">
       <TelemetryBeacon slug={m.slug} disabled={preview} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageHeader
-          title={m.title}
-          description={`${m.isInformational ? "Reference" : `Module ${m.order}`} ${String.fromCharCode(183)} ${m.summary}`}
-        />
+        <div data-academy-narration-title>
+          <PageHeader
+            title={m.title}
+            description={`${m.isInformational ? "Reference" : `Module ${m.order}`} ${String.fromCharCode(183)} ${m.summary}`}
+          />
+        </div>
         <ButtonLink href="/partner/academy" variant="secondary" size="sm">All modules</ButtonLink>
       </div>
 
@@ -174,40 +179,51 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         </Card>
       ) : null}
 
-      {lessonResume ? (
-        <AudioReader
-          key={`audio-${lesson?.id ?? m.id}`}
-          slug={m.slug}
-          title={m.title}
-          resume={lessonResume.audio}
-          resumeEndpoint={resumeEndpoint}
-          resumeEnabled={!preview}
-        />
-      ) : null}
-
-      <Card>
+      <AcademyFollowAlongProvider>
         {lessonResume ? (
-          <LessonReader
-            key={`reading-${lesson?.id ?? m.id}`}
-            paragraphs={paragraphs}
-            html={lessonHtml}
-            resume={lessonResume.reading}
+          <AudioReader
+            key={`audio-${lesson?.id ?? m.id}`}
+            slug={m.slug}
+            title={m.title}
+            resume={lessonResume.audio}
             resumeEndpoint={resumeEndpoint}
+            resumeShadowScope={
+              !preview && lesson
+                ? academyAudioResumeShadowScope({
+                    userId: current.user.id,
+                    partnerId: current.partner.id,
+                    lessonId: lesson.id,
+                  })
+                : null
+            }
             resumeEnabled={!preview}
           />
         ) : null}
-        {!preview && !lessonRead ? (
-          <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
-            <input type="hidden" name="slug" value={m.slug} />
-            <p className="mb-3 text-sm text-slate-600">When you have read the full lesson, mark it complete to open the exercises and the module exam.</p>
-            <Button type="submit">I have read this lesson</Button>
-          </form>
-        ) : lessonRead ? (
-          <p className="mt-6 border-t border-neutral-200 pt-5 text-sm font-medium text-emerald-700">
-            Lesson read.{!m.isInformational && !examPassed ? " Next: work the exercises below, then pass the module exam." : ""}
-          </p>
-        ) : null}
-      </Card>
+
+        <Card>
+          {lessonResume ? (
+            <LessonReader
+              key={`reading-${lesson?.id ?? m.id}`}
+              paragraphs={paragraphs}
+              html={lessonHtml}
+              resume={lessonResume.reading}
+              resumeEndpoint={resumeEndpoint}
+              resumeEnabled={!preview}
+            />
+          ) : null}
+          {!preview && !lessonRead ? (
+            <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
+              <input type="hidden" name="slug" value={m.slug} />
+              <p className="mb-3 text-sm text-slate-600">When you have read the full lesson, mark it complete to open the exercises and the module exam.</p>
+              <Button type="submit">I have read this lesson</Button>
+            </form>
+          ) : lessonRead ? (
+            <p className="mt-6 border-t border-neutral-200 pt-5 text-sm font-medium text-emerald-700">
+              Lesson read.{!m.isInformational && !examPassed ? " Next: work the exercises below, then pass the module exam." : ""}
+            </p>
+          ) : null}
+        </Card>
+      </AcademyFollowAlongProvider>
 
       {m.isInformational ? (
         <Card>

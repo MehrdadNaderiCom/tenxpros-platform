@@ -17,6 +17,7 @@ import {
 
 export {
   academyAudioResumeKey,
+  academyAudioResumeShadowScope,
   academyReadingContentKey,
   isSameOriginAcademyResumeRequest,
 } from "@/lib/academy/resume-core";
@@ -34,6 +35,7 @@ export type AcademyAudioResumeSnapshot = {
   resumeKey: string | null;
   positionSeconds: number | null;
   durationSeconds: number | null;
+  updatedAt: number | null;
   revision: number;
 };
 
@@ -80,6 +82,7 @@ export async function getAcademyLessonResumeSnapshot(input: {
       resumeKey: row?.audioResumeKey ?? null,
       positionSeconds: row?.audioPositionSeconds ?? null,
       durationSeconds: row?.audioDurationSeconds ?? null,
+      updatedAt: row?.audioUpdatedAt?.getTime() ?? null,
       revision: row?.audioRevision ?? 0,
     },
   };

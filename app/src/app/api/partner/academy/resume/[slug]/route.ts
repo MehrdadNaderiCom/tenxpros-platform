@@ -3,6 +3,7 @@ import { requirePartner } from "@/lib/partner/auth";
 import { academyResumePayloadSchema } from "@/lib/academy/resume-contract";
 import {
   academyReadingContentKey,
+  getAcademyLessonResumeSnapshot,
   isSameOriginAcademyResumeRequest,
   resolveAcademyAudioResumeSource,
   resolveAcademyResumeLesson,
@@ -23,6 +24,46 @@ function json(
   return NextResponse.json(body, {
     ...init,
     headers: NO_STORE,
+  });
+}
+
+/**
+ * Reconcile a bookmark after hydration. In particular, this lets a refreshed
+ * document observe the previous page's keepalive write even when its server
+ * render won the race against that write.
+ */
+export async function GET(
+  _request: Request,
+  { params }: { params: { slug: string } },
+) {
+  let current: Awaited<ReturnType<typeof requirePartner>>;
+  try {
+    current = await requirePartner();
+  } catch {
+    return json({ message: "Partner access required." }, { status: 401 });
+  }
+
+  const access = await resolveAcademyResumeLesson(
+    current.partner.id,
+    params.slug,
+  );
+  if (access.state === "missing") {
+    return json({ message: "Lesson not found." }, { status: 404 });
+  }
+  if (access.state === "locked") {
+    return json({ message: "Lesson is locked." }, { status: 403 });
+  }
+
+  const snapshot = await getAcademyLessonResumeSnapshot({
+    userId: current.user.id,
+    partnerId: current.partner.id,
+    lesson: access.lesson,
+  });
+  return json({
+    // Lets the browser compare its synchronous shadow timestamp with the
+    // database timestamp even when the device clock is inaccurate.
+    serverNow: Date.now(),
+    audio: snapshot.audio,
   });
 }
 

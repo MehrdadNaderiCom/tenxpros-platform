@@ -40,6 +40,27 @@ export function academyAudioResumeKey(parts: {
 }
 
 /**
+ * Opaque, stable local-shadow scope. It deliberately contains no raw account
+ * identity, while still separating users and lessons on a shared browser.
+ */
+export function academyAudioResumeShadowScope(input: {
+  userId: string;
+  partnerId: string;
+  lessonId: string;
+}): string {
+  return createHash("sha256")
+    .update(
+      [
+        "tenxpros-academy-audio-shadow-v1",
+        input.userId,
+        input.partnerId,
+        input.lessonId,
+      ].join("\0"),
+    )
+    .digest("hex");
+}
+
+/**
  * Reject cross-site bookmark POSTs even though they only affect the current
  * account. Both Origin and Fetch Metadata are checked without trusting a
  * deployment-specific hard-coded hostname.

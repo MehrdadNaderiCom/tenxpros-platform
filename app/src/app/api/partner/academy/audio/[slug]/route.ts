@@ -9,6 +9,7 @@ import {
 } from "@/lib/academy/narration-release";
 import { DEFAULT_NARRATION_VOICE_ID, NARRATION_VOICES } from "@/lib/academy/voices";
 import { academyAudioResumeKey } from "@/lib/academy/resume-server";
+import { resolveAcademyFollowAlongLesson } from "@/lib/academy/follow-along-server";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,33 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
         bodyHtml: lesson.bodyHtml,
         releaseId: active.release.id,
       });
+    const resumeKey = asset
+      ? academyAudioResumeKey({
+          source: "versioned",
+          assetId: asset.id,
+          identityHash:
+            asset.checksumSha256,
+          voiceId: asset.voiceId,
+        })
+      : null;
+    const alignment =
+      asset?.audioStatus === "CURRENT"
+        ? resolveAcademyFollowAlongLesson({
+            releaseId: asset.releaseId,
+            recipeHash: asset.recipeHash,
+            sourceContentManifestHash:
+              active.release.sourceContentManifestHash,
+            lessonId: asset.lessonId,
+            lessonSlug: asset.lessonSlug,
+            assetChecksumSha256:
+              asset.checksumSha256,
+            contentHash: asset.contentHash,
+            spokenScriptHash:
+              asset.spokenScriptHash,
+            durationSeconds:
+              asset.durationSeconds,
+          })
+        : null;
     return NextResponse.json({
       narration: Boolean(asset),
       audioStatus:
@@ -60,6 +88,20 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
           active.release
             .sourceContentManifestHash,
       },
+      followAlong:
+        alignment && resumeKey
+          ? {
+              resumeKey,
+              trackUrl: `/api/partner/academy/audio/${encodeURIComponent(
+                params.slug,
+              )}/follow-along/${encodeURIComponent(
+                active.release.voiceId,
+              )}`,
+              cueCount: alignment.cueCount,
+              manifestHash:
+                alignment.manifestHash,
+            }
+          : null,
       voices: [
         {
           id: active.release.voiceId,
@@ -73,15 +115,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
             asset?.audioStatus ?? "MISSING",
           durationSeconds:
             asset?.durationSeconds ?? null,
-          resumeKey: asset
-            ? academyAudioResumeKey({
-                source: "versioned",
-                assetId: asset.id,
-                identityHash:
-                  asset.checksumSha256,
-                voiceId: asset.voiceId,
-              })
-            : null,
+          resumeKey,
         },
       ],
     });
@@ -123,6 +157,7 @@ export async function GET(_req: Request, { params }: { params: { slug: string } 
     productionVoiceLocked: false,
     releaseMode: "legacy",
     activeRelease: null,
+    followAlong: null,
     voices,
   });
 }

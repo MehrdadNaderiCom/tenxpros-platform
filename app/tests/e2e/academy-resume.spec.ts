@@ -1,4 +1,6 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   expect,
   test,
@@ -219,35 +221,17 @@ function sha256(input: string | Buffer) {
   return createHash("sha256").update(input).digest("hex");
 }
 
-/** A deterministic 20-second, 8 kHz, mono, 16-bit PCM silent WAV. */
-function silentWav(seconds: number) {
-  const sampleRate = 8_000;
-  const channels = 1;
-  const bitsPerSample = 16;
-  const bytesPerSample = bitsPerSample / 8;
-  const sampleCount = sampleRate * seconds;
-  const dataSize = sampleCount * channels * bytesPerSample;
-  const wav = Buffer.alloc(44 + dataSize);
-
-  wav.write("RIFF", 0, "ascii");
-  wav.writeUInt32LE(36 + dataSize, 4);
-  wav.write("WAVE", 8, "ascii");
-  wav.write("fmt ", 12, "ascii");
-  wav.writeUInt32LE(16, 16);
-  wav.writeUInt16LE(1, 20);
-  wav.writeUInt16LE(channels, 22);
-  wav.writeUInt32LE(sampleRate, 24);
-  wav.writeUInt32LE(sampleRate * channels * bytesPerSample, 28);
-  wav.writeUInt16LE(channels * bytesPerSample, 32);
-  wav.writeUInt16LE(bitsPerSample, 34);
-  wav.write("data", 36, "ascii");
-  wav.writeUInt32LE(dataSize, 40);
-
-  return wav;
-}
-
 const narrationDurationSeconds = 20;
-const narrationBytes = silentWav(narrationDurationSeconds);
+// Production-format fixture: metadata, Range seeking, refresh restoration, and
+// WebKit behavior are exercised against MP3 instead of a test-only WAV.
+const narrationBytes = readFileSync(
+  join(
+    __dirname,
+    "..",
+    "fixtures",
+    "academy-resume-20s.mp3",
+  ),
+);
 
 function appUrl(path: string) {
   return `${baseUrl}${path}`;
@@ -258,6 +242,9 @@ async function openAuthenticatedLesson(
   email: string,
   options?: {
     viewport?: { width: number; height: number };
+    beforeLessonNavigation?: (
+      page: Page,
+    ) => Promise<void>;
   },
 ): Promise<{ context: BrowserContext; page: Page }> {
   const context = await browser.newContext({
@@ -270,6 +257,7 @@ async function openAuthenticatedLesson(
       `/login?callbackUrl=${encodeURIComponent(lessonPath)}`,
     ),
   );
+  await options?.beforeLessonNavigation?.(page);
   await page.locator('input[name="email"]').fill(email);
   await page
     .locator('input[name="password"]')
@@ -529,9 +517,9 @@ test.describe("Partner Academy durable resume", () => {
             visibleLessonContentHash(lessonBodyHtml),
           spokenScriptHash: sha256(lessonAudioText),
           data: narrationBytes,
-          mimeType: "audio/wav",
+          mimeType: "audio/mpeg",
           durationSeconds: narrationDurationSeconds,
-          sampleRate: 8_000,
+          sampleRate: 24_000,
           channels: 1,
           bitrateKbps: 128,
           sizeBytes: narrationBytes.byteLength,
@@ -834,7 +822,531 @@ test.describe("Partner Academy durable resume", () => {
     }
   });
 
-  test("persists real playback on pause and exit without autoplay, and Stop clears while playing", async ({
+  test("restores the exact in-browser audio position across a real refresh race", async ({
+    browser,
+  }) => {
+    const playback = await openAuthenticatedLesson(
+      browser,
+      userA.email,
+    );
+    try {
+      const resumeUrl = appUrl(resumeEndpoint);
+      const delayedResumeWrites: Array<
+        Promise<void>
+      > = [];
+      const delayedResumeStatuses: number[] = [];
+      await playback.page.route(
+        resumeUrl,
+        async (route) => {
+          if (
+            route.request().method() === "POST"
+          ) {
+            // Keep the old page's final write behind the new document's SSR
+            // read. This deterministically recreates the production refresh
+            // race. The browser request is aborted as navigation tears down
+            // the old document, while an authenticated replay commits the
+            // exact payload two seconds later.
+            const postData =
+              route.request().postData() ?? "";
+            delayedResumeWrites.push(
+              (async () => {
+                await new Promise<void>((resolve) =>
+                  setTimeout(resolve, 2_000),
+                );
+                const response =
+                  await playback.context.request.fetch(
+                    resumeUrl,
+                    {
+                      method: "POST",
+                      headers: {
+                        "Content-Type":
+                          "application/json",
+                        Origin: baseUrl,
+                        "Sec-Fetch-Site":
+                          "same-origin",
+                      },
+                      data: postData,
+                    },
+                  );
+                delayedResumeStatuses.push(
+                  response.status(),
+                );
+              })(),
+            );
+            await route.abort("aborted");
+            return;
+          }
+          await route.continue();
+        },
+      );
+
+      const seek = playback.page.getByLabel("Seek", {
+        exact: true,
+      });
+      await expect(seek).toBeVisible();
+      const audio = playback.page.locator("audio");
+      await playback.page
+        .getByRole("button", {
+          name: "Play",
+          exact: true,
+        })
+        .click();
+      await expect
+        .poll(async () =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThanOrEqual(2.5);
+      const beforeRefresh = await audio.evaluate(
+        (element) =>
+          (element as HTMLAudioElement).currentTime,
+      );
+
+      // This is an actual navigation refresh. It neither dispatches pagehide
+      // manually nor waits for the old POST response.
+      await playback.page.reload();
+      await expect(
+        playback.page.locator(".academy-lesson"),
+      ).toBeVisible();
+      const restoredAudio =
+        playback.page.locator("audio");
+      await expect
+        .poll(async () => {
+          const actual = await restoredAudio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          );
+          return Math.abs(actual - beforeRefresh);
+        })
+        .toBeLessThan(1);
+      expect(
+        await restoredAudio.evaluate(
+          (element) => ({
+            paused:
+              (element as HTMLAudioElement).paused,
+            autoplay:
+              (element as HTMLAudioElement).autoplay,
+          }),
+        ),
+      ).toEqual({
+        paused: true,
+        autoplay: false,
+      });
+      await expect(
+        playback.page.getByTestId(
+          "academy-audio-resume",
+        ),
+      ).toBeVisible();
+
+      // Let the intentionally delayed old writes finish before issuing the
+      // explicit reset. The new lane's conflict retry must still make Stop
+      // authoritative and its synchronous shadow must keep refresh at zero.
+      await playback.page.waitForTimeout(2_200);
+      await Promise.all(delayedResumeWrites);
+      expect(delayedResumeStatuses).toContain(200);
+      expect(
+        delayedResumeStatuses.every((status) =>
+          [200, 409].includes(status),
+        ),
+      ).toBe(true);
+      await playback.page.unroute(resumeUrl);
+      await playback.page
+        .getByRole("button", { name: /Stop/u })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await resumeRow(userA.id))
+              ?.audioPositionSeconds ?? -1,
+        )
+        .toBe(0);
+      await playback.page.reload();
+      await expect
+        .poll(async () =>
+          Number(
+            await playback.page
+              .getByLabel("Seek", { exact: true })
+              .inputValue(),
+          ),
+        )
+        .toBe(0);
+    } finally {
+      await playback.context.close();
+    }
+  });
+
+  test("highlights the timed passage, suspends follow on manual scroll, and clears on Stop", async ({
+    browser,
+  }) => {
+    const trackUrl = appUrl(
+      `/api/partner/academy/audio/${moduleSlug}/follow-along/${ACTIVE_ACADEMY_NARRATION_VOICE_ID}`,
+    );
+    const playback = await openAuthenticatedLesson(
+      browser,
+      userA.email,
+      {
+        beforeLessonNavigation: async (page) => {
+          await page.route(
+            appUrl(
+              `/api/partner/academy/audio/${moduleSlug}`,
+            ),
+            async (route) => {
+              const response = await route.fetch();
+              const status = (await response.json()) as {
+                voices: Array<{
+                  resumeKey: string | null;
+                }>;
+              } & Record<string, unknown>;
+              status.followAlong = {
+                resumeKey:
+                  status.voices[0].resumeKey!,
+                trackUrl,
+                cueCount: 4,
+                manifestHash: "f".repeat(64),
+              };
+              await route.fulfill({
+                response,
+                json: status,
+              });
+            },
+          );
+          await page.route(trackUrl, async (route) => {
+            const key = (value: string) =>
+              createHash("sha256")
+                .update(value)
+                .digest("hex");
+            const cue = (
+              blockIndex: number,
+              sourceHtmlPath: string,
+            ) =>
+              JSON.stringify({
+                blockIndex,
+                semanticBlockId: key(
+                  `${namespace}:${blockIndex}`,
+                ),
+                sourceHtmlPath,
+              });
+            await route.fulfill({
+              status: 200,
+              contentType: "text/vtt; charset=utf-8",
+              body: [
+                "WEBVTT",
+                "",
+                "block-0",
+                "00:00:00.000 --> 00:00:02.000",
+                cue(0, "title"),
+                "",
+                "block-1",
+                "00:00:02.000 --> 00:00:05.000",
+                cue(1, "root/p[1]"),
+                "",
+                "block-2",
+                "00:00:05.000 --> 00:00:08.000",
+                cue(2, "root/h2[1]"),
+                "",
+                "block-3",
+                "00:00:08.000 --> 00:00:19.500",
+                cue(3, "root/p[2]"),
+                "",
+              ].join("\n"),
+            });
+          });
+        },
+      },
+    );
+    try {
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+      const audio = playback.page.locator("audio");
+      const active = playback.page.locator(
+        '[data-academy-narration-active="true"]',
+      );
+
+      // Reading before playback has begun must not silently disable the
+      // listener's saved follow preference.
+      await playback.page.mouse.wheel(0, 220);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+
+      // Space on the native Play button is a player operation, not a page
+      // navigation gesture. It must start playback without suspending follow.
+      const play = playback.page.getByRole("button", {
+        name: "Play",
+        exact: true,
+      });
+      await play.focus();
+      await playback.page.keyboard.press("Space");
+      const pause = playback.page.getByRole("button", {
+        name: "Pause",
+        exact: true,
+      });
+      await expect(pause).toBeVisible();
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+      await pause.click();
+      await playback.page
+        .getByLabel("Seek", { exact: true })
+        .fill("1");
+
+      // The synthetic title cue speaks only the H1. The adjacent module
+      // summary must never be included in the visual current-passage marker.
+      await expect(active).toHaveCount(1);
+      await expect(active).toHaveJSProperty(
+        "tagName",
+        "H1",
+      );
+
+      await playback.page
+        .getByRole("button", {
+          name: /^(?:Play|Resume)$/u,
+        })
+        .click();
+      await expect
+        .poll(async () =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan(2.25);
+      await expect(active).toHaveCount(1);
+      await expect(active).toHaveAttribute(
+        "aria-current",
+        "true",
+      );
+      await expect(active).toContainText(
+        "E2E semantic paragraph 01",
+      );
+
+      await playback.page.mouse.wheel(0, 220);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Resume follow",
+        }),
+      ).toBeVisible();
+      await playback.page
+        .getByRole("button", {
+          name: "Resume follow",
+        })
+        .click();
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+
+      // Follow's own long smooth scroll must never be mistaken for a manual
+      // reading gesture, even when native scroll events continue well beyond
+      // a fixed animation timeout.
+      await playback.page.waitForTimeout(350);
+      await playback.page.mouse.wheel(0, 5_000);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Resume follow",
+        }),
+      ).toBeVisible();
+      await playback.page
+        .getByRole("button", {
+          name: "Resume follow",
+        })
+        .click();
+      await playback.page.waitForTimeout(1_300);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+
+      // Reduced-motion uses an instant programmatic scroll, whose scroll event
+      // may still arrive on a later task in both Chromium and WebKit.
+      await playback.page.emulateMedia({
+        reducedMotion: "reduce",
+      });
+      await playback.page.waitForTimeout(350);
+      await playback.page.mouse.wheel(0, 5_000);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Resume follow",
+        }),
+      ).toBeVisible();
+      await playback.page
+        .getByRole("button", {
+          name: "Resume follow",
+        })
+        .click();
+      await playback.page.waitForTimeout(500);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+
+      await playback.page
+        .getByRole("button", {
+          name: "Pause",
+          exact: true,
+        })
+        .click();
+      await expect(active).toHaveAttribute(
+        "data-narration-state",
+        "paused",
+      );
+      await playback.page
+        .getByLabel("Seek", { exact: true })
+        .fill("6");
+      await expect(active).toContainText(
+        SHALLOW_HEADING_TEXT,
+      );
+      await expect(active).toHaveCount(1);
+
+      // A paused refresh restores both the exact media time and its passage
+      // marker without autoplay. Route mocks remain installed across reload.
+      await playback.page.reload();
+      await expect(
+        playback.page.locator(".academy-lesson"),
+      ).toBeVisible();
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Following text",
+        }),
+      ).toBeVisible();
+      const restoredAudio =
+        playback.page.locator("audio");
+      await expect
+        .poll(async () =>
+          Math.abs(
+            (await restoredAudio.evaluate(
+              (element) =>
+                (element as HTMLAudioElement)
+                  .currentTime,
+            )) - 6,
+          ),
+        )
+        .toBeLessThan(0.75);
+      expect(
+        await restoredAudio.evaluate(
+          (element) =>
+            (element as HTMLAudioElement).paused,
+        ),
+      ).toBe(true);
+      await expect(active).toHaveCount(1);
+      await expect(active).toContainText(
+        SHALLOW_HEADING_TEXT,
+      );
+      await expect(active).toHaveAttribute(
+        "data-narration-state",
+        "paused",
+      );
+
+      await playback.page
+        .getByRole("button", { name: /Stop/u })
+        .click();
+      await expect(active).toHaveCount(0);
+    } finally {
+      await playback.context.close();
+    }
+  });
+
+  test("keeps narration usable when timed passage metadata fails validation", async ({
+    browser,
+  }) => {
+    const trackUrl = appUrl(
+      `/api/partner/academy/audio/${moduleSlug}/follow-along/${ACTIVE_ACADEMY_NARRATION_VOICE_ID}`,
+    );
+    const playback = await openAuthenticatedLesson(
+      browser,
+      userA.email,
+      {
+        beforeLessonNavigation: async (page) => {
+          await page.route(
+            appUrl(
+              `/api/partner/academy/audio/${moduleSlug}`,
+            ),
+            async (route) => {
+              const response = await route.fetch();
+              const status = (await response.json()) as {
+                voices: Array<{
+                  resumeKey: string | null;
+                }>;
+              } & Record<string, unknown>;
+              status.followAlong = {
+                resumeKey:
+                  status.voices[0].resumeKey!,
+                trackUrl,
+                cueCount: 2,
+                manifestHash: "e".repeat(64),
+              };
+              await route.fulfill({
+                response,
+                json: status,
+              });
+            },
+          );
+          await page.route(trackUrl, async (route) => {
+            await route.fulfill({
+              status: 500,
+              contentType: "text/plain; charset=utf-8",
+              body: "Synthetic timed-text failure",
+            });
+          });
+        },
+      },
+    );
+    try {
+      const track = playback.page.locator("track");
+      await expect
+        .poll(() =>
+          track.evaluate((element) => ({
+            readyState:
+              (element as HTMLTrackElement).readyState,
+          })),
+        )
+        .toEqual({ readyState: 3 });
+      await expect(
+        playback.page.getByRole("button", {
+          name: /^(?:Following text|Follow audio|Resume follow)$/u,
+        }),
+      ).toHaveCount(0);
+      await expect(
+        playback.page.locator(
+          '[data-academy-narration-active="true"]',
+        ),
+      ).toHaveCount(0);
+
+      const audio = playback.page.locator("audio");
+      await playback.page
+        .getByRole("button", {
+          name: /^(?:Play|Resume)$/u,
+        })
+        .click();
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan(0.25);
+      await playback.page
+        .getByRole("button", { name: /Stop/u })
+        .click();
+    } finally {
+      await playback.context.close();
+    }
+  });
+
+  test("persists real playback on pause and exit without autoplay, while Stop and natural end clear", async ({
     browser,
   }) => {
     let exitPosition = 0;
@@ -1091,6 +1603,39 @@ test.describe("Partner Academy durable resume", () => {
       await expect(
         resumed.page.getByTestId("academy-audio-resume"),
       ).toHaveCount(0);
+
+      await clearedSeek.fill(
+        String(Math.floor(narrationDurationSeconds - 1)),
+      );
+      await resumed.page
+        .getByRole("button", {
+          name: "Resume",
+          exact: true,
+        })
+        .click();
+      await expect
+        .poll(async () =>
+          restoredAudio.evaluate(
+            (element) => ({
+              paused:
+                (element as HTMLAudioElement).paused,
+              currentTime:
+                (element as HTMLAudioElement)
+                  .currentTime,
+            }),
+          ),
+        )
+        .toEqual({
+          paused: true,
+          currentTime: 0,
+        });
+      await expect
+        .poll(
+          async () =>
+            (await resumeRow(userA.id))
+              ?.audioPositionSeconds ?? -1,
+        )
+        .toBe(0);
 
       const origin = new URL(resumed.page.url()).origin;
       const crossSite =
