@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { PageHeader, EmptyState } from "@/components/shared/page-shell";
 import { Bar, StackedBar, Ring } from "@/components/admin/dashboard-ui";
+import { academyNarrationAttention } from "@/lib/academy/narration-release";
 
 export const dynamic = "force-dynamic";
 
@@ -131,6 +132,10 @@ export default async function AdminDashboardPage() {
       select: { id: true, activationItems: { select: { completed: true } } },
     }),
   ]);
+  const academyAudio =
+    await academyNarrationAttention();
+  const academyAudioAttention =
+    academyAudio.attention.length;
 
   const qActivation = partnersAwaitingGate.filter(
     (p) => p.activationItems.length > 0 && p.activationItems.every((i) => i.completed),
@@ -166,6 +171,13 @@ export default async function AdminDashboardPage() {
 
   // ---- Action center ----
   const QUEUES: { label: string; count: number; href: string; weight: number; sev: Sev }[] = [
+    {
+      label: `Academy audio requires attention: ${academyAudioAttention} lessons changed after audio generation.`,
+      count: academyAudioAttention,
+      href: "/admin/academy/content",
+      weight: 95,
+      sev: "amber",
+    },
     { label: "Payment recovery", count: qPayRecovery, href: "/admin/payments", weight: 100, sev: "red" },
     { label: "Support tickets", count: qTickets, href: "/admin/tickets", weight: 90, sev: "amber" },
     { label: "Applications to review", count: qAppReview, href: "/admin/applications", weight: 80, sev: "amber" },

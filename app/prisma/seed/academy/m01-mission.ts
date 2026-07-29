@@ -88,11 +88,11 @@ export const m01: ModuleSeed = {
     <tr><th>Objection</th><th>How to answer</th></tr>
   </thead>
   <tbody>
-    <tr><td>I already use AI every day, why would I need this.</td><td>Using AI and leading its adoption are different skills, and the program builds the second. Daily use is the starting point, not the finish line.</td></tr>
-    <tr><td>Is this just another prompt course.</td><td>No. A tools course teaches the interface. This turns your own expertise into reviewed evidence, judged against a public standard.</td></tr>
-    <tr><td>Can you guarantee I pass.</td><td>No, and I would not trust anyone who did. The credential is earned through a reviewed dossier. If the work meets the bar it is awarded, and if it does not you get specific revisions back.</td></tr>
-    <tr><td>Is this an accredited degree.</td><td>No. It is a reviewed, defensible professional credential built on real work, not a university degree or an accredited academic qualification.</td></tr>
-    <tr><td>Will this get me a better job.</td><td>I cannot promise an outcome I do not control. What I can say is that it gives you a body of evidence you can defend, which is something a certificate of attendance never does.</td></tr>
+    <tr><td>I already use AI every day. Why would I need this?</td><td>Using AI and leading its adoption are different skills, and the program builds the second. Daily use is the starting point, not the finish line.</td></tr>
+    <tr><td>Is this just another prompt course?</td><td>No. A tools course teaches the interface. This turns your own expertise into reviewed evidence, judged against a public standard.</td></tr>
+    <tr><td>Can you guarantee I pass?</td><td>No, and I would not trust anyone who did. The credential is earned through a reviewed dossier. If the work meets the bar it is awarded, and if it does not you get specific revisions back.</td></tr>
+    <tr><td>Is this an accredited degree?</td><td>No. It is a reviewed, defensible professional credential built on real work, not a university degree or an accredited academic qualification.</td></tr>
+    <tr><td>Will this get me a better job?</td><td>I cannot promise an outcome I do not control. What I can say is that it gives you a body of evidence you can defend, which is something a certificate of attendance never does.</td></tr>
   </tbody>
 </table>
 

@@ -73,7 +73,7 @@ export const m06: ModuleSeed = {
 </table>
 
 <h2>The progress view</h2>
-<p>The Partner Panel and the participant's own dashboard show a progress state at every moment: accepted member before week one, then the phase rank they have reached, then dossier candidate once they submit, and finally one of the three review outcomes. Check it before you describe where someone is, because it lets you speak from the record rather than rounding up. If the view says a participant is working through Design, that is what you say, not certified.</p>
+<p>The Partner Panel and the participant's own dashboard show a progress state at every moment: accepted member before week one, then the phase rank they have reached, then dossier candidate once they submit, and finally one of the three review outcomes. Check it before you describe someone's status, because it lets you use the recorded status rather than overstate it. If the view says a participant is working through Design, that is what you say, not certified.</p>
 
 <h2>Talking points</h2>
 <ul>

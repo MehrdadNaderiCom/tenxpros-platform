@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/authz";
 import { sanitizeLessonHtml, htmlToPlainText } from "@/lib/academy/lesson-html";
-import { ensureLessonAudio } from "@/lib/academy/lesson-audio";
+import { visibleLessonContentHash } from "@/lib/academy/narration-release";
 
 /**
  * Save a superadmin edit to a Partner Academy lesson. Sanitizes the HTML, writes
@@ -54,12 +54,22 @@ export async function saveLessonContent(formData: FormData) {
         editedByEmail: admin.email,
       },
     });
+    await tx.academyNarrationPending.upsert({
+      where: { lessonId },
+      create: {
+        lessonId,
+        currentContentHash:
+          visibleLessonContentHash(bodyHtml),
+        status: "PENDING",
+      },
+      update: {
+        currentContentHash:
+          visibleLessonContentHash(bodyHtml),
+        status: "PENDING",
+      },
+    });
     return mod;
   });
-
-  // Regenerate the lesson narration for the new text in the background, so
-  // the audio a partner hears never lags behind an edited lesson.
-  ensureLessonAudio(lessonId, audioText);
 
   // Notify partners who have any progress on this module.
   const progress = await prisma.academyProgress.findMany({

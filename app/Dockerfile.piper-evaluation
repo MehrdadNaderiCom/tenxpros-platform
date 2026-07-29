@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1.7
+#
+# Local-only, zero-cost Piper evaluation image. This image is intentionally
+# separate from the production Dockerfile and must never be deployed.
+
+FROM tenxpros-tenxpros-app:latest
+
+USER root
+
+RUN apt-get update -qq \
+ && apt-get install -y -qq --no-install-recommends ffmpeg \
+ && rm -rf /var/lib/apt/lists/* \
+ && test -x /opt/piper/piper \
+ && test -x /usr/bin/lame \
+ && test -x /usr/bin/ffmpeg \
+ && test -x /usr/bin/ffprobe \
+ && /usr/bin/ffmpeg -hide_banner -filters 2>/dev/null | grep -qE '[[:space:]]loudnorm[[:space:]]' \
+ && /usr/bin/ffmpeg -hide_banner -filters 2>/dev/null | grep -qE '[[:space:]]ebur128[[:space:]]'
+
+COPY --chown=node:node scripts/piper-evaluation-runtime.cjs /app/scripts/piper-evaluation-runtime.cjs
+
+RUN chmod 0555 /app/scripts/piper-evaluation-runtime.cjs
+
+WORKDIR /app
+USER node
+
+ENTRYPOINT ["node", "/app/scripts/piper-evaluation-runtime.cjs"]
+CMD ["--help"]

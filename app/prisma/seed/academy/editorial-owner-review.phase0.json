@@ -1,0 +1,157 @@
+{
+  "schemaVersion": "1",
+  "contentRevisionVersion": "academy-visible-en-2026-07-26.v1",
+  "policy": "These proposals were not applied. They involve wording whose structure could affect commercial, assessment, governance, consent, or confidentiality meaning.",
+  "items": [
+    {
+      "id": "P0-REVIEW-M01-001",
+      "lessonSlug": "mission",
+      "contentLocation": "bodyHtml > h2[How this Academy works] + p",
+      "category": "assessment",
+      "retainedText": "The Academy is 14 numbered modules, plus a few open reference pages that are never gated, and every numbered module is completed the same three step way:",
+      "proposedRevision": "The Academy has 14 numbered modules, plus a few open reference pages that are never gated. Every numbered module is completed through the same three-step process:",
+      "reason": "The alternative is clearer, but this sentence defines the Academy completion structure.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M02-001",
+      "lessonSlug": "identity",
+      "contentLocation": "bodyHtml > h3[The four-question field test] + p",
+      "category": "governance",
+      "retainedText": "Before you say a sentence to a prospect, run it through four questions. Is it true. Can I back it up. Does it promise an outcome I cannot control. Does it route money or data the wrong way.",
+      "proposedRevision": "Before you say a sentence to a prospect, run it through four questions: Is it true? Can I back it up? Does it promise an outcome I cannot control? Does it route money or data the wrong way?",
+      "reason": "Only punctuation changes, but the text defines a compliance test.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M02-002",
+      "lessonSlug": "identity",
+      "contentLocation": "bodyHtml > ul.checklist",
+      "category": "governance",
+      "retainedText": "If a sentence is not true, not backable, or routes money or data wrongly, I do not say it.",
+      "proposedRevision": "If a sentence is not true, cannot be backed up, or routes money or data the wrong way, I do not say it.",
+      "reason": "The alternative is more natural, but it restates a core compliance test.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M03-002",
+      "lessonSlug": "rules",
+      "contentLocation": "bodyHtml > h2[What you will be able to do] > ul",
+      "category": "commercial policy",
+      "retainedText": "The paid functions: basic introduction, origination, closing, and delivery or coaching.",
+      "proposedRevision": "The five paid functions: basic introduction, qualified origination, strong origination, closing, and delivery or coaching.",
+      "reason": "The alternative appears more consistent with the later rate table, but changes commission taxonomy.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M03-003",
+      "lessonSlug": "rules",
+      "contentLocation": "bodyHtml > table[Common questions]",
+      "category": "commercial policy",
+      "retainedText": "Someone at the company said yes over chat, so I am covered, right.\nCan you give me a discount to close today.\nIf I buy seats for the whole group, is the parent company covered too.\nWhen do I get paid.\nIf a seat is refunded after I am paid, do I keep the commission.",
+      "proposedRevision": "Someone at the company said yes over chat, so I am covered, right?\nCan you give me a discount to close today?\nIf I buy seats for the whole group, is the parent company covered too?\nWhen do I get paid?\nIf a seat is refunded after I am paid, do I keep the commission?",
+      "reason": "The punctuation is clearer for reading and narration, but the cells introduce legal and commission answers.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M04-001",
+      "lessonSlug": "product",
+      "contentLocation": "bodyHtml > h3[The multiplier] + p",
+      "category": "core framework",
+      "retainedText": "Ten times zero is still zero, so the input has to be real. A beginner with no field is a zero: there is nothing to multiply.",
+      "proposedRevision": "Ten times zero is still zero, so the input has to be real. Without existing field expertise, there is nothing for the method to multiply yet.",
+      "reason": "The proposal avoids describing a person as zero, but it changes a core TenXPros framework explanation.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M07-001",
+      "lessonSlug": "coach",
+      "contentLocation": "bodyHtml > h2[What you will be able to do] > ul",
+      "category": "core framework",
+      "retainedText": "so a prospect understands how high the standard sits",
+      "proposedRevision": "so a prospect understands how high the standard is",
+      "reason": "The alternative is more natural, but it describes the coach-pathway standard.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M07-002",
+      "lessonSlug": "coach",
+      "contentLocation": "bodyHtml > h2[What you will be able to do] > ul",
+      "category": "eligibility",
+      "retainedText": "See how recommending and co delivering with your own graduates compounds your practice.",
+      "proposedRevision": "See how recommending your graduates and co-delivering with them helps your practice grow over time.",
+      "reason": "The alternative is easier to read, but it could be interpreted as a business-growth claim.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M07-003",
+      "lessonSlug": "coach",
+      "contentLocation": "bodyHtml > h2[A real scenario] + p",
+      "category": "eligibility",
+      "retainedText": "She leans in, not because you promised anything, but because you gave her a genuine target that respects how high she already aims.",
+      "proposedRevision": "She becomes more interested, not because you promised anything, but because you gave her a genuine goal that respects her high standards.",
+      "reason": "The idioms are less accessible, but the sentence describes the effect of the coach-pathway claim.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M03-001",
+      "lessonSlug": "rules",
+      "contentLocation": "bodyHtml > section[Commission] > p[The cap, and how functions add up]",
+      "category": "commercial policy",
+      "retainedText": "When a stacked total does go OVER the cap, the percentage lines are scaled down in proportion to fit exactly, so no line keeps its full rate.",
+      "proposedRevision": "When a stacked total goes over the cap, every percentage line is reduced in the same proportion. The adjusted lines then fit the cap exactly, so no line keeps its full rate.",
+      "reason": "The proposed wording is easier to read, but commission mechanics require owner confirmation.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M11-001",
+      "lessonSlug": "operations",
+      "contentLocation": "bodyHtml > h3[The pipeline stages] + p",
+      "category": "governance",
+      "retainedText": "Each move should be backed by a real activity you logged, a meeting held, a next step set, a response received, a proposal sent, or conversion progress, so the stage always reflects work that actually happened.",
+      "proposedRevision": "Each move should be backed by a real activity you logged: a meeting held, a next step set, a response received, a proposal sent, or conversion progress. The stage should always reflect work that actually happened.",
+      "reason": "The split is easier to read, but it restates the evidence rule for pipeline stages and could alter its force.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M12-001",
+      "lessonSlug": "mechanics",
+      "contentLocation": "bodyHtml > h3[The current operational details] + p",
+      "category": "commercial policy",
+      "retainedText": "As it stands, the program is delivered online, async first; the time commitment is about three to five hours per week; enrollment is rolling; the guided method includes coaching checkpoints tied to the dossier and feedback on the work the participant produces; and participants are expected to follow the module and dossier deadlines, with one reasonable extension or resubmission granted when justified and additional review cycles possibly carrying an administrative or review fee.",
+      "proposedRevision": "The program is currently delivered online and is async first. The expected time commitment is about three to five hours per week, and enrollment is rolling. The guided method includes coaching checkpoints tied to the dossier and feedback on the participant's work. Participants are expected to meet module and dossier deadlines. One reasonable extension or resubmission may be granted when justified, while additional review cycles may carry an administrative or review fee.",
+      "reason": "This is clearer, but it restates delivery, extension, and fee policy and therefore requires owner approval.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M13-001",
+      "lessonSlug": "motions",
+      "contentLocation": "bodyHtml > h3[What the customer pays, and what you earn] > p[What you earn]",
+      "category": "commercial policy",
+      "retainedText": "The two motions pay differently by design: on a B2C Charter, origination is rewarded more (10% qualified, or 15% strong from 15 paid seats, seats alone deciding, which fits an individual with a real community who sells volume, like a blogger or influencer) and closing is 5%; on a B2B Engagement, closing is rewarded more (10%) because an organizational sale is harder to carry to signature, while origination is 8% qualified, or 12% strong on a genuinely new or dormant company from 10 paid seats.",
+      "proposedRevision": "The two motions pay differently by design. On a B2C Charter, origination is rewarded more: 10% for qualified origination, or 15% for strong origination from 15 paid seats, with seats alone deciding. This fits an individual with a real community who sells volume, such as a blogger or influencer. Closing is 5%. On a B2B Engagement, closing is rewarded more at 10% because an organizational sale is harder to carry to signature. Origination is 8% for qualified origination, or 12% for strong origination on a genuinely new or dormant company from 10 paid seats.",
+      "reason": "The split is easier to read, but the sentence defines the rationale for different commission rates.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M16-001",
+      "lessonSlug": "alumni-network",
+      "contentLocation": "bodyHtml > h2[Optional introductions] + p",
+      "category": "eligibility",
+      "retainedText": "A graduate can opt in to be introduced publicly for networking and for finding work.",
+      "proposedRevision": "A graduate may choose to be introduced publicly for networking or work opportunities.",
+      "reason": "The alternative is more natural, but it changes consent and opportunity wording.",
+      "status": "requires owner review"
+    },
+    {
+      "id": "P0-REVIEW-M17-001",
+      "lessonSlug": "experience-sharing",
+      "contentLocation": "bodyHtml > div.callout-warning > p",
+      "category": "ethical requirement",
+      "retainedText": "Two rules keep this valuable: share real experience, not invented stories, because the credibility of the whole board depends on it; and keep it honest and useful, with no promises of results and no confidential details about a specific person or client without their consent.",
+      "proposedRevision": "Two rules keep this valuable. First, share real experience rather than invented stories, because the board depends on credibility. Second, keep each contribution honest and useful: do not promise results or share confidential details about a person or client without their consent.",
+      "reason": "The proposal is easier to hear, but it restates confidentiality, consent, and promise restrictions.",
+      "status": "requires owner review"
+    }
+  ]
+}

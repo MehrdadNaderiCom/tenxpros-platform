@@ -29,7 +29,7 @@ export const m10: ModuleSeed = {
   <li><strong>Specific.</strong> You name the one thing you think is relevant to them, not a wall of features.</li>
   <li><strong>Short.</strong> You respect their time and make the next step easy.</li>
 </ul>
-<p>On top of those four, every message must still use approved messaging and pass the truth test from the identity module: is it true, can you back it up, does it avoid promising what you cannot control, does it route money and data correctly.</p>
+<p>Every message must also use approved messaging and pass the truth test from the identity module. Ask four questions. Is it true? Can you back it up? Does it avoid promising what you cannot control? Does it route money and data correctly?</p>
 
 <h3>Warm, introduced, and the absence of cold</h3>
 <ul>
@@ -46,7 +46,7 @@ export const m10: ModuleSeed = {
 <p>When you get the conversation, do not pitch. Open with their challenge, not your program: ask what the biggest challenge they are facing around AI in their work is, and then listen. Most people hand you one of the three classic openings, and each one points straight at the program. Then match the field story to who they are, using the explorer, so they recognize themselves. Place your mini pitch where it fits naturally, sixty to ninety seconds, no hype, and lead with the boundary as much as the benefit, because that is what a serious professional respects.</p>
 
 <h2>How to sell it honestly</h2>
-<p>This program adds a structured method to expertise the person already has. If there is nothing real to build on, there is nothing for the method to work with, so the program is not for them, and your job in the conversation is to find that out, not to paper over it. That is why you open with their challenge and listen: a real challenge in their own field is the signal that they have the expertise the program is meant to build on. If you find yourself working hard to convince someone that they belong, that is the signal that they probably do not, and an honest partner names it kindly and moves on.</p>
+<p>This program adds a structured method to expertise the person already has. If there is nothing real to build on, there is nothing for the method to work with. The program is not for them, and your job in the conversation is to find that out, not to paper over it. That is why you open with their challenge and listen: a real challenge in their own field is the signal that they have the expertise the program is meant to build on. If you find yourself working hard to convince someone that they belong, that is the signal that they probably do not, and an honest partner names it kindly and moves on.</p>
 
 <div class="callout callout-success"><p><strong>Say this:</strong> What is the biggest challenge you are facing around AI in your work right now? I thought of you because of the work you do in your field, and I want to understand the problem before I say anything about how the program might fit.</p></div>
 <div class="callout callout-warning"><p><strong>Do not say this:</strong> This program will make you an AI leader and get you results. The price is a special number just for you, and you can pay today to lock it in.</p></div>

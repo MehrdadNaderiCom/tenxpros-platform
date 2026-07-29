@@ -1,0 +1,177 @@
+{
+  "schemaVersion": "1",
+  "capturedFromCommit": "ade225b7002114b01ab526b69b34df1861e6ef6a",
+  "lessonCount": 17,
+  "lessons": [
+    {
+      "order": 1,
+      "slug": "mission",
+      "title": "The Mission",
+      "sourceLocation": "prisma/seed/academy/m01-mission.ts",
+      "originalHash": "fb26ce5975eae1ee94e88c1cd34f4cff4ed26f803d22aa2518b0870c7fa1e37c",
+      "readability": {"characters":11138,"words":1923,"sentences":121,"averageWordsPerSentence":15.89,"longSentences":8,"difficultPhrases":0,"fleschReadingEase":63.47,"fleschKincaidGrade":8.35,"approximateLevel":"B1+"},
+      "retainedTerminology": ["Academy","AI adoption","B2B","B2C","Dossier","Living AI Solution Dossier","TenXPro","TenXPros","governance"],
+      "structure": {"headings":16,"paragraphs":19,"lists":6,"listItems":27,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":0,"callouts":5,"formPreviews":0}
+    },
+    {
+      "order": 2,
+      "slug": "identity",
+      "title": "Your Partner Identity",
+      "sourceLocation": "prisma/seed/academy/m02-identity.ts",
+      "originalHash": "e92507e691dd26a35f85b15c46d94182004007023e1e7272ec256c89b742fcf1",
+      "readability": {"characters":10646,"words":1822,"sentences":107,"averageWordsPerSentence":17.03,"longSentences":11,"difficultPhrases":0,"fleschReadingEase":59.82,"fleschKincaidGrade":9.15,"approximateLevel":"B1+"},
+      "retainedTerminology": ["Activation Gate","AI adoption","B2B","Closing","Dossier","Net Receipts","Origination","Partner Panel","TenXPro","TenXPros","governance"],
+      "structure": {"headings":15,"paragraphs":16,"lists":5,"listItems":26,"tables":1,"tableRows":5,"tableHeaders":2,"tableCells":8,"links":[],"images":1,"callouts":3,"formPreviews":1}
+    },
+    {
+      "order": 3,
+      "slug": "rules",
+      "title": "The Rules",
+      "sourceLocation": "prisma/seed/academy/m03-rules.ts",
+      "originalHash": "6c5c675b70aaba479342ea249eb3f9aa4e9450bc3289d327ec182edae08e462c",
+      "readability": {"characters":28811,"words":4920,"sentences":236,"averageWordsPerSentence":20.85,"longSentences":45,"difficultPhrases":0,"fleschReadingEase":56.88,"fleschKincaidGrade":10.5,"approximateLevel":"B2"},
+      "retainedTerminology": ["Activation Gate","Active Status","Academy","B2B","B2C","Closing","Net Receipts","Origination","Partner Panel","TenXPros"],
+      "structure": {"headings":18,"paragraphs":27,"lists":8,"listItems":42,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":1,"callouts":4,"formPreviews":1}
+    },
+    {
+      "order": 4,
+      "slug": "product",
+      "title": "What TenXPros Is",
+      "sourceLocation": "prisma/seed/academy/m04-product.ts",
+      "originalHash": "f07992bae5c463f4f4935d2041eabe65ecb3d96d7effcfbbd7d6befee31f39ed",
+      "readability": {"characters":10200,"words":1736,"sentences":98,"averageWordsPerSentence":17.71,"longSentences":13,"difficultPhrases":0,"fleschReadingEase":61.22,"fleschKincaidGrade":9.12,"approximateLevel":"B1+"},
+      "retainedTerminology": ["Dossier","Foresee","Frame","Living AI Solution Dossier","Prove","Strong Draft","TenXPro","TenXPros","Design","governance","rubric"],
+      "structure": {"headings":15,"paragraphs":19,"lists":4,"listItems":19,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":1,"callouts":4,"formPreviews":1}
+    },
+    {
+      "order": 5,
+      "slug": "journey",
+      "title": "The Twelve Week Journey",
+      "sourceLocation": "prisma/seed/academy/m05-journey.ts",
+      "originalHash": "dc4ac4e25344c64905ef35b68fa648840bdc3ee2ba0f0e579c20747ac7233bc5",
+      "readability": {"characters":12844,"words":2156,"sentences":100,"averageWordsPerSentence":21.56,"longSentences":15,"difficultPhrases":0,"fleschReadingEase":54.56,"fleschKincaidGrade":11.01,"approximateLevel":"B2"},
+      "retainedTerminology": ["Academy","Dossier","Foresee","Frame","Living AI Solution Dossier","Prove","TenXPro","Design","rubric","stakeholder"],
+      "structure": {"headings":14,"paragraphs":19,"lists":4,"listItems":19,"tables":2,"tableRows":19,"tableHeaders":6,"tableCells":58,"links":[],"images":1,"callouts":4,"formPreviews":1}
+    },
+    {
+      "order": 6,
+      "slug": "ranks",
+      "title": "Ranks, Badges, and Credentials",
+      "sourceLocation": "prisma/seed/academy/m06-ranks.ts",
+      "originalHash": "98f42405c1ec0eb347ce50e5d1da0e1f7fc6c15930e4b53aa71d83ea4deb1797",
+      "readability": {"characters":8686,"words":1439,"sentences":71,"averageWordsPerSentence":20.27,"longSentences":10,"difficultPhrases":0,"fleschReadingEase":54.04,"fleschKincaidGrade":10.76,"approximateLevel":"B2"},
+      "retainedTerminology": ["AI adoption","Certified TenXPro Capstone Seal","Dossier","Foresee","Frame","Partner Panel","Prove","TenXPro","Design","rubric","stakeholder"],
+      "structure": {"headings":14,"paragraphs":14,"lists":3,"listItems":15,"tables":2,"tableRows":10,"tableHeaders":5,"tableCells":19,"links":[],"images":0,"callouts":3,"formPreviews":0}
+    },
+    {
+      "order": 7,
+      "slug": "coach",
+      "title": "From Top Student to Coach",
+      "sourceLocation": "prisma/seed/academy/m07-coach.ts",
+      "originalHash": "5b7f9b56f1abb00026cac883dcf19a4407646ac031cc9d1f157a537485a4b23b",
+      "readability": {"characters":8618,"words":1441,"sentences":79,"averageWordsPerSentence":18.24,"longSentences":6,"difficultPhrases":0,"fleschReadingEase":55.7,"fleschKincaidGrade":10.02,"approximateLevel":"B2"},
+      "retainedTerminology": ["Dossier","TenXPro","TenXPros","governance","rubric"],
+      "structure": {"headings":12,"paragraphs":13,"lists":4,"listItems":23,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":0,"callouts":4,"formPreviews":0}
+    },
+    {
+      "order": 8,
+      "slug": "selling",
+      "title": "Selling With Integrity",
+      "sourceLocation": "prisma/seed/academy/m08-selling.ts",
+      "originalHash": "ec5d7034e07504030e4fdefdc498938bab3627be3b98313436b604f9b559804f",
+      "readability": {"characters":9987,"words":1687,"sentences":97,"averageWordsPerSentence":17.39,"longSentences":10,"difficultPhrases":0,"fleschReadingEase":59.8,"fleschKincaidGrade":9.24,"approximateLevel":"B1+"},
+      "retainedTerminology": ["AI adoption","Dossier","Foresee","Frame","Living AI Solution Dossier","Prove","Strong Draft","TenXPros","Design"],
+      "structure": {"headings":15,"paragraphs":16,"lists":5,"listItems":28,"tables":1,"tableRows":7,"tableHeaders":2,"tableCells":12,"links":[],"images":2,"callouts":3,"formPreviews":2}
+    },
+    {
+      "order": 9,
+      "slug": "prospecting",
+      "title": "Finding and Qualifying the Right Prospects",
+      "sourceLocation": "prisma/seed/academy/m09-prospecting.ts",
+      "originalHash": "0374504bbe8a55425e57caabef150c9f74d5fe15696dad95c04eb3952a050412",
+      "readability": {"characters":8910,"words":1562,"sentences":82,"averageWordsPerSentence":19.05,"longSentences":10,"difficultPhrases":0,"fleschReadingEase":64.61,"fleschKincaidGrade":8.98,"approximateLevel":"B1+"},
+      "retainedTerminology": ["Academy","Partner Panel"],
+      "structure": {"headings":12,"paragraphs":13,"lists":3,"listItems":17,"tables":1,"tableRows":7,"tableHeaders":2,"tableCells":12,"links":[],"images":2,"callouts":3,"formPreviews":2}
+    },
+    {
+      "order": 10,
+      "slug": "conversation",
+      "title": "Outreach and the Conversation in Practice",
+      "sourceLocation": "prisma/seed/academy/m10-conversation.ts",
+      "originalHash": "7e9a8d9c2e583f21c8286b227b3173d92148cac7fb5e2ee16002b79f6ebe35b7",
+      "readability": {"characters":9094,"words":1587,"sentences":86,"averageWordsPerSentence":18.45,"longSentences":13,"difficultPhrases":0,"fleschReadingEase":63.9,"fleschKincaidGrade":8.93,"approximateLevel":"B1+"},
+      "retainedTerminology": ["Partner Panel","governance"],
+      "structure": {"headings":13,"paragraphs":14,"lists":5,"listItems":23,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":2,"callouts":4,"formPreviews":2}
+    },
+    {
+      "order": 11,
+      "slug": "operations",
+      "title": "Operating the System and Your First 90 Days",
+      "sourceLocation": "prisma/seed/academy/m11-operations.ts",
+      "originalHash": "b2557dd8ba9ce106e974eb01d71ee341c22637e98adaf32adc8bbf0d6becc84f",
+      "readability": {"characters":9066,"words":1546,"sentences":90,"averageWordsPerSentence":17.18,"longSentences":10,"difficultPhrases":0,"fleschReadingEase":58.78,"fleschKincaidGrade":9.33,"approximateLevel":"B1+"},
+      "retainedTerminology": ["Activation Gate","Partner Panel"],
+      "structure": {"headings":13,"paragraphs":16,"lists":6,"listItems":32,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":3,"callouts":3,"formPreviews":3}
+    },
+    {
+      "order": 12,
+      "slug": "mechanics",
+      "title": "How the Twelve Weeks Work, in Full",
+      "sourceLocation": "prisma/seed/academy/m12-mechanics.ts",
+      "originalHash": "77e8dbe46265e135f697d1a73343291c4e880df071b30bb08e63f8f827bcb553",
+      "readability": {"characters":9620,"words":1604,"sentences":67,"averageWordsPerSentence":23.94,"longSentences":17,"difficultPhrases":0,"fleschReadingEase":52.68,"fleschKincaidGrade":11.86,"approximateLevel":"B2"},
+      "retainedTerminology": ["Dossier","Foresee","Frame","Living AI Solution Dossier","Prove","Strong Draft","Design","rubric"],
+      "structure": {"headings":13,"paragraphs":15,"lists":4,"listItems":20,"tables":2,"tableRows":11,"tableHeaders":5,"tableCells":22,"links":[],"images":2,"callouts":4,"formPreviews":2}
+    },
+    {
+      "order": 13,
+      "slug": "motions",
+      "title": "Selling to Organizations and to Individuals",
+      "sourceLocation": "prisma/seed/academy/m13-motions.ts",
+      "originalHash": "62ec4693a9d1985783922d58b0e4dfbe58189257ba107ae3d157789f0aa8d8c1",
+      "readability": {"characters":11733,"words":1995,"sentences":95,"averageWordsPerSentence":21,"longSentences":16,"difficultPhrases":0,"fleschReadingEase":52.7,"fleschKincaidGrade":11.13,"approximateLevel":"B2"},
+      "retainedTerminology": ["AI adoption","B2B","B2C","Closing","Dossier","Frame","Net Receipts","Origination","Partner Panel","TenXPros","Design","governance"],
+      "structure": {"headings":14,"paragraphs":15,"lists":3,"listItems":19,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":2,"callouts":3,"formPreviews":2}
+    },
+    {
+      "order": 14,
+      "slug": "customize",
+      "title": "Customizing for Any Industry, Organization, or Person",
+      "sourceLocation": "prisma/seed/academy/m14-customize.ts",
+      "originalHash": "171bcab89735ad92a4b776ac0d83dc72a0119a3e5922a1b897c14904811f1e7f",
+      "readability": {"characters":15807,"words":2717,"sentences":153,"averageWordsPerSentence":17.76,"longSentences":16,"difficultPhrases":0,"fleschReadingEase":60.81,"fleschKincaidGrade":9.19,"approximateLevel":"B1+"},
+      "retainedTerminology": ["AI adoption","Dossier","Foresee","Frame","Prove","Strong Draft","Design","governance","rubric"],
+      "structure": {"headings":24,"paragraphs":30,"lists":7,"listItems":43,"tables":1,"tableRows":6,"tableHeaders":2,"tableCells":10,"links":[],"images":1,"callouts":5,"formPreviews":1}
+    },
+    {
+      "order": 15,
+      "slug": "contact-us",
+      "title": "Contact Us",
+      "sourceLocation": "prisma/seed/academy/m15-contact.ts",
+      "originalHash": "342c3a41f86d3ca56fbf729f4cca8a766f43a9734720980008d9ae5ae4cd06b4",
+      "readability": {"characters":1340,"words":232,"sentences":11,"averageWordsPerSentence":21.09,"longSentences":0,"difficultPhrases":0,"fleschReadingEase":57.07,"fleschKincaidGrade":10.54,"approximateLevel":"B2"},
+      "retainedTerminology": ["AI adoption","TenXPros"],
+      "structure": {"headings":3,"paragraphs":4,"lists":1,"listItems":3,"tables":0,"tableRows":0,"tableHeaders":0,"tableCells":0,"links":["https://www.linkedin.com/in/mehrdad-naderi/"],"images":0,"callouts":1,"formPreviews":0}
+    },
+    {
+      "order": 16,
+      "slug": "alumni-network",
+      "title": "The Alumni Network",
+      "sourceLocation": "prisma/seed/academy/m16-alumni.ts",
+      "originalHash": "763030d76c55ef53d6817928ec03d4294b74da9ba626b9365aa8726fcac32d2b",
+      "readability": {"characters":1291,"words":210,"sentences":12,"averageWordsPerSentence":17.5,"longSentences":1,"difficultPhrases":0,"fleschReadingEase":48.88,"fleschKincaidGrade":10.79,"approximateLevel":"B2"},
+      "retainedTerminology": ["B2B","TenXPros"],
+      "structure": {"headings":3,"paragraphs":5,"lists":1,"listItems":2,"tables":0,"tableRows":0,"tableHeaders":0,"tableCells":0,"links":[],"images":0,"callouts":1,"formPreviews":0}
+    },
+    {
+      "order": 17,
+      "slug": "experience-sharing",
+      "title": "Sharing Experience and Knowledge",
+      "sourceLocation": "prisma/seed/academy/m17-sharing.ts",
+      "originalHash": "5866ba4eef7d5406fca9d8109ba30a7c49e4fc5ae927ae8fad6260ce57b7ec71",
+      "readability": {"characters":1255,"words":210,"sentences":10,"averageWordsPerSentence":21,"longSentences":3,"difficultPhrases":0,"fleschReadingEase":52.98,"fleschKincaidGrade":11.09,"approximateLevel":"B2"},
+      "retainedTerminology": [],
+      "structure": {"headings":2,"paragraphs":3,"lists":1,"listItems":4,"tables":0,"tableRows":0,"tableHeaders":0,"tableCells":0,"links":[],"images":0,"callouts":1,"formPreviews":0}
+    }
+  ]
+}

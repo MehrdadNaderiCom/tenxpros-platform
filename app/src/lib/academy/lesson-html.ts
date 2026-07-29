@@ -10,7 +10,7 @@
 const ALLOWED_TAGS = new Set([
   "h2", "h3", "h4", "p", "ul", "ol", "li", "strong", "em", "b", "i", "u", "s",
   "a", "blockquote", "hr", "br", "table", "thead", "tbody", "tr", "th", "td",
-  "img", "figure", "figcaption", "div", "span", "code", "pre",
+  "img", "figure", "figcaption", "div", "span", "code", "pre", "label",
 ]);
 
 // Class values we let through (callouts, form-preview frames, figures).
@@ -67,6 +67,16 @@ function escapeAttr(value: string): string {
   return value.replace(/"/g, "&quot;");
 }
 
+function parsedAttributeNames(rawAttrs: string): Set<string> {
+  const names = new Set<string>();
+  const attribute =
+    /([^\s"'<>/=]+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'=<>`]+))?/g;
+  for (const match of rawAttrs.matchAll(attribute)) {
+    names.add(match[1].toLowerCase());
+  }
+  return names;
+}
+
 /**
  * Sanitize lesson HTML: drop <script>/<style> blocks, strip event handlers and
  * unsafe URLs, and remove any tag outside the allowlist while keeping its text.
@@ -89,6 +99,7 @@ export function sanitizeLessonHtml(html: string): string {
 
     const selfClose = name === "br" || name === "hr" || name === "img";
     const attrs: string[] = [];
+    const attributeNames = parsedAttributeNames(rawAttrs);
 
     // href on <a>
     if (name === "a") {
@@ -117,6 +128,17 @@ export function sanitizeLessonHtml(html: string): string {
         const m = new RegExp(`\\b${span}\\s*=\\s*("(\\d+)"|'(\\d+)')`, "i").exec(rawAttrs);
         if (m) attrs.push(`${span}="${m[2] ?? m[3]}"`);
       }
+    }
+    // Preserve explicit visibility semantics so narration and visual rendering
+    // agree about content that authors intentionally hid.
+    if (attributeNames.has("hidden")) {
+      attrs.push("hidden");
+    }
+    if (
+      attributeNames.has("aria-hidden") &&
+      /\baria-hidden\s*=\s*("true"|'true')/i.test(rawAttrs)
+    ) {
+      attrs.push('aria-hidden="true"');
     }
     // class (allowlisted values only) on any allowed tag
     const cls = /\bclass\s*=\s*("([^"]*)"|'([^']*)')/i.exec(rawAttrs);

@@ -23,10 +23,10 @@ export const m08: ModuleSeed = {
 <h2>What you need to understand</h2>
 
 <h3>Start with the person, not the program</h3>
-<p>Do not open by describing TenXPros. Open with one question: what is the biggest challenge you are facing right now around AI in your work. Then listen. Most professionals give one of three answers, and all three are perfect entry points: I do not know where to start, or, I have tried some tools but nothing feels systematic, or, I am worried about falling behind but I am not sure what to do. Each points straight at what the program addresses, so now you are responding to a real situation instead of reciting at someone.</p>
+<p>Do not open by describing TenXPros. Open with one question: What is the biggest challenge you are facing right now around AI in your work? Then listen. Most professionals give one of three answers, and all three are perfect entry points: I do not know where to start, or, I have tried some tools but nothing feels systematic, or, I am worried about falling behind but I am not sure what to do. Each points straight at what the program addresses, so now you are responding to a real situation instead of reciting at someone.</p>
 
 <h3>Match the example to the person</h3>
-<p>This is where the Field Journey Explorer earns its place. Talking to a doctor, walk them through the radiologist's twelve weeks. A lawyer, the legal counsel's. An engineer, the civil engineer's. A finance leader, marketer, educator, product manager, clinic operations manager, or consultant each has a field story that shows what the weeks produce and what they would walk away holding. The story makes the program real, and real beats impressive every time.</p>
+<p>This is where the Field Journey Explorer earns its place. When talking to a doctor, walk them through the radiologist's twelve weeks. For a lawyer, use the legal counsel's story. For an engineer, use the civil engineer's story. A finance leader, marketer, educator, product manager, clinic operations manager, or consultant each has a field story that shows what the weeks produce and what they would walk away holding. The story makes the program real, and real beats impressive every time.</p>
 
 <h3>The mini pitch, sixty to ninety seconds</h3>
 <p>Have it ready so you can say it in your sleep: TenXPros is a selective twelve week certification for experienced professionals who want to lead AI adoption in their field, not just use AI tools. You bring one real professional problem. The program gives you a structured method, Frame, Design, Prove, Foresee, to decide where AI belongs, design a responsible workflow, test value and risk, and assemble the work into a reviewed Living AI Solution Dossier. The credential is earned through reviewed evidence, not attendance. If your dossier meets the public standard, you earn a verifiable certified credential. That is the whole thing, said straight.</p>
@@ -45,8 +45,8 @@ export const m08: ModuleSeed = {
   <li><strong>Responsible by design.</strong> The method builds in value and risk testing and expects regulated data to be protected, which serious professionals respect rather than resent.</li>
 </ul>
 
-<h3>The website facilities you can point to</h3>
-<p>You are not doing this from memory. The website carries facilities you can walk a prospect through or send them to, and using them keeps everything accurate and on message:</p>
+<h3>The website resources you can point to</h3>
+<p>You are not doing this from memory. The website provides resources you can walk a prospect through or send them to, and using them keeps everything accurate and on message:</p>
 <ul>
   <li><strong>The how it works page and the program page</strong> lay out the method, the format, and what the twelve weeks involve, in the company's own current words.</li>
   <li><strong>The pricing page</strong> shows the current published figures, so you never have to quote a price from memory or invent one.</li>

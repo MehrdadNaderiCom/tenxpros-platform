@@ -2276,22 +2276,22 @@ model DealRegistration {
 /// blocking; the one hard requirement is the warm-relationship attestation on a
 /// Basic Introduction claim (the engine also requires it before the line pays).
 model DealFunctionClaim {
-  id                 String           @id @default(cuid())
-  dealRegistrationId String
-  dealRegistration   DealRegistration @relation(fields: [dealRegistrationId], references: [id], onDelete: Cascade)
+  id                       String           @id @default(cuid())
+  dealRegistrationId       String
+  dealRegistration         DealRegistration @relation(fields: [dealRegistrationId], references: [id], onDelete: Cascade)
   /// BASIC_INTRO, ORIGINATION, CLOSING, or DELIVERY.
-  function           String
+  function                 String
   /// Basic Introduction: who the warm contact is (name and role).
-  contactName        String?
+  contactName              String?
   /// Basic Introduction: the genuine pre-existing relationship, described.
-  relationshipDescription String? @db.Text
+  relationshipDescription  String?          @db.Text
   /// Basic Introduction: how the partner introduced and explained us.
-  introDescription   String?          @db.Text
+  introDescription         String?          @db.Text
   /// Origination and Closing: the involvement the partner takes on.
-  involvementStatement String?        @db.Text
+  involvementStatement     String?          @db.Text
   /// Basic Introduction only: the required warm-relationship attestation.
-  warmRelationshipAttested Boolean    @default(false)
-  createdAt          DateTime         @default(now())
+  warmRelationshipAttested Boolean          @default(false)
+  createdAt                DateTime         @default(now())
 
   @@unique([dealRegistrationId, function])
   @@index([dealRegistrationId])
@@ -2305,26 +2305,26 @@ model RegisteredAccount {
   partnerId          String
   partner            Partner          @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
-  legalEntity            String
+  legalEntity                  String
   // Canonical company identifier; businessUnit is reused as the unit/branch label.
-  domain                 String?
-  country                String
-  businessUnit           String?
-  offering               OfferingType
-  scope                  String
-  isHouseAccount         Boolean      @default(false)
-  isDirectRegistration   Boolean      @default(false)
-  managed                Boolean      @default(true)
+  domain                       String?
+  country                      String
+  businessUnit                 String?
+  offering                     OfferingType
+  scope                        String
+  isHouseAccount               Boolean      @default(false)
+  isDirectRegistration         Boolean      @default(false)
+  managed                      Boolean      @default(true)
   /// Admin classification decision on the Panel: null means the objective rule
   /// classifies as usual; "EXISTING" forces the company to be treated as already
   /// ours (Qualified rate, no new-company credit), with the reason logged. The
   /// admin can only make the classification stricter, never grant Strong by hand.
   classificationOverride       String?
   classificationOverrideReason String?
-  protectionExpiresAt    DateTime?
-  lastMeaningfulUpdateAt DateTime?
-  lapsedAt               DateTime?
-  stage                  AccountStage @default(REGISTERED)
+  protectionExpiresAt          DateTime?
+  lastMeaningfulUpdateAt       DateTime?
+  lapsedAt                     DateTime?
+  stage                        AccountStage @default(REGISTERED)
 
   closedDeals ClosedDeal[]
   engagements TenXOpsEngagement[]
@@ -2415,32 +2415,32 @@ model CommissionEntry {
   closedDealId String
   closedDeal   ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
 
-  function        PartnerFunction
-  rateBp          Int
-  baseAmountCents Int
-  amountCents     Int
+  function                 PartnerFunction
+  rateBp                   Int
+  baseAmountCents          Int
+  amountCents              Int
   // Weighted split: when a single contribution is genuinely shared, a superadmin sets
   // a weight and this line's amount is divided by it. Null means a whole, unshared line.
-  weightBp        Int?
+  weightBp                 Int?
   // Idempotent partial/cumulative refund reversal: net payable = amountCents - reversedCents.
-  reversedCents   Int              @default(0)
+  reversedCents            Int              @default(0)
   // A fixed-fee line keeps its exact amount through recompute (not re-derived from rateBp).
-  isFlat          Boolean          @default(false)
-  status          CommissionStatus @default(ACCRUED)
-  payableOn       DateTime?
-  paidOn          DateTime?
-  currency        String           @default("USD")
-  conversionRate  Float?
-  conversionDate  DateTime?
-  queryFlag       Boolean          @default(false)
-  queryNote       String?
-  note            String?
+  isFlat                   Boolean          @default(false)
+  status                   CommissionStatus @default(ACCRUED)
+  payableOn                DateTime?
+  paidOn                   DateTime?
+  currency                 String           @default("USD")
+  conversionRate           Float?
+  conversionDate           DateTime?
+  queryFlag                Boolean          @default(false)
+  queryNote                String?
+  note                     String?
   // Short evidence describing what qualifies this function for this deal, recorded
   // when the line is created so a function claim is never just a name on a list.
-  evidenceNote    String?          @db.Text
+  evidenceNote             String?          @db.Text
   // Basic Introduction only: an explicit attestation that a genuine warm relationship
   // pre-existed. Required (with the evidence note) before a BASIC_INTRO line is created.
-  warmRelationshipAttested Boolean @default(false)
+  warmRelationshipAttested Boolean          @default(false)
 
   // Origination only: whether the deal was paid at the Strong rate, as classified
   // by the engine from the paid-collected seats. A new-company B2B origination below
@@ -2575,20 +2575,22 @@ model AcademyModule {
 }
 
 model AcademyLesson {
-  id             String                 @id @default(cuid())
-  moduleId       String
-  module         AcademyModule          @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  order          Int
-  title          String
-  body           String                 @db.Text
-  audioText      String                 @db.Text
+  id               String                   @id @default(cuid())
+  moduleId         String
+  module           AcademyModule            @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  order            Int
+  title            String
+  body             String                   @db.Text
+  audioText        String                   @db.Text
   /// Rich lesson content (sanitized HTML) edited from the superadmin content
   /// manager. When present it is rendered instead of the plain `body` paragraphs.
-  bodyHtml       String?                @db.Text
-  updatedAt      DateTime?              @updatedAt
-  updatedByEmail String?
-  versions       AcademyLessonVersion[]
-  audio          AcademyLessonAudio[]
+  bodyHtml         String?                  @db.Text
+  updatedAt        DateTime?                @updatedAt
+  updatedByEmail   String?
+  versions         AcademyLessonVersion[]
+  audio            AcademyLessonAudio[]
+  narrationAssets  AcademyNarrationAsset[]
+  narrationPending AcademyNarrationPending?
 
   @@index([moduleId, order])
 }
@@ -2616,6 +2618,120 @@ model AcademyLessonAudio {
   updatedAt       DateTime      @updatedAt
 
   @@unique([lessonId, voice])
+}
+
+/// Immutable, audited narration release. A release is generated by the
+/// isolated administrative CLI and is never populated by a web request.
+model AcademyNarrationRelease {
+  id                        String                       @id
+  recipeVersion             String
+  recipeHash                String
+  rendererVersion           String
+  normalizationVersion      String
+  pronunciationVersion      String
+  segmentationVersion       String
+  voiceId                   String
+  piperVersion              String
+  generationStatus          String
+  expectedAssetCount        Int
+  sourceContentManifestHash String
+  generationStartedAt       DateTime
+  generationCompletedAt     DateTime
+  auditStatus               String
+  auditManifestHash         String
+  releaseChecksumSha256     String
+  createdAt                 DateTime                     @default(now())
+  assets                    AcademyNarrationAsset[]
+  activeDeployments         AcademyNarrationDeployment[] @relation("ActiveAcademyNarrationRelease")
+  previousDeployments       AcademyNarrationDeployment[] @relation("PreviousAcademyNarrationRelease")
+
+  @@unique([recipeHash, sourceContentManifestHash, voiceId])
+  @@index([generationStatus, auditStatus])
+}
+
+/// One immutable MP3 per lesson in a release. This table is additive and does
+/// not replace or mutate AcademyLessonAudio.
+model AcademyNarrationAsset {
+  id                 String                  @id
+  releaseId          String
+  release            AcademyNarrationRelease @relation(fields: [releaseId], references: [id], onDelete: Restrict)
+  lessonId           String
+  lesson             AcademyLesson           @relation(fields: [lessonId], references: [id], onDelete: Restrict)
+  lessonSlug         String
+  lessonOrder        Int
+  contentHash        String
+  spokenScriptHash   String
+  data               Bytes
+  mimeType           String                  @default("audio/mpeg")
+  durationSeconds    Float
+  sampleRate         Int
+  channels           Int
+  bitrateKbps        Int
+  sizeBytes          Int
+  checksumSha256     String
+  integratedLufs     Float
+  truePeakDbtp       Float
+  generationMetadata Json
+  createdAt          DateTime                @default(now())
+  chunks             AcademyNarrationChunk[]
+
+  @@unique([releaseId, lessonId])
+  @@unique([releaseId, lessonSlug])
+  @@index([releaseId, lessonOrder])
+  @@index([lessonId])
+}
+
+/// Auditable semantic-block progress and pause measurements for an asset.
+model AcademyNarrationChunk {
+  id                        String                @id
+  assetId                   String
+  asset                     AcademyNarrationAsset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  blockIndex                Int
+  semanticBlockId           String
+  blockType                 String
+  sourceHash                String
+  spokenHash                String
+  generationStatus          String
+  pcmChecksum               String
+  measuredLeadingSilenceMs  Float?
+  measuredTrailingSilenceMs Float?
+  insertedSilenceMs         Float
+  effectiveBoundaryPauseMs  Float?
+  retryCount                Int                   @default(0)
+  resumed                   Boolean               @default(false)
+  createdAt                 DateTime              @default(now())
+
+  @@unique([assetId, blockIndex])
+  @@index([assetId, generationStatus])
+}
+
+/// Singleton production pointer. Promotion and rollback update only this row
+/// in one transaction; releases and both legacy/new assets remain immutable.
+model AcademyNarrationDeployment {
+  id                String                   @id
+  activeReleaseId   String?
+  activeRelease     AcademyNarrationRelease? @relation("ActiveAcademyNarrationRelease", fields: [activeReleaseId], references: [id], onDelete: Restrict)
+  previousReleaseId String?
+  previousRelease   AcademyNarrationRelease? @relation("PreviousAcademyNarrationRelease", fields: [previousReleaseId], references: [id], onDelete: Restrict)
+  activatedAt       DateTime?
+  rollbackReleaseId String?
+  rollbackReason    String?                  @db.Text
+  lastRolledBackAt  DateTime?
+  updatedAt         DateTime                 @updatedAt
+
+  @@index([activeReleaseId])
+}
+
+/// A content save records pending narration work but never starts Piper.
+model AcademyNarrationPending {
+  lessonId           String        @id
+  lesson             AcademyLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  currentContentHash String
+  status             String        @default("PENDING")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([status, updatedAt])
 }
 
 /// Immutable snapshot of a lesson's content, written every time a superadmin
@@ -2938,23 +3054,23 @@ model SpecialDealRequestItem {
 /// Superadmin-authored resource in the Partner Toolkit repository (blog-style),
 /// with optional downloadable files.
 model ToolkitPost {
-  id          String        @id @default(cuid())
-  slug        String        @unique
+  id          String           @id @default(cuid())
+  slug        String           @unique
   title       String
-  bodyHtml    String        @db.Text
-  category    String        @default("General")
+  bodyHtml    String           @db.Text
+  category    String           @default("General")
   // Managed category reference (additive). The legacy `category` string is kept
   // in sync on save for back-compatibility; `categoryRef` is the source of truth
   // for grouping. SetNull so deleting a category never deletes its posts.
   categoryId  String?
   categoryRef ToolkitCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  isPublished Boolean       @default(true)
+  isPublished Boolean          @default(true)
   authorEmail String?
-  order       Int           @default(0)
+  order       Int              @default(0)
   files       ToolkitFile[]
   links       ToolkitLink[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([isPublished, order])
   @@index([categoryId])
@@ -3041,14 +3157,14 @@ model DiscussionComment {
 
 /// A partner support report. Each new ticket is emailed to the program owner.
 model PartnerSupportTicket {
-  id         String              @id @default(cuid())
+  id         String               @id @default(cuid())
   partnerId  String
-  partner    Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partner    Partner              @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   subject    String
-  body       String              @db.Text
+  body       String               @db.Text
   status     PartnerSupportStatus @default(OPEN)
   resolvedAt DateTime?
-  createdAt  DateTime            @default(now())
+  createdAt  DateTime             @default(now())
 
   @@index([partnerId, status])
 }

@@ -44,6 +44,14 @@ describe("sanitizeLessonHtml", () => {
     expect(out).not.toMatch(/evil/);
   });
 
+  it("preserves explicit hidden semantics without treating class text as an attribute", () => {
+    expect(
+      sanitizeLessonHtml(
+        '<p hidden>one</p><p aria-hidden="true">two</p><p class="hidden">three</p>',
+      ),
+    ).toBe('<p hidden>one</p><p aria-hidden="true">two</p><p>three</p>');
+  });
+
   it("escapes a double-quote in an href so it cannot break out of the attribute", () => {
     // A single-quoted source href may carry an embedded double-quote. Without
     // escaping it would close the emitted attribute early and inject a handler.

@@ -6,19 +6,40 @@ import { StatCard, StatGrid } from "@/components/ui/stat-card";
 import { Table, THead, Th, TBody, TR, Td, TableEmpty } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { academyNarrationAttention } from "@/lib/academy/narration-release";
 
 export const dynamic = "force-dynamic";
 
 export default async function AcademyContentPage() {
   await requireSuperAdmin();
 
-  const modules = await prisma.academyModule.findMany({
-    orderBy: { order: "asc" },
-    include: {
-      lessons: { orderBy: { order: "asc" } },
-      _count: { select: { progress: { where: { examPassed: true } } } },
-    },
-  });
+  const [modules, audioAttention] =
+    await Promise.all([
+      prisma.academyModule.findMany({
+        orderBy: { order: "asc" },
+        include: {
+          lessons: {
+            orderBy: { order: "asc" },
+          },
+          _count: {
+            select: {
+              progress: {
+                where: {
+                  examPassed: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+      academyNarrationAttention(),
+    ]);
+  const audioByLesson = new Map(
+    audioAttention.rows.map((row) => [
+      row.lessonId,
+      row,
+    ]),
+  );
 
   // How many passed partners are on an older content version per module.
   const passedProgress = await prisma.academyProgress.findMany({
@@ -57,6 +78,15 @@ export default async function AcademyContentPage() {
       <Alert tone="info" title="How editing works">
         Open a lesson, make your changes, and save with a short note describing what changed. The module content version bumps, a snapshot is kept in history, and every partner with progress on that module gets a portal notification.
       </Alert>
+      {audioAttention.attention.length > 0 ? (
+        <Alert
+          tone="warning"
+          title={`Academy audio requires attention: ${audioAttention.attention.length} lessons changed after audio generation.`}
+        >
+          Existing audio remains available and no
+          regeneration is started by a content save.
+        </Alert>
+      ) : null}
 
       <Table minWidth="min-w-[820px]">
         <THead>
@@ -66,6 +96,7 @@ export default async function AcademyContentPage() {
           <Th>Version</Th>
           <Th>Passed</Th>
           <Th>Last edited</Th>
+          <Th>Audio</Th>
           <Th className="text-right">Action</Th>
         </THead>
         <TBody>
@@ -94,6 +125,23 @@ export default async function AcademyContentPage() {
                     <span className="text-slate-400">Original</span>
                   )}
                 </Td>
+                <Td>
+                  {lesson ? (
+                    <Badge
+                      status={
+                        audioByLesson.get(
+                          lesson.id,
+                        )?.status ??
+                        "MISSING"
+                      }
+                    >
+                      {audioByLesson.get(
+                        lesson.id,
+                      )?.status ??
+                        "MISSING"}
+                    </Badge>
+                  ) : null}
+                </Td>
                 <Td className="text-right">
                   {lesson ? (
                     <ButtonLink href={`/admin/academy/content/${lesson.id}`} variant="secondary" size="sm">
@@ -104,7 +152,7 @@ export default async function AcademyContentPage() {
               </TR>
             )),
           )}
-          {modules.length === 0 ? <TableEmpty colSpan={7}>No academy modules are seeded.</TableEmpty> : null}
+          {modules.length === 0 ? <TableEmpty colSpan={8}>No academy modules are seeded.</TableEmpty> : null}
         </TBody>
       </Table>
     </div>

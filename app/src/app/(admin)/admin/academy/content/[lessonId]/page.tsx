@@ -12,6 +12,7 @@ import { Field, Input } from "@/components/ui/form-fields";
 import { Timeline } from "@/components/ui/timeline";
 import { SectionCard } from "@/components/ui/stat-card";
 import { LessonEditor } from "@/components/admin/academy/lesson-editor";
+import { academyNarrationAttention } from "@/lib/academy/narration-release";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,13 @@ export default async function EditLessonPage({ params }: { params: { lessonId: s
   const passedStale = await prisma.academyProgress.count({
     where: { moduleId: lesson.module.id, examPassed: true, passedContentVersion: { lt: lesson.module.contentVersion } },
   });
+  const audioAttention =
+    await academyNarrationAttention();
+  const lessonAudio =
+    audioAttention.rows.find(
+      (row) =>
+        row.lessonId === lesson.id,
+    );
 
   const initialHtml =
     lesson.bodyHtml && lesson.bodyHtml.trim().length > 0
@@ -64,6 +72,26 @@ export default async function EditLessonPage({ params }: { params: { lessonId: s
       {passedStale > 0 ? (
         <Alert tone="info">
           {passedStale} partner{passedStale === 1 ? "" : "s"} passed an earlier version. Their certificate stays valid through December 31; saving notifies them of the update without resetting their pass.
+        </Alert>
+      ) : null}
+      {lessonAudio &&
+      lessonAudio.status !== "CURRENT" ? (
+        <Alert
+          tone="warning"
+          title="Audio is out of date. This lesson has changed since its active narration was generated."
+        >
+          <span>
+            {lesson.title} ·{" "}
+            {lesson.module.slug} · version{" "}
+            {lesson.module.contentVersion} ·{" "}
+            {lessonAudio.status} · active release{" "}
+            {lessonAudio.activeReleaseId ??
+              "none"}{" "}
+            · generated{" "}
+            {lessonAudio.audioGeneratedAt
+              ? lessonAudio.audioGeneratedAt.toLocaleString()
+              : "not available"}
+          </span>
         </Alert>
       ) : null}
 

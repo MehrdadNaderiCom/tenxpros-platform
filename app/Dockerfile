@@ -87,7 +87,7 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=5 \
   CMD curl -fsS http://localhost:3000/api/health || exit 1
 
-# On every start: migrate, then pre-generate any missing or stale lesson
-# narration in the background (hash-skips make a fresh start nearly free; a
-# reseed or content edit heals itself), then serve.
-CMD ["sh", "-c", "pnpm prisma migrate deploy && { (sleep 15 && node scripts/generate-academy-audio.cjs >> /tmp/narration-generate.log 2>&1 || true) & } && pnpm start"]
+# Migrations remain deploy-safe; narration generation is never a container or
+# web-process startup side effect. Releases are generated only by the explicit
+# isolated administrative CLI.
+CMD ["sh", "-c", "pnpm prisma migrate deploy && pnpm start"]

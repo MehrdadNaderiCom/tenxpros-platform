@@ -115,7 +115,8 @@ describe("narration wiring (source inspection)", () => {
   } catch {
     dockerfile = "";
   }
-  const genScript = readFileSync(join(root, "scripts/generate-academy-audio.cjs"), "utf8");
+  const legacyGenScript = readFileSync(join(root, "scripts/generate-academy-audio.cjs"), "utf8");
+  const releaseGenScript = readFileSync(join(root, "scripts/generate-final-piper-academy.ts"), "utf8");
   const lib = readFileSync(join(root, "src/lib/academy/lesson-audio.ts"), "utf8");
 
   it("the lesson page passes the slug so the player reaches the narration API", () => {
@@ -132,6 +133,10 @@ describe("narration wiring (source inspection)", () => {
     // iOS: the resume position applies at canplay/playing, never loadedmetadata.
     expect(reader).toContain("onCanPlay={applyPendingSeek}");
     expect(reader).toContain("webkitPreservesPitch");
+    expect(reader).toContain("ACTIVE_RELEASE_PREF_MIGRATION_KEY");
+    expect(reader).toContain("status.defaultVoice");
+    expect(reader).toContain("setVoiceId(activeVoiceId)");
+    expect(reader).toContain('window.localStorage.setItem(RATE_PREF_KEY, "1")');
     // The src is NEVER a controlled React prop: a re-commit would re-run the
     // media load algorithm and abort the in-gesture play() after a voice swap.
     expect(reader).not.toContain("src={srcFor");
@@ -141,8 +146,10 @@ describe("narration wiring (source inspection)", () => {
     expect(reader.match(/pendingSeekFractionRef\.current = null;/g)?.length ?? 0).toBeGreaterThanOrEqual(3);
   });
 
-  it("a superadmin lesson save schedules narration regeneration", () => {
-    expect(contentAction).toContain("ensureLessonAudio(lessonId, audioText)");
+  it("a superadmin lesson save only records pending narration work", () => {
+    expect(contentAction).toContain("academyNarrationPending.upsert");
+    expect(contentAction).toContain('status: "PENDING"');
+    expect(contentAction).not.toContain("ensureLessonAudio");
   });
 
   it("both routes mirror the lesson page access (partner session, unlocked module) and are dynamic", () => {
@@ -160,21 +167,25 @@ describe("narration wiring (source inspection)", () => {
     expect(bytesRoute).toContain("status: 206");
     expect(bytesRoute).toContain("status: 416");
     expect(bytesRoute).toContain("private, no-store");
-    expect(bytesRoute).toContain("row.textHash !== hash");
     // Range requests fetch ONLY the slice from the database (a 2 byte iOS
     // probe must not pull a multi-megabyte blob), and the metadata lookup
     // never selects the data column.
     expect(bytesRoute).toContain('substring("data" FROM');
-    expect(bytesRoute).toContain("sizeBytes: true");
+    expect(bytesRoute).toContain('"AcademyNarrationAsset"');
+    expect(bytesRoute).toContain('"AcademyLessonAudio"');
   });
 
-  it.skipIf(!dockerfile)("every container start pre-generates missing or stale narration in the background", () => {
-    expect(dockerfile).toContain("generate-academy-audio.cjs");
+  it.skipIf(!dockerfile)("container startup never generates narration", () => {
+    expect(dockerfile).not.toContain("sleep 15");
+    expect(dockerfile).not.toContain("narration-generate.log");
+    expect(dockerfile).toContain("pnpm prisma migrate deploy && pnpm start");
   });
 
-  it("the stdin EPIPE guard exists in both generators (a dead child must not kill the server or the batch run)", () => {
-    expect(lib).toContain('child.stdin.on("error", () => {});');
-    expect(genScript).toContain('child.stdin.on("error", () => {});');
+  it("the web library and retired legacy CLI cannot generate or update audio", () => {
+    expect(lib).not.toContain("execFile");
+    expect(lib).not.toContain("generateLessonAudio");
+    expect(legacyGenScript).toContain("Legacy AcademyLessonAudio generation is disabled");
+    expect(legacyGenScript).not.toContain("PrismaClient");
   });
 
   it.skipIf(!dockerfile)("the image bakes the pinned piper build, the three voice models, and lame", () => {
@@ -188,16 +199,14 @@ describe("narration wiring (source inspection)", () => {
     expect(dockerfile).toContain("COPY --from=tts /opt/piper /opt/piper");
   });
 
-  it("the pre-generate script and the lib agree on the engine string and voice files", () => {
-    expect(genScript).toContain(AUDIO_ENGINE);
-    for (const v of NARRATION_VOICES) {
-      expect(genScript).toContain(v.modelFile);
-    }
-    // Piper input is newline-normalized in both generators (each stdin line is
-    // an utterance) and quiet mode is on.
-    expect(lib).toContain('replace(/\\s+/g, " ")');
-    expect(genScript).toContain('replace(/\\s+/g, " ")');
-    expect(lib).toContain('"-q",');
-    expect(genScript).toContain('"-q"');
+  it("the release generator is pinned, resumable, and network isolated", () => {
+    expect(releaseGenScript).toContain("semantic-block-flow-v2-final");
+    expect(releaseGenScript).toContain("0f196123bbcafa585a9cda880f5bc94158d75eceac296c8c7c7d53c360041bfe");
+    expect(releaseGenScript).toContain("networkIsolationState");
+    expect(releaseGenScript).toContain("completed chunk drift");
+    expect(releaseGenScript).toContain("COPYFILE_EXCL");
+    expect(releaseGenScript).not.toContain("OpenRouter");
+    expect(releaseGenScript).not.toContain("ElevenLabs");
+    expect(releaseGenScript).not.toContain("fetch(");
   });
 });
