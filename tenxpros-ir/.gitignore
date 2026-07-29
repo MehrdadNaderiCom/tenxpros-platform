@@ -1,12 +1,14 @@
 .next
 node_modules
-.env
-.env.local
-.env.production
+.env*
+!.env.example
 coverage
 uploads
 storage
+backups
 playwright-report
 test-results
+*.age
+*.dump
 *.log
 *.tsbuildinfo

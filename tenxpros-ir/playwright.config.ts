@@ -27,8 +27,9 @@ function dedicatedTestDatabaseUrl() {
 }
 
 const databaseUrl = dedicatedTestDatabaseUrl();
-const baseURL = process.env.E2E_BASE_URL ?? "http://127.0.0.1:3190";
-const parsedBaseURL = new URL(baseURL);
+const configuredBaseURL =
+  process.env.E2E_BASE_URL ?? "http://127.0.0.1:3190";
+const parsedBaseURL = new URL(configuredBaseURL);
 if (
   parsedBaseURL.protocol !== "http:" ||
   !["127.0.0.1", "localhost"].includes(parsedBaseURL.hostname) ||
@@ -39,6 +40,7 @@ if (
   throw new Error("E2E_BASE_URL must be a plain local HTTP origin.");
 }
 const serverPort = parsedBaseURL.port || "80";
+const baseURL = `${parsedBaseURL.origin}/`;
 const uploadDirectory =
   process.env.E2E_UPLOAD_DIR ?? path.resolve("storage/e2e-receipts");
 
@@ -67,7 +69,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `pnpm exec next dev -H ${parsedBaseURL.hostname} -p ${serverPort}`,
-    url: `${baseURL}api/health`,
+    url: new URL("/api/health", baseURL).toString(),
     reuseExistingServer: process.env.E2E_REUSE_SERVER === "1",
     timeout: 180_000,
     env: {

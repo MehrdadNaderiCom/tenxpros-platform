@@ -1,7 +1,10 @@
 FROM node:24-bookworm-slim AS base
 
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm install --global pnpm@9.15.9
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/* \
+  && npm install --global pnpm@9.15.9
 WORKDIR /app
 
 FROM base AS dependencies

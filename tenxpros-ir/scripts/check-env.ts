@@ -53,7 +53,17 @@ function main() {
   if (!["postgresql:", "postgres:"].includes(database.protocol)) {
     throw new Error("DATABASE_URL must use PostgreSQL.");
   }
-  if (!database.username || !database.password || database.password.length < 16) {
+  let decodedDatabasePassword: string;
+  try {
+    decodedDatabasePassword = decodeURIComponent(database.password);
+  } catch {
+    throw new Error("DATABASE_URL contains an invalid URL-encoded password.");
+  }
+  if (
+    !database.username ||
+    !decodedDatabasePassword ||
+    decodedDatabasePassword.length < 16
+  ) {
     throw new Error(
       "DATABASE_URL must include a database user and a password of at least 16 characters.",
     );
@@ -100,6 +110,16 @@ function main() {
       throw new Error(
         "ADMIN_INITIAL_PASSWORD must contain at least 14 characters.",
       );
+    }
+    if (process.env.ADMIN_PASSWORD_HASH) {
+      const bcrypt = adminSecret.match(
+        /^\$2[aby]\$(\d{2})\$[./A-Za-z0-9]{53}$/,
+      );
+      if (!bcrypt || Number(bcrypt[1]) < 12) {
+        throw new Error(
+          "ADMIN_PASSWORD_HASH must be a valid bcrypt hash with cost 12 or higher.",
+        );
+      }
     }
   }
 

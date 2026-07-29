@@ -23,6 +23,7 @@
 ## نیازمندی‌های سرور
 
 - Node.js نسخهٔ ۲۴ LTS
+- pnpm نسخهٔ ۹.۱۵.۹
 - PostgreSQL نسخهٔ ۱۶ یا جدیدتر
 - فضای دیسک ماندگار و خارج از دسترس عمومی برای فیش‌ها
 - دامنه با HTTPS
@@ -52,6 +53,26 @@ ZOOM_MODE=mock
 ```
 
 حالت‌های `log` و `mock` فقط برای تست هستند و نباید روی دامنهٔ اصلی استفاده شوند.
+
+## تست مرورگری کامل
+
+این تست فقط اجازه اتصال به پایگاه داده اختصاصی `tenxpros_ir_test` روی پورت محلی ۵۵۴۳۲ را می‌دهد و در صورت هر آدرس دیگری متوقف می‌شود:
+
+```bash
+docker run -d \
+  --name tenxpros-ir-e2e-db \
+  -e POSTGRES_USER=tenxpros_ir_test \
+  -e POSTGRES_PASSWORD=local-test-only-password \
+  -e POSTGRES_DB=tenxpros_ir_test \
+  -p 127.0.0.1:55432:5432 \
+  postgres:16-alpine
+e2e_database_url='postgresql://tenxpros_ir_test:local-test-only-password@127.0.0.1:55432/tenxpros_ir_test?schema=public'
+DATABASE_URL="$e2e_database_url" pnpm db:deploy
+pnpm exec playwright install chromium
+E2E_DATABASE_URL="$e2e_database_url" pnpm test:e2e
+```
+
+سناریو از Apply تا پذیرش، آپلود فیش، تأیید پرداخت، ساخت Slot تهران، Zoom آزمایشی و محدودیت یک Office Hour در هفته را از طریق مرورگر اجرا می‌کند. ثبت Coaching یک‌ساعته با نرخ ۵ میلیون تومان و ساخت، انتشار و ثبت حضور در AI Roundtable نود دقیقه‌ای نیز در همین جریان بررسی می‌شوند. ایمیل و Zoom در این تست واقعی نیستند و بررسی اتصال واقعی آن‌ها باید روی محیط مقصد انجام شود.
 
 ## استقرار با Docker
 
@@ -88,12 +109,19 @@ docker compose up -d --force-recreate web
 
 ۵. یک Reverse Proxy مانند Nginx یا Caddy را از دامنهٔ `tenxpros.ir` به `127.0.0.1:3100` متصل کنید و HTTPS را فعال کنید.
 
-نمونهٔ بخش اصلی تنظیمات Nginx:
+نمونهٔ بخش اصلی تنظیمات Nginx با دامنهٔ اصلی یکتا:
 
 ```nginx
 server {
     listen 443 ssl http2;
-    server_name tenxpros.ir www.tenxpros.ir;
+    server_name www.tenxpros.ir;
+
+    return 308 https://tenxpros.ir$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tenxpros.ir;
 
     client_max_body_size 12m;
 
@@ -110,12 +138,28 @@ server {
 ```
 
 مقدار `client_max_body_size` باید از سقف ۸ مگابایتی فیش بزرگ‌تر باشد. تغییر Host یا Origin در Proxy می‌تواند Server Actionها را متوقف کند، بنابراین headerهای بالا را حذف نکنید.
+برای HTTP نیز Redirect دائمی به `https://tenxpros.ir` تنظیم کنید. نگه‌داشتن یک Origin اصلی باعث می‌شود Cookie ورود و لینک‌های ایمیل میان دامنهٔ اصلی و `www` از هم جدا نشوند.
+
+## نگهداری دوره‌ای
+
+برای جلوگیری از رشد نامحدود رکوردهای فنی، این دستور را روزانه با Cron یا Systemd Timer اجرا کنید:
+
+```bash
+docker compose exec -T --user node web pnpm maintenance:cleanup
+```
+
+این فرمان فقط Sessionهای منقضی یا قدیمی، Tokenهای تأیید ایمیل مصرف‌شده یا منقضی و Rate Limit Bucketهای قدیمی را پاک می‌کند. درخواست‌ها، پرداخت‌ها، Dossierها، Credentialها و فایل فیش حذف نمی‌شوند.
 
 ## استقرار بدون Docker
 
 روی سرور دارای Node.js 24 LTS و PostgreSQL، فایل `.env` را از نمونه بسازید، دسترسی آن را محدود کنید و یک مسیر مطلق و ماندگار برای `UPLOAD_DIR` قرار دهید. این مسیر نباید داخل `public` یا `.next` باشد.
 
 ```bash
+corepack enable
+corepack prepare pnpm@9.15.9 --activate
+sudo install -d -m 0700 \
+  -o YOUR_APP_USER -g YOUR_APP_GROUP \
+  /var/lib/tenxpros-ir/uploads
 cp .env.example .env
 chmod 600 .env
 pnpm install --frozen-lockfile
@@ -129,7 +173,27 @@ pnpm prune --prod
 pnpm start
 ```
 
-فرایند production را با systemd یا مدیر فرایند مشابه اجرا کنید و دایرکتوری آپلود را در اختیار همان کاربر محدود سیستم قرار دهید. پورت ۳۱۰۰ باید در Firewall فقط برای Reverse Proxy محلی در دسترس باشد تا headerهای IP قابل جعل نباشند. پس از seed اولیه، رمز اولیهٔ ادمین را از محیط حذف کنید. برای استقرارهای بعدی فقط `env:check` و `db:deploy` لازم است.
+مقدار `UPLOAD_DIR` را روی `/var/lib/tenxpros-ir/uploads` قرار دهید و `YOUR_APP_USER` و `YOUR_APP_GROUP` را با کاربر محدود سرویس جایگزین کنید. فرایند production را با systemd یا مدیر فرایند مشابه و همان کاربر اجرا کنید. پورت ۳۱۰۰ باید در Firewall فقط برای Reverse Proxy محلی در دسترس باشد تا headerهای IP قابل جعل نباشند. پس از seed اولیه، رمز اولیهٔ ادمین را از محیط حذف کنید. برای استقرارهای بعدی فقط `env:check` و `db:deploy` لازم است.
+
+در استقرار بدون Docker، Timer نگهداری باید از پوشه پروژه و با همان کاربر محدود این فرمان را اجرا کند:
+
+```bash
+pnpm maintenance:cleanup
+```
+
+در واحد Systemd، بررسی تنظیمات و Migration را پیش از Start قرار دهید. مسیر واقعی `pnpm` را با `command -v pnpm` پیدا و جایگزین کنید:
+
+```ini
+[Service]
+User=YOUR_APP_USER
+Group=YOUR_APP_GROUP
+WorkingDirectory=/srv/tenxpros-ir
+EnvironmentFile=/srv/tenxpros-ir/.env
+ExecStartPre=/usr/local/bin/pnpm env:check
+ExecStartPre=/usr/local/bin/pnpm db:deploy
+ExecStart=/usr/local/bin/pnpm start
+Restart=on-failure
+```
 
 ## تنظیم Zoom
 
@@ -193,24 +257,64 @@ curl -fsS https://tenxpros.ir/api/health
 
 ## پشتیبان‌گیری
 
-از پایگاه داده و volume فیش‌ها به صورت روزانه نسخهٔ پشتیبان رمزگذاری‌شده بگیرید. هر دو بخش برای بازیابی کامل سامانه لازم هستند.
+از پایگاه داده و volume فیش‌ها به‌صورت روزانه نسخهٔ پشتیبان رمزگذاری‌شده بگیرید. هر دو بخش برای بازیابی کامل سامانه لازم هستند. نمونه‌های زیر از ابزار `age` استفاده می‌کنند و فایل خام حاوی اطلاعات شخصی روی دیسک نمی‌سازند. ابزار `age` را روی میزبان نصب کنید، یک Identity مخصوص Backup بسازید و کلید خصوصی آن را خارج از سرور نگه دارید.
 
-نمونهٔ پشتیبان پایگاه داده:
+برای اجرای خودکار، Recipient عمومی و نام زمان‌دار بسازید:
 
 ```bash
-docker compose exec -T db pg_dump -U tenxpros_ir tenxpros_ir > tenxpros-ir.sql
+set -o pipefail
+umask 077
+backup_age_recipient='age1REPLACE_WITH_YOUR_BACKUP_RECIPIENT'
+backup_stamp=$(date -u +%Y%m%dT%H%M%SZ)
 ```
 
-نمونهٔ پشتیبان فایل‌های فیش:
+پشتیبان رمزگذاری‌شده پایگاه داده:
+
+```bash
+docker compose exec -T db \
+  pg_dump -U tenxpros_ir -Fc tenxpros_ir \
+  | age -r "$backup_age_recipient" \
+      -o "tenxpros-ir-db-$backup_stamp.dump.age"
+```
+
+پشتیبان رمزگذاری‌شده فایل‌های فیش:
 
 ```bash
 docker run --rm \
   -v YOUR_UPLOAD_VOLUME:/source:ro \
-  -v "$PWD":/backup \
-  alpine tar -czf /backup/tenxpros-ir-uploads.tar.gz -C /source .
-sha256sum tenxpros-ir.sql tenxpros-ir-uploads.tar.gz > tenxpros-ir-backup.sha256
+  alpine tar -czf - -C /source . \
+  | age -r "$backup_age_recipient" \
+      -o "tenxpros-ir-uploads-$backup_stamp.tar.gz.age"
+sha256sum \
+  "tenxpros-ir-db-$backup_stamp.dump.age" \
+  "tenxpros-ir-uploads-$backup_stamp.tar.gz.age" \
+  > "tenxpros-ir-$backup_stamp.sha256"
 ```
 
-نام واقعی volume را با `docker volume ls` پیدا و به‌جای `YOUR_UPLOAD_VOLUME` وارد کنید. برای بازیابی، ابتدا checksumها را بررسی کنید، یک پایگاه دادهٔ خالی بسازید، migrationها را اجرا کنید و سپس dump و archive فیش‌ها را برگردانید. بازیابی را دوره‌ای روی محیط آزمایشی تمرین کنید. فایل‌های پشتیبان شامل اطلاعات شخصی و مالی هستند و باید دسترسی محدود داشته باشند.
+نام واقعی volume را با `docker volume ls` پیدا و به‌جای `YOUR_UPLOAD_VOLUME` وارد کنید. سیاست Retention و انتقال خارج از سرور را جداگانه تنظیم کنید. هیچ Backup معتبر و تأییدشده‌ای نباید پیش از پایان Retention حذف شود.
+
+برای بازیابی، ابتدا checksumها را بررسی کنید و یک پایگاه دادهٔ کاملاً خالی بسازید. سپس Dump را بازیابی کنید:
+
+```bash
+restore_stamp=20260729T020000Z
+sha256sum -c "tenxpros-ir-$restore_stamp.sha256"
+age -d "tenxpros-ir-db-$restore_stamp.dump.age" \
+  | docker compose exec -T db \
+      pg_restore -U tenxpros_ir -d tenxpros_ir --clean --if-exists
+docker compose exec --user node web pnpm db:deploy
+```
+
+`db:deploy` پس از Restore فقط Migrationهای جدیدتر از زمان Backup را اعمال می‌کند. Archive فیش‌ها را داخل volume خالی بازیابی کنید و سپس مالکیت آن‌ها را به کاربر محدود برنامه برگردانید:
+
+```bash
+age -d "tenxpros-ir-uploads-$restore_stamp.tar.gz.age" \
+  | docker run --rm -i \
+      -v YOUR_UPLOAD_VOLUME:/target \
+      alpine tar -xzf - -C /target
+docker compose run --rm --entrypoint sh web \
+  -c 'chown -R node:node /app/uploads && find /app/uploads -type d -exec chmod 700 {} + && find /app/uploads -type f -exec chmod 600 {} +'
+```
+
+بازیابی را دوره‌ای روی محیط آزمایشی تمرین کنید. فایل‌های پشتیبان شامل اطلاعات شخصی و مالی هستند و باید دسترسی محدود داشته باشند.
 
 فایل `.env.production`، رمزها و نسخه‌های پشتیبان نباید وارد Git شوند.

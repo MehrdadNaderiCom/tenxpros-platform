@@ -48,7 +48,7 @@ export function PaymentReceiptForm({
   }
 
   return (
-    <form action={formAction} className="space-y-5" encType="multipart/form-data">
+    <form action={formAction} className="space-y-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
           <label htmlFor="payerName" className="mb-2 block text-sm font-bold text-slate-200">

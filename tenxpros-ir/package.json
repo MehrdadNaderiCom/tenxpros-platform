@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "env:check": "tsx scripts/check-env.ts",
     "env:check:seed": "tsx scripts/check-env.ts --seed",
+    "maintenance:cleanup": "tsx scripts/cleanup-data.ts",
     "db:generate": "prisma generate",
     "db:format": "prisma format",
     "db:validate": "prisma validate",

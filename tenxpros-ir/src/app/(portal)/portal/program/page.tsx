@@ -105,7 +105,7 @@ export default async function PortalProgramPage({
                 </h2>
                 <p className="mt-2 text-sm leading-7 text-slate-300">
                   ابتدا Diagnostic را کامل کنید. پس از review ادمین، Module
-                  نخست به صورت خودکار باز می‌شود.
+                  نخست به‌صورت خودکار باز می‌شود.
                 </p>
               </div>
             </div>

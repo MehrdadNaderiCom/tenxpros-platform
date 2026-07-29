@@ -165,11 +165,15 @@ async function seedInitialAdmin() {
   if (password && placeholderPattern.test(password)) {
     throw new Error("ADMIN_INITIAL_PASSWORD still contains a placeholder value.");
   }
-  if (
-    configuredHash &&
-    !/^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(configuredHash)
-  ) {
-    throw new Error("ADMIN_PASSWORD_HASH must be a valid bcrypt hash.");
+  if (configuredHash) {
+    const bcrypt = configuredHash.match(
+      /^\$2[aby]\$(\d{2})\$[./A-Za-z0-9]{53}$/,
+    );
+    if (!bcrypt || Number(bcrypt[1]) < 12) {
+      throw new Error(
+        "ADMIN_PASSWORD_HASH must be a valid bcrypt hash with cost 12 or higher.",
+      );
+    }
   }
 
   await prisma.user.create({

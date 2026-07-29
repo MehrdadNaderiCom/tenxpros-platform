@@ -264,7 +264,7 @@ export function ApplicationForm() {
         <div className="flex items-start gap-3">
           <LockKeyhole className="mt-1 h-5 w-5 shrink-0 text-iris-300" aria-hidden="true" />
           <p className="text-sm leading-7 text-slate-300">
-            ابتدا درخواست بررسی می‌شود. فقط پس از پذیرش، اطلاعات پرداخت بانک سامان در پنل شما نمایش
+            ابتدا درخواست بررسی می‌شود. فقط پس از پذیرش، اطلاعات رسمی پرداخت در پنل شما نمایش
             داده خواهد شد. ارسال این فرم هیچ تعهد پرداختی ایجاد نمی‌کند.
           </p>
         </div>

@@ -102,7 +102,7 @@ export default async function PortalDashboardPage() {
         <div className="mb-7 rounded-lg border border-iris-400/25 bg-iris-500/10 p-6">
           <p className="font-black text-iris-200">رسید شما در صف بررسی است</p>
           <p className="mt-2 text-sm leading-7 text-slate-300">
-            پس از تأیید مدیریت، دسترسی عضویت به صورت خودکار فعال می‌شود.
+            پس از تأیید مدیریت، دسترسی عضویت به‌صورت خودکار فعال می‌شود.
           </p>
         </div>
       ) : null}

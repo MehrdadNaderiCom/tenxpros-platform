@@ -30,11 +30,13 @@ function smtpTransport() {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASSWORD;
   if (!host) return null;
+  const secure = process.env.SMTP_SECURE === "true";
 
   transport = nodemailer.createTransport({
     host,
     port: Number(process.env.SMTP_PORT ?? 587),
-    secure: process.env.SMTP_SECURE === "true",
+    secure,
+    requireTLS: !secure,
     auth: user && pass ? { user, pass } : undefined,
     connectionTimeout: 10_000,
     greetingTimeout: 10_000,
@@ -70,7 +72,7 @@ export async function sendEmail(message: EmailMessage) {
 }
 
 function emailFrame(content: string) {
-  return `<div dir="rtl" style="margin:0;background:#f7f8fb;padding:32px 16px;font-family:Tahoma,Arial,sans-serif;color:#172033"><div style="max-width:620px;margin:auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;padding:32px;line-height:2"><p dir="ltr" style="margin:0 0 24px;font:700 18px Arial;color:#554ee8">TenXPros</p>${content}<p style="margin:28px 0 0;color:#64748b;font-size:13px">این پیام به صورت خودکار از سامانه TenXPros ایران ارسال شده است.</p></div></div>`;
+  return `<div dir="rtl" style="margin:0;background:#f7f8fb;padding:32px 16px;font-family:Tahoma,Arial,sans-serif;color:#172033"><div style="max-width:620px;margin:auto;background:#ffffff;border:1px solid #e5e7eb;border-radius:16px;padding:32px;line-height:2"><p dir="ltr" style="margin:0 0 24px;font:700 18px Arial;color:#554ee8">TenXPros</p>${content}<p style="margin:28px 0 0;color:#64748b;font-size:13px">این پیام به‌صورت خودکار از سامانه TenXPros ایران ارسال شده است.</p></div></div>`;
 }
 
 function safeHttpUrl(value: string) {

@@ -119,14 +119,18 @@ export async function createGatheringAction(
         .url()
         .max(2000)
         .refine((value) => {
-          const url = new URL(value);
-          return (
-            url.protocol === "https:" &&
-            (url.hostname === "zoom.us" ||
-              url.hostname.endsWith(".zoom.us") ||
-              url.hostname === "zoom.com" ||
-              url.hostname.endsWith(".zoom.com"))
-          );
+          try {
+            const url = new URL(value);
+            return (
+              url.protocol === "https:" &&
+              (url.hostname === "zoom.us" ||
+                url.hostname.endsWith(".zoom.us") ||
+                url.hostname === "zoom.com" ||
+                url.hostname.endsWith(".zoom.com"))
+            );
+          } catch {
+            return false;
+          }
         }),
       z.literal(""),
     ])

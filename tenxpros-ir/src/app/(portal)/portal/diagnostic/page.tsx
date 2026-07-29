@@ -17,8 +17,8 @@ const resultMessages: Record<string, string> = {
   submitted: "Diagnostic برای review ارسال شد.",
   invalid: "اطلاعات فرم کامل یا معتبر نیست.",
   locked: "این Diagnostic دیگر قابل ویرایش نیست.",
-  retry: "هم‌زمان تغییری ثبت شد. لطفا دوباره تلاش کنید.",
-  error: "ثبت Diagnostic انجام نشد. لطفا دوباره تلاش کنید.",
+  retry: "هم‌زمان تغییری ثبت شد. لطفاً دوباره تلاش کنید.",
+  error: "ثبت Diagnostic انجام نشد. لطفاً دوباره تلاش کنید.",
 };
 
 const statusLabels = {

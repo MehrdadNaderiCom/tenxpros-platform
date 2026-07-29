@@ -13,7 +13,10 @@ export async function GET() {
     await db.$queryRaw`SELECT 1`;
     const upload = getUploadConfig();
     await mkdir(upload.directory, { recursive: true, mode: 0o700 });
-    await access(upload.directory, fsConstants.R_OK | fsConstants.W_OK);
+    await access(
+      upload.directory,
+      fsConstants.R_OK | fsConstants.W_OK | fsConstants.X_OK,
+    );
 
     return NextResponse.json({
       ok: true,
