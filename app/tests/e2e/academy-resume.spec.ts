@@ -1633,6 +1633,156 @@ test.describe("Partner Academy durable resume", () => {
     }
   });
 
+  test("keeps Stop authoritative across a late media event and immediate restart", async ({
+    browser,
+  }) => {
+    const playback = await openAuthenticatedLesson(
+      browser,
+      userA.email,
+    );
+    try {
+      const audio = playback.page.locator("audio");
+      const seek = playback.page.getByLabel("Seek", {
+        exact: true,
+      });
+      await playback.page
+        .getByRole("button", {
+          name: "Play",
+          exact: true,
+        })
+        .click();
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThanOrEqual(2.5);
+      const preStopPosition = await audio.evaluate(
+        (element) =>
+          (element as HTMLAudioElement).currentTime,
+      );
+
+      await playback.page
+        .getByRole("button", { name: /Stop/u })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await resumeRow(userA.id))
+              ?.audioPositionSeconds ?? -1,
+        )
+        .toBe(0);
+      await expect
+        .poll(async () => Number(await seek.inputValue()))
+        .toBe(0);
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeLessThan(0.5);
+
+      // Deliver a queued pre-Stop timeupdate when the first restart attempt
+      // emits play. The corrective pause rejects that obsolete play promise;
+      // its rejection must not cancel the replacement attempt after seeked.
+      await audio.evaluate(
+        (element, latePosition) => {
+          const media = element as HTMLAudioElement;
+          const state = window as Window & {
+            __academyRestartPosition?: number | null;
+          };
+          state.__academyRestartPosition = null;
+          media.addEventListener(
+            "play",
+            () => {
+              Object.defineProperty(media, "currentTime", {
+                configurable: true,
+                get: () => latePosition,
+              });
+              try {
+                media.dispatchEvent(
+                  new Event("timeupdate"),
+                );
+              } finally {
+                Reflect.deleteProperty(
+                  media,
+                  "currentTime",
+                );
+              }
+              media.dispatchEvent(new Event("seeked"));
+            },
+            { once: true },
+          );
+          media.addEventListener(
+            "playing",
+            () => {
+              state.__academyRestartPosition =
+                media.currentTime;
+            },
+            { once: true },
+          );
+        },
+        preStopPosition,
+      );
+      await playback.page
+        .getByRole("button", {
+          name: "Play",
+          exact: true,
+        })
+        .click();
+      await expect
+        .poll(() =>
+          playback.page.evaluate(
+            () =>
+              (
+                window as Window & {
+                  __academyRestartPosition?:
+                    | number
+                    | null;
+                }
+              ).__academyRestartPosition ?? null,
+          ),
+        )
+        .not.toBeNull();
+      const restartedAt = await playback.page.evaluate(
+        () =>
+          (
+            window as Window & {
+              __academyRestartPosition?:
+                | number
+                | null;
+            }
+          ).__academyRestartPosition,
+      );
+      expect(restartedAt).toBeLessThan(0.75);
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan((restartedAt ?? 0) + 0.25);
+
+      await playback.page
+        .getByRole("button", { name: /Stop/u })
+        .click();
+      await expect
+        .poll(
+          async () =>
+            (await resumeRow(userA.id))
+              ?.audioPositionSeconds ?? -1,
+        )
+        .toBe(0);
+    } finally {
+      await playback.context.close();
+    }
+  });
+
   test("persists real playback on pause and exit without autoplay, while Stop and natural end clear", async ({
     browser,
   }) => {
