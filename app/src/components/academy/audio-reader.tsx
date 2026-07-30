@@ -11,6 +11,7 @@ import {
 import { Pause, Play, Square } from "lucide-react";
 import { AUDIO_SECOND_EVENT } from "@/components/academy/telemetry-beacon";
 import {
+  academyFollowAlongElementPath,
   useAcademyFollowAlong,
   type AcademyFollowAlongCue,
 } from "@/components/academy/follow-along-context";
@@ -79,6 +80,16 @@ const ACTIVE_RELEASE_PREF_MIGRATION_KEY =
   "txp-narration-active-release-preferences-v1";
 const MAX_MEDIA_RETRY_ATTEMPTS = 5;
 const RESUME_RECONCILE_TIMEOUT_MS = 4_000;
+const MAX_NARRATION_DURATION_MS = 86_400_000;
+const STOP_RESTART_MAX_POSITION_SECONDS = 0.75;
+const FOLLOW_ALONG_SOURCE_PATH =
+  /^(?:title|root(?:\/[a-z][a-z0-9-]*\[\d+\])+(?:#segment\[\d+\])?)$/u;
+
+type StopRestartState =
+  | "stopped"
+  | "restarting"
+  | "correcting"
+  | null;
 
 function formatTime(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -105,25 +116,39 @@ function parseFollowAlongCue(
   }
   const record = value as Record<string, unknown>;
   if (
-    !Number.isInteger(record.blockIndex) ||
+    !Number.isSafeInteger(record.blockIndex) ||
+    (record.blockIndex as number) < 0 ||
     typeof record.semanticBlockId !== "string" ||
     !/^[a-f0-9]{64}$/u.test(record.semanticBlockId) ||
     typeof record.sourceHtmlPath !== "string" ||
-    record.sourceHtmlPath.length === 0 ||
     record.sourceHtmlPath.length > 512 ||
+    !FOLLOW_ALONG_SOURCE_PATH.test(
+      record.sourceHtmlPath,
+    ) ||
     !Number.isFinite(cue.startTime) ||
     !Number.isFinite(cue.endTime) ||
+    cue.startTime < 0 ||
     cue.endTime <= cue.startTime
   ) {
     return null;
   }
-  return {
+  const parsed = {
     blockIndex: record.blockIndex as number,
     semanticBlockId: record.semanticBlockId,
     sourceHtmlPath: record.sourceHtmlPath,
     startMs: Math.round(cue.startTime * 1_000),
     endMs: Math.round(cue.endTime * 1_000),
   };
+  if (
+    !Number.isSafeInteger(parsed.startMs) ||
+    !Number.isSafeInteger(parsed.endMs) ||
+    parsed.startMs < 0 ||
+    parsed.endMs <= parsed.startMs ||
+    parsed.endMs > MAX_NARRATION_DURATION_MS
+  ) {
+    return null;
+  }
+  return parsed;
 }
 
 function AudioUnavailable({
@@ -166,8 +191,10 @@ export function AudioReader({
   resumeEnabled?: boolean;
 }) {
   const {
+    registerSectionAudioController,
     setActiveCue,
     setPlaying: setFollowAlongPlaying,
+    setSectionCues,
   } = useAcademyFollowAlong();
   const [status, setStatus] = useState<NarrationStatus | null>(null);
   const [statusFailed, setStatusFailed] = useState(false);
@@ -184,6 +211,12 @@ export function AudioReader({
   const trackRef = useRef<HTMLTrackElement | null>(null);
   const followTrackValidatedRef = useRef(false);
   const followCueEnabledRef = useRef(false);
+  const selectedSectionPathRef = useRef<string | null>(
+    null,
+  );
+  const pendingSectionCueRef =
+    useRef<AcademyFollowAlongCue | null>(null);
+  const pendingSectionSeekAssignedRef = useRef(false);
   // Where to resume (as a fraction of duration) after a mid-playback voice swap.
   const pendingSeekFractionRef = useRef<number | null>(null);
   // A durable saved time uses absolute seconds because the resume key binds it
@@ -199,6 +232,12 @@ export function AudioReader({
   const mediaRetryAttemptRef = useRef(0);
   const mediaRetrySourceKeyRef = useRef<string | null>(null);
   const mediaPlaybackStartedAtRef = useRef<number | null>(null);
+  const playAttemptGenerationRef = useRef(0);
+  const stopRestartStateRef =
+    useRef<StopRestartState>(null);
+  const stopRestartStartedAtRef = useRef(0);
+  const stopRestartSawPlayingRef = useRef(false);
+  const stopRestartPendingZeroRef = useRef(false);
   const statusRequestGenerationRef = useRef(0);
   const statusRequestRef =
     useRef<Promise<NarrationStatus | null> | null>(null);
@@ -482,6 +521,13 @@ export function AudioReader({
       setActiveCue(null);
       return;
     }
+    if (
+      pendingSectionCueRef.current &&
+      pendingInitialSeekSecondsRef.current !== null
+    ) {
+      setActiveCue(pendingSectionCueRef.current);
+      return;
+    }
     const track = trackRef.current?.track;
     if (!track) return;
     let cue: TextTrackCue | null = null;
@@ -510,14 +556,35 @@ export function AudioReader({
     ) {
       cue = track.activeCues[0];
     }
-    setActiveCue(parseFollowAlongCue(cue));
+    const parsedCue = parseFollowAlongCue(cue);
+    const audio = audioRef.current;
+    if (
+      parsedCue &&
+      selectedSectionPathRef.current &&
+      audio &&
+      !audio.paused
+    ) {
+      selectedSectionPathRef.current =
+        academyFollowAlongElementPath(
+          parsedCue.sourceHtmlPath,
+        );
+    }
+    setActiveCue(parsedCue);
   }, [setActiveCue]);
 
   useEffect(() => {
     followTrackValidatedRef.current = false;
-    if (!followAlong || mediaRetryExhausted) {
+    if (
+      !followAlong ||
+      mediaRetryExhausted ||
+      resumePending
+    ) {
+      selectedSectionPathRef.current = null;
+      pendingSectionCueRef.current = null;
+      pendingSectionSeekAssignedRef.current = false;
       setFollowAlongPlaying(false);
       setActiveCue(null);
+      setSectionCues([]);
       return;
     }
     const element = trackRef.current;
@@ -527,7 +594,11 @@ export function AudioReader({
     const onCueChange = () => syncActiveTrackCue();
     const clearTrack = () => {
       followTrackValidatedRef.current = false;
+      selectedSectionPathRef.current = null;
+      pendingSectionCueRef.current = null;
+      pendingSectionSeekAssignedRef.current = false;
       setActiveCue(null);
+      setSectionCues([]);
     };
     const onTrackLoad = () => {
       const cues = track.cues;
@@ -539,13 +610,47 @@ export function AudioReader({
         clearTrack();
         return;
       }
+      const sectionCueByPath = new Map<
+        string,
+        AcademyFollowAlongCue
+      >();
+      let previousEndMs = -1;
+      const durationLimitMs =
+        selected?.durationSeconds &&
+        Number.isFinite(selected.durationSeconds) &&
+        selected.durationSeconds > 0
+          ? Math.ceil(
+              selected.durationSeconds * 1_000,
+            ) + 250
+          : MAX_NARRATION_DURATION_MS;
       for (let index = 0; index < cues.length; index += 1) {
-        if (!parseFollowAlongCue(cues[index])) {
+        const parsed = parseFollowAlongCue(cues[index]);
+        if (
+          !parsed ||
+          parsed.blockIndex !== index ||
+          parsed.startMs < previousEndMs ||
+          parsed.endMs > durationLimitMs
+        ) {
           clearTrack();
           return;
         }
+        previousEndMs = parsed.endMs;
+        const sectionPath =
+          academyFollowAlongElementPath(
+            parsed.sourceHtmlPath,
+          );
+        const current =
+          sectionCueByPath.get(sectionPath);
+        if (!current || parsed.startMs < current.startMs) {
+          sectionCueByPath.set(sectionPath, parsed);
+        }
       }
       followTrackValidatedRef.current = true;
+      setSectionCues(
+        Array.from(sectionCueByPath.values()).sort(
+          (left, right) => left.startMs - right.startMs,
+        ),
+      );
       syncActiveTrackCue();
     };
     track.addEventListener("cuechange", onCueChange);
@@ -563,19 +668,27 @@ export function AudioReader({
   }, [
     followAlong,
     mediaRetryExhausted,
+    resumePending,
+    selected?.durationSeconds,
     setActiveCue,
     setFollowAlongPlaying,
+    setSectionCues,
     syncActiveTrackCue,
   ]);
 
   useEffect(
     () => () => {
+      selectedSectionPathRef.current = null;
+      pendingSectionCueRef.current = null;
+      pendingSectionSeekAssignedRef.current = false;
       setFollowAlongPlaying(false);
       setActiveCue(null);
+      setSectionCues([]);
     },
     [
       setActiveCue,
       setFollowAlongPlaying,
+      setSectionCues,
     ],
   );
   useEffect(() => {
@@ -668,6 +781,13 @@ export function AudioReader({
       loadedResumeKeyRef.current !== selected.resumeKey ||
       appliedMediaReloadRef.current !== mediaReload
     ) {
+      selectedSectionPathRef.current = null;
+      pendingSectionCueRef.current = null;
+      pendingSectionSeekAssignedRef.current = false;
+      stopRestartStateRef.current = null;
+      stopRestartSawPlayingRef.current = false;
+      stopRestartPendingZeroRef.current = false;
+      playAttemptGenerationRef.current += 1;
       allowAudioSaveRef.current = false;
       // A retry of the same immutable source keeps the in-memory timestamp.
       // A genuinely new release must never inherit the old asset's position.
@@ -739,8 +859,10 @@ export function AudioReader({
       // instead of letting the transient media time overwrite the shadow with
       // zero during a refresh.
       const checkpointTime =
-        !allowAudioSaveRef.current &&
-        pendingCheckpoint !== null
+        stopRestartStateRef.current !== null
+          ? 0
+          : !allowAudioSaveRef.current &&
+              pendingCheckpoint !== null
           ? pendingCheckpoint
           : Number.isFinite(requestedTime)
             ? requestedTime!
@@ -847,9 +969,10 @@ export function AudioReader({
     }
   };
 
-  // Apply a pending resume position (after a voice swap) once the new source
-  // can actually play. iOS ignores currentTime set at loadedmetadata time, so
-  // this runs on canplay AND playing and clears itself on first success.
+  // Apply a pending absolute position once the source can actually seek.
+  // Restores and passage selections share this confirmation path because iOS
+  // can ignore currentTime at loadedmetadata and WebKit can briefly echo a
+  // requested clock before its asynchronous seek has settled.
   const applyPendingSeek = useCallback(() => {
     const el = audioRef.current;
     if (!el) return;
@@ -868,16 +991,26 @@ export function AudioReader({
         Math.max(0, initialSeconds),
         Math.max(0, mediaDuration - 0.1),
       );
+      const sectionSeekPending =
+        pendingSectionCueRef.current !== null;
+      const tolerance = sectionSeekPending
+        ? 0.075
+        : 0.5;
       // A matching, non-seeking media clock is the confirmation. Merely reading
       // the assigned value back is not enough: WebKit can echo the target while
       // its asynchronous seek is still pending and later emit the old clock.
       if (
-        Math.abs(el.currentTime - target) > 0.5 ||
+        (sectionSeekPending &&
+          !pendingSectionSeekAssignedRef.current) ||
+        Math.abs(el.currentTime - target) > tolerance ||
         el.seeking
       ) {
         if (!el.seeking) {
           try {
             el.currentTime = target;
+            if (sectionSeekPending) {
+              pendingSectionSeekAssignedRef.current = true;
+            }
           } catch {
             // Keep the pending value. canplay/playing will retry when the media
             // implementation is ready to accept a seek.
@@ -893,6 +1026,13 @@ export function AudioReader({
       el.playbackRate = rateRef.current;
       setCurrentTime(target);
       allowAudioSaveRef.current = true;
+      const selectedSectionCue =
+        pendingSectionCueRef.current;
+      pendingSectionCueRef.current = null;
+      pendingSectionSeekAssignedRef.current = false;
+      if (selectedSectionCue) {
+        setActiveCue(selectedSectionCue);
+      }
       window.requestAnimationFrame(syncActiveTrackCue);
       return;
     }
@@ -903,7 +1043,122 @@ export function AudioReader({
     el.playbackRate = rateRef.current;
     followCueEnabledRef.current = true;
     window.requestAnimationFrame(syncActiveTrackCue);
-  }, [selected?.durationSeconds, syncActiveTrackCue]);
+  }, [
+    selected?.durationSeconds,
+    setActiveCue,
+    syncActiveTrackCue,
+  ]);
+
+  const requestPlayback = useCallback(
+    (el: HTMLAudioElement) => {
+      const generation =
+        ++playAttemptGenerationRef.current;
+      void el.play().catch((error: unknown) => {
+        if (
+          generation !==
+          playAttemptGenerationRef.current
+        ) {
+          return;
+        }
+        const errorName =
+          typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          typeof (error as { name?: unknown }).name ===
+            "string"
+            ? (error as { name: string }).name
+            : "";
+        if (errorName === "AbortError") return;
+        setPlaying(false);
+        setFollowAlongPlaying(false);
+        mediaPlaybackStartedAtRef.current = null;
+        // Permission denial is local to the gesture. Decode/network failures
+        // may mean the audited source changed and deserve a status refresh.
+        if (errorName !== "NotAllowedError") {
+          void refreshStatus();
+        }
+      });
+    },
+    [refreshStatus, setFollowAlongPlaying],
+  );
+
+  const rejectStaleStoppedClock = useCallback(
+    (el: HTMLAudioElement): boolean => {
+      const state = stopRestartStateRef.current;
+      if (state === null) return false;
+
+      const mediaTime = el.currentTime;
+      if (state === "stopped") {
+        if (
+          !Number.isFinite(mediaTime) ||
+          mediaTime < 0 ||
+          mediaTime > 0.01
+        ) {
+          try {
+            el.currentTime = 0;
+          } catch {
+            /* the visible and persisted Stop state stays at zero */
+          }
+        }
+        setCurrentTime(0);
+        return true;
+      }
+      if (state === "correcting") {
+        setCurrentTime(0);
+        return true;
+      }
+
+      const elapsedSeconds = Math.max(
+        0,
+        (window.performance.now() -
+          stopRestartStartedAtRef.current) /
+          1_000,
+      );
+      const furthestPlausibleTime =
+        stopRestartSawPlayingRef.current
+          ? Math.max(
+              STOP_RESTART_MAX_POSITION_SECONDS,
+              elapsedSeconds *
+                Math.max(0.25, el.playbackRate) +
+                0.5,
+            )
+          : STOP_RESTART_MAX_POSITION_SECONDS;
+      if (
+        !Number.isFinite(mediaTime) ||
+        mediaTime < 0 ||
+        mediaTime > furthestPlausibleTime
+      ) {
+        // A queued event from before Stop can arrive inside the next play event
+        // on WebKit. Retire that obsolete attempt, then retry zero and playback
+        // after the injected getter has gone away.
+        stopRestartStateRef.current = "correcting";
+        stopRestartPendingZeroRef.current = true;
+        playAttemptGenerationRef.current += 1;
+        el.pause();
+        try {
+          el.currentTime = 0;
+        } catch {
+          /* seeked will retry after a stale getter is removed */
+        }
+        setCurrentTime(0);
+        return true;
+      }
+
+      // Keep the wall-clock guard for a short window after `playing`. A zero
+      // timeupdate can precede the queued stale event on WebKit, so one early
+      // plausible tick is not enough to retire Stop's authority.
+      if (
+        stopRestartSawPlayingRef.current &&
+        elapsedSeconds >= 1
+      ) {
+        stopRestartStateRef.current = null;
+        stopRestartSawPlayingRef.current = false;
+        stopRestartPendingZeroRef.current = false;
+      }
+      return false;
+    },
+    [],
+  );
 
   // Bind the persisted timestamp to the exact immutable audio identity before
   // seeking. A release change simply starts at zero; narration never autoplays.
@@ -972,19 +1227,24 @@ export function AudioReader({
     const el = audioRef.current;
     if (!el || resumePending) return;
     if (el.paused) {
+      if (stopRestartStateRef.current !== null) {
+        stopRestartStateRef.current = "restarting";
+        stopRestartStartedAtRef.current =
+          window.performance.now();
+        stopRestartSawPlayingRef.current = false;
+        stopRestartPendingZeroRef.current = false;
+      }
       applyPendingSeek();
       if (pendingInitialSeekSecondsRef.current === null) {
         followCueEnabledRef.current = true;
       }
       el.playbackRate = rateRef.current;
-      void el.play().catch(() => {
-        setPlaying(false);
-        setFollowAlongPlaying(false);
-        mediaPlaybackStartedAtRef.current = null;
-        // A 404 while regenerating: refresh so the UI shows preparing state.
-        void refreshStatus();
-      });
+      requestPlayback(el);
     } else {
+      stopRestartStateRef.current = null;
+      stopRestartSawPlayingRef.current = false;
+      stopRestartPendingZeroRef.current = false;
+      playAttemptGenerationRef.current += 1;
       el.pause();
     }
   };
@@ -992,6 +1252,14 @@ export function AudioReader({
   const stop = () => {
     const el = audioRef.current;
     if (!el || resumePending) return;
+    selectedSectionPathRef.current = null;
+    pendingSectionCueRef.current = null;
+    pendingSectionSeekAssignedRef.current = false;
+    stopRestartStateRef.current = "stopped";
+    stopRestartStartedAtRef.current = 0;
+    stopRestartSawPlayingRef.current = false;
+    stopRestartPendingZeroRef.current = false;
+    playAttemptGenerationRef.current += 1;
     followCueEnabledRef.current = false;
     pendingSeekFractionRef.current = null;
     pendingInitialSeekSecondsRef.current = null;
@@ -1037,6 +1305,13 @@ export function AudioReader({
    * preserves the playback permission on iOS.
    */
   const changeVoice = (id: string) => {
+    selectedSectionPathRef.current = null;
+    pendingSectionCueRef.current = null;
+    pendingSectionSeekAssignedRef.current = false;
+    stopRestartStateRef.current = null;
+    stopRestartSawPlayingRef.current = false;
+    stopRestartPendingZeroRef.current = false;
+    playAttemptGenerationRef.current += 1;
     setVoiceId(id);
     try {
       window.localStorage.setItem(VOICE_PREF_KEY, id);
@@ -1053,13 +1328,19 @@ export function AudioReader({
     el.src = srcFor(id);
     el.load();
     if (wasPlaying) {
-      void el.play().catch(() => {});
+      requestPlayback(el);
     }
   };
 
   const seek = (t: number) => {
     const el = audioRef.current;
     if (!el || resumePending) return;
+    selectedSectionPathRef.current = null;
+    pendingSectionCueRef.current = null;
+    pendingSectionSeekAssignedRef.current = false;
+    stopRestartStateRef.current = null;
+    stopRestartSawPlayingRef.current = false;
+    stopRestartPendingZeroRef.current = false;
     // A manual seek supersedes any pending voice-swap resume position.
     pendingSeekFractionRef.current = null;
     pendingInitialSeekSecondsRef.current = null;
@@ -1070,6 +1351,99 @@ export function AudioReader({
     window.requestAnimationFrame(syncActiveTrackCue);
     persistAudioShadow(t);
   };
+
+  const activateSectionAudio = useCallback(
+    (cue: AcademyFollowAlongCue) => {
+      const el = audioRef.current;
+      if (
+        !el ||
+        resumePending ||
+        !selected?.ready ||
+        loadedResumeKeyRef.current !==
+          selected.resumeKey ||
+        !followTrackValidatedRef.current
+      ) {
+        return;
+      }
+      stopRestartStateRef.current = null;
+      stopRestartSawPlayingRef.current = false;
+      stopRestartPendingZeroRef.current = false;
+
+      const sectionPath = academyFollowAlongElementPath(
+        cue.sourceHtmlPath,
+      );
+      if (
+        selectedSectionPathRef.current === sectionPath
+      ) {
+        if (el.paused) {
+          applyPendingSeek();
+          followCueEnabledRef.current = true;
+          el.playbackRate = rateRef.current;
+          requestPlayback(el);
+        } else {
+          playAttemptGenerationRef.current += 1;
+          el.pause();
+        }
+        return;
+      }
+
+      selectedSectionPathRef.current = sectionPath;
+      initialResumeHandledRef.current = true;
+      pendingSeekFractionRef.current = null;
+      followCueEnabledRef.current = true;
+
+      const knownDuration =
+        Number.isFinite(el.duration) && el.duration > 0
+          ? el.duration
+          : selected.durationSeconds;
+      const requestedTime = cue.startMs / 1_000;
+      const target =
+        knownDuration &&
+        Number.isFinite(knownDuration) &&
+        knownDuration > 0
+          ? Math.min(
+              requestedTime,
+              Math.max(0, knownDuration - 0.1),
+            )
+          : requestedTime;
+
+      pendingInitialSeekSecondsRef.current = target;
+      pendingSectionCueRef.current = cue;
+      pendingSectionSeekAssignedRef.current = false;
+      allowAudioSaveRef.current = false;
+      playAttemptGenerationRef.current += 1;
+      el.pause();
+      setCurrentTime(target);
+      setPlaying(false);
+      setFollowAlongPlaying(false);
+      setActiveCue(cue);
+      mediaPlaybackStartedAtRef.current = null;
+      applyPendingSeek();
+      persistAudioPosition(target);
+    },
+    [
+      applyPendingSeek,
+      persistAudioPosition,
+      requestPlayback,
+      resumePending,
+      selected?.durationSeconds,
+      selected?.ready,
+      selected?.resumeKey,
+      setActiveCue,
+      setFollowAlongPlaying,
+    ],
+  );
+
+  useLayoutEffect(
+    () =>
+      registerSectionAudioController(
+        activateSectionAudio,
+      ),
+    [
+      activateSectionAudio,
+      registerSectionAudioController,
+    ],
+  );
 
   useEffect(() => {
     if (!resumeAvailable) return;
@@ -1171,6 +1545,12 @@ export function AudioReader({
         onPlaying={() => {
           applyPendingSeek();
           if (
+            stopRestartStateRef.current ===
+            "restarting"
+          ) {
+            stopRestartSawPlayingRef.current = true;
+          }
+          if (
             pendingInitialSeekSecondsRef.current === null
           ) {
             followCueEnabledRef.current = true;
@@ -1179,6 +1559,9 @@ export function AudioReader({
         }}
         onTimeUpdate={() => {
           const el = audioRef.current;
+          if (el && rejectStaleStoppedClock(el)) {
+            return;
+          }
           const time = el?.currentTime ?? 0;
           if (
             pendingInitialSeekSecondsRef.current !== null &&
@@ -1219,10 +1602,23 @@ export function AudioReader({
         }}
         onPlay={() => {
           if (
+            stopRestartStateRef.current ===
+            "restarting"
+          ) {
+            // Measure from the media attempt itself, not from the button click:
+            // WebKit may defer `play` while it buffers.
+            stopRestartStartedAtRef.current =
+              window.performance.now();
+            stopRestartSawPlayingRef.current = false;
+          }
+          if (
             pendingInitialSeekSecondsRef.current === null
           ) {
             followCueEnabledRef.current = true;
             syncActiveTrackCue();
+          } else if (pendingSectionCueRef.current) {
+            followCueEnabledRef.current = true;
+            setActiveCue(pendingSectionCueRef.current);
           } else {
             followCueEnabledRef.current = false;
             setActiveCue(null);
@@ -1238,6 +1634,44 @@ export function AudioReader({
           persistAudioPosition();
         }}
         onSeeked={() => {
+          const el = audioRef.current;
+          if (
+            el &&
+            stopRestartStateRef.current ===
+              "correcting" &&
+            stopRestartPendingZeroRef.current
+          ) {
+            stopRestartPendingZeroRef.current = false;
+            let zeroApplied = false;
+            try {
+              el.currentTime = 0;
+              zeroApplied = true;
+            } catch {
+              stopRestartPendingZeroRef.current = true;
+            }
+            setCurrentTime(0);
+            persistAudioPosition(0);
+            if (zeroApplied) {
+              stopRestartStateRef.current =
+                "restarting";
+              stopRestartStartedAtRef.current =
+                window.performance.now();
+              stopRestartSawPlayingRef.current = false;
+              // The same media element was already authorized by the user's
+              // click. Reloading retires WebKit's queued pre-Stop clock before
+              // replacing only the aborted stale attempt.
+              el.load();
+              requestPlayback(el);
+            }
+            return;
+          }
+          if (
+            el &&
+            rejectStaleStoppedClock(el)
+          ) {
+            persistAudioPosition(0);
+            return;
+          }
           applyPendingSeek();
           syncActiveTrackCue();
           persistAudioPosition();
@@ -1247,6 +1681,9 @@ export function AudioReader({
           // Timed-text failure disables Follow Along only; it must never
           // trigger retries or remove the independently healthy narration.
           if (event.target !== event.currentTarget) {
+            selectedSectionPathRef.current = null;
+            pendingSectionCueRef.current = null;
+            pendingSectionSeekAssignedRef.current = false;
             setActiveCue(null);
             return;
           }
@@ -1255,6 +1692,13 @@ export function AudioReader({
           // bounded-backoff reload as well: a fresh status object alone does
           // not rerun the browser's media load algorithm.
           const el = audioRef.current;
+          selectedSectionPathRef.current = null;
+          pendingSectionCueRef.current = null;
+          pendingSectionSeekAssignedRef.current = false;
+          stopRestartStateRef.current = null;
+          stopRestartSawPlayingRef.current = false;
+          stopRestartPendingZeroRef.current = false;
+          playAttemptGenerationRef.current += 1;
           if (
             el &&
             Number.isFinite(el.currentTime) &&
@@ -1290,6 +1734,14 @@ export function AudioReader({
         }}
         onEnded={() => {
           const el = audioRef.current;
+          selectedSectionPathRef.current = null;
+          pendingSectionCueRef.current = null;
+          pendingSectionSeekAssignedRef.current = false;
+          stopRestartStateRef.current = "stopped";
+          stopRestartStartedAtRef.current = 0;
+          stopRestartSawPlayingRef.current = false;
+          stopRestartPendingZeroRef.current = false;
+          playAttemptGenerationRef.current += 1;
           followCueEnabledRef.current = false;
           if (el) {
             try {

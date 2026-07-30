@@ -1324,6 +1324,312 @@ test.describe("Partner Academy durable resume", () => {
     }
   });
 
+  test("selects a passage, plays it on the next activation, and pauses it on the third", async ({
+    browser,
+  }) => {
+    const trackUrl = appUrl(
+      `/api/partner/academy/audio/${moduleSlug}/follow-along/${ACTIVE_ACADEMY_NARRATION_VOICE_ID}`,
+    );
+    let releaseResumeReconcile: () => void = () =>
+      undefined;
+    const resumeReconcileGate = new Promise<void>(
+      (resolve) => {
+        releaseResumeReconcile = resolve;
+      },
+    );
+    const playback = await openAuthenticatedLesson(
+      browser,
+      userA.email,
+      {
+        beforeLessonNavigation: async (page) => {
+          await page.route(
+            appUrl(resumeEndpoint),
+            async (route) => {
+              if (route.request().method() !== "GET") {
+                await route.continue();
+                return;
+              }
+              const response = await route.fetch();
+              await resumeReconcileGate;
+              await route.fulfill({ response });
+            },
+          );
+          await page.route(
+            appUrl(
+              `/api/partner/academy/audio/${moduleSlug}`,
+            ),
+            async (route) => {
+              const response = await route.fetch();
+              const status = (await response.json()) as {
+                voices: Array<{
+                  resumeKey: string | null;
+                }>;
+              } & Record<string, unknown>;
+              status.followAlong = {
+                resumeKey:
+                  status.voices[0].resumeKey!,
+                trackUrl,
+                cueCount: 5,
+                manifestHash: "d".repeat(64),
+              };
+              await route.fulfill({
+                response,
+                json: status,
+              });
+            },
+          );
+          await page.route(trackUrl, async (route) => {
+            const cue = (
+              blockIndex: number,
+              sourceHtmlPath: string,
+            ) =>
+              JSON.stringify({
+                blockIndex,
+                semanticBlockId: sha256(
+                  `${namespace}:section:${blockIndex}`,
+                ),
+                sourceHtmlPath,
+              });
+            await route.fulfill({
+              status: 200,
+              contentType: "text/vtt; charset=utf-8",
+              body: [
+                "WEBVTT",
+                "",
+                "block-0",
+                "00:00:00.000 --> 00:00:01.000",
+                cue(0, "title"),
+                "",
+                "block-1",
+                "00:00:01.000 --> 00:00:05.000",
+                cue(1, "root/p[1]#segment[1]"),
+                "",
+                "block-2",
+                "00:00:05.000 --> 00:00:10.000",
+                cue(2, "root/p[1]#segment[2]"),
+                "",
+                "block-3",
+                "00:00:10.000 --> 00:00:15.000",
+                cue(3, "root/p[2]"),
+                "",
+                "block-4",
+                "00:00:15.000 --> 00:00:19.500",
+                cue(4, "root/h2[1]"),
+                "",
+              ].join("\n"),
+            });
+          });
+        },
+      },
+    );
+    try {
+      const page = playback.page;
+      const audio = page.locator("audio");
+      const firstPassage = lessonParagraph(page, 0);
+      await expect
+        .poll(() =>
+          page.locator("track").evaluate(
+            (element) =>
+              (element as HTMLTrackElement).readyState,
+          ),
+        )
+        .toBe(2);
+      await expect(
+        page.locator(
+          '[data-academy-audio-section="true"]',
+        ),
+      ).toHaveCount(0);
+      releaseResumeReconcile();
+      releaseResumeReconcile = () => undefined;
+      await expect(firstPassage).toHaveAttribute(
+        "data-academy-audio-section",
+        "true",
+      );
+      await firstPassage.scrollIntoViewIfNeeded();
+      await page.waitForTimeout(900);
+      const readingRevisionBefore =
+        (await resumeRow(userA.id))?.readingRevision ?? 0;
+      await audio.evaluate((element) => {
+        (element as HTMLAudioElement).currentTime = 0.65;
+      });
+      await expect
+        .poll(async () =>
+          Math.abs(
+            (await audio.evaluate(
+              (element) =>
+                (element as HTMLAudioElement)
+                  .currentTime,
+            )) - 0.65,
+          ),
+        )
+        .toBeLessThan(0.1);
+
+      // First activation selects the whole visible paragraph and seeks to the
+      // earliest of its two audited segments, even from inside the restore
+      // seek tolerance, without starting playback.
+      await firstPassage.click();
+      await expect
+        .poll(() =>
+          audio.evaluate((element) => ({
+            paused: (element as HTMLAudioElement).paused,
+            atSelectedStart:
+              Math.abs(
+                (element as HTMLAudioElement).currentTime -
+                  1,
+              ) < 0.2,
+          })),
+        )
+        .toEqual({
+          paused: true,
+          atSelectedStart: true,
+        });
+      await expect(firstPassage).toHaveAttribute(
+        "data-academy-narration-active",
+        "true",
+      );
+      await expect(firstPassage).toHaveAttribute(
+        "data-narration-state",
+        "paused",
+      );
+      await expect(firstPassage).toHaveAttribute(
+        "data-academy-audio-section",
+        "true",
+      );
+      await expect
+        .poll(async () => {
+          const saved = await resumeRow(userA.id);
+          return Math.abs(
+            (saved?.audioPositionSeconds ?? -10) - 1,
+          );
+        })
+        .toBeLessThan(0.35);
+      await page.waitForTimeout(300);
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeLessThan(1.3);
+
+      // Second activation plays from that exact point.
+      await firstPassage.click();
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).paused,
+          ),
+        )
+        .toBe(false);
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan(1.45);
+      await expect(firstPassage).toHaveAttribute(
+        "data-narration-state",
+        "playing",
+      );
+
+      // Third activation pauses in place. It is deliberately not Stop and
+      // therefore must not reset the clock or clear the selected passage.
+      await firstPassage.click();
+      const pausedAt = await audio.evaluate(
+        (element) =>
+          (element as HTMLAudioElement).currentTime,
+      );
+      expect(pausedAt).toBeGreaterThan(1);
+      await page.waitForTimeout(300);
+      await expect
+        .poll(async () =>
+          Math.abs(
+            (await audio.evaluate(
+              (element) =>
+                (element as HTMLAudioElement)
+                  .currentTime,
+            )) - pausedAt,
+          ),
+        )
+        .toBeLessThan(0.2);
+      await expect(firstPassage).toHaveAttribute(
+        "data-narration-state",
+        "paused",
+      );
+
+      // If playback moves on, the originally selected paragraph becomes a
+      // fresh target again instead of toggling audio at the later passage.
+      await firstPassage.click();
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).paused,
+          ),
+        )
+        .toBe(false);
+      await audio.evaluate((element) => {
+        const media = element as HTMLAudioElement;
+        media.currentTime = 10.25;
+        media.dispatchEvent(new Event("timeupdate"));
+      });
+      const secondPassage = lessonParagraph(page, 1);
+      await expect(secondPassage).toHaveAttribute(
+        "data-academy-narration-active",
+        "true",
+      );
+      await firstPassage.click();
+      await expect
+        .poll(() =>
+          audio.evaluate((element) => ({
+            paused: (element as HTMLAudioElement).paused,
+            atSelectedStart:
+              Math.abs(
+                (element as HTMLAudioElement).currentTime -
+                  1,
+              ) < 0.2,
+          })),
+        )
+        .toEqual({
+          paused: true,
+          atSelectedStart: true,
+        });
+
+      // A rapid play/pause pair must not let an aborted play promise refresh
+      // the track and destroy the still-selected passage control.
+      await firstPassage.dblclick({ delay: 0 });
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).paused,
+          ),
+        )
+        .toBe(true);
+      await expect(firstPassage).toHaveAttribute(
+        "data-academy-audio-section",
+        "true",
+      );
+
+      await page.waitForTimeout(800);
+      expect(
+        (await resumeRow(userA.id))?.readingRevision ?? 0,
+      ).toBe(readingRevisionBefore);
+
+      await page
+        .getByRole("button", { name: /Stop/u })
+        .click();
+    } finally {
+      releaseResumeReconcile();
+      releaseResumeReconcile = () => undefined;
+      await playback.context.close();
+    }
+  });
+
   test("restores an admin preview bookmark locally without mutating partner data", async ({
     browser,
   }) => {
@@ -1603,6 +1909,11 @@ test.describe("Partner Academy durable resume", () => {
       await expect(
         playback.page.locator(
           '[data-academy-narration-active="true"]',
+        ),
+      ).toHaveCount(0);
+      await expect(
+        playback.page.locator(
+          '[data-academy-audio-section="true"]',
         ),
       ).toHaveCount(0);
 

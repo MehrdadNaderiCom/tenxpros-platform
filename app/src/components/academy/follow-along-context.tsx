@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,11 +18,30 @@ export type AcademyFollowAlongCue = {
   endMs: number;
 };
 
+export function academyFollowAlongElementPath(
+  sourceHtmlPath: string,
+): string {
+  return sourceHtmlPath.replace(
+    /#segment\[\d+\]$/u,
+    "",
+  );
+}
+
 type AcademyFollowAlongContextValue = {
   activeCue: AcademyFollowAlongCue | null;
   playing: boolean;
+  sectionCues: readonly AcademyFollowAlongCue[];
+  activateSectionAudio: (
+    cue: AcademyFollowAlongCue,
+  ) => void;
+  registerSectionAudioController: (
+    controller: (cue: AcademyFollowAlongCue) => void,
+  ) => () => void;
   setActiveCue: (cue: AcademyFollowAlongCue | null) => void;
   setPlaying: (playing: boolean) => void;
+  setSectionCues: (
+    cues: readonly AcademyFollowAlongCue[],
+  ) => void;
 };
 
 const AcademyFollowAlongContext =
@@ -37,6 +57,12 @@ export function AcademyFollowAlongProvider({
   const [activeCue, setActiveCueState] =
     useState<AcademyFollowAlongCue | null>(null);
   const [playing, setPlaying] = useState(false);
+  const [sectionCues, setSectionCuesState] = useState<
+    readonly AcademyFollowAlongCue[]
+  >([]);
+  const sectionAudioControllerRef = useRef<
+    ((cue: AcademyFollowAlongCue) => void) | null
+  >(null);
 
   const setActiveCue = useCallback(
     (next: AcademyFollowAlongCue | null) => {
@@ -58,14 +84,74 @@ export function AcademyFollowAlongProvider({
     [],
   );
 
+  const setSectionCues = useCallback(
+    (next: readonly AcademyFollowAlongCue[]) => {
+      setSectionCuesState((current) => {
+        if (
+          current.length === next.length &&
+          current.every((cue, index) => {
+            const candidate = next[index];
+            return (
+              cue.semanticBlockId ===
+                candidate.semanticBlockId &&
+              cue.sourceHtmlPath ===
+                candidate.sourceHtmlPath &&
+              cue.startMs === candidate.startMs &&
+              cue.endMs === candidate.endMs
+            );
+          })
+        ) {
+          return current;
+        }
+        return [...next];
+      });
+    },
+    [],
+  );
+
+  const registerSectionAudioController = useCallback(
+    (
+      controller: (cue: AcademyFollowAlongCue) => void,
+    ) => {
+      sectionAudioControllerRef.current = controller;
+      return () => {
+        if (
+          sectionAudioControllerRef.current === controller
+        ) {
+          sectionAudioControllerRef.current = null;
+        }
+      };
+    },
+    [],
+  );
+
+  const activateSectionAudio = useCallback(
+    (cue: AcademyFollowAlongCue) => {
+      sectionAudioControllerRef.current?.(cue);
+    },
+    [],
+  );
+
   const value = useMemo(
     () => ({
       activeCue,
       playing,
+      sectionCues,
+      activateSectionAudio,
+      registerSectionAudioController,
       setActiveCue,
       setPlaying,
+      setSectionCues,
     }),
-    [activeCue, playing, setActiveCue],
+    [
+      activeCue,
+      activateSectionAudio,
+      playing,
+      registerSectionAudioController,
+      sectionCues,
+      setActiveCue,
+      setSectionCues,
+    ],
   );
 
   return (

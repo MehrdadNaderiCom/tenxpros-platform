@@ -1,12 +1,14 @@
 "use client";
 
 import {
+  memo,
   useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type RefObject,
 } from "react";
 import { BookmarkCheck } from "lucide-react";
 import { useAcademyFollowAlong } from "@/components/academy/follow-along-context";
@@ -71,8 +73,46 @@ const RICH_CLASS =
 
 const BLOCK_SELECTOR =
   "h2,h3,h4,p,li,blockquote,tr,img";
+const NESTED_INTERACTIVE_SELECTOR =
+  'a[href],button,input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]';
+const NARRATION_SECTION_TARGET_SELECTOR =
+  "h1,h2,h3,h4,p,li,blockquote,tr,div,img";
 const SAVE_DEBOUNCE_MS = 650;
 const AUTO_REVEAL_SCROLL_FALLBACK_MS = 5_000;
+
+const AcademyLessonContent = memo(
+  function AcademyLessonContent({
+    html,
+    paragraphs,
+    rootRef,
+  }: {
+    html?: string | null;
+    paragraphs: string[];
+    rootRef: RefObject<HTMLDivElement>;
+  }) {
+    if (html) {
+      return (
+        <div
+          ref={rootRef}
+          className={RICH_CLASS}
+          {...GUARD}
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      );
+    }
+    return (
+      <div
+        ref={rootRef}
+        className="academy-lesson max-w-prose select-none space-y-5 text-[1.02rem] leading-8 text-slate-700"
+        {...GUARD}
+      >
+        {paragraphs.map((paragraph, index) => (
+          <p key={index}>{paragraph}</p>
+        ))}
+      </div>
+    );
+  },
+);
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -291,8 +331,12 @@ export function LessonReader({
   resumeEndpoint: string;
   resumeEnabled?: boolean;
 }) {
-  const { activeCue, playing: audioPlaying } =
-    useAcademyFollowAlong();
+  const {
+    activateSectionAudio,
+    activeCue,
+    playing: audioPlaying,
+    sectionCues,
+  } = useAcademyFollowAlong();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const activePassageRef = useRef<HTMLElement | null>(null);
   const audioPlayingRef = useRef(audioPlaying);
@@ -368,7 +412,7 @@ export function LessonReader({
       if (
         !event.defaultPrevented &&
         !target?.closest(
-          'button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]',
+          NESTED_INTERACTIVE_SELECTOR,
         ) &&
         [
           "ArrowDown",
@@ -561,7 +605,7 @@ export function LessonReader({
       if (
         event.defaultPrevented ||
         target?.closest(
-          'button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]',
+          NESTED_INTERACTIVE_SELECTOR,
         )
       ) {
         return;
@@ -638,6 +682,118 @@ export function LessonReader({
       suppressScrollRef.current = false;
     });
   };
+
+  // Audited timing metadata turns only resolvable passages into pointer/touch
+  // targets. Native click is used instead of dblclick so two taps naturally
+  // mean select then play, while the original document semantics stay intact.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || sectionCues.length === 0) return;
+
+    const cueByElement = new Map<
+      HTMLElement,
+      (typeof sectionCues)[number]
+    >();
+    for (const cue of sectionCues) {
+      const element = academyNarrationElementForPath(
+        root,
+        cue.sourceHtmlPath,
+      );
+      if (
+        !element ||
+        !element.matches(
+          NARRATION_SECTION_TARGET_SELECTOR,
+        ) ||
+        element.closest(NESTED_INTERACTIVE_SELECTOR)
+      ) {
+        continue;
+      }
+      const current = cueByElement.get(element);
+      if (!current || cue.startMs < current.startMs) {
+        cueByElement.set(element, cue);
+      }
+    }
+    if (cueByElement.size === 0) return;
+
+    const originals = Array.from(
+      cueByElement.keys(),
+      (element) => ({
+        element,
+        hadClass: element.classList.contains(
+          "academy-audio-section",
+        ),
+        marker: element.getAttribute(
+          "data-academy-audio-section",
+        ),
+      }),
+    );
+
+    for (const { element } of originals) {
+      element.classList.add("academy-audio-section");
+      element.dataset.academyAudioSection = "true";
+    }
+
+    const sectionForEvent = (
+      event: MouseEvent,
+    ): HTMLElement | null => {
+      if (
+        event.defaultPrevented ||
+        !(event.target instanceof Element)
+      ) {
+        return null;
+      }
+      const section = event.target.closest<HTMLElement>(
+        '[data-academy-audio-section="true"]',
+      );
+      if (!section || !cueByElement.has(section)) {
+        return null;
+      }
+      const nestedInteractive = event.target.closest(
+        NESTED_INTERACTIVE_SELECTOR,
+      );
+      if (nestedInteractive) {
+        return null;
+      }
+      return section;
+    };
+
+    const onClick = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      const section = sectionForEvent(event);
+      if (!section) return;
+      event.preventDefault();
+      event.stopPropagation();
+      activateSectionAudio(cueByElement.get(section)!);
+    };
+
+    document.addEventListener("click", onClick);
+    return () => {
+      document.removeEventListener("click", onClick);
+      for (const original of originals) {
+        const { element } = original;
+        if (!original.hadClass) {
+          element.classList.remove(
+            "academy-audio-section",
+          );
+        }
+        if (original.marker === null) {
+          element.removeAttribute(
+            "data-academy-audio-section",
+          );
+        } else {
+          element.setAttribute(
+            "data-academy-audio-section",
+            original.marker,
+          );
+        }
+      }
+    };
+  }, [
+    activateSectionAudio,
+    html,
+    paragraphs,
+    sectionCues,
+  ]);
 
   // Keep exactly one semantic passage current. The original heading,
   // paragraph, list, callout, or table-row semantics remain untouched.
@@ -716,25 +872,6 @@ export function LessonReader({
   ]);
 
   const bookmarkActive = initiallySaved && !startedOver;
-  const content = html ? (
-    <div
-      ref={rootRef}
-      className={RICH_CLASS}
-      {...GUARD}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  ) : (
-    <div
-      ref={rootRef}
-      className="academy-lesson max-w-prose select-none space-y-5 text-[1.02rem] leading-8 text-slate-700"
-      {...GUARD}
-    >
-      {paragraphs.map((paragraph, index) => (
-        <p key={index}>{paragraph}</p>
-      ))}
-    </div>
-  );
-
   return (
     <>
       {resumeEnabled ? (
@@ -766,7 +903,11 @@ export function LessonReader({
           ) : null}
         </div>
       ) : null}
-      {content}
+      <AcademyLessonContent
+        html={html}
+        paragraphs={paragraphs}
+        rootRef={rootRef}
+      />
     </>
   );
 }
