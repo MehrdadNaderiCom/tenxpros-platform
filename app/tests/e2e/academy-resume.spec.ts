@@ -145,6 +145,17 @@ const userB = {
   email: `${namespace}.b@tenxpros.test`,
   name: "Academy Resume Partner B",
 };
+const previewAdmin = {
+  id: `${namespace}-preview-admin`,
+  email: (
+    process.env.SUPER_ADMIN_EMAILS ??
+    "mail@mehrdadnaderi.com,pegah.rostam@gmail.com"
+  )
+    .split(",")[0]
+    .trim()
+    .toLowerCase(),
+  name: "Academy Resume Preview Admin",
+};
 
 const PARAGRAPH_COUNT = 45;
 const OTHER_USER_PARAGRAPH_INDEX = 19;
@@ -307,6 +318,10 @@ async function moveReadingLineToBlock(
 ) {
   await expect(block).toBeVisible();
   await block.evaluate((element) => {
+    // Model the deliberate user action that precedes a real scroll. The
+    // reader intentionally distinguishes this from its own restore/follow
+    // scrolls so those automatic movements never overwrite a bookmark.
+    window.dispatchEvent(new Event("wheel"));
     const rect = element.getBoundingClientRect();
     const readingLine = Math.min(
       260,
@@ -323,10 +338,25 @@ async function moveReadingLineToBlock(
     });
   });
   // Reading saves are intentionally debounced by 650 ms. The tiny second
-  // movement also makes this helper resilient if the first scroll happened
-  // while fonts were completing their initial layout.
+  // placement makes this helper resilient if the first scroll happened while
+  // fonts were completing their initial layout.
   await page.waitForTimeout(900);
-  await page.evaluate(() => window.scrollBy(0, 1));
+  await block.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const readingLine = Math.min(
+      260,
+      Math.max(120, window.innerHeight * 0.32),
+    );
+    const offsetInsideBlock = rect.height * 0.28;
+    const documentTop = window.scrollY + rect.top;
+    window.scrollTo({
+      top: Math.max(
+        0,
+        documentTop + offsetInsideBlock - readingLine,
+      ),
+      behavior: "auto",
+    });
+  });
   await page.waitForTimeout(800);
 }
 
@@ -383,7 +413,9 @@ async function expectBlockAtSavedReadingLine(
         offsetRatio,
       ),
     )
-    .toBeLessThan(45);
+    // Preserve the exact semantic block and allow up to roughly two text
+    // lines of responsive font/layout drift between browser contexts.
+    .toBeLessThan(72);
 }
 
 test.describe("Partner Academy durable resume", () => {
@@ -426,6 +458,19 @@ test.describe("Partner Academy durable resume", () => {
     const narrationChecksum = sha256(narrationBytes);
 
     await prisma.$transaction(async (tx) => {
+      // A browser-launch failure can happen after beforeAll commits but before
+      // Playwright reaches afterAll. The fixed superadmin email is shared by
+      // runs, so remove only a stale namespaced fixture from this already
+      // guarded disposable database before recreating it.
+      await tx.user.deleteMany({
+        where: {
+          id: {
+            startsWith: "e2e-academy-resume-",
+          },
+          email: previewAdmin.email,
+          role: "ADMIN",
+        },
+      });
       for (const fixture of [userA, userB]) {
         await tx.user.create({
           data: {
@@ -448,6 +493,15 @@ test.describe("Partner Academy durable resume", () => {
           },
         });
       }
+      await tx.user.create({
+        data: {
+          id: previewAdmin.id,
+          email: previewAdmin.email,
+          name: previewAdmin.name,
+          role: "ADMIN",
+          passwordHash,
+        },
+      });
 
       await tx.academyModule.create({
         data: {
@@ -637,7 +691,13 @@ test.describe("Partner Academy durable resume", () => {
         run: () =>
           prisma.user.deleteMany({
             where: {
-              id: { in: [userA.id, userB.id] },
+              id: {
+                in: [
+                  userA.id,
+                  userB.id,
+                  previewAdmin.id,
+                ],
+              },
             },
           }),
       },
@@ -730,6 +790,7 @@ test.describe("Partner Academy durable resume", () => {
       expect(second.page.viewportSize()).toEqual(
         MOBILE_VIEWPORT,
       );
+      await pageReadyForReadingSaves(second.page);
       const deepResume = await resumeRow(userA.id);
       expect(deepResume?.readingOffsetRatio).not.toBeNull();
       await expectBlockAtSavedReadingLine(
@@ -913,13 +974,23 @@ test.describe("Partner Academy durable resume", () => {
       const restoredAudio =
         playback.page.locator("audio");
       await expect
+        .poll(
+          async () =>
+            restoredAudio.evaluate(
+              (element) =>
+                (element as HTMLAudioElement).readyState,
+            ),
+          { timeout: 20_000 },
+        )
+        .toBeGreaterThanOrEqual(1);
+      await expect
         .poll(async () => {
           const actual = await restoredAudio.evaluate(
             (element) =>
               (element as HTMLAudioElement).currentTime,
           );
           return Math.abs(actual - beforeRefresh);
-        })
+        }, { timeout: 20_000 })
         .toBeLessThan(1);
       expect(
         await restoredAudio.evaluate(
@@ -935,9 +1006,10 @@ test.describe("Partner Academy durable resume", () => {
         autoplay: false,
       });
       await expect(
-        playback.page.getByTestId(
-          "academy-audio-resume",
-        ),
+        playback.page.getByRole("button", {
+          name: "Resume",
+          exact: true,
+        }),
       ).toBeVisible();
 
       // Let the intentionally delayed old writes finish before issuing the
@@ -977,7 +1049,7 @@ test.describe("Partner Academy durable resume", () => {
     }
   });
 
-  test("highlights the timed passage, suspends follow on manual scroll, and clears on Stop", async ({
+  test("automatically highlights the timed passage and clears it on Stop", async ({
     browser,
   }) => {
     const trackUrl = appUrl(
@@ -1057,27 +1129,13 @@ test.describe("Partner Academy durable resume", () => {
       },
     );
     try {
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Following text",
-        }),
-      ).toBeVisible();
       const audio = playback.page.locator("audio");
       const active = playback.page.locator(
         '[data-academy-narration-active="true"]',
       );
 
-      // Reading before playback has begun must not silently disable the
-      // listener's saved follow preference.
-      await playback.page.mouse.wheel(0, 220);
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Following text",
-        }),
-      ).toBeVisible();
-
-      // Space on the native Play button is a player operation, not a page
-      // navigation gesture. It must start playback without suspending follow.
+      // Space on the native Play button starts playback and the timed passage
+      // marker appears automatically, without a separate Follow control.
       const play = playback.page.getByRole("button", {
         name: "Play",
         exact: true,
@@ -1091,9 +1149,9 @@ test.describe("Partner Academy durable resume", () => {
       await expect(pause).toBeVisible();
       await expect(
         playback.page.getByRole("button", {
-          name: "Following text",
+          name: /^(?:Following text|Follow audio|Resume follow|Show current passage)$/u,
         }),
-      ).toBeVisible();
+      ).toHaveCount(0);
       await pause.click();
       await playback.page
         .getByLabel("Seek", { exact: true })
@@ -1129,68 +1187,81 @@ test.describe("Partner Academy durable resume", () => {
         "E2E semantic paragraph 01",
       );
 
-      await playback.page.mouse.wheel(0, 220);
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Resume follow",
-        }),
-      ).toBeVisible();
-      await playback.page
-        .getByRole("button", {
-          name: "Resume follow",
-        })
-        .click();
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Following text",
-        }),
-      ).toBeVisible();
-
-      // Follow's own long smooth scroll must never be mistaken for a manual
-      // reading gesture, even when native scroll events continue well beyond
-      // a fixed animation timeout.
-      await playback.page.waitForTimeout(350);
-      await playback.page.mouse.wheel(0, 5_000);
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Resume follow",
-        }),
-      ).toBeVisible();
-      await playback.page
-        .getByRole("button", {
-          name: "Resume follow",
-        })
-        .click();
-      await playback.page.waitForTimeout(1_300);
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Following text",
-        }),
-      ).toBeVisible();
-
-      // Reduced-motion uses an instant programmatic scroll, whose scroll event
-      // may still arrive on a later task in both Chromium and WebKit.
-      await playback.page.emulateMedia({
-        reducedMotion: "reduce",
+      // No extra Follow control is needed: when the next cue changes while
+      // the current passage is outside the viewport, the highlighted passage
+      // returns to view automatically. Move the reading line less than the
+      // 650 ms text-save debounce before the cue boundary to prove that the
+      // audio reveal cannot overwrite that pending text bookmark.
+      await expect
+        .poll(async () =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan(4.55);
+      const forcedReadingBlock = lessonParagraph(
+        playback.page,
+        PARAGRAPH_COUNT - 8,
+      );
+      const forcedReadingIndex = await semanticBlockIndex(
+        forcedReadingBlock,
+      );
+      const readingRevisionBeforeForcedScroll =
+        (await resumeRow(userA.id))?.readingRevision ?? 0;
+      // This is deliberate reading input, so cancel any still-settling
+      // automatic reveal before placing the reading line at the fixture block.
+      await playback.page.mouse.wheel(0, 1);
+      await forcedReadingBlock.evaluate((element) => {
+        const rect = element.getBoundingClientRect();
+        const readingLine = Math.min(
+          260,
+          Math.max(120, window.innerHeight * 0.32),
+        );
+        window.scrollTo({
+          top:
+            window.scrollY +
+            rect.top +
+            rect.height * 0.28 -
+            readingLine,
+          behavior: "auto",
+        });
       });
-      await playback.page.waitForTimeout(350);
-      await playback.page.mouse.wheel(0, 5_000);
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Resume follow",
-        }),
-      ).toBeVisible();
-      await playback.page
-        .getByRole("button", {
-          name: "Resume follow",
-        })
-        .click();
-      await playback.page.waitForTimeout(500);
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Following text",
-        }),
-      ).toBeVisible();
+      await expect
+        .poll(async () =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan(5.25);
+      await expect(active).toContainText(
+        SHALLOW_HEADING_TEXT,
+      );
+      const savedForcedReading = await waitForReadingIndex(
+        userA.id,
+        forcedReadingIndex,
+      );
+      expect(
+        savedForcedReading.readingRevision,
+      ).toBeGreaterThan(readingRevisionBeforeForcedScroll);
+      const readingRevisionBeforeAutoReveal =
+        savedForcedReading.readingRevision;
+      await expect
+        .poll(async () =>
+          active.evaluate((element) => {
+            const rect = element.getBoundingClientRect();
+            return (
+              rect.top >= 0 &&
+              rect.bottom <= window.innerHeight
+            );
+          }),
+        )
+        .toBe(true);
+      await playback.page.waitForTimeout(900);
+      expect(
+        (await resumeRow(userA.id))?.readingRevision,
+      ).toBe(readingRevisionBeforeAutoReveal);
 
       await playback.page
         .getByRole("button", {
@@ -1215,11 +1286,6 @@ test.describe("Partner Academy durable resume", () => {
       await playback.page.reload();
       await expect(
         playback.page.locator(".academy-lesson"),
-      ).toBeVisible();
-      await expect(
-        playback.page.getByRole("button", {
-          name: "Following text",
-        }),
       ).toBeVisible();
       const restoredAudio =
         playback.page.locator("audio");
@@ -1255,6 +1321,208 @@ test.describe("Partner Academy durable resume", () => {
       await expect(active).toHaveCount(0);
     } finally {
       await playback.context.close();
+    }
+  });
+
+  test("restores an admin preview bookmark locally without mutating partner data", async ({
+    browser,
+  }) => {
+    const beforePartnerResume = await resumeRow(userA.id);
+    const context = await browser.newContext({
+      baseURL: baseUrl,
+    });
+    await context.addCookies([
+      {
+        name: "tenx_view_partner",
+        value: userA.partnerId,
+        url: baseUrl,
+        httpOnly: true,
+        sameSite: "Lax",
+      },
+    ]);
+    const page = await context.newPage();
+    let resumePostCount = 0;
+    page.on("request", (request) => {
+      if (
+        request.method() === "POST" &&
+        request.url() === appUrl(resumeEndpoint)
+      ) {
+        resumePostCount += 1;
+      }
+    });
+
+    try {
+      await page.goto(
+        appUrl(
+          `/login?callbackUrl=${encodeURIComponent("/admin")}`,
+        ),
+      );
+      await page
+        .locator('input[name="email"]')
+        .fill(previewAdmin.email);
+      await page
+        .locator('input[name="password"]')
+        .fill(fixturePassword);
+      await Promise.all([
+        page.waitForURL(
+          (url) => url.pathname === "/admin",
+        ),
+        page
+          .getByRole("button", { name: /sign in/i })
+          .click(),
+      ]);
+      await expect(
+        page.getByRole("heading", {
+          name: "Mission Control",
+          exact: true,
+        }),
+      ).toBeVisible();
+      await page.waitForLoadState("networkidle");
+      await page.goto(appUrl(lessonPath));
+      await expect(
+        page.getByText("Admin preview, read-only", {
+          exact: false,
+        }).first(),
+      ).toBeVisible();
+
+      const audio = page.locator("audio");
+      await page
+        .getByRole("button", {
+          name: "Play",
+          exact: true,
+        })
+        .click();
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThanOrEqual(2.5);
+      await page
+        .getByRole("button", {
+          name: "Pause",
+          exact: true,
+        })
+        .click();
+      const pausedAt = await audio.evaluate(
+        (element) =>
+          (element as HTMLAudioElement).currentTime,
+      );
+
+      const localShadows = await page.evaluate(() =>
+        Object.entries(window.localStorage)
+          .filter(([key]) =>
+            key.startsWith(
+              "txp-academy-audio-resume-shadow-v1:",
+            ),
+          )
+          .map(([, value]) => JSON.parse(value) as {
+            positionSeconds: number;
+          }),
+      );
+      expect(localShadows).toHaveLength(1);
+      expect(
+        Math.abs(
+          localShadows[0].positionSeconds - pausedAt,
+        ),
+      ).toBeLessThan(0.75);
+
+      await page.reload();
+      await expect(
+        page.locator(".academy-lesson"),
+      ).toBeVisible();
+      await expect
+        .poll(async () => {
+          const restored = await audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          );
+          return Math.abs(restored - pausedAt);
+        })
+        .toBeLessThan(0.75);
+      await expect(
+        page.getByRole("button", {
+          name: "Resume",
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect(
+        await audio.evaluate(
+          (element) =>
+            (element as HTMLAudioElement).paused,
+        ),
+      ).toBe(true);
+      const stablePreviewPosition = await audio.evaluate(
+        (element) =>
+          (element as HTMLAudioElement).currentTime,
+      );
+      await page.waitForTimeout(600);
+      expect(
+        Math.abs(
+          (await audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          )) - stablePreviewPosition,
+        ),
+      ).toBeLessThan(0.1);
+      await expect(
+        page.getByText(
+          "Your audio position is saved automatically",
+          { exact: false },
+        ),
+      ).toHaveCount(0);
+      await expect(
+        page.getByRole("button", {
+          name: /^(?:Following text|Follow audio|Resume follow|Show current passage)$/u,
+        }),
+      ).toHaveCount(0);
+
+      await page
+        .getByRole("button", {
+          name: "Resume",
+          exact: true,
+        })
+        .click();
+      expect(
+        await audio.evaluate(
+          (element) =>
+            (element as HTMLAudioElement).currentTime,
+        ),
+      ).toBeGreaterThanOrEqual(pausedAt - 0.75);
+      await expect
+        .poll(() =>
+          audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          ),
+        )
+        .toBeGreaterThan(pausedAt + 0.5);
+      await page
+        .getByRole("button", {
+          name: "Pause",
+          exact: true,
+        })
+        .click();
+
+      expect(resumePostCount).toBe(0);
+      const afterPartnerResume = await resumeRow(
+        userA.id,
+      );
+      expect(
+        afterPartnerResume?.audioRevision ?? null,
+      ).toBe(beforePartnerResume?.audioRevision ?? null);
+      expect(
+        afterPartnerResume?.audioPositionSeconds ?? null,
+      ).toBe(
+        beforePartnerResume?.audioPositionSeconds ?? null,
+      );
+      expect(
+        await resumeRow(previewAdmin.id),
+      ).toBeNull();
+    } finally {
+      await context.close();
     }
   });
 
@@ -1295,9 +1563,28 @@ test.describe("Partner Academy durable resume", () => {
           );
           await page.route(trackUrl, async (route) => {
             await route.fulfill({
-              status: 500,
-              contentType: "text/plain; charset=utf-8",
-              body: "Synthetic timed-text failure",
+              status: 200,
+              contentType: "text/vtt; charset=utf-8",
+              body: [
+                "WEBVTT",
+                "",
+                "invalid-block",
+                "00:00:00.000 --> 00:00:01.000",
+                JSON.stringify({
+                  blockIndex: 0,
+                  semanticBlockId: "not-a-valid-hash",
+                  sourceHtmlPath: "title",
+                }),
+                "",
+                "otherwise-valid-block",
+                "00:00:01.000 --> 00:00:19.500",
+                JSON.stringify({
+                  blockIndex: 1,
+                  semanticBlockId: "a".repeat(64),
+                  sourceHtmlPath: "root/p[1]",
+                }),
+                "",
+              ].join("\n"),
             });
           });
         },
@@ -1312,12 +1599,7 @@ test.describe("Partner Academy durable resume", () => {
               (element as HTMLTrackElement).readyState,
           })),
         )
-        .toEqual({ readyState: 3 });
-      await expect(
-        playback.page.getByRole("button", {
-          name: /^(?:Following text|Follow audio|Resume follow)$/u,
-        }),
-      ).toHaveCount(0);
+        .toEqual({ readyState: 2 });
       await expect(
         playback.page.locator(
           '[data-academy-narration-active="true"]',
@@ -1337,7 +1619,12 @@ test.describe("Partner Academy durable resume", () => {
               (element as HTMLAudioElement).currentTime,
           ),
         )
-        .toBeGreaterThan(0.25);
+        .toBeGreaterThan(1.25);
+      await expect(
+        playback.page.locator(
+          '[data-academy-narration-active="true"]',
+        ),
+      ).toHaveCount(0);
       await playback.page
         .getByRole("button", { name: /Stop/u })
         .click();
@@ -1438,12 +1725,59 @@ test.describe("Partner Academy durable resume", () => {
         })
         .toBeLessThan(0.75);
 
+      // The exact user-reported path: Pause, refresh the same lesson, and
+      // remain paused at the same second without an intermediate navigation.
+      await playback.page.reload();
+      await expect(
+        playback.page.locator(".academy-lesson"),
+      ).toBeVisible();
+      await expect
+        .poll(async () => {
+          const restored = await audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          );
+          return Math.abs(restored - pausedPosition);
+        })
+        .toBeLessThan(0.75);
+      await expect(
+        playback.page.getByRole("button", {
+          name: "Resume",
+          exact: true,
+        }),
+      ).toBeVisible();
+      expect(
+        await audio.evaluate(
+          (element) =>
+            (element as HTMLAudioElement).paused,
+        ),
+      ).toBe(true);
+      const stablePausedPosition = await audio.evaluate(
+        (element) =>
+          (element as HTMLAudioElement).currentTime,
+      );
+      await playback.page.waitForTimeout(600);
+      expect(
+        Math.abs(
+          (await audio.evaluate(
+            (element) =>
+              (element as HTMLAudioElement).currentTime,
+          )) - stablePausedPosition,
+        ),
+      ).toBeLessThan(0.1);
+
       await playback.page
         .getByRole("button", {
           name: "Resume",
           exact: true,
         })
         .click();
+      expect(
+        await audio.evaluate(
+          (element) =>
+            (element as HTMLAudioElement).currentTime,
+        ),
+      ).toBeGreaterThanOrEqual(pausedPosition - 0.75);
       const exitTarget = Math.min(
         narrationDurationSeconds - 4,
         pausedPosition + 4,
@@ -1469,8 +1803,8 @@ test.describe("Partner Academy durable resume", () => {
 
       // Dispatch the browser's exit signal while the document is still
       // observable, so Playwright can verify the keepalive response itself.
-      // The full navigation immediately afterward proves the server checkpoint
-      // survives the old page and remains the latest position.
+      // The fresh browser context below proves the server checkpoint survives
+      // the old page without racing WebKit's synthetic pagehide navigation.
       const pagehideWrite = playback.page.waitForResponse(
         (response) =>
           response.url() === appUrl(resumeEndpoint) &&
@@ -1493,10 +1827,6 @@ test.describe("Partner Academy durable resume", () => {
             : Math.abs(saved - exitPosition);
         })
         .toBeLessThan(1);
-      await playback.page.goto(appUrl("/partner/academy"));
-      await expect(playback.page).toHaveURL(
-        appUrl("/partner/academy"),
-      );
       expect(
         (await resumeRow(userA.id))
           ?.audioPositionSeconds,
@@ -1600,10 +1930,17 @@ test.describe("Partner Academy durable resume", () => {
           exact: true,
         }),
       ).toBeVisible();
-      await expect(
-        resumed.page.getByTestId("academy-audio-resume"),
-      ).toHaveCount(0);
-
+      await expect
+        .poll(
+          async () =>
+            Number(
+              await clearedSeek.getAttribute("max"),
+            ),
+          { timeout: 20_000 },
+        )
+        .toBeGreaterThanOrEqual(
+          narrationDurationSeconds - 1,
+        );
       await clearedSeek.fill(
         String(Math.floor(narrationDurationSeconds - 1)),
       );

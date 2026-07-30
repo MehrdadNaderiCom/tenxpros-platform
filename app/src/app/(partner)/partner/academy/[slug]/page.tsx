@@ -188,7 +188,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
             resume={lessonResume.audio}
             resumeEndpoint={resumeEndpoint}
             resumeShadowScope={
-              !preview && lesson
+              lesson
                 ? academyAudioResumeShadowScope({
                     userId: current.user.id,
                     partnerId: current.partner.id,

@@ -166,13 +166,8 @@ export function AudioReader({
   resumeEnabled?: boolean;
 }) {
   const {
-    activeCue,
-    mode: followMode,
-    requestShowActive,
     setActiveCue,
-    setAvailable: setFollowAlongAvailable,
     setPlaying: setFollowAlongPlaying,
-    toggleFollow,
   } = useAcademyFollowAlong();
   const [status, setStatus] = useState<NarrationStatus | null>(null);
   const [statusFailed, setStatusFailed] = useState(false);
@@ -181,14 +176,13 @@ export function AudioReader({
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [followTrackReady, setFollowTrackReady] =
-    useState(false);
   const [serverResume, setServerResume] =
     useState<AcademyAudioResumeSnapshot>(resume);
   const [resumeReconciled, setResumeReconciled] =
     useState(!resumeEnabled);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const trackRef = useRef<HTMLTrackElement | null>(null);
+  const followTrackValidatedRef = useRef(false);
   const followCueEnabledRef = useRef(false);
   // Where to resume (as a fraction of duration) after a mid-playback voice swap.
   const pendingSeekFractionRef = useRef<number | null>(null);
@@ -213,6 +207,12 @@ export function AudioReader({
   const [mediaReload, setMediaReload] = useState(0);
   const [mediaRetryExhausted, setMediaRetryExhausted] =
     useState(false);
+  // Real partners persist to the database and keep this local shadow as a
+  // refresh-race fallback. Admin preview is deliberately server-read-only, but
+  // its account/partner/lesson-scoped shadow should still restore the admin's
+  // own playback position in this browser.
+  const resumeAvailable =
+    resumeEnabled || Boolean(resumeShadowScope);
 
   const refreshStatus = useCallback(() => {
     if (statusRequestRef.current) {
@@ -475,7 +475,10 @@ export function AudioReader({
     resumeEnabled && !resumeReconciled;
 
   const syncActiveTrackCue = useCallback(() => {
-    if (!followCueEnabledRef.current) {
+    if (
+      !followTrackValidatedRef.current ||
+      !followCueEnabledRef.current
+    ) {
       setActiveCue(null);
       return;
     }
@@ -511,8 +514,7 @@ export function AudioReader({
   }, [setActiveCue]);
 
   useEffect(() => {
-    setFollowTrackReady(false);
-    setFollowAlongAvailable(false);
+    followTrackValidatedRef.current = false;
     if (!followAlong || mediaRetryExhausted) {
       setFollowAlongPlaying(false);
       setActiveCue(null);
@@ -524,8 +526,7 @@ export function AudioReader({
     track.mode = "hidden";
     const onCueChange = () => syncActiveTrackCue();
     const clearTrack = () => {
-      setFollowTrackReady(false);
-      setFollowAlongAvailable(false);
+      followTrackValidatedRef.current = false;
       setActiveCue(null);
     };
     const onTrackLoad = () => {
@@ -544,8 +545,7 @@ export function AudioReader({
           return;
         }
       }
-      setFollowTrackReady(true);
-      setFollowAlongAvailable(true);
+      followTrackValidatedRef.current = true;
       syncActiveTrackCue();
     };
     track.addEventListener("cuechange", onCueChange);
@@ -564,20 +564,17 @@ export function AudioReader({
     followAlong,
     mediaRetryExhausted,
     setActiveCue,
-    setFollowAlongAvailable,
     setFollowAlongPlaying,
     syncActiveTrackCue,
   ]);
 
   useEffect(
     () => () => {
-      setFollowAlongAvailable(false);
       setFollowAlongPlaying(false);
       setActiveCue(null);
     },
     [
       setActiveCue,
-      setFollowAlongAvailable,
       setFollowAlongPlaying,
     ],
   );
@@ -715,7 +712,7 @@ export function AudioReader({
       const pendingCheckpoint =
         pendingInitialSeekSecondsRef.current;
       if (
-        !resumeEnabled ||
+        !resumeAvailable ||
         (!allowAudioSaveRef.current &&
           pendingCheckpoint === null) ||
         !el ||
@@ -760,7 +757,7 @@ export function AudioReader({
       };
     },
     [
-      resumeEnabled,
+      resumeAvailable,
       selected?.durationSeconds,
       selected?.id,
       selected?.ready,
@@ -871,17 +868,25 @@ export function AudioReader({
         Math.max(0, initialSeconds),
         Math.max(0, mediaDuration - 0.1),
       );
-      try {
-        el.currentTime = target;
-      } catch {
-        // Keep the pending value. canplay/playing will retry when the media
-        // implementation is ready to accept a seek.
-        return;
-      }
+      // A matching, non-seeking media clock is the confirmation. Merely reading
+      // the assigned value back is not enough: WebKit can echo the target while
+      // its asynchronous seek is still pending and later emit the old clock.
       if (
-        Math.abs(el.currentTime - target) > 0.5 &&
-        el.readyState < HTMLMediaElement.HAVE_FUTURE_DATA
+        Math.abs(el.currentTime - target) > 0.5 ||
+        el.seeking
       ) {
+        if (!el.seeking) {
+          try {
+            el.currentTime = target;
+          } catch {
+            // Keep the pending value. canplay/playing will retry when the media
+            // implementation is ready to accept a seek.
+            return;
+          }
+        }
+        // Keep both the durable checkpoint and the visible clock authoritative
+        // until seeked (or a later non-seeking event) confirms the target.
+        setCurrentTime(target);
         return;
       }
       pendingInitialSeekSecondsRef.current = null;
@@ -923,7 +928,7 @@ export function AudioReader({
     const saved =
       selectedResume?.checkpoint.positionSeconds ?? null;
     if (
-      resumeEnabled &&
+      resumeAvailable &&
       saved != null &&
       Number.isFinite(saved) &&
       saved > 0
@@ -954,7 +959,7 @@ export function AudioReader({
     }
   }, [
     applyPendingSeek,
-    resumeEnabled,
+    resumeAvailable,
     resumeReconciled,
     resumeShadowScope,
     serverResume,
@@ -967,10 +972,15 @@ export function AudioReader({
     const el = audioRef.current;
     if (!el || resumePending) return;
     if (el.paused) {
-      followCueEnabledRef.current = true;
       applyPendingSeek();
+      if (pendingInitialSeekSecondsRef.current === null) {
+        followCueEnabledRef.current = true;
+      }
       el.playbackRate = rateRef.current;
       void el.play().catch(() => {
+        setPlaying(false);
+        setFollowAlongPlaying(false);
+        mediaPlaybackStartedAtRef.current = null;
         // A 404 while regenerating: refresh so the UI shows preparing state.
         void refreshStatus();
       });
@@ -987,10 +997,16 @@ export function AudioReader({
     pendingInitialSeekSecondsRef.current = null;
     allowAudioSaveRef.current = true;
     el.pause();
-    el.currentTime = 0;
+    try {
+      el.currentTime = 0;
+    } catch {
+      // Persisted and visible state remain authoritatively zero.
+    }
     setCurrentTime(0);
+    setPlaying(false);
     setFollowAlongPlaying(false);
     setActiveCue(null);
+    mediaPlaybackStartedAtRef.current = null;
     persistAudioPosition(0);
   };
 
@@ -1056,7 +1072,7 @@ export function AudioReader({
   };
 
   useEffect(() => {
-    if (!resumeEnabled) return;
+    if (!resumeAvailable) return;
     const flush = () => {
       persistAudioPosition(undefined, {
         keepalive: true,
@@ -1077,20 +1093,20 @@ export function AudioReader({
         onVisibility,
       );
     };
-  }, [persistAudioPosition, resumeEnabled]);
+  }, [persistAudioPosition, resumeAvailable]);
 
   // Unlike a full page exit, Next.js client navigation does not emit pagehide.
   // Layout cleanup runs while the audio element is still attached, so its exact
   // currentTime is available for the final keepalive checkpoint.
   useLayoutEffect(
     () => () => {
-      if (resumeEnabled) {
+      if (resumeAvailable) {
         persistAudioPosition(undefined, {
           keepalive: true,
         });
       }
     },
-    [persistAudioPosition, resumeEnabled],
+    [persistAudioPosition, resumeAvailable],
   );
 
   if (statusFailed && !status) {
@@ -1145,17 +1161,34 @@ export function AudioReader({
   }
 
   return (
-    <div className="min-h-[7.75rem] space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
+    <div className="space-y-2 rounded-md border border-neutral-200 bg-neutral-50 p-3">
       <audio
         ref={audioRef}
         preload="metadata"
         onLoadedMetadata={onLoadedMetadata}
         onDurationChange={applyPendingSeek}
         onCanPlay={applyPendingSeek}
-        onPlaying={applyPendingSeek}
+        onPlaying={() => {
+          applyPendingSeek();
+          if (
+            pendingInitialSeekSecondsRef.current === null
+          ) {
+            followCueEnabledRef.current = true;
+            syncActiveTrackCue();
+          }
+        }}
         onTimeUpdate={() => {
           const el = audioRef.current;
           const time = el?.currentTime ?? 0;
+          if (
+            pendingInitialSeekSecondsRef.current !== null &&
+            !allowAudioSaveRef.current
+          ) {
+            setCurrentTime(
+              pendingInitialSeekSecondsRef.current,
+            );
+            return;
+          }
           setCurrentTime(time);
           syncActiveTrackCue();
           const now = Date.now();
@@ -1185,8 +1218,15 @@ export function AudioReader({
           }
         }}
         onPlay={() => {
-          followCueEnabledRef.current = true;
-          syncActiveTrackCue();
+          if (
+            pendingInitialSeekSecondsRef.current === null
+          ) {
+            followCueEnabledRef.current = true;
+            syncActiveTrackCue();
+          } else {
+            followCueEnabledRef.current = false;
+            setActiveCue(null);
+          }
           setPlaying(true);
           setFollowAlongPlaying(true);
           mediaPlaybackStartedAtRef.current = Date.now();
@@ -1198,6 +1238,7 @@ export function AudioReader({
           persistAudioPosition();
         }}
         onSeeked={() => {
+          applyPendingSeek();
           syncActiveTrackCue();
           persistAudioPosition();
         }}
@@ -1206,8 +1247,6 @@ export function AudioReader({
           // Timed-text failure disables Follow Along only; it must never
           // trigger retries or remove the independently healthy narration.
           if (event.target !== event.currentTarget) {
-            setFollowTrackReady(false);
-            setFollowAlongAvailable(false);
             setActiveCue(null);
             return;
           }
@@ -1252,7 +1291,13 @@ export function AudioReader({
         onEnded={() => {
           const el = audioRef.current;
           followCueEnabledRef.current = false;
-          if (el) el.currentTime = 0;
+          if (el) {
+            try {
+              el.currentTime = 0;
+            } catch {
+              // Persisted and visible state remain authoritatively zero.
+            }
+          }
           setPlaying(false);
           setFollowAlongPlaying(false);
           setActiveCue(null);
@@ -1327,48 +1372,6 @@ export function AudioReader({
               ))}
             </select>
           </label>
-        ) : null}
-        {followAlong && followTrackReady ? (
-          <button
-            type="button"
-            onClick={
-              followMode === "suspended"
-                ? requestShowActive
-                : toggleFollow
-            }
-            aria-pressed={followMode === "following"}
-            className={`inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-semibold transition-colors ${
-              followMode === "following"
-                ? "border-gold-400 bg-gold-50 text-navy-900"
-                : "border-neutral-300 bg-white text-slate-600 hover:bg-neutral-50"
-            }`}
-          >
-            {followMode === "following"
-              ? "Following text"
-              : followMode === "suspended"
-                ? "Resume follow"
-                : "Follow audio"}
-          </button>
-        ) : null}
-        {followAlong && followTrackReady && activeCue ? (
-          <button
-            type="button"
-            onClick={requestShowActive}
-            className="h-8 text-xs font-semibold text-navy-700 underline decoration-gold-400 underline-offset-4 hover:text-navy-900"
-          >
-            Show current passage
-          </button>
-        ) : null}
-      </div>
-      <div className="min-h-4">
-        {currentTime >= 1 && !playing ? (
-          <p
-            className="text-xs text-slate-500"
-            data-testid="academy-audio-resume"
-          >
-            Ready to continue from {formatTime(currentTime)}.
-            Your audio position is saved automatically.
-          </p>
         ) : null}
       </div>
       <div className="flex items-center gap-2">

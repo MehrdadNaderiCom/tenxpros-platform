@@ -479,6 +479,20 @@ describe("academy single-voice and resume wiring", () => {
     ),
     "utf8",
   );
+  const lessonPage = readFileSync(
+    join(
+      appRoot,
+      "src/app/(partner)/partner/academy/[slug]/page.tsx",
+    ),
+    "utf8",
+  );
+  const followContext = readFileSync(
+    join(
+      appRoot,
+      "src/components/academy/follow-along-context.tsx",
+    ),
+    "utf8",
+  );
 
   it("does not render production voice copy when only one voice is active", () => {
     expect(player).not.toContain("{selected.label}");
@@ -545,5 +559,48 @@ describe("academy single-voice and resume wiring", () => {
       "RESUME_RECONCILE_TIMEOUT_MS",
     );
     expect(player).toContain("serverNow");
+  });
+
+  it("restores a local-only bookmark in read-only admin preview", () => {
+    expect(lessonPage).toMatch(
+      /resumeShadowScope=\{\s*lesson\s*\?\s*academyAudioResumeShadowScope/u,
+    );
+    expect(lessonPage).toContain(
+      "resumeEnabled={!preview}",
+    );
+    expect(player).toContain(
+      "resumeEnabled || Boolean(resumeShadowScope)",
+    );
+    expect(player).toContain(
+      "if (!resumeAvailable) return;",
+    );
+    expect(player).toMatch(
+      /resumeAvailable\s*&&\s*saved != null/u,
+    );
+  });
+
+  it("uses automatic passage highlighting without redundant Follow controls or save prose", () => {
+    for (const copy of [
+      "Following text",
+      "Follow audio",
+      "Resume follow",
+      "Show current passage",
+      "Your audio position is saved automatically",
+    ]) {
+      expect(player).not.toContain(copy);
+    }
+    expect(followContext).not.toContain(
+      "txp-academy-follow-audio-v1",
+    );
+    expect(lesson).toContain(
+      'element.dataset.academyNarrationActive = "true"',
+    );
+    expect(lesson).toContain(
+      'element.setAttribute("aria-current", "true")',
+    );
+    expect(lesson).toContain(
+      "activePassageNeedsScroll(element)",
+    );
+    expect(lesson).toContain("element.scrollIntoView({");
   });
 });

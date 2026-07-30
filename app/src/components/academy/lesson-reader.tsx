@@ -72,7 +72,7 @@ const RICH_CLASS =
 const BLOCK_SELECTOR =
   "h2,h3,h4,p,li,blockquote,tr,img";
 const SAVE_DEBOUNCE_MS = 650;
-const FOLLOW_SCROLL_SETTLE_MS = 180;
+const AUTO_REVEAL_SCROLL_FALLBACK_MS = 5_000;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
@@ -291,27 +291,20 @@ export function LessonReader({
   resumeEndpoint: string;
   resumeEnabled?: boolean;
 }) {
-  const {
-    activeCue,
-    available: followAlongAvailable,
-    mode: followMode,
-    playing: audioPlaying,
-    reducedMotion,
-    showRequest,
-    suspendFollow,
-  } = useAcademyFollowAlong();
+  const { activeCue, playing: audioPlaying } =
+    useAcademyFollowAlong();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const activePassageRef = useRef<HTMLElement | null>(null);
+  const audioPlayingRef = useRef(audioPlaying);
+  audioPlayingRef.current = audioPlaying;
   const readyToSaveRef = useRef(false);
   const readingDirtyRef = useRef(false);
   const suppressScrollRef = useRef(false);
   const timerRef = useRef<number | null>(null);
-  const followScrollTimerRef = useRef<number | null>(
-    null,
-  );
-  const followResumeGraceUntilRef = useRef(0);
-  const previousFollowModeRef = useRef(followMode);
-  const previousAudioPlayingRef = useRef(audioPlaying);
+  const autoRevealActiveRef = useRef(false);
+  const autoRevealTimerRef = useRef<number | null>(null);
+  const preAudioRevealReadingRef =
+    useRef<AcademyReadingResumePosition | null>(null);
   const [startedOver, setStartedOver] = useState(false);
   const [restored, setRestored] = useState(false);
   const initiallySaved = useMemo(
@@ -333,6 +326,26 @@ export function LessonReader({
     };
   }, [resume.contentKey]);
 
+  const finishAutoRevealScroll = useCallback(() => {
+    autoRevealActiveRef.current = false;
+    if (autoRevealTimerRef.current !== null) {
+      window.clearTimeout(autoRevealTimerRef.current);
+      autoRevealTimerRef.current = null;
+    }
+    suppressScrollRef.current = false;
+  }, []);
+
+  const holdAutoRevealScroll = useCallback(() => {
+    if (autoRevealTimerRef.current !== null) {
+      window.clearTimeout(autoRevealTimerRef.current);
+    }
+    autoRevealTimerRef.current = window.setTimeout(() => {
+      autoRevealActiveRef.current = false;
+      autoRevealTimerRef.current = null;
+      suppressScrollRef.current = false;
+    }, AUTO_REVEAL_SCROLL_FALLBACK_MS);
+  }, []);
+
   // Restore only after fonts and in-lesson images have had a short opportunity
   // to settle. Any deliberate wheel/touch/key action before then cancels the
   // automatic jump.
@@ -348,7 +361,15 @@ export function LessonReader({
     const markKeyboardReadingAction = (
       event: KeyboardEvent,
     ) => {
+      const target =
+        event.target instanceof Element
+          ? event.target
+          : null;
       if (
+        !event.defaultPrevented &&
+        !target?.closest(
+          'button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]',
+        ) &&
         [
           "ArrowDown",
           "ArrowUp",
@@ -407,6 +428,7 @@ export function LessonReader({
       if (cancelled) return;
       if (
         !userActed &&
+        !audioPlayingRef.current &&
         resumeEnabled &&
         initiallySaved &&
         !window.location.hash
@@ -447,18 +469,21 @@ export function LessonReader({
       ) {
         return;
       }
-      const position = snapshot();
+      const position =
+        preAudioRevealReadingRef.current ?? snapshot();
       if (position) saveResume(position, { keepalive: true });
     };
     const onScroll = () => {
       if (suppressScrollRef.current) return;
+      preAudioRevealReadingRef.current = null;
       readingDirtyRef.current = true;
       if (!readyToSaveRef.current) return;
       if (timerRef.current != null) {
         window.clearTimeout(timerRef.current);
       }
       timerRef.current = window.setTimeout(() => {
-        const position = snapshot();
+        const position =
+          preAudioRevealReadingRef.current ?? snapshot();
         if (position) saveResume(position);
       }, SAVE_DEBOUNCE_MS);
     };
@@ -494,13 +519,92 @@ export function LessonReader({
       ) {
         return;
       }
-      const position = snapshot();
+      const position =
+        preAudioRevealReadingRef.current ?? snapshot();
       if (position) {
         saveResume(position, { keepalive: true });
       }
     },
     [resumeEnabled, saveResume, snapshot],
   );
+
+  // Programmatic audio following must not become a text bookmark. Keep scroll
+  // saves suppressed until `scrollend`, with a bounded fallback for engines
+  // that do not emit it. A real wheel, touch, or reading key cancels that
+  // motion and restores ordinary reading-position saves for the user's own
+  // movement.
+  useEffect(() => {
+    const onScroll = () => {
+      if (autoRevealActiveRef.current) {
+        holdAutoRevealScroll();
+      }
+    };
+    const onScrollEnd = () => {
+      if (autoRevealActiveRef.current) {
+        finishAutoRevealScroll();
+      }
+    };
+    const cancelForUser = () => {
+      if (!autoRevealActiveRef.current) return;
+      window.scrollTo({
+        top: window.scrollY,
+        behavior: "auto",
+      });
+      preAudioRevealReadingRef.current = null;
+      finishAutoRevealScroll();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target =
+        event.target instanceof Element
+          ? event.target
+          : null;
+      if (
+        event.defaultPrevented ||
+        target?.closest(
+          'button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]',
+        )
+      ) {
+        return;
+      }
+      if (
+        [
+          "ArrowDown",
+          "ArrowUp",
+          "End",
+          "Home",
+          "PageDown",
+          "PageUp",
+          " ",
+        ].includes(event.key)
+      ) {
+        cancelForUser();
+      }
+    };
+    const passive = { passive: true } as const;
+    window.addEventListener("scroll", onScroll, passive);
+    window.addEventListener("scrollend", onScrollEnd);
+    window.addEventListener("wheel", cancelForUser, passive);
+    window.addEventListener(
+      "touchmove",
+      cancelForUser,
+      passive,
+    );
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scrollend", onScrollEnd);
+      window.removeEventListener("wheel", cancelForUser);
+      window.removeEventListener(
+        "touchmove",
+        cancelForUser,
+      );
+      window.removeEventListener("keydown", onKeyDown);
+      finishAutoRevealScroll();
+    };
+  }, [
+    finishAutoRevealScroll,
+    holdAutoRevealScroll,
+  ]);
 
   const startFromBeginning = () => {
     const root = rootRef.current;
@@ -516,6 +620,7 @@ export function LessonReader({
       progressPct: 0,
     };
     suppressScrollRef.current = true;
+    preAudioRevealReadingRef.current = null;
     readingDirtyRef.current = false;
     saveResume(position);
     setStartedOver(true);
@@ -534,40 +639,10 @@ export function LessonReader({
     });
   };
 
-  const showActivePassage = useCallback(
-    (force: boolean) => {
-      const element = activePassageRef.current;
-      if (
-        !element ||
-        (!force && !activePassageNeedsScroll(element))
-      ) {
-        return;
-      }
-      suppressScrollRef.current = true;
-      element.scrollIntoView({
-        block: "center",
-        inline: "nearest",
-        behavior: reducedMotion ? "auto" : "smooth",
-      });
-      if (followScrollTimerRef.current !== null) {
-        window.clearTimeout(
-          followScrollTimerRef.current,
-        );
-      }
-      followScrollTimerRef.current = window.setTimeout(
-        () => {
-          suppressScrollRef.current = false;
-          followScrollTimerRef.current = null;
-        },
-        FOLLOW_SCROLL_SETTLE_MS,
-      );
-    },
-    [reducedMotion],
-  );
-
   // Keep exactly one semantic passage current. The original heading,
   // paragraph, list, callout, or table-row semantics remain untouched.
   useEffect(() => {
+    let scrollFrame: number | null = null;
     const previous = activePassageRef.current;
     if (previous) {
       previous.classList.remove(
@@ -594,12 +669,35 @@ export function LessonReader({
       : "paused";
     element.setAttribute("aria-current", "true");
     activePassageRef.current = element;
-    if (audioPlaying && followMode === "following") {
-      window.requestAnimationFrame(() => {
-        showActivePassage(false);
+    if (audioPlaying && activePassageNeedsScroll(element)) {
+      scrollFrame = window.requestAnimationFrame(() => {
+        if (
+          activePassageRef.current !== element ||
+          !element.isConnected
+        ) {
+          return;
+        }
+        if (!preAudioRevealReadingRef.current) {
+          preAudioRevealReadingRef.current = snapshot();
+        }
+        autoRevealActiveRef.current = true;
+        suppressScrollRef.current = true;
+        holdAutoRevealScroll();
+        element.scrollIntoView({
+          block: "center",
+          inline: "nearest",
+          behavior: window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+          ).matches
+            ? "auto"
+            : "smooth",
+        });
       });
     }
     return () => {
+      if (scrollFrame !== null) {
+        window.cancelAnimationFrame(scrollFrame);
+      }
       element.classList.remove("academy-narration-active");
       element.removeAttribute(
         "data-academy-narration-active",
@@ -613,142 +711,9 @@ export function LessonReader({
   }, [
     activeCue,
     audioPlaying,
-    followMode,
-    showActivePassage,
+    holdAutoRevealScroll,
+    snapshot,
   ]);
-
-  useEffect(() => {
-    if (showRequest <= 0) return;
-    window.requestAnimationFrame(() => {
-      showActivePassage(true);
-    });
-  }, [showActivePassage, showRequest]);
-
-  useEffect(() => {
-    if (
-      followMode === "following" &&
-      previousFollowModeRef.current !== "following"
-    ) {
-      // Ignore only the tail of the scroll gesture that caused suspension.
-      // Fresh gestures after this short window still take control immediately.
-      followResumeGraceUntilRef.current =
-        performance.now() + 300;
-    }
-    previousFollowModeRef.current = followMode;
-  }, [followMode]);
-
-  useEffect(() => {
-    if (
-      audioPlaying &&
-      !previousAudioPlayingRef.current
-    ) {
-      // A wheel/touch gesture made just before pressing Play can still emit a
-      // trailing scroll event in WebKit. It must not instantly undo Follow.
-      followResumeGraceUntilRef.current = Math.max(
-        followResumeGraceUntilRef.current,
-        performance.now() + 300,
-      );
-    }
-    previousAudioPlayingRef.current = audioPlaying;
-  }, [audioPlaying]);
-
-  // A deliberate reading gesture always wins over automatic following. The
-  // highlight continues, but no further scroll occurs until the listener asks
-  // to resume from the player.
-  useEffect(() => {
-    if (
-      !followAlongAvailable ||
-      followMode !== "following" ||
-      !audioPlaying
-    ) {
-      return;
-    }
-    const suspend = () => {
-      if (
-        performance.now() <
-        followResumeGraceUntilRef.current
-      ) {
-        return;
-      }
-      suspendFollow();
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target =
-        event.target instanceof Element
-          ? event.target
-          : null;
-      if (
-        event.defaultPrevented ||
-        target?.closest(
-          'button,a[href],input,select,textarea,summary,[contenteditable]:not([contenteditable="false"]),[role="button"],[role="slider"],[role="combobox"]',
-        )
-      ) {
-        return;
-      }
-      if (
-        [
-          "ArrowDown",
-          "ArrowUp",
-          "End",
-          "Home",
-          "PageDown",
-          "PageUp",
-          " ",
-        ].includes(event.key)
-      ) {
-        suspend();
-      }
-    };
-    const options = { passive: true } as const;
-    const onScroll = () => {
-      if (!suppressScrollRef.current) {
-        suspend();
-        return;
-      }
-      // `scrollIntoView()` has no cross-browser completion promise. Keep
-      // suppression alive until scrolling has actually been quiet, instead of
-      // guessing a fixed animation duration. Wheel/touch/key listeners above
-      // still let a deliberate user gesture take control immediately.
-      if (followScrollTimerRef.current !== null) {
-        window.clearTimeout(
-          followScrollTimerRef.current,
-        );
-      }
-      followScrollTimerRef.current = window.setTimeout(
-        () => {
-          suppressScrollRef.current = false;
-          followScrollTimerRef.current = null;
-        },
-        FOLLOW_SCROLL_SETTLE_MS,
-      );
-    };
-    window.addEventListener("wheel", suspend, options);
-    window.addEventListener("touchmove", suspend, options);
-    window.addEventListener("scroll", onScroll, options);
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("wheel", suspend);
-      window.removeEventListener("touchmove", suspend);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [
-    audioPlaying,
-    followAlongAvailable,
-    followMode,
-    suspendFollow,
-  ]);
-
-  useEffect(
-    () => () => {
-      if (followScrollTimerRef.current !== null) {
-        window.clearTimeout(
-          followScrollTimerRef.current,
-        );
-      }
-    },
-    [],
-  );
 
   const bookmarkActive = initiallySaved && !startedOver;
   const content = html ? (
