@@ -14,6 +14,7 @@ import {
   academyFollowAlongElementPath,
   useAcademyFollowAlong,
   type AcademyFollowAlongCue,
+  type AcademySectionAudioOptions,
 } from "@/components/academy/follow-along-context";
 import type { AcademyAudioResumeSnapshot } from "@/lib/academy/resume-server";
 import {
@@ -193,6 +194,7 @@ export function AudioReader({
   const {
     registerSectionAudioController,
     setActiveCue,
+    setAudioDurationMs,
     setPlaying: setFollowAlongPlaying,
     setSectionCues,
   } = useAcademyFollowAlong();
@@ -504,6 +506,25 @@ export function AudioReader({
   const selected = useMemo(
     () => status?.voices.find((v) => v.id === voiceId) ?? null,
     [status, voiceId],
+  );
+
+  // Chapter duration labels come from the currently loaded production asset,
+  // never from historical pacing stored in a presentation plan.
+  useEffect(() => {
+    const seconds =
+      duration > 0
+        ? duration
+        : selected?.durationSeconds ?? 0;
+    setAudioDurationMs(
+      Number.isFinite(seconds) && seconds > 0
+        ? Math.round(seconds * 1_000)
+        : null,
+    );
+  }, [duration, selected?.durationSeconds, setAudioDurationMs]);
+
+  useEffect(
+    () => () => setAudioDurationMs(null),
+    [setAudioDurationMs],
   );
   const followAlong =
     status?.followAlong &&
@@ -1353,7 +1374,10 @@ export function AudioReader({
   };
 
   const activateSectionAudio = useCallback(
-    (cue: AcademyFollowAlongCue) => {
+    (
+      cue: AcademyFollowAlongCue,
+      options?: AcademySectionAudioOptions,
+    ) => {
       const el = audioRef.current;
       if (
         !el ||
@@ -1373,6 +1397,7 @@ export function AudioReader({
         cue.sourceHtmlPath,
       );
       if (
+        !options?.restart &&
         selectedSectionPathRef.current === sectionPath
       ) {
         if (el.paused) {
@@ -1419,6 +1444,9 @@ export function AudioReader({
       setActiveCue(cue);
       mediaPlaybackStartedAtRef.current = null;
       applyPendingSeek();
+      if (options?.play) {
+        requestPlayback(el);
+      }
       persistAudioPosition(target);
     },
     [

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Check, X } from "lucide-react";
 import { recordExerciseAttempt, type ExerciseAttemptResult } from "@/lib/actions/academy";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 /**
  * One exercise checkpoint with up to three attempts. A wrong attempt shows why
@@ -45,7 +46,10 @@ export function ExercisePlayer({
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-5">
       <div className="flex items-start justify-between gap-3">
-        <p className="font-medium text-navy-900">
+        <p
+          id={`academy-exercise-question-${question.id}`}
+          className="font-medium text-navy-900"
+        >
           <span className="mr-2 text-sm text-slate-400">{index}.</span>
           {question.stem}
         </p>
@@ -56,7 +60,11 @@ export function ExercisePlayer({
         ) : null}
       </div>
 
-      <fieldset className="mt-3 space-y-2" disabled={completed}>
+      <fieldset
+        className="mt-3 space-y-2"
+        disabled={completed}
+        aria-labelledby={`academy-exercise-question-${question.id}`}
+      >
         {question.options.map((opt, i) => {
           const isCorrect = revealCorrect === i;
           const isWrongChosen = last && !last.correct && last.revealCorrect === false && selected === i;
@@ -64,7 +72,7 @@ export function ExercisePlayer({
             <label
               key={i}
               className={cn(
-                "flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2 text-sm transition",
+                "flex min-h-11 cursor-pointer items-start gap-3 rounded-md border px-3 py-2 text-sm transition focus-within:ring-2 focus-within:ring-navy-500 focus-within:ring-offset-1",
                 isCorrect ? "border-emerald-300 bg-emerald-50" : isWrongChosen ? "border-red-300 bg-red-50" : "border-neutral-200 hover:bg-neutral-50",
                 completed && !isCorrect ? "opacity-70" : "",
               )}
@@ -98,14 +106,15 @@ export function ExercisePlayer({
       ) : null}
 
       {!completed ? (
-        <button
+        <Button
           type="button"
           onClick={submit}
           disabled={selected == null || pending}
-          className="mt-4 inline-flex h-9 items-center rounded-md bg-navy-900 px-4 text-sm font-medium text-white transition hover:bg-navy-700 disabled:opacity-50"
+          size="sm"
+          className="mt-4"
         >
           {pending ? "Checking..." : "Check answer"}
-        </button>
+        </Button>
       ) : null}
     </div>
   );

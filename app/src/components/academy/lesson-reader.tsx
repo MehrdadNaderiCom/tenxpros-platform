@@ -17,6 +17,11 @@ import {
   useAcademyResumeSaver,
   type AcademyReadingResumePosition,
 } from "@/lib/academy/resume-client";
+import {
+  academyChapterAnchorId,
+  type AcademyChapterPlan,
+} from "@/lib/academy/chapter-plans";
+import { cn } from "@/lib/utils";
 
 /**
  * Renders lesson content with copy-protection as a deterrent: selection, copy,
@@ -85,16 +90,22 @@ const AcademyLessonContent = memo(
     html,
     paragraphs,
     rootRef,
+    chaptered,
   }: {
     html?: string | null;
     paragraphs: string[];
     rootRef: RefObject<HTMLDivElement>;
+    chaptered: boolean;
   }) {
     if (html) {
       return (
         <div
           ref={rootRef}
-          className={RICH_CLASS}
+          data-academy-lesson-content
+          className={cn(
+            RICH_CLASS,
+            chaptered && "max-w-[78ch]",
+          )}
           {...GUARD}
           dangerouslySetInnerHTML={{ __html: html }}
         />
@@ -103,6 +114,7 @@ const AcademyLessonContent = memo(
     return (
       <div
         ref={rootRef}
+        data-academy-lesson-content
         className="academy-lesson max-w-prose select-none space-y-5 text-[1.02rem] leading-8 text-slate-700"
         {...GUARD}
       >
@@ -324,12 +336,14 @@ export function LessonReader({
   resume,
   resumeEndpoint,
   resumeEnabled = true,
+  chapterPlan = null,
 }: {
   paragraphs: string[];
   html?: string | null;
   resume: AcademyReadingResumeSnapshot;
   resumeEndpoint: string;
   resumeEnabled?: boolean;
+  chapterPlan?: AcademyChapterPlan | null;
 }) {
   const {
     activateSectionAudio,
@@ -360,6 +374,89 @@ export function LessonReader({
     initialRevision: resume.revision,
     enabled: resumeEnabled,
   });
+
+  // Chapter labels are presentation-only attributes on the existing boundary
+  // nodes. No lesson node is wrapped, moved, hidden, or recreated, so semantic
+  // follow-along paths and global reading bookmarks keep their exact DOM.
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || !chapterPlan) return;
+    const originals: Array<{
+      element: HTMLElement;
+      id: string | null;
+      heading: string | null;
+      index: string | null;
+      hadClass: boolean;
+      tabIndex: string | null;
+    }> = [];
+
+    chapterPlan.chapters.forEach((chapter, index) => {
+      const element = academyNarrationElementForPath(
+        root,
+        chapter.readingStartSourceHtmlPath,
+      );
+      if (!element) return;
+      originals.push({
+        element,
+        id: element.getAttribute("id"),
+        heading: element.getAttribute(
+          "data-academy-chapter-heading",
+        ),
+        index: element.getAttribute(
+          "data-academy-chapter-index",
+        ),
+        hadClass: element.classList.contains(
+          "academy-chapter-start",
+        ),
+        tabIndex: element.getAttribute("tabindex"),
+      });
+      element.id = academyChapterAnchorId(
+        chapterPlan.moduleSlug,
+        chapter.id,
+      );
+      element.dataset.academyChapterHeading =
+        `Part ${chapter.number} · ${chapter.title}`;
+      element.dataset.academyChapterIndex = String(index);
+      element.tabIndex = -1;
+      element.classList.add("academy-chapter-start");
+    });
+
+    return () => {
+      for (const original of originals) {
+        const { element } = original;
+        if (original.id === null) element.removeAttribute("id");
+        else element.setAttribute("id", original.id);
+        if (original.heading === null) {
+          element.removeAttribute(
+            "data-academy-chapter-heading",
+          );
+        } else {
+          element.setAttribute(
+            "data-academy-chapter-heading",
+            original.heading,
+          );
+        }
+        if (original.index === null) {
+          element.removeAttribute(
+            "data-academy-chapter-index",
+          );
+        } else {
+          element.setAttribute(
+            "data-academy-chapter-index",
+            original.index,
+          );
+        }
+        if (!original.hadClass) {
+          element.classList.remove("academy-chapter-start");
+        }
+        if (original.tabIndex === null) {
+          element.removeAttribute("tabindex");
+        } else {
+          element.setAttribute("tabindex", original.tabIndex);
+        }
+      }
+    };
+  }, [chapterPlan, html, paragraphs]);
 
   const snapshot = useCallback(() => {
     const root = rootRef.current;
@@ -907,6 +1004,7 @@ export function LessonReader({
         html={html}
         paragraphs={paragraphs}
         rootRef={rootRef}
+        chaptered={Boolean(chapterPlan)}
       />
     </>
   );

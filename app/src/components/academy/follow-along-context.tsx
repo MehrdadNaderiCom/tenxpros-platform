@@ -18,6 +18,11 @@ export type AcademyFollowAlongCue = {
   endMs: number;
 };
 
+export type AcademySectionAudioOptions = {
+  restart?: boolean;
+  play?: boolean;
+};
+
 export function academyFollowAlongElementPath(
   sourceHtmlPath: string,
 ): string {
@@ -29,15 +34,23 @@ export function academyFollowAlongElementPath(
 
 type AcademyFollowAlongContextValue = {
   activeCue: AcademyFollowAlongCue | null;
+  audioDurationMs: number | null;
   playing: boolean;
   sectionCues: readonly AcademyFollowAlongCue[];
   activateSectionAudio: (
     cue: AcademyFollowAlongCue,
   ) => void;
+  restartSectionAudio: (
+    cue: AcademyFollowAlongCue,
+  ) => void;
   registerSectionAudioController: (
-    controller: (cue: AcademyFollowAlongCue) => void,
+    controller: (
+      cue: AcademyFollowAlongCue,
+      options?: AcademySectionAudioOptions,
+    ) => void,
   ) => () => void;
   setActiveCue: (cue: AcademyFollowAlongCue | null) => void;
+  setAudioDurationMs: (durationMs: number | null) => void;
   setPlaying: (playing: boolean) => void;
   setSectionCues: (
     cues: readonly AcademyFollowAlongCue[],
@@ -56,12 +69,18 @@ export function AcademyFollowAlongProvider({
 }) {
   const [activeCue, setActiveCueState] =
     useState<AcademyFollowAlongCue | null>(null);
+  const [audioDurationMs, setAudioDurationMs] = useState<
+    number | null
+  >(null);
   const [playing, setPlaying] = useState(false);
   const [sectionCues, setSectionCuesState] = useState<
     readonly AcademyFollowAlongCue[]
   >([]);
   const sectionAudioControllerRef = useRef<
-    ((cue: AcademyFollowAlongCue) => void) | null
+    ((
+      cue: AcademyFollowAlongCue,
+      options?: AcademySectionAudioOptions,
+    ) => void) | null
   >(null);
 
   const setActiveCue = useCallback(
@@ -111,7 +130,10 @@ export function AcademyFollowAlongProvider({
 
   const registerSectionAudioController = useCallback(
     (
-      controller: (cue: AcademyFollowAlongCue) => void,
+      controller: (
+        cue: AcademyFollowAlongCue,
+        options?: AcademySectionAudioOptions,
+      ) => void,
     ) => {
       sectionAudioControllerRef.current = controller;
       return () => {
@@ -132,24 +154,40 @@ export function AcademyFollowAlongProvider({
     [],
   );
 
+  const restartSectionAudio = useCallback(
+    (cue: AcademyFollowAlongCue) => {
+      sectionAudioControllerRef.current?.(cue, {
+        restart: true,
+        play: true,
+      });
+    },
+    [],
+  );
+
   const value = useMemo(
     () => ({
       activeCue,
+      audioDurationMs,
       playing,
       sectionCues,
       activateSectionAudio,
+      restartSectionAudio,
       registerSectionAudioController,
       setActiveCue,
+      setAudioDurationMs,
       setPlaying,
       setSectionCues,
     }),
     [
       activeCue,
       activateSectionAudio,
+      audioDurationMs,
       playing,
       registerSectionAudioController,
+      restartSectionAudio,
       sectionCues,
       setActiveCue,
+      setAudioDurationMs,
       setSectionCues,
     ],
   );

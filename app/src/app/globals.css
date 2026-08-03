@@ -40,6 +40,46 @@ a {
 }
 
 /*
+ * Visual chapter boundaries for long Academy lessons. These markers are
+ * attached at runtime to existing lesson nodes; they never alter the stored
+ * HTML or the nth-of-type paths used by narration and reading bookmarks.
+ */
+.academy-chapter-start {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 3.5rem !important;
+  padding-top: 1.75rem;
+  scroll-margin-block-start: 7rem;
+}
+
+.academy-chapter-start[data-academy-chapter-index="0"] {
+  border-top: 0;
+  margin-top: 0 !important;
+  padding-top: 0;
+}
+
+.academy-chapter-start::before {
+  content: attr(data-academy-chapter-heading);
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 0.75rem;
+  border-radius: 9999px;
+  background: #fbf7ea;
+  color: #7c6230;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.academy-chapter-start:focus-visible {
+  outline: 2px solid #2e75b6;
+  outline-offset: 0.5rem;
+}
+
+/*
  * Read-along passage marker. The logical start rail is a second, non-color
  * signal; the warm wash never reduces the original text contrast.
  */
