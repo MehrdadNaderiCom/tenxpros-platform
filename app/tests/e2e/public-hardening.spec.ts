@@ -247,13 +247,12 @@ test("homepage and verification metadata are canonical and social-ready", async 
   await expectSocialMetadata(page, "/verify", `${SITE_URL}/verify`);
 });
 
-test("homepage publishes the reciprocal language set and Organization JSON-LD", async ({
+test("homepage publishes valid language alternates and Organization JSON-LD", async ({
   page,
 }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
   for (const [language, expected] of [
     ["en", `${SITE_URL}/`],
-    ["fa-IR", `${PERSIAN_SITE_URL}/`],
     ["x-default", `${SITE_URL}/`],
   ] as const) {
     const href = await page
@@ -261,6 +260,9 @@ test("homepage publishes the reciprocal language set and Organization JSON-LD", 
       .getAttribute("href");
     expect(new URL(href ?? "").href, language).toBe(new URL(expected).href);
   }
+  await expect(
+    page.locator('link[rel="alternate"][hreflang="fa-IR"]'),
+  ).toHaveCount(0);
 
   const organization = (await jsonLdRecords(page)).find(
     (value) => value["@type"] === "Organization",

@@ -29,7 +29,7 @@ describe("public SEO metadata", () => {
     });
   });
 
-  it("publishes only the reciprocal homepage language alternates", () => {
+  it("publishes only valid self-referencing homepage language alternates", () => {
     const metadata = buildPublicMetadata({
       title: "TenXPros",
       description: "A selective 100-day journey.",
@@ -41,7 +41,6 @@ describe("public SEO metadata", () => {
       canonical: "https://tenxpros.com/",
       languages: {
         en: "https://tenxpros.com/",
-        "fa-IR": "https://tenxpros.ir/",
         "x-default": "https://tenxpros.com/",
       },
     });

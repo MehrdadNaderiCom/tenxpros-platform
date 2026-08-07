@@ -21,8 +21,8 @@ function absoluteUrl(path: PublicMetadataInput["path"]): string {
 
 /**
  * Shared metadata for indexable English pages on tenxpros.com. Canonicals are
- * always route-specific. Only the homepage declares the Persian site because
- * that is the only reciprocal hreflang pair currently published by tenxpros.ir.
+ * always route-specific. The homepage declares only the English self-reference
+ * and x-default until tenxpros.ir publishes a reciprocal English alternate.
  */
 export function buildPublicMetadata({
   title,
@@ -34,7 +34,6 @@ export function buildPublicMetadata({
   const languages = homepageLanguageAlternates
     ? {
         en: `${SITE_URL}/`,
-        "fa-IR": `${PERSIAN_SITE_URL}/`,
         "x-default": `${SITE_URL}/`,
       }
     : undefined;
