@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-shell";
+import { resolveCredentialValidity } from "@/lib/credentials/status";
 import Link from "next/link";
 
 export default async function CertificationStatusPage() {
@@ -55,12 +56,27 @@ export default async function CertificationStatusPage() {
       <Card>
         <h2 className="text-xl font-semibold text-navy-900">Badges</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {profile.user.earnedBadges.map((item) => (
-            <div key={item.id} className="rounded-md border border-neutral-200 p-3">
-              <p className="font-medium text-navy-900">{item.badge.name}</p>
-              <p className="mt-1 text-sm text-slate-600">Verification: /verify/{item.verificationCode}</p>
-            </div>
-          ))}
+          {profile.user.earnedBadges.map((item) => {
+            const validity = resolveCredentialValidity({
+              storedStatus: item.status,
+              expiresAt: item.expiresAt,
+              badgeIsActive: item.badge.isActive,
+              badgeCategory: item.badge.category,
+              contextRef: item.contextRef,
+              certification: profile.certification
+                ? { id: profile.certification.id, outcome: profile.certification.outcome }
+                : null,
+            });
+            return (
+              <div key={item.id} className="rounded-md border border-neutral-200 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium text-navy-900">{item.badge.name}</p>
+                  <Badge status={validity}>{validity}</Badge>
+                </div>
+                <p className="mt-1 text-sm text-slate-600">Verification: /verify/{item.verificationCode}</p>
+              </div>
+            );
+          })}
           {profile.user.earnedBadges.length === 0 ? (
             <div className="rounded-md border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm leading-6 text-slate-600 md:col-span-2">
               <p className="font-semibold text-navy-900">No badges earned yet.</p>

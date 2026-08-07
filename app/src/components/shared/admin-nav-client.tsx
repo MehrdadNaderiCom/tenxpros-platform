@@ -184,6 +184,7 @@ export function AdminNavClient({ sections }: { sections: NavSection[] }) {
                       <Link
                         key={item.href}
                         href={item.href}
+                        prefetch={false}
                         onClick={() => setMobileOpen(false)}
                         aria-current={active ? "page" : undefined}
                         className={cn(

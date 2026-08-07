@@ -27,11 +27,11 @@ import {
   applyRefund,
   confirmActivationGate,
   deletePartner,
-  forceDeletePartner,
   endFocus,
   grantFocus,
   recomputeDealCommissions,
   recordClosedDeal,
+  recordClosedDealMilestones,
   recordSeats,
   setPartnerStatus,
   setPartnerTier,
@@ -43,7 +43,6 @@ import { COMMON_CURRENCIES, convertMinor, entryPayoutMinor, formatMoney } from "
 import { PartnerConfigFields } from "@/components/admin/partner-config-fields";
 import { AddCommissionLineForm } from "@/components/admin/add-commission-line-form";
 import { ConfirmSubmit } from "@/components/admin/confirm-submit";
-import { ForceDeleteButton } from "@/components/admin/force-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -74,7 +73,15 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
         orderBy: { createdAt: "desc" },
         include: { activities: { orderBy: { createdAt: "desc" }, take: 5 } },
       },
-      closedDeals: { orderBy: { createdAt: "desc" }, include: { seats: true, commissions: true, registeredAccount: true } },
+      closedDeals: {
+        orderBy: { createdAt: "desc" },
+        include: {
+          seats: true,
+          commissions: true,
+          registeredAccount: true,
+          refundEvents: { orderBy: { occurredAt: "desc" } },
+        },
+      },
       commissions: true,
       focusGrants: { orderBy: { grantedAt: "desc" } },
       qualityFlags: { orderBy: { createdAt: "desc" } },
@@ -316,6 +323,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             <Input name="domain" placeholder="acme.com (drives newness / origination)" />
           </label>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Signed at</span><Input name="signedAt" type="date" /></label>
+          <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Underlying refund window ends</span><Input name="underlyingRefundWindowEndsAt" type="date" /></label>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Delivered at</span><Input name="deliveredAt" type="date" /></label>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Payment cleared at</span><Input name="paymentClearedAt" type="date" /></label>
           <label className="space-y-1"><span className="text-xs font-medium text-slate-600">Industry / region</span><Input name="industryOrRegion" placeholder="optional" /></label>
@@ -340,9 +348,41 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                   ) : null}
                 </p>
                 <span className="text-xs text-slate-500">
-                  {deal.deliveredAt ? "delivered" : "not delivered"} · {deal.paymentClearedAt ? "cleared" : "not cleared"}
+                  {deal.deliveredAt ? `delivered ${deal.deliveredAt.toISOString().slice(0, 10)}` : "not delivered"} ·{" "}
+                  {deal.paymentClearedAt ? `cleared ${deal.paymentClearedAt.toISOString().slice(0, 10)}` : "not cleared"}
                 </span>
               </div>
+
+              {(deal.deliveredAt === null || deal.paymentClearedAt === null) && deal.refundEvents.length === 0 ? (
+                <div className="mt-3 flex flex-wrap items-end gap-3 rounded-md bg-neutral-50 p-3">
+                  {deal.deliveredAt === null ? (
+                    <form action={recordClosedDealMilestones} className="flex items-end gap-2">
+                      <input type="hidden" name="closedDealId" value={deal.id} />
+                      <label className="space-y-1">
+                        <span className="block text-xs font-medium text-slate-600">Delivery completed</span>
+                        <Input name="deliveredAt" type="date" required className="h-8 w-40" />
+                      </label>
+                      <Button type="submit" size="sm" variant="secondary">Record delivery</Button>
+                    </form>
+                  ) : null}
+                  {deal.paymentClearedAt === null ? (
+                    <form action={recordClosedDealMilestones} className="flex items-end gap-2">
+                      <input type="hidden" name="closedDealId" value={deal.id} />
+                      <label className="space-y-1">
+                        <span className="block text-xs font-medium text-slate-600">Payment cleared</span>
+                        <Input name="paymentClearedAt" type="date" required className="h-8 w-40" />
+                      </label>
+                      <Button type="submit" size="sm" variant="secondary">Record payment</Button>
+                    </form>
+                  ) : null}
+                  <span className="text-xs text-slate-500">Set once; later corrections require a new audited process.</span>
+                </div>
+              ) : null}
+              {(deal.deliveredAt === null || deal.paymentClearedAt === null) && deal.refundEvents.length > 0 ? (
+                <p className="mt-3 rounded-md bg-amber-50 p-3 text-xs text-amber-800">
+                  Missing milestones are locked because a refund event has already finalized this deal&apos;s financial state.
+                </p>
+              ) : null}
 
               {/* Seats */}
               <p className="mt-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">Seats</p>
@@ -399,7 +439,7 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                   <input type="hidden" name="closedDealId" value={deal.id} />
                   <Button type="submit" size="sm" variant="secondary">Recompute (apply cap + payable)</Button>
                 </form>
-                <form action={applyRefund} className="flex items-end gap-2">
+                <form action={applyRefund} className="flex flex-wrap items-end gap-2">
                   <input type="hidden" name="closedDealId" value={deal.id} />
                   <Select name="type" defaultValue="REFUND" className="h-8 w-28">
                     <option value="REFUND">Refund</option>
@@ -410,9 +450,51 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
                   </Select>
                   <Input name="amount" type="number" step="0.01" min={0} placeholder={deal.currency} className="h-8 w-24" />
                   <Input name="seatsRefunded" type="number" min={0} placeholder="seats" className="h-8 w-16" />
+                  <Input
+                    name="sourceReference"
+                    required
+                    minLength={4}
+                    maxLength={160}
+                    placeholder="Provider/event reference"
+                    title="Stable refund, chargeback, or operator event reference; reuse it for retries"
+                    className="h-8 w-52"
+                  />
+                  <label className="space-y-1">
+                    <span className="block text-[10px] font-medium uppercase tracking-wide text-slate-500">Occurred (UTC)</span>
+                    <Input name="occurredAt" type="datetime-local" defaultValue={new Date().toISOString().slice(0, 16)} className="h-8 w-44" />
+                  </label>
+                  <Input name="note" maxLength={500} placeholder="Note (optional)" className="h-8 w-44" />
                   <Button type="submit" size="sm" variant="danger">Apply</Button>
                 </form>
               </div>
+              {deal.refundEvents.length > 0 ? (
+                <div className="mt-3 overflow-x-auto rounded-md border border-neutral-200">
+                  <table className="w-full min-w-[680px] text-xs">
+                    <thead className="bg-neutral-50 text-left text-slate-500">
+                      <tr>
+                        <th className="px-2 py-2">Event</th>
+                        <th className="px-2 py-2">Occurred (UTC)</th>
+                        <th className="px-2 py-2">Amount</th>
+                        <th className="px-2 py-2">Seats</th>
+                        <th className="px-2 py-2">Commission reversed</th>
+                        <th className="px-2 py-2">Window</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deal.refundEvents.map((event) => (
+                        <tr key={event.id} className="border-t border-neutral-100">
+                          <td className="px-2 py-2 font-mono text-[11px] text-navy-900">{event.sourceReference ?? `legacy:${event.id}`}</td>
+                          <td className="px-2 py-2">{event.occurredAt.toISOString()}</td>
+                          <td className="px-2 py-2">{formatCents(event.amountCents, deal.currency)}</td>
+                          <td className="px-2 py-2">{event.seatsRefunded}</td>
+                          <td className="px-2 py-2">{formatCents(event.reversedCommissionCents, deal.currency)}</td>
+                          <td className="px-2 py-2">{event.withinWindow ? "Eligible" : "Outside"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
             </div>
           ))}
           {partner.closedDeals.length === 0 ? <p className="text-sm text-slate-500">No closed deals recorded.</p> : null}
@@ -545,16 +627,11 @@ export default async function AdminPartnerDetailPage({ params }: { params: { id:
             </p>
           </div>
           {partner.closedDeals.length > 0 || partner.commissions.length > 0 ? (
-            <div className="max-w-sm space-y-3">
+            <div className="max-w-sm">
               <p className="text-xs text-slate-500">
-                Normal delete is blocked because there is financial history (closed deals or commissions). Prefer
-                “End collaboration” above, which keeps the records. If you must remove everything, force delete will also
-                erase the financial history.
+                Deletion is permanently blocked because this partner has immutable financial history. Use “End
+                collaboration” above; all deals, commissions, refunds and audit records will be retained.
               </p>
-              <form>
-                <input type="hidden" name="partnerId" value={partner.id} />
-                <ForceDeleteButton action={forceDeletePartner} name={partner.displayName} />
-              </form>
             </div>
           ) : (
             <ConfirmSubmit

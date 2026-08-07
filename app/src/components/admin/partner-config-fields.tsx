@@ -50,6 +50,7 @@ function Control({
     <Input
       name={name}
       type={field.unit === "text" ? "text" : "number"}
+      min={field.key === "clawbackDays" ? 0 : undefined}
       defaultValue={current == null ? "" : String(current)}
       placeholder={mode === "override" ? `default: ${formatConfigValue(effective, field.unit)}` : undefined}
     />

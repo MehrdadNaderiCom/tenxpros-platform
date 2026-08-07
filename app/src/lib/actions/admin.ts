@@ -1,46 +1,121 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { requireAdminUser as requireAdmin, isProtectedSettingKey } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 import { badgeCatalog } from "@/lib/program-data";
 import { parsePricingUpdate } from "@/lib/pricing";
 import { parseTierPaymentDefaults } from "@/lib/payment-terms";
+import {
+  earnedRankBadgeSlugs,
+  RANK_BADGE_REQUIREMENTS,
+} from "@/lib/credentials/progress-badges";
 
 export async function issueBadge(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
   await requireAdmin();
   return issueBadgeForAdmin(userId, badgeSlug, context);
 }
 
-async function issueBadgeForAdmin(userId: string, badgeSlug: string, context?: { type: string; ref: string }) {
-  const badge = await prisma.badge.findUnique({ where: { slug: badgeSlug } });
+type BadgeWriteClient = Pick<Prisma.TransactionClient, "badge" | "participantBadge" | "certificationReview">;
+
+async function issueBadgeForAdmin(
+  userId: string,
+  badgeSlug: string,
+  context?: { type: string; ref: string },
+  client: BadgeWriteClient = prisma,
+  options: { reissueExpired?: boolean } = {},
+) {
+  const badge = await client.badge.findUnique({ where: { slug: badgeSlug } });
   if (!badge) throw new Error(`Badge not found: ${badgeSlug}`);
-  return prisma.participantBadge.upsert({
+  if (badge.category === "CAPSTONE") {
+    const certification = await client.certificationReview.findFirst({
+      where: { participant: { userId }, outcome: "CERTIFIED" },
+      select: { id: true },
+    });
+    if (!certification) throw new Error("A capstone badge requires a current certified outcome.");
+  }
+  const existing = await client.participantBadge.findUnique({
     where: { userId_badgeId: { userId, badgeId: badge.id } },
-    update: { isPublic: true, contextType: context?.type, contextRef: context?.ref },
-    create: {
-      userId,
-      badgeId: badge.id,
+  });
+  if (!existing) {
+    return client.participantBadge.create({
+      data: {
+        userId,
+        badgeId: badge.id,
+        contextType: context?.type,
+        contextRef: context?.ref,
+      },
+    });
+  }
+
+  const expired = Boolean(existing.expiresAt && existing.expiresAt <= new Date());
+  const reissue =
+    existing.status === "REVOKED" || (expired && options.reissueExpired !== false);
+  return client.participantBadge.update({
+    where: { id: existing.id },
+    data: {
+      status: "ACTIVE",
+      revokedAt: null,
+      revocationReason: null,
       contextType: context?.type,
       contextRef: context?.ref,
+      // Re-certification is a new credential event: rotate the public code and
+      // issuance date. Preserve the participant's private/public preference.
+      ...(reissue
+        ? {
+            earnedAt: new Date(),
+            verificationCode: randomUUID(),
+            expiresAt: null,
+          }
+        : {}),
     },
   });
 }
 
-async function issueRankBadges(userId: string, participantId: string) {
-  const passed = await prisma.participantModule.findMany({
+type ProgressBadgeClient = BadgeWriteClient &
+  Pick<Prisma.TransactionClient, "participantModule" | "auditLog">;
+
+async function syncRankBadges(
+  userId: string,
+  participantId: string,
+  client: ProgressBadgeClient,
+  now: Date,
+) {
+  const passed = await client.participantModule.findMany({
     where: { participantId, status: "PASSED" },
     include: { module: true },
   });
-  const passedNumbers = new Set(passed.map((item) => item.module.number));
-  if ([1, 2, 3, 4].every((number) => passedNumbers.has(number))) {
-    await issueBadgeForAdmin(userId, "rank-ai-ready-professional", { type: "RANK", ref: "FRAME" });
-  }
-  if ([1, 2, 3, 4, 5, 6, 7, 8].every((number) => passedNumbers.has(number))) {
-    await issueBadgeForAdmin(userId, "rank-ai-problem-solver-solution-designer", { type: "RANK", ref: "DESIGN" });
-  }
-  if ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].every((number) => passedNumbers.has(number))) {
-    await issueBadgeForAdmin(userId, "rank-future-ready-ai-solution-designer", { type: "RANK", ref: "FULL_PROGRAM" });
+  const earned = earnedRankBadgeSlugs(passed.map((item) => item.module.number));
+  const contextBySlug: Record<string, string> = {
+    "rank-ai-ready-professional": "FRAME",
+    "rank-ai-problem-solver-solution-designer": "DESIGN",
+    "rank-future-ready-ai-solution-designer": "FULL_PROGRAM",
+  };
+
+  for (const rank of RANK_BADGE_REQUIREMENTS) {
+    if (earned.has(rank.slug)) {
+      await issueBadgeForAdmin(
+        userId,
+        rank.slug,
+        { type: "RANK", ref: contextBySlug[rank.slug] },
+        client,
+        // Rank sync is derived maintenance, not an explicit renewal decision.
+        // An eligible but expired rank must remain expired. If eligibility was
+        // actually lost, its stored REVOKED state is still reissued on regain.
+        { reissueExpired: false },
+      );
+    } else {
+      await client.participantBadge.updateMany({
+        where: { userId, status: "ACTIVE", badge: { slug: rank.slug } },
+        data: {
+          status: "REVOKED",
+          revokedAt: now,
+          revocationReason: "Current passed-module requirements for this rank are no longer satisfied.",
+        },
+      });
+    }
   }
 }
 
@@ -49,33 +124,69 @@ export async function reviewParticipantModule(formData: FormData) {
   const participantModuleId = String(formData.get("participantModuleId") ?? "");
   const status = String(formData.get("status") ?? "PASSED") as "PASSED" | "REVISE" | "HOLD";
   const coachFeedback = String(formData.get("coachFeedback") ?? "");
-  const item = await prisma.participantModule.update({
-    where: { id: participantModuleId },
-    data: {
-      status,
-      coachFeedback,
-      feedbackAt: new Date(),
-      feedbackBy: admin.id,
-      passedAt: status === "PASSED" ? new Date() : null,
-    },
-    include: { participant: true, module: true },
-  });
+  const now = new Date();
+  await prisma.$transaction(async (tx) => {
+    const target = await tx.participantModule.findUniqueOrThrow({
+      where: { id: participantModuleId },
+      select: { participantId: true },
+    });
+    // Every module review for one participant shares this serialization point.
+    // Without it, concurrent passes on different module rows can each derive
+    // rank badges from a partial PASSED set and leave the final rank stale.
+    const lockedParticipant = await tx.$queryRaw<Array<{ id: string }>>`
+      SELECT "id" FROM "ParticipantProfile"
+      WHERE "id" = ${target.participantId}
+      FOR UPDATE
+    `;
+    if (lockedParticipant.length !== 1) throw new Error("Participant profile not found.");
+    const item = await tx.participantModule.update({
+      where: { id: participantModuleId },
+      data: {
+        status,
+        coachFeedback,
+        feedbackAt: now,
+        feedbackBy: admin.id,
+        passedAt: status === "PASSED" ? now : null,
+      },
+      include: { participant: true, module: true },
+    });
 
-  if (status === "PASSED") {
-    const badge = badgeCatalog.find((entry) => entry.name === item.module.badgeName);
-    if (badge) await issueBadgeForAdmin(item.participant.userId, badge.slug, { type: "MODULE", ref: item.moduleId });
-    await issueRankBadges(item.participant.userId, item.participantId);
-  }
+    const moduleBadge = badgeCatalog.find((entry) => entry.name === item.module.badgeName);
+    if (moduleBadge) {
+      if (status === "PASSED") {
+        await issueBadgeForAdmin(
+          item.participant.userId,
+          moduleBadge.slug,
+          { type: "MODULE", ref: item.moduleId },
+          tx,
+        );
+      } else {
+        await tx.participantBadge.updateMany({
+          where: {
+            userId: item.participant.userId,
+            status: "ACTIVE",
+            badge: { slug: moduleBadge.slug },
+          },
+          data: {
+            status: "REVOKED",
+            revokedAt: now,
+            revocationReason: `Module review changed to ${status}.`,
+          },
+        });
+      }
+    }
+    await syncRankBadges(item.participant.userId, item.participantId, tx, now);
 
-  await prisma.auditLog.create({
-    data: {
-      actorId: admin.id,
-      actorRole: admin.role,
-      action: "MODULE_REVIEW",
-      entity: "ParticipantModule",
-      entityId: item.id,
-      changes: { after: { status } },
-    },
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "MODULE_REVIEW",
+        entity: "ParticipantModule",
+        entityId: item.id,
+        changes: { after: { status, badgeStatus: status === "PASSED" ? "ACTIVE" : "REVOKED" } },
+      },
+    });
   });
   safeRevalidatePath("/admin/participants");
 }
@@ -183,79 +294,117 @@ export async function decideCertification(formData: FormData) {
   const field = submittedField || application?.domain || null;
   const specialization = submittedSpecialization || dossier?.title || null;
 
-  const certificateReset = outcome === "CERTIFIED" ? {} : { certificateUrl: null, badgeIssuedAt: null };
-  const review = await prisma.certificationReview.upsert({
-    where: { participantId },
-    update: {
-      outcome,
-      reviewerNotes,
-      field,
-      specialization,
-      reviewedBy: admin.id,
-      reviewedAt: new Date(),
-      rubricScores: { overall: outcome },
-      ...certificateReset,
-    },
-    create: {
-      participantId,
-      outcome,
-      reviewerNotes,
-      field,
-      specialization,
-      reviewedBy: admin.id,
-      rubricScores: { overall: outcome },
-      certificateUrl: null,
-      badgeIssuedAt: null,
-    },
-  });
-
-  await prisma.participantProfile.update({
-    where: { id: participantId },
-    data: {
-      status:
-        outcome === "CERTIFIED"
-          ? "CERTIFIED"
-          : outcome === "CONDITIONALLY_CERTIFIED"
-            ? "CONDITIONALLY_CERTIFIED"
-            : outcome === "COMPLETED_NOT_CERTIFIED"
-              ? "COMPLETED_NOT_CERTIFIED"
-              : "NOT_COMPLETED",
-    },
-  });
-
-  if (outcome === "CERTIFIED") {
-    await issueBadgeForAdmin(participant.userId, "capstone-certified-tenxpro-seal", { type: "CAPSTONE", ref: review.id });
-    await prisma.certificationReview.update({
-      where: { id: review.id },
-      data: { badgeIssuedAt: new Date(), certificateUrl: `/certificate/${review.id}` },
+  const now = new Date();
+  const credential = await prisma.$transaction(async (tx) => {
+    const previous = await tx.certificationReview.findUnique({
+      where: { participantId },
+      select: { outcome: true },
     });
-    await prisma.directoryProfile.upsert({
-      where: { userId: participant.userId },
-      update: {},
+    const certificateReset = outcome === "CERTIFIED" ? {} : { certificateUrl: null, badgeIssuedAt: null };
+    const review = await tx.certificationReview.upsert({
+      where: { participantId },
+      update: {
+        outcome,
+        reviewerNotes,
+        field,
+        specialization,
+        reviewedBy: admin.id,
+        reviewedAt: now,
+        rubricScores: { overall: outcome },
+        ...certificateReset,
+      },
       create: {
-        userId: participant.userId,
-        slug: `tenxpro-${participant.userId.slice(0, 8)}`,
-        displayName: participant.user.name ?? "Certified TenXPro",
-        // Seed the draft from the real credential: the specialization as the
-        // public title and the field as the domain, not a hardcoded value.
-        title: specialization ?? "Certified TenXPro",
-        domain: field ?? "Professional practice",
-        bio: "Directory profile draft created after certification.",
+        participantId,
+        outcome,
+        reviewerNotes,
+        field,
+        specialization,
+        reviewedBy: admin.id,
+        reviewedAt: now,
+        rubricScores: { overall: outcome },
+        certificateUrl: null,
+        badgeIssuedAt: null,
       },
     });
-  }
 
-  await prisma.auditLog.create({
-    data: {
-      actorId: admin.id,
-      actorRole: admin.role,
-      action: "CERTIFICATION_DECISION",
-      entity: "CertificationReview",
-      entityId: review.id,
-      changes: { after: { outcome } },
-    },
+    await tx.participantProfile.update({
+      where: { id: participantId },
+      data: {
+        status:
+          outcome === "CERTIFIED"
+            ? "CERTIFIED"
+            : outcome === "CONDITIONALLY_CERTIFIED"
+              ? "CONDITIONALLY_CERTIFIED"
+              : outcome === "COMPLETED_NOT_CERTIFIED"
+                ? "COMPLETED_NOT_CERTIFIED"
+                : "NOT_COMPLETED",
+      },
+    });
+
+    if (outcome === "CERTIFIED") {
+      await issueBadgeForAdmin(
+        participant.userId,
+        "capstone-certified-tenxpro-seal",
+        { type: "CAPSTONE", ref: review.id },
+        tx,
+      );
+      await tx.certificationReview.update({
+        where: { id: review.id },
+        data: { badgeIssuedAt: now, certificateUrl: `/certificate/${review.id}` },
+      });
+      await tx.directoryProfile.upsert({
+        where: { userId: participant.userId },
+        update: {},
+        create: {
+          userId: participant.userId,
+          slug: `tenxpro-${participant.userId.slice(0, 8)}`,
+          displayName: participant.user.name ?? "Certified TenXPro",
+          // Seed the draft from the real credential: the specialization as the
+          // public title and the field as the domain, not a hardcoded value.
+          title: specialization ?? "Certified TenXPro",
+          domain: field ?? "Professional practice",
+          bio: "Directory profile draft created after certification.",
+        },
+      });
+    } else {
+      const reason = `Certification outcome changed to ${outcome}.`;
+      await tx.participantBadge.updateMany({
+        where: {
+          userId: participant.userId,
+          badge: { slug: "capstone-certified-tenxpro-seal" },
+        },
+        data: { status: "REVOKED", revokedAt: now, revocationReason: reason },
+      });
+      // A directory listing must never continue presenting someone as currently
+      // certified after the underlying certification has been downgraded.
+      await tx.directoryProfile.updateMany({
+        where: { userId: participant.userId },
+        data: { isPublic: false },
+      });
+    }
+
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "CERTIFICATION_DECISION",
+        entity: "CertificationReview",
+        entityId: review.id,
+        changes: {
+          before: previous ? { outcome: previous.outcome } : undefined,
+          after: { outcome, credentialStatus: outcome === "CERTIFIED" ? "ACTIVE" : "REVOKED" },
+        },
+      },
+    });
+    const capstone = await tx.participantBadge.findFirst({
+      where: { userId: participant.userId, badge: { slug: "capstone-certified-tenxpro-seal" } },
+      select: { verificationCode: true },
+    });
+    return { reviewId: review.id, verificationCode: capstone?.verificationCode ?? null };
   });
   safeRevalidatePath("/admin/certifications");
+  safeRevalidatePath(`/certificate/${credential.reviewId}`);
+  if (credential.verificationCode) safeRevalidatePath(`/verify/${credential.verificationCode}`);
 }
 
 export async function setActivePricingTier(formData: FormData) {

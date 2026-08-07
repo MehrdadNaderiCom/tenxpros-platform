@@ -8,6 +8,10 @@ import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import { Field, Input, Textarea } from "@/components/ui/form-fields";
 import { PageHeader } from "@/components/shared/page-shell";
+import {
+  canParticipantStartModule,
+  canParticipantSubmitModule,
+} from "@/lib/participant/module-transitions";
 
 export default async function ModulePage({ params }: { params: { id: string } }) {
   const viewUserId = await resolvePortalUserId();
@@ -32,7 +36,7 @@ export default async function ModulePage({ params }: { params: { id: string } })
             This module is locked until your approved path or prior module evidence opens it.
           </Alert>
         ) : null}
-        {item.status === "UNLOCKED" ? (
+        {canParticipantStartModule(item.status) ? (
           <form action={startModule}>
             <input type="hidden" name="participantModuleId" value={item.id} />
             <Button type="submit">Start module</Button>
@@ -48,7 +52,7 @@ export default async function ModulePage({ params }: { params: { id: string } })
           <Field label="Artifact URL">
             <Input name="artifactUrl" type="url" defaultValue={item.artifactUrl ?? ""} />
           </Field>
-          <Button type="submit" disabled={item.status === "LOCKED"}>
+          <Button type="submit" disabled={!canParticipantSubmitModule(item.status)}>
             Submit artifact for review
           </Button>
         </form>

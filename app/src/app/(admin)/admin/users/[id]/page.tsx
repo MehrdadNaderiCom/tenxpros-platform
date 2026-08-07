@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { isSuperAdmin } from "@/lib/authz";
-import { updateUser, deleteUser, forceDeleteUser } from "@/lib/actions/users";
+import { updateUser, deleteUser, forceDeleteUser, setUserActiveStatus } from "@/lib/actions/users";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConfirmButton } from "@/components/admin/confirm-button";
@@ -21,7 +21,7 @@ export default async function UserDetailPage({ params }: { params: { id: string 
       include: {
         application: true,
         participantProfile: true,
-        partner: { select: { id: true } },
+        partner: { select: { id: true, _count: { select: { closedDeals: true, commissions: true } } } },
         directoryProfile: true,
         earnedBadges: { include: { badge: true } },
       },
@@ -33,6 +33,9 @@ export default async function UserDetailPage({ params }: { params: { id: string 
   const canManage = isSuperAdmin(session?.user?.email);
   const isSuper = isSuperAdmin(user.email);
   const hasLinkedEntity = Boolean(user.application || user.participantProfile || user.partner);
+  const hasFinancialHistory = Boolean(
+    user.partner && (user.partner._count.closedDeals > 0 || user.partner._count.commissions > 0),
+  );
 
   return (
     <div className="space-y-8">
@@ -107,10 +110,45 @@ export default async function UserDetailPage({ params }: { params: { id: string 
             </form>
           </Card>
 
+          <Card className={user.isActive ? "border-amber-200" : "border-red-200"}>
+            <h2 className="text-lg font-semibold text-navy-900">Account access</h2>
+            <p className="mt-2 text-sm text-slate-600">
+              Status: {user.isActive ? "Active" : "Suspended"}
+              {user.suspendedAt ? ` since ${user.suspendedAt.toLocaleString()}` : ""}
+            </p>
+            {user.suspensionReason ? (
+              <p className="mt-1 text-sm text-slate-600">Reason: {user.suspensionReason}</p>
+            ) : null}
+            {isSuper ? (
+              <p className="mt-3 text-sm text-slate-600">A super-admin account cannot be suspended here.</p>
+            ) : user.isActive ? (
+              <form action={setUserActiveStatus} className="mt-3 flex flex-wrap items-end gap-3">
+                <input type="hidden" name="userId" value={user.id} />
+                <input type="hidden" name="activate" value="false" />
+                <label className="min-w-64 flex-1 space-y-1">
+                  <span className="text-xs font-medium text-slate-600">Suspension reason</span>
+                  <Input name="reason" minLength={5} required />
+                </label>
+                <Button type="submit" size="sm" variant="danger">Suspend account</Button>
+              </form>
+            ) : (
+              <form action={setUserActiveStatus} className="mt-3">
+                <input type="hidden" name="userId" value={user.id} />
+                <input type="hidden" name="activate" value="true" />
+                <Button type="submit" size="sm">Reactivate account</Button>
+              </form>
+            )}
+          </Card>
+
           <Card className="border-red-200">
             <h2 className="text-lg font-semibold text-red-700">Delete user</h2>
             {isSuper ? (
               <p className="mt-2 text-sm text-slate-600">A super-admin account cannot be deleted here.</p>
+            ) : hasFinancialHistory ? (
+              <p className="mt-2 text-sm text-slate-600">
+                This account owns immutable partner financial history and cannot be deleted. Suspend the account and end
+                the partner collaboration instead; all deals, commissions, refunds and audit records will be retained.
+              </p>
             ) : hasLinkedEntity ? (
               <div className="mt-3 max-w-lg space-y-3">
                 <p className="text-sm text-slate-600">
@@ -124,8 +162,8 @@ export default async function UserDetailPage({ params }: { params: { id: string 
                     action={forceDeleteUser}
                     name={user.name ?? user.email}
                     label="Force delete user (everything)"
-                    acknowledgeText="I understand this permanently deletes this user AND everything they own: any application, participant record (dossier, modules, certification), partner record (deals, commissions), payments and history. This cannot be undone."
-                    confirm1={`Force delete "${user.name ?? user.email}" and EVERYTHING they own (application, participant, partner, payments, history)? This cannot be undone.`}
+                    acknowledgeText="I understand this permanently deletes this user and all eligible non-financial records they own: any application, participant record, partner profile and payments. This cannot be undone."
+                    confirm1={`Force delete "${user.name ?? user.email}" and all eligible non-financial records they own? This cannot be undone.`}
                   />
                 </form>
               </div>

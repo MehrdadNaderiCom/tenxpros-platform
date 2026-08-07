@@ -7,27 +7,28 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   // In production the site runs behind an HTTPS proxy, so the session cookie is
   // named `__Secure-authjs.session-token`. getToken must be told to use the secure
-  // cookie name, otherwise it reads the wrong cookie, returns null, and every
-  // protected route redirects to /login even for a valid session.
+  // cookie name. Derive this from the actual/proxied request protocol rather than
+  // NODE_ENV so a production build can also be verified safely over local HTTP.
+  const forwardedProto = request.headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const secureCookie = forwardedProto === "https" || request.nextUrl.protocol === "https:";
   const token = await getToken({
     req: request,
     secret: authSecret,
-    secureCookie: process.env.NODE_ENV === "production",
+    secureCookie,
   });
 
   if (pathname.startsWith("/portal")) {
     if (!token) return redirectToLogin(request);
-    if (!["PARTICIPANT", "COACH", "ADMIN"].includes(String(token.role))) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
   }
 
   if (pathname.startsWith("/admin")) {
     if (!token) return redirectToLogin(request);
-    if (token.role !== "ADMIN") {
-      return NextResponse.rewrite(new URL("/404", request.url));
-    }
   }
+
+  // Middleware is only a coarse authentication gate. It cannot consult Prisma
+  // in the Edge runtime, so it must never make an authorization decision from a
+  // potentially stale role claim. Server templates, route handlers and actions
+  // enforce the current database role before reading protected data.
 
   return NextResponse.next();
 }

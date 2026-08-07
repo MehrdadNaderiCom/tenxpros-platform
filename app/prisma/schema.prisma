@@ -29,6 +29,19 @@ model User {
 
   passwordHash String?
 
+  // Incremented by a database trigger whenever an authorization-sensitive
+  // identity field changes. JWT sessions carry the version they authenticated
+  // against and are rejected as soon as it no longer matches.
+  authVersion Int @default(0)
+
+  // A suspended account keeps its records and audit history but cannot
+  // authenticate or continue using an already-issued session.
+  isActive Boolean @default(true)
+
+  suspendedAt DateTime?
+
+  suspensionReason String?
+
   createdAt DateTime @default(now())
 
   updatedAt DateTime @updatedAt
@@ -1263,6 +1276,17 @@ model ParticipantBadge {
 
   isPublic Boolean @default(true)
 
+  // Credential validity is independent from the recipient's privacy choice.
+  // Expiry is derived from expiresAt at read time so an expired badge can never
+  // remain ACTIVE merely because a scheduled job did not run.
+  status CredentialStatus @default(ACTIVE)
+
+  expiresAt DateTime?
+
+  revokedAt DateTime?
+
+  revocationReason String?
+
   // Optional context (which module/path triggered this badge)
 
   contextType String? // "MODULE", "RANK", "CAPSTONE"
@@ -1271,6 +1295,12 @@ model ParticipantBadge {
 
   @@unique([userId, badgeId])
   @@index([verificationCode])
+}
+
+enum CredentialStatus {
+  ACTIVE
+
+  REVOKED
 }
 
 // ============================================================
@@ -1291,6 +1321,12 @@ model AuditLog {
   actor User? @relation("AuditActor", fields: [actorId], references: [id])
 
   actorRole String? // snapshot of role at time of action
+
+  actorUserIdSnapshot String?
+
+  actorEmailSnapshot String?
+
+  actorNameSnapshot String?
 
   action String // CREATE, UPDATE, DELETE, STATUS_CHANGE, LOGIN, EXPORT, etc.
 
@@ -2361,22 +2397,27 @@ model ClosedDeal {
   registeredAccountId String?
   registeredAccount   RegisteredAccount? @relation(fields: [registeredAccountId], references: [id])
 
-  dealType                DealType
-  productLine             DealProductLine @default(TENXPROS)
-  netReceiptsCents        Int
+  dealType                     DealType
+  productLine                  DealProductLine @default(TENXPROS)
+  netReceiptsCents             Int
   // Canonical company identifier, denormalized at record time for the newness check.
-  domain                  String?
-  currency                String          @default("USD")
-  deliveredAt             DateTime?
-  paymentClearedAt        DateTime?
-  signedAt                DateTime?
-  originationRateBpAtOpen Int?
-  originationWindowStart  DateTime?
-  trailPeriodEnd          DateTime?
-  isMajorNewEngagement    Boolean         @default(false)
-  conversionRate          Float?
-  conversionDate          DateTime?
-  industryOrRegion        String?
+  domain                       String?
+  currency                     String          @default("USD")
+  deliveredAt                  DateTime?
+  paymentClearedAt             DateTime?
+  signedAt                     DateTime?
+  // Immutable policy snapshot used by every later clawback decision. Existing
+  // rows are backfilled from their partner/program config by the migration.
+  clawbackDaysAtClose          Int             @default(120)
+  clawbackWindowEndsAt         DateTime        @default(dbgenerated("(CURRENT_TIMESTAMP + '120 days'::interval)"))
+  underlyingRefundWindowEndsAt DateTime?
+  originationRateBpAtOpen      Int?
+  originationWindowStart       DateTime?
+  trailPeriodEnd               DateTime?
+  isMajorNewEngagement         Boolean         @default(false)
+  conversionRate               Float?
+  conversionDate               DateTime?
+  industryOrRegion             String?
 
   seats             SeatRecord[]
   commissions       CommissionEntry[]
@@ -2406,6 +2447,9 @@ model SeatRecord {
   createdAt        DateTime   @default(now())
   updatedAt        DateTime   @updatedAt
 
+  refundAllocationsAsSource  SeatRefundAllocation[] @relation("SeatRefundAllocationSource")
+  refundAllocationAsRefunded SeatRefundAllocation?  @relation("SeatRefundAllocationRefunded")
+
   @@index([closedDealId])
   @@index([status])
 }
@@ -2417,7 +2461,7 @@ model CommissionEntry {
   // Restrict: commission history is never lost via a partner hard-delete.
   partner      Partner    @relation(fields: [partnerId], references: [id], onDelete: Restrict)
   closedDealId String
-  closedDeal   ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
+  closedDeal   ClosedDeal @relation(fields: [closedDealId], references: [id], onDelete: Restrict)
 
   function                 PartnerFunction
   rateBp                   Int
@@ -2454,6 +2498,8 @@ model CommissionEntry {
   // only: it is never read by the engine, the growth counter, or any pay logic. Null
   // for non-origination lines and for any row written before this column existed.
   paidStrongRate Boolean?
+
+  clawbackAllocations CommissionClawbackAllocation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2507,18 +2553,86 @@ model FocusGrant {
 
 /// A refund / chargeback / cancellation that reverses commission (clause 15).
 model RefundEvent {
-  id                      String          @id @default(cuid())
-  closedDealId            String
-  closedDeal              ClosedDeal      @relation(fields: [closedDealId], references: [id], onDelete: Cascade)
-  type                    RefundEventType
-  amountCents             Int
-  occurredAt              DateTime        @default(now())
-  withinWindow            Boolean         @default(true)
-  reversedCommissionCents Int             @default(0)
-  note                    String?
-  createdAt               DateTime        @default(now())
+  id                           String          @id @default(cuid())
+  closedDealId                 String
+  closedDeal                   ClosedDeal      @relation(fields: [closedDealId], references: [id], onDelete: Restrict)
+  type                         RefundEventType
+  amountCents                  Int
+  occurredAt                   DateTime        @default(now())
+  withinWindow                 Boolean         @default(true)
+  reversedCommissionCents      Int             @default(0)
+  // A retry carries the same key. The unique index is the database-level guard
+  // against executing the same financial event twice.
+  idempotencyKey               String?         @unique
+  sourceReference              String?
+  requestFingerprint           String?
+  clawbackDaysAtEvent          Int?
+  clawbackWindowEndsAt         DateTime?
+  seatsRefunded                Int             @default(0)
+  initiatedByUserId            String?
+  cumulativeRefundedCentsAfter Int?
+  cumulativeEligibleCentsAfter Int?
+  note                         String?
+  createdAt                    DateTime        @default(now())
+
+  allocations     CommissionClawbackAllocation[]
+  seatAllocations SeatRefundAllocation[]
 
   @@index([closedDealId])
+}
+
+/// Immutable per-line ledger for the effect of a RefundEvent. The unique pair
+/// proves that one refund can allocate against each commission line only once.
+model CommissionClawbackAllocation {
+  id String @id @default(cuid())
+
+  refundEventId String
+  refundEvent   RefundEvent @relation(fields: [refundEventId], references: [id], onDelete: Restrict)
+
+  commissionEntryId String
+  commissionEntry   CommissionEntry @relation(fields: [commissionEntryId], references: [id], onDelete: Restrict)
+
+  deltaCents          Int
+  reversedBeforeCents Int
+  reversedAfterCents  Int
+  statusBefore        CommissionStatus
+  statusAfter         CommissionStatus
+
+  createdAt DateTime @default(now())
+
+  @@unique([refundEventId, commissionEntryId], map: "ClawbackAllocation_refund_commission_key")
+  @@unique([commissionEntryId, reversedBeforeCents], map: "ClawbackAllocation_commission_before_key")
+  @@unique([commissionEntryId, reversedAfterCents], map: "ClawbackAllocation_commission_after_key")
+  @@index([commissionEntryId, createdAt])
+}
+
+/// Immutable per-seat ledger for the exact SeatRecord rows affected by a
+/// RefundEvent. A partial refund points to the retained source row and the new
+/// refunded split row; a whole-row refund points both relations at that row.
+model SeatRefundAllocation {
+  id String @id @default(cuid())
+
+  refundEventId String
+  refundEvent   RefundEvent @relation(fields: [refundEventId], references: [id], onDelete: Restrict)
+
+  sourceSeatRecordId String
+  sourceSeatRecord   SeatRecord @relation("SeatRefundAllocationSource", fields: [sourceSeatRecordId], references: [id], onDelete: Restrict)
+
+  refundedSeatRecordId String     @unique(map: "SeatRefundAllocation_refunded_seat_key")
+  refundedSeatRecord   SeatRecord @relation("SeatRefundAllocationRefunded", fields: [refundedSeatRecordId], references: [id], onDelete: Restrict)
+
+  deltaSeats         Int
+  sourceCountBefore  Int
+  sourceCountAfter   Int
+  sourceStatusBefore SeatStatus
+  sourceStatusAfter  SeatStatus
+
+  createdAt DateTime @default(now())
+
+  @@unique([refundEventId, sourceSeatRecordId], map: "SeatRefundAllocation_refund_source_key")
+  @@unique([sourceSeatRecordId, sourceCountBefore, sourceStatusBefore], map: "SeatRefundAllocation_source_before_key")
+  @@index([sourceSeatRecordId, createdAt])
+  @@index([refundEventId, createdAt])
 }
 
 /// A quality/compliance flag; disregardForTargets removes affected sales from
@@ -2691,7 +2805,7 @@ model AcademyNarrationRelease {
   activeDeployments         AcademyNarrationDeployment[] @relation("ActiveAcademyNarrationRelease")
   previousDeployments       AcademyNarrationDeployment[] @relation("PreviousAcademyNarrationRelease")
 
-  @@unique([recipeHash, sourceContentManifestHash, voiceId])
+  @@unique([recipeHash, sourceContentManifestHash, voiceId], map: "AcademyNarrationRelease_recipeHash_sourceContentManifestHash_vo")
   @@index([generationStatus, auditStatus])
 }
 

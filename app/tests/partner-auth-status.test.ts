@@ -71,8 +71,8 @@ describe("toolkit download gate (finding 3)", () => {
 
   it("requires an active partner status for the non-admin branch", () => {
     expect(source).toContain('import { isActivePartnerStatus } from "@/lib/partner/status"');
-    expect(source).toContain("select: { status: true }");
-    expect(source).toContain("!isActivePartnerStatus(partner.status)");
+    expect(source).toContain("getSessionPartner()");
+    expect(source).toContain("!isActivePartnerStatus(current.partner.status)");
   });
 
   it("requires the parent post (and its category) to be published for non-admin downloads", () => {

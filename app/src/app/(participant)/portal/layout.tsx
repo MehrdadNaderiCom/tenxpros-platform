@@ -4,6 +4,7 @@ import { isSuperAdmin } from "@/lib/authz";
 import { getPortalPreview } from "@/lib/participant/view";
 import { PortalNav } from "@/components/shared/portal-nav";
 import { AdminPreviewBanner } from "@/components/shared/admin-preview-banner";
+import { FreshAuthorizationBoundary } from "@/components/auth/fresh-authorization-boundary";
 
 export const dynamic = "force-dynamic";
 
@@ -23,12 +24,14 @@ export default async function PortalLayout({ children }: { children: React.React
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50 md:flex">
-      <PortalNav name={preview ? preview.name : session.user.name} />
-      <main className="w-full px-6 py-8 md:px-8">
-        {preview ? <AdminPreviewBanner name={preview.name} /> : null}
-        {children}
-      </main>
-    </div>
+    <FreshAuthorizationBoundary surface="portal">
+      <div className="min-h-screen bg-neutral-50 md:flex">
+        <PortalNav name={preview ? preview.name : session.user.name} />
+        <main className="w-full px-6 py-8 md:px-8">
+          {preview ? <AdminPreviewBanner name={preview.name} /> : null}
+          {children}
+        </main>
+      </div>
+    </FreshAuthorizationBoundary>
   );
 }

@@ -1,5 +1,6 @@
 import type { UserRole } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export type AuthorizedAdminUser = {
   id: string;
@@ -12,16 +13,27 @@ export type AuthorizedAdminUser = {
 export async function requireAdminUser(): Promise<AuthorizedAdminUser> {
   const session = await auth();
 
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
+  if (!session?.user?.id) {
+    throw new Error("Admin access required.");
+  }
+
+  // Sensitive authorization is database-backed even though auth() already
+  // refreshes JWT state. This second check keeps the action safe if a caller is
+  // ever moved outside the normal Auth.js session pipeline.
+  const current = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true, role: true, name: true, email: true, image: true, isActive: true },
+  });
+  if (!current?.isActive || current.role !== "ADMIN") {
     throw new Error("Admin access required.");
   }
 
   return {
-    id: session.user.id,
-    role: session.user.role,
-    name: session.user.name ?? null,
-    email: session.user.email ?? null,
-    image: session.user.image ?? null,
+    id: current.id,
+    role: current.role,
+    name: current.name,
+    email: current.email,
+    image: current.image,
   };
 }
 

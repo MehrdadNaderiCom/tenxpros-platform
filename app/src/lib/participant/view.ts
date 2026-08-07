@@ -18,13 +18,14 @@ export const PARTICIPANT_VIEW_COOKIE = "tenx_view_participant";
 export async function resolvePortalUserId(): Promise<string | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
-  if (isSuperAdmin(session.user.email)) {
+  if (session.user.role === "ADMIN" && isSuperAdmin(session.user.email)) {
     const viewId = (await cookies()).get(PARTICIPANT_VIEW_COOKIE)?.value;
     if (viewId) {
       const target = await prisma.participantProfile.findUnique({ where: { id: viewId }, select: { userId: true } });
       if (target?.userId) return target.userId;
     }
   }
+  if (!["PARTICIPANT", "COACH"].includes(session.user.role)) return null;
   return session.user.id;
 }
 
@@ -34,7 +35,7 @@ export async function resolvePortalUserId(): Promise<string | null> {
  */
 export async function getPortalPreview(): Promise<{ name: string } | null> {
   const session = await auth();
-  if (!session?.user?.id || !isSuperAdmin(session.user.email)) return null;
+  if (!session?.user?.id || session.user.role !== "ADMIN" || !isSuperAdmin(session.user.email)) return null;
   const viewId = (await cookies()).get(PARTICIPANT_VIEW_COOKIE)?.value;
   if (!viewId) return null;
   const target = await prisma.participantProfile.findUnique({

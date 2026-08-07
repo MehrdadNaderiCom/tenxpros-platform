@@ -11,11 +11,14 @@ declare module "next-auth" {
 
   interface User {
     role: UserRole;
+    authVersion: number;
+    isActive: boolean;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     role?: UserRole;
+    authVersion?: number;
   }
 }

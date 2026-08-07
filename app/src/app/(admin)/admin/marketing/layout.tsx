@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { isSuperAdmin } from "@/lib/authz";
+import { requireSuperAdmin } from "@/lib/authz";
 
 export const dynamic = "force-dynamic";
 
@@ -9,7 +8,10 @@ export const dynamic = "force-dynamic";
  * admins get a 404 so the section's existence is not advertised.
  */
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN" || !isSuperAdmin(session.user.email)) notFound();
+  try {
+    await requireSuperAdmin();
+  } catch {
+    notFound();
+  }
   return <>{children}</>;
 }
