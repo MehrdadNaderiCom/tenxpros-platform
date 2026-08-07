@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { pricingTiers as fallbackTiers } from "@/lib/program-data";
 import type { PricingTierView } from "@/lib/pricing";
@@ -13,13 +12,17 @@ import {
   PricingPayment,
   PricingFaq,
   PricingFinalCta,
+  PRICING_FAQS,
 } from "@/components/marketing/pricing-instrument";
+import { JsonLd } from "@/components/seo/json-ld";
+import { buildFaqStructuredData, buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Pricing, Founding Charter",
   description:
-    "Apply first, pay only after acceptance. The Founding Charter ($997 USD) is open during a limited founding review-capacity window. Future standard pricing is higher; earn a reviewed Living AI Solution Dossier and preview the sample before you apply.",
-};
+    "Pricing for the selective TenXPros 100-day journey. Apply first and pay only after acceptance; the Founding Charter is open while limited founding review capacity remains.",
+  path: "/pricing",
+});
 
 // Prices are read from the DB (the admin-managed PricingTier rows) so that
 // /pricing and /admin/pricing share a single source of truth. program-data is a
@@ -56,6 +59,7 @@ export default async function PricingPage() {
 
   return (
     <main className="bg-[#070B14] text-slate-300">
+      <JsonLd data={buildFaqStructuredData("/pricing", PRICING_FAQS)} />
       {/* 1 Hero · 2 Founding card · 3 Ladder · 4 Value · 4b Module includes · 5 Compare · 6 Proof · 7 Payment · 8 FAQ · 9 Final CTA */}
       <PricingHero founding={founding} standard={standard} />
       <PricingCard founding={founding} standard={standard} />

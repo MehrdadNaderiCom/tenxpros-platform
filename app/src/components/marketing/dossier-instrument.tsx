@@ -85,7 +85,7 @@ export function DossierHero() {
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
             Participants do not simply complete lessons. They turn a focused professional challenge
             into a structured, reviewed dossier: context, boundaries, workflow, evaluation, value,
-            governance, and a 90-day path forward. It is a visible record of what you can think
+            governance, and a 100-day path forward. It is a visible record of what you can think
             through and defend.
           </p>
           <p className="mt-4 max-w-xl text-sm leading-6 text-slate-400">
@@ -331,7 +331,7 @@ const ASSETS: Array<[string, string]> = [
   ["AI Evaluation Rubric & Test Set", "How you measure whether it actually works."],
   ["Custom Assistants & AI Workflows", "The working system, not a demo."],
   ["AI Value & Economics Case", "The evidence that it is worth doing."],
-  ["Final Portfolio & 90-Day Roadmap", "What you ship next, and how you lead it."],
+  ["Final Portfolio & 100-Day Roadmap", "What you ship next, and how you lead it."],
 ];
 
 export function DossierAssetsMap() {

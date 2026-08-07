@@ -56,9 +56,9 @@
 | Workflow usability | Solid — one gap to close |
 | **Value evidence** | **Not yet measured (the intentional gap)** |
 | Governance & confidentiality | Strong |
-| 90-day roadmap | Solid — add numeric gates |
+| 100-day roadmap | Solid — add numeric gates |
 
-**90-day direction.** A narrow, measured pilot on one use case (discovery summary), with a human review gate at every step, before any expansion.
+**100-day direction.** A narrow, measured pilot on one use case (discovery summary), with a human review gate at every step, before any expansion.
 
 ---
 ---
@@ -318,13 +318,13 @@ Cases **2 and 3 must pass every time** before the pilot is trusted; a failure ha
 | Faster handoff | Days from discovery to informed start | Confounded by client factors; read cautiously |
 | Lower key-person dependency | Quality when Maya is *not* involved | The real prize; slow to observe |
 
-### 90-day roadmap
+### 100-day roadmap
 
 | Phase | Focus | Success criteria | Review gate |
 |---|---|---|---|
 | **Days 1–30** | Baseline & build | Baselines recorded; passes test cases 2 & 3 in trials | **Gate 1:** no expansion until high-risk cases pass |
 | **Days 31–60** | Narrow pilot | ≥ agreed pass rate on rubric; zero confidentiality incidents | **Gate 2:** halt on any case-2/3 failure or incident |
-| **Days 61–90** | Measure & decide | A measured before/after on ≥1 metric; documented decision | **Gate 3:** expand only if value *and* safety hold |
+| **Days 61–100** | Measure & decide | A measured before/after on ≥1 metric; documented decision | **Gate 3:** expand only if value *and* safety hold |
 
 > **Reviewer note — the decisive section.** The proof plan is well-targeted: the two high-risk test cases protect against the failures that would actually cause harm, and the gates have teeth. **The intentional gap lives here:** there is no baseline yet, so value cannot be *shown*. As written, this is a strong plan to prove value — not yet proof of value. Closing that is the step from "strong draft" to "certified" (see next page).
 
@@ -371,7 +371,7 @@ This sample sits one honest step short of certification. The step is **evidence*
 | **Pass-rate threshold** | A named target for the rubric (e.g. high-risk cases 2 & 3 at 100%; cases 1/4/5 at an agreed rate). |
 | **Before/after comparison** | At least one metric measured both before and after, reporting *net* effect (drafting time saved minus review time added). |
 | **Named handoff owner** | A specific second reviewer who performs the completeness check when Maya is unavailable. |
-| **Quantified review gates** | Each 90-day gate stated as a number, so it's an objective stop/go — not a judgment call in the moment. |
+| **Quantified review gates** | Each 100-day gate stated as a number, so it's an objective stop/go — not a judgment call in the moment. |
 
 Close these six, and the same dossier reads as **certified**: strong thinking *plus* evidence it held up.
 
@@ -390,7 +390,7 @@ A Living AI Solution Dossier assembles the eight assets every participant builds
 | **AI Evaluation Rubric & Test Set** | §10 — rubric + five test cases | How you measure quality and catch failure modes; the basis of trust |
 | **Custom Assistants & AI Workflows** | §6 + §8 — the designed, grounded workflow | A working tool built around a real, recurring task |
 | **AI Value & Economics Case** | §10 — hypotheses + measurement plan | Impact stated in terms a stakeholder will accept |
-| **Final Portfolio & 90-Day Roadmap** | §10 roadmap + §12 + the dossier as a whole | The defended artifact and a credible plan for what's next |
+| **Final Portfolio & 100-Day Roadmap** | §10 roadmap + §12 + the dossier as a whole | The defended artifact and a credible plan for what's next |
 
 ---
 
@@ -407,7 +407,7 @@ How this illustrative dossier maps to the public review standard. Labels are ill
 | 5 | The workflow is genuinely usable | **Adequate** | Clear before/after with review gates; one coverage gap — handoff owner when Maya is away (§6) |
 | 6 | Value and impact are shown with evidence | **Needs revision** | Honest hypotheses and a measurement plan, but no baseline captured yet — the intentional gap (§10) |
 | 7 | Governance and confidentiality are respected | **Strong** | Redaction-before-entry, grounded sources, named accountability, incident-halt rule (§5, §7) |
-| 8 | The 90-day roadmap is realistic | **Adequate** | Phased, gated, cautious; gates need numeric thresholds to be objective (§10) |
+| 8 | The 100-day roadmap is realistic | **Adequate** | Phased, gated, cautious; gates need numeric thresholds to be objective (§10) |
 
 **Overall (illustrative):** strong design and governance; the path to full certification runs through **evidence**. This is precisely the difference between *attendance* and *reviewed work* — the dossier is judged on whether the thinking holds up, not on whether the program was finished.
 

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   AboutHero,
   AboutProblem,
@@ -9,12 +8,14 @@ import {
   AboutTrust,
   AboutFinalCta,
 } from "@/components/marketing/about-instrument";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "About, Why TenXPros exists",
   description:
-    "TenXPros exists because AI adoption is now professional judgment work. It helps experienced professionals turn their expertise into reviewed AI adoption work, built around an explicit, public standard, not attendance.",
-};
+    "TenXPros is a selective 100-day journey that helps experienced professionals turn their expertise into reviewed AI adoption work, built around an explicit public standard rather than attendance.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

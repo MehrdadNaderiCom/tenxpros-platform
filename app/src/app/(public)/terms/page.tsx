@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Terms of Service",
-};
+  description:
+    "The terms that govern the TenXPros 100-day professional education and certification program, including admission, participation, review, payment, and account access.",
+  path: "/terms",
+});
 
 const sections = [
   ["A private professional certification", "TenXPros is a selective private professional education and certification program. It is not a university degree, academic accreditation, or a government-recognized qualification. Admission, participation, feedback, and certification decisions are based on fit, submitted work, evidence quality, and professional judgment."],

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ApplicationForm } from "@/components/marketing/application-form";
 import {
@@ -10,12 +9,14 @@ import {
   ProScreen,
 } from "@/components/marketing/apply-instrument";
 import { Card } from "@/components/ui/card";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Apply, Founding Charter",
   description:
-    "Tell us about your expertise and the challenges you want to explore with AI. TenXPros is selective because the work is reviewed. No payment details required, and you pay only after acceptance.",
-};
+    "Apply to the selective TenXPros 100-day journey. Tell us about your expertise and the challenges you want to explore with AI. No payment details are required, and you pay only after acceptance.",
+  path: "/apply",
+});
 
 export default function ApplyPage() {
   return (

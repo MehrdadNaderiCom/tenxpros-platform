@@ -80,7 +80,7 @@ function SectionShell({
 /* ------------------------------------------------------------------ 1. Hero */
 
 const QUICK_FACTS = [
-  "12 guided weeks",
+  "100-day journey",
   "4-phase method",
   "1 reviewed dossier",
   "Verifiable credential",
@@ -109,9 +109,9 @@ export function HomeHero() {
             <span className="text-slate-400">Don’t just use AI.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-400 sm:mt-6 sm:text-lg">
-            A selective 12-week certification for experienced professionals. Bring your expertise,
-            find where AI truly belongs in your field, and finish with a reviewed Living AI Solution
-            Dossier you can defend.
+            A selective 100-day journey for experienced professionals, built around a 12-week guided
+            learning path. Bring your expertise, find where AI truly belongs in your field, and finish
+            with a reviewed Living AI Solution Dossier you can defend.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
@@ -237,7 +237,7 @@ const ASSETS: Array<[string, string]> = [
   ["AI Evaluation Rubric & Test Set", "How you measure whether it actually works."],
   ["Custom Assistants & AI Workflows", "The working system, not a demo."],
   ["AI Value & Economics Case", "The evidence that it is worth doing."],
-  ["Final Portfolio & 90-Day Roadmap", "What you ship next, and how you lead it."],
+  ["Final Portfolio & 100-Day Roadmap", "What you ship next, and how you lead it."],
 ];
 
 export function HomeAssets() {

@@ -983,6 +983,38 @@ test("concurrent module reviews serialize rank credential synchronization", asyn
   await secondPage.close();
 });
 
+test("public credential lookup handles invalid, oversized, and repeated code searches generically", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/verify");
+
+  await expect(page.getByRole("heading", { name: /verify a tenxpros credential/i })).toBeVisible();
+  const codeInput = page.getByLabel("Credential code");
+  await expect(codeInput).toBeVisible();
+  await expect(page.getByRole("button", { name: /verify credential/i })).toBeVisible();
+  await expect(page.locator("body")).not.toHaveCSS("overflow-x", "scroll");
+
+  const invalidCode = `unknown-${runId}`;
+  await codeInput.fill(`  ${invalidCode}  `);
+  await Promise.all([
+    page.waitForURL((url) => url.pathname === "/verify" && url.searchParams.has("code")),
+    page.getByRole("button", { name: /verify credential/i }).click(),
+  ]);
+  await expect(page.getByTestId("credential-verification-invalid")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /credential not verified/i })).toBeVisible();
+  await expect(page.getByTestId("credential-verification-result")).toHaveCount(0);
+  await expect(page.getByLabel("Credential code")).toHaveValue("");
+
+  await page.goto(`/verify?code=${"x".repeat(129)}`);
+  await expect(page.getByTestId("credential-verification-invalid")).toBeVisible();
+  await expect(page.getByTestId("credential-verification-result")).toHaveCount(0);
+  await expect(page.getByLabel("Credential code")).toHaveValue("");
+
+  await page.goto("/verify?code=first-value&code=second-value");
+  await expect(page.getByTestId("credential-verification-invalid")).toBeVisible();
+  await expect(page.getByTestId("credential-verification-result")).toHaveCount(0);
+  await expect(page.getByLabel("Credential code")).toHaveValue("");
+});
+
 test("certification downgrade and expiry immediately change public verification", async ({ page, browser }) => {
   test.setTimeout(120_000);
   const admin = await createLoginUser("ADMIN", "credential-admin", "CredentialAdmin123!");
@@ -1058,12 +1090,51 @@ test("certification downgrade and expiry immediately change public verification"
   expect(verification.status()).toBe(200);
   expect(await verification.json()).toMatchObject({ ok: true, status: "ACTIVE" });
 
+  const publicVerificationPage = await browser.newPage();
+  await publicVerificationPage.goto("/verify");
+  await publicVerificationPage.getByLabel("Credential code").fill(`  ${activeBadge.verificationCode}  `);
+  await Promise.all([
+    publicVerificationPage.waitForURL(
+      (url) => url.pathname === "/verify" && url.searchParams.has("code"),
+    ),
+    publicVerificationPage.getByRole("button", { name: /verify credential/i }).click(),
+  ]);
+  await expect(
+    publicVerificationPage.getByRole("heading", { name: /certified tenxpro capstone seal/i }),
+  ).toBeVisible();
+  await expect(publicVerificationPage.getByLabel("Credential status: ACTIVE")).toBeVisible();
+  await expect(publicVerificationPage.getByText(participantUser.name ?? "Security credential-user")).toBeVisible();
+  await expect(publicVerificationPage.getByText(activeBadge.verificationCode)).toBeVisible();
+  expect(await publicVerificationPage.content()).not.toContain(participantUser.email);
+
+  await publicVerificationPage.goto(`/verify/${activeBadge.verificationCode}`);
+  await expect(publicVerificationPage.getByLabel("Credential status: ACTIVE")).toBeVisible();
+  await expect(publicVerificationPage.getByText(activeBadge.verificationCode)).toBeVisible();
+
+  await publicVerificationPage.goto(
+    `/verify?code=${activeBadge.verificationCode}&code=another-value`,
+  );
+  await expect(publicVerificationPage.getByTestId("credential-verification-invalid")).toBeVisible();
+  await expect(publicVerificationPage.getByTestId("credential-verification-result")).toHaveCount(0);
+  if (participantUser.name) {
+    await expect(publicVerificationPage.getByText(participantUser.name, { exact: true })).toHaveCount(0);
+  }
+
   const review = await prisma.certificationReview.findUniqueOrThrow({ where: { participantId: participant.id } });
   const activeCertificate = await page.request.get(`/certificate/${review.id}`);
   expect(await activeCertificate.text()).toContain(participantUser.name);
   await prisma.participantBadge.update({ where: { id: activeBadge.id }, data: { isPublic: false } });
   verification = await page.request.get(`/api/verify/${activeBadge.verificationCode}`);
   expect(await verification.json()).toMatchObject({ ok: true, status: "PRIVATE", recipient: { name: null } });
+  await publicVerificationPage.goto(`/verify?code=${activeBadge.verificationCode}`);
+  await expect(publicVerificationPage.getByLabel("Credential status: PRIVATE")).toBeVisible();
+  await expect(publicVerificationPage.getByText("Private", { exact: true })).toBeVisible();
+  if (participantUser.name) {
+    await expect(publicVerificationPage.getByText(participantUser.name, { exact: true })).toHaveCount(0);
+  }
+  expect(await publicVerificationPage.content()).not.toContain(participantUser.email);
+  expect(await publicVerificationPage.content()).not.toContain("Security engineering");
+  expect(await publicVerificationPage.content()).not.toContain("Authorization integrity");
   await expectCertificateUnavailable(page, review.id, participantUser);
   await prisma.participantBadge.update({ where: { id: activeBadge.id }, data: { isPublic: true } });
 
@@ -1072,6 +1143,17 @@ test("certification downgrade and expiry immediately change public verification"
   const revoked = await prisma.participantBadge.findUniqueOrThrow({ where: { id: activeBadge.id } });
   expect(revoked.status).toBe("REVOKED");
   expect(revoked.revokedAt).not.toBeNull();
+  await publicVerificationPage.goto(`/verify?code=${activeBadge.verificationCode}`);
+  await expect(publicVerificationPage.getByLabel("Credential status: REVOKED")).toBeVisible();
+  if (participantUser.name) {
+    await expect(publicVerificationPage.getByText(participantUser.name, { exact: true })).toBeVisible();
+  }
+  expect(await publicVerificationPage.content()).not.toContain(participantUser.email);
+  expect(await publicVerificationPage.content()).not.toContain("Security engineering");
+  expect(await publicVerificationPage.content()).not.toContain("Authorization integrity");
+  if (revoked.revocationReason) {
+    expect(await publicVerificationPage.content()).not.toContain(revoked.revocationReason);
+  }
   expect((await prisma.directoryProfile.findUniqueOrThrow({ where: { userId: participantUser.id } })).isPublic).toBe(false);
   const participantPage = await browser.newPage();
   const participantBoundary = waitForFreshBoundary(participantPage, "portal");
@@ -1149,13 +1231,27 @@ test("certification downgrade and expiry immediately change public verification"
   expect(reissued).toMatchObject({ status: "ACTIVE", revokedAt: null, revocationReason: null });
   expect(reissued.verificationCode).not.toBe(activeBadge.verificationCode);
   expect((await page.request.get(`/api/verify/${activeBadge.verificationCode}`)).status()).toBe(404);
+  await publicVerificationPage.goto(`/verify?code=${activeBadge.verificationCode}`);
+  await expect(publicVerificationPage.getByTestId("credential-verification-invalid")).toBeVisible();
+  await expect(publicVerificationPage.getByTestId("credential-verification-result")).toHaveCount(0);
+  const retiredDirectResponse = await publicVerificationPage.request.get(
+    `/verify/${activeBadge.verificationCode}`,
+  );
+  const retiredDirectBody = await retiredDirectResponse.text();
+  expect(retiredDirectBody).toMatch(/404|not found/i);
+  expect(retiredDirectBody).not.toContain(participantUser.email);
+  if (participantUser.name) expect(retiredDirectBody).not.toContain(participantUser.name);
   await prisma.participantBadge.update({
     where: { id: activeBadge.id },
     data: { expiresAt: new Date(Date.now() - 1_000) },
   });
   verification = await page.request.get(`/api/verify/${reissued.verificationCode}`);
   expect(await verification.json()).toMatchObject({ ok: true, status: "EXPIRED" });
+  await publicVerificationPage.goto(`/verify?code=${reissued.verificationCode}`);
+  await expect(publicVerificationPage.getByLabel("Credential status: EXPIRED")).toBeVisible();
+  expect(await publicVerificationPage.content()).not.toContain(participantUser.email);
   await expectCertificateUnavailable(page, review.id, participantUser);
+  await publicVerificationPage.close();
 
   // Module/rank credentials are also current-state facts: withdrawing the
   // module pass revokes its public badge rather than leaving it ACTIVE forever.

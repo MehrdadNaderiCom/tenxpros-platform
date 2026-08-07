@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Privacy Policy",
-};
+  description:
+    "How TenXPros handles applicant, participant, credential, support, and operational data across the 100-day program and platform.",
+  path: "/privacy",
+});
 
 const sections = [
   ["What we collect", "We collect application details, account information, diagnostic responses, program submissions, dossier content, support tickets, payment status records, and operational analytics."],

@@ -1,12 +1,13 @@
-import type { Metadata } from "next";
 import { ArrowRight, Check } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "How It Works",
   description:
-    "How TenXPros works: apply with your expertise, get a fit review within 48 hours, and if accepted, move through onboarding, a diagnostic, and a guided 12-week path to a reviewed Living AI Solution Dossier.",
-};
+    "How the TenXPros 100-day journey works: apply with your expertise, receive a fit review, and if accepted, move through onboarding, a 12-week guided learning path, and dossier review.",
+  path: "/how-it-works",
+});
 
 const PRIMARY_CTA =
   "whitespace-nowrap bg-indigo-500 text-white hover:bg-indigo-400 focus:ring-indigo-400 focus:ring-offset-[#070B14]";
@@ -20,7 +21,10 @@ const APPLY_FLOW: Array<[string, string]> = [
   ["Payment after acceptance", "Accepted applicants receive a secure Stripe payment link, sent only from hello@tenxpros.com. Payment confirms your place; you only pay after you are accepted. TenXPros is operated by Naprolity OÜ, so your Stripe checkout or card statement may show Naprolity OÜ as the payee."],
   ["Onboarding and password setup", "You set your password, complete the starter pack, and get oriented to how the work and reviews run."],
   ["Diagnostic", "A short diagnostic shapes a personalized path around your field, risk level, stakeholders, and goals."],
-  ["Week 1 begins", "You start the guided 12-week path, building toward a reviewed Living AI Solution Dossier."],
+  [
+    "Week 1 begins",
+    "You start the 12-week guided learning path within the overall 100-day journey, building toward a reviewed Living AI Solution Dossier.",
+  ],
 ];
 
 const PILLARS: Array<[string, string]> = [

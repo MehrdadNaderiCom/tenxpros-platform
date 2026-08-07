@@ -14,7 +14,7 @@ export const pricingTiers: Array<{
     price: 997,
     membersLimit: 10,
     isActive: true,
-    benefits: ["12-week TenXPros program", "Living AI Solution Dossier", "Founding pricing", "Updates access"],
+    benefits: ["100-day TenXPros journey", "Living AI Solution Dossier", "Founding pricing", "Updates access"],
   },
   {
     name: "Early Charter",
@@ -22,7 +22,7 @@ export const pricingTiers: Array<{
     price: 1247,
     membersLimit: 20,
     isActive: false,
-    benefits: ["12-week TenXPros program", "Living AI Solution Dossier", "Early member pricing"],
+    benefits: ["100-day TenXPros journey", "Living AI Solution Dossier", "Early member pricing"],
   },
   {
     name: "Late Charter",
@@ -30,7 +30,7 @@ export const pricingTiers: Array<{
     price: 1497,
     membersLimit: 30,
     isActive: false,
-    benefits: ["12-week TenXPros program", "Living AI Solution Dossier", "Late charter pricing"],
+    benefits: ["100-day TenXPros journey", "Living AI Solution Dossier", "Late charter pricing"],
   },
   {
     name: "Final Charter",
@@ -38,7 +38,7 @@ export const pricingTiers: Array<{
     price: 1747,
     membersLimit: 40,
     isActive: false,
-    benefits: ["12-week TenXPros program", "Living AI Solution Dossier", "Final charter pricing"],
+    benefits: ["100-day TenXPros journey", "Living AI Solution Dossier", "Final charter pricing"],
   },
   {
     name: "Standard",
@@ -46,7 +46,7 @@ export const pricingTiers: Array<{
     price: 2497,
     membersLimit: 99,
     isActive: false,
-    benefits: ["12-week TenXPros program", "Living AI Solution Dossier", "Standard program access"],
+    benefits: ["100-day TenXPros journey", "Living AI Solution Dossier", "Standard program access"],
   },
 ];
 

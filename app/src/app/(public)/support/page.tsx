@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
 import {
@@ -8,12 +7,14 @@ import {
   LEGAL_OPERATOR,
   OFFICIAL_PAYMENT_DOMAIN,
 } from "@/lib/payment-disclosure";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Support & Contact",
   description:
-    "Contact TenXPros technical support for help with technical questions, payment issues, access problems, or questions about your account. We aim to respond within 1-2 business days.",
-};
+    "Contact TenXPros support for technical, payment, access, or account questions before or during the 100-day program. We aim to respond within 1-2 business days.",
+  path: "/support",
+});
 
 const contactDetails: Array<{ label: string; value: string; href?: string; note?: string }> = [
   {

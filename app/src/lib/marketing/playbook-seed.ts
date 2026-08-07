@@ -112,9 +112,9 @@ reconnect? I'll wait for your signal.`,
   {
     key: "objection_time",
     category: "objection",
-    title: "\"I don't have 12 weeks\"",
+    title: "\"I don't have time for a 100-day journey\"",
     sortOrder: 3,
-    body: "The deliverables ARE their real work. The program wraps around their job, not on top of it.",
+    body: "The 12-week guided learning path is the instructional core, and the deliverables ARE their real work. The journey wraps around their job, not on top of it.",
   },
   {
     key: "objection_trust",
