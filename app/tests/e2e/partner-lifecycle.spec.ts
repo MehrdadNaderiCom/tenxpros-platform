@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
 
 /**
- * Partner Program happy path: home -> Become a Partner -> apply -> thank-you,
+ * Partner Program happy path: footer discovery -> partner page -> apply -> thank-you,
  * and the application is visible in the admin inbox.
  *
  * Follows the repo's e2e convention: a clearly-namespaced *.test fixture that is
@@ -35,13 +35,18 @@ test.afterAll(async () => {
   await prisma.$disconnect();
 });
 
-test("home exposes Become a Partner and the partners page loads", async ({ page }) => {
+test("home keeps partner discovery in the footer only and the partners page loads", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("link", { name: /Become a Partner/i }).first()).toBeVisible();
+  await expect(page.locator('a[href="/partners"]')).toHaveCount(1);
+  await expect(page.locator('footer a[href="/partners"]')).toBeVisible();
+  await expect(page.locator('header a[href="/partners"]')).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Open menu" }).click();
+  await expect(page.locator('div.fixed.inset-0 > nav a[href="/partners"]')).toHaveCount(0);
 
   const res = await page.goto("/partners");
   expect(res?.status()).toBeLessThan(400);
-  await expect(page.getByRole("heading", { name: /earn for real, confirmed work/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /help build TenXPros, and earn for the work you do/i })).toBeVisible();
 });
 
 test("a visitor can submit a partner application", async ({ page }) => {
@@ -50,7 +55,7 @@ test("a visitor can submit a partner application", async ({ page }) => {
   // accessible-label wiring of the shared Field component).
   await page.locator('input[name="fullName"]').fill("E2E Partner Applicant");
   await page.locator('input[name="email"]').fill(applicantEmail);
-  await page.locator('input[name="country"]').fill("United States");
+  await page.locator('select[name="country"]').selectOption("United States");
   await page.locator('select[name="audience"]').selectOption("B2B");
   await page.locator('textarea[name="background"]').fill(
     "Fifteen years selling enterprise training and AI enablement into financial services, with a strong network of HR and operations leaders.",
@@ -60,7 +65,7 @@ test("a visitor can submit a partner application", async ({ page }) => {
     "I led the learning function at one target for three years and still have the CHRO's trust; a board member referral into the second.",
   );
   await page.locator('input[name="consentNoEquity"]').check();
-  await page.getByRole("button", { name: /Submit application/i }).click();
+  await page.getByRole("button", { name: /Submit partner application/i }).click();
 
   await expect(page).toHaveURL(/\/partners\/apply\/thank-you/);
   await expect(page.getByText(/Thank you for applying to the Partner Program/i)).toBeVisible();

@@ -133,13 +133,6 @@ export function HomeHero() {
           <p className="mt-5 font-mono text-xs uppercase tracking-[0.18em] text-slate-500">
             Apply first. Pay only after acceptance.
           </p>
-          <p className="mt-3 text-sm text-slate-400">
-            Want to sell, deliver or grow TenXPros?{" "}
-            <a href="/partners" className="font-medium text-indigo-300 underline-offset-4 hover:text-indigo-200 hover:underline">
-              Become a Partner
-              <ArrowUpRight className="ml-0.5 inline h-3.5 w-3.5" aria-hidden="true" />
-            </a>
-          </p>
           <dl className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-white/10 bg-white/10 sm:grid-cols-4">
             {QUICK_FACTS.map((fact) => {
               const [value, ...rest] = fact.split(" ");

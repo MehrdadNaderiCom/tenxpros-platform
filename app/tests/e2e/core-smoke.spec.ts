@@ -44,7 +44,10 @@ test("public launch routes load", async ({ page, request }) => {
   const health = await request.get("/api/health");
   expect(health.status()).toBe(200);
   await expect(health).toBeOK();
-  await expect(await health.json()).toEqual({ ok: true });
+  expect(await health.json()).toMatchObject({
+    ok: true,
+    configDrift: { status: "in_sync", differences: [] },
+  });
 });
 
 test("protected routes redirect unauthenticated users to login", async ({ page }) => {
@@ -61,7 +64,7 @@ test("application form submits through the browser UI and creates records", asyn
   await page.goto("/apply?utm_source=e2e&utm_medium=playwright&utm_campaign=launch-hardening");
   await page.locator('input[name="fullName"]').fill("E2E Launch Applicant");
   await page.locator('input[name="email"]').fill(email);
-  await page.locator('input[name="country"]').fill("United States");
+  await page.locator('select[name="country"]').selectOption("United States");
   await page.locator('input[name="phone"]').fill("+1 415 555 0100");
   await page.locator('input[name="professionalRole"]').fill("Operations Director");
   await page.locator('input[name="domain"]').fill("Professional services operations");
@@ -75,7 +78,6 @@ test("application form submits through the browser UI and creates records", asyn
   await page.locator('textarea[name="realProblemBrief"]').fill(
     "Our client intake workflow is inconsistent across channels, creates duplicate manual review, and needs an AI-assisted triage design with human oversight.",
   );
-  await page.locator('input[name="preferredLanguage"]').fill("English");
   await page.locator('input[name="consentConfidentiality"]').check();
   await page.locator('input[name="consentTerms"]').check();
 
@@ -102,5 +104,5 @@ test("admin credentials login reaches dashboard", async ({ page }) => {
     page.getByRole("button", { name: /sign in/i }).click(),
   ]);
 
-  await expect(page.getByRole("heading", { name: /admin dashboard/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /mission control/i })).toBeVisible();
 });
