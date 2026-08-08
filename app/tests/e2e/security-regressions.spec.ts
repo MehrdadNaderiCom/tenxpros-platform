@@ -994,6 +994,26 @@ test("public credential lookup handles invalid, oversized, and repeated code sea
   await expect(page.locator("body")).not.toHaveCSS("overflow-x", "scroll");
 
   const invalidCode = `unknown-${runId}`;
+  const invalidLegacyResponse = await page.request.get(`/verify/${invalidCode}`);
+  const invalidLegacyBody = await invalidLegacyResponse.text();
+  expect(invalidLegacyResponse.status()).toBe(404);
+  expect(invalidLegacyResponse.headers()["content-security-policy"]).toContain("default-src 'self'");
+  expect(invalidLegacyResponse.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(invalidLegacyBody).toMatch(/404|not found/i);
+  expect(invalidLegacyBody).toMatch(/<meta[^>]+name="robots"[^>]+content="noindex"/i);
+  expect(invalidLegacyBody).not.toMatch(/PrismaClient|participantBadge\.findUnique|database error/i);
+  expect((await page.request.head(`/verify/${invalidCode}`)).status()).toBe(404);
+  const invalidApiResponse = await page.request.get(`/api/verify/${invalidCode}`);
+  expect(invalidApiResponse.status()).toBe(404);
+  expect(await invalidApiResponse.json()).toEqual({ ok: false, error: "Badge not found" });
+  expect((await page.request.get(`/verify?code=${invalidCode}`)).status()).toBe(200);
+
+  const invalidLegacyNavigation = await page.goto(`/verify/${invalidCode}`);
+  expect(invalidLegacyNavigation?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: /page not found/i })).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(invalidCode);
+  await page.goto("/verify");
+
   await codeInput.fill(`  ${invalidCode}  `);
   await Promise.all([
     page.waitForURL((url) => url.pathname === "/verify" && url.searchParams.has("code")),
@@ -1107,7 +1127,10 @@ test("certification downgrade and expiry immediately change public verification"
   await expect(publicVerificationPage.getByText(activeBadge.verificationCode)).toBeVisible();
   expect(await publicVerificationPage.content()).not.toContain(participantUser.email);
 
-  await publicVerificationPage.goto(`/verify/${activeBadge.verificationCode}`);
+  const activeLegacyResponse = await publicVerificationPage.goto(
+    `/verify/${activeBadge.verificationCode}`,
+  );
+  expect(activeLegacyResponse?.status()).toBe(200);
   await expect(publicVerificationPage.getByLabel("Credential status: ACTIVE")).toBeVisible();
   await expect(publicVerificationPage.getByText(activeBadge.verificationCode)).toBeVisible();
 
@@ -1126,6 +1149,7 @@ test("certification downgrade and expiry immediately change public verification"
   await prisma.participantBadge.update({ where: { id: activeBadge.id }, data: { isPublic: false } });
   verification = await page.request.get(`/api/verify/${activeBadge.verificationCode}`);
   expect(await verification.json()).toMatchObject({ ok: true, status: "PRIVATE", recipient: { name: null } });
+  expect((await page.request.get(`/verify/${activeBadge.verificationCode}`)).status()).toBe(200);
   await publicVerificationPage.goto(`/verify?code=${activeBadge.verificationCode}`);
   await expect(publicVerificationPage.getByLabel("Credential status: PRIVATE")).toBeVisible();
   await expect(publicVerificationPage.getByText("Private", { exact: true })).toBeVisible();
@@ -1143,6 +1167,7 @@ test("certification downgrade and expiry immediately change public verification"
   const revoked = await prisma.participantBadge.findUniqueOrThrow({ where: { id: activeBadge.id } });
   expect(revoked.status).toBe("REVOKED");
   expect(revoked.revokedAt).not.toBeNull();
+  expect((await page.request.get(`/verify/${activeBadge.verificationCode}`)).status()).toBe(200);
   await publicVerificationPage.goto(`/verify?code=${activeBadge.verificationCode}`);
   await expect(publicVerificationPage.getByLabel("Credential status: REVOKED")).toBeVisible();
   if (participantUser.name) {
@@ -1238,6 +1263,7 @@ test("certification downgrade and expiry immediately change public verification"
     `/verify/${activeBadge.verificationCode}`,
   );
   const retiredDirectBody = await retiredDirectResponse.text();
+  expect(retiredDirectResponse.status()).toBe(404);
   expect(retiredDirectBody).toMatch(/404|not found/i);
   expect(retiredDirectBody).not.toContain(participantUser.email);
   if (participantUser.name) expect(retiredDirectBody).not.toContain(participantUser.name);
@@ -1247,10 +1273,25 @@ test("certification downgrade and expiry immediately change public verification"
   });
   verification = await page.request.get(`/api/verify/${reissued.verificationCode}`);
   expect(await verification.json()).toMatchObject({ ok: true, status: "EXPIRED" });
+  expect((await page.request.get(`/verify/${reissued.verificationCode}`)).status()).toBe(200);
   await publicVerificationPage.goto(`/verify?code=${reissued.verificationCode}`);
   await expect(publicVerificationPage.getByLabel("Credential status: EXPIRED")).toBeVisible();
   expect(await publicVerificationPage.content()).not.toContain(participantUser.email);
   await expectCertificateUnavailable(page, review.id, participantUser);
+
+  await prisma.participantBadge.update({
+    where: { id: reissued.id },
+    data: { expiresAt: null },
+  });
+  await prisma.badge.update({
+    where: { id: reissued.badgeId },
+    data: { isActive: false },
+  });
+  const inactiveDirectResponse = await page.request.get(`/verify/${reissued.verificationCode}`);
+  expect(inactiveDirectResponse.status()).toBe(200);
+  expect(await inactiveDirectResponse.text()).toContain("Credential status: INACTIVE");
+  await publicVerificationPage.goto(`/verify?code=${reissued.verificationCode}`);
+  await expect(publicVerificationPage.getByLabel("Credential status: INACTIVE")).toBeVisible();
   await publicVerificationPage.close();
 
   // Module/rank credentials are also current-state facts: withdrawing the

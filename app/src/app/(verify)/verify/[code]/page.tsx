@@ -7,10 +7,13 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { code: string } }): Promise<Metadata> {
   const record = await verifyBadge(params.code);
+  // Resolve absence before the route starts streaming. A notFound() thrown only
+  // from the page body can render the correct UI after HTTP 200 is committed.
+  if (!record) notFound();
   return {
-    title: record ? `${record.badge.name} Verification` : "Badge Verification",
+    title: `${record.badge.name} Verification`,
     description:
-      record && record.isPublic
+      record.isPublic
         ? `Verify ${record.badge.name} for ${record.user.name ?? "TenXPro"}.`
         : "Verify a TenXPros badge.",
   };
