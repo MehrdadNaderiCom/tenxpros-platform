@@ -149,7 +149,7 @@ export function PricingHero({ founding, standard }: { founding: number; standard
 /* ------------------------------------------------------- 2. Current tier card */
 
 const FOUNDING_INCLUDES = [
-  "12-week guided program",
+  "100-day guided journey",
   "Diagnostic + personalized path",
   "The TenX Method (Frame · Design · Prove · Foresee)",
   "8 connected assets",
@@ -157,7 +157,7 @@ const FOUNDING_INCLUDES = [
   "Section-level review",
   "Capstone defense / final review",
   "Verifiable credential",
-  "90-day adoption roadmap",
+  "100-day adoption roadmap",
   "Pay only after acceptance",
 ];
 
@@ -300,11 +300,11 @@ export function PricingLadder({ tiers }: { tiers: PricingTierView[] }) {
 const VALUE_STACK: Array<[string, string]> = [
   ["A reviewed professional asset", "Not watched lessons, a dossier reviewed against explicit criteria."],
   ["A focused challenge from your field", "You bring the work; the program makes it defensible."],
-  ["Guided 12-week method", "Frame · Design · Prove · Foresee, with coaching checkpoints."],
+  ["12-week guided learning path", "The instructional core of the 100-day journey: Frame · Design · Prove · Foresee, with coaching checkpoints."],
   ["Dossier review against criteria", "Eight explicit review criteria, applied to your work."],
   ["Sample dossier and public rubric", "You see the standard before you apply."],
   ["Verifiable credential infrastructure", "A credential backed by reviewed evidence, not attendance."],
-  ["90-day adoption roadmap", "What you ship next, and how you lead it after the program."],
+  ["100-day adoption roadmap", "What you ship next, and how you lead it after the program."],
 ];
 
 export function PricingValue() {
@@ -611,15 +611,15 @@ export function PricingPayment() {
 
 /* ------------------------------------------------------------------- 8. FAQ */
 
-const FAQS: Array<[string, string]> = [
+export const PRICING_FAQS: ReadonlyArray<readonly [string, string]> = [
   ["Why do I need to apply?", "TenXPros is selective. Applying keeps the cohort serious, we accept people with a real problem and the commitment to do reviewed work."],
   ["Why is payment after acceptance?", "You should only pay once we have confirmed fit. Applying creates no payment obligation, and no payment details are required to apply."],
   ["Is this a university certificate?", "No. It is a private certification earned through reviewed work, not a university degree or an accredited academic program."],
   ["Is the credential recognized?", "It is a verifiable credential backed by a public review rubric and a reviewed dossier. Its weight comes from the evidence behind it, not from an accreditation body."],
   ["What if I am not accepted?", "You pay nothing. Where we can, we explain the fit gap and point you toward a more suitable next step."],
-  ["What if I cannot finish in 12 weeks?", "The 12 weeks are guided, but the dossier is the goal. We work with you on reasonable timing, certification is based on the work, not the clock."],
+  ["What if I cannot finish within the 100-day journey?", "The guided learning path spans 12 weeks within the overall 100-day journey, but the dossier is the goal. We work with you on reasonable timing; certification is based on the work, not the clock."],
   ["Is this for non-technical professionals?", "Yes. It is built for experienced professionals across fields. You bring the expertise; we bring the AI method. No coding is required."],
-  ["What exactly will I produce?", "A reviewed Living AI Solution Dossier: eight connected assets covering a focused professional challenge, from framing to a 90-day roadmap."],
+  ["What exactly will I produce?", "A reviewed Living AI Solution Dossier: eight connected assets covering a focused professional challenge, from framing to a 100-day roadmap."],
   ["Can I expense this through my company?", "Many participants do. We provide an itemized receipt after payment; check your employer's professional-development policy."],
   ["I'm applying from outside the US, anything I should know?", "Prices are listed in USD, and payment is requested only after acceptance. The path is designed to be async-friendly for international professionals, and the review language is English unless otherwise stated. You can request an invoice or receipt after acceptance and payment. As always, do not submit confidential or regulated data, use redacted or fictionalized examples."],
   ["Is my data safe?", "You control what you bring, and the program emphasizes confidentiality and governance. The public sample dossier uses fictional data only."],
@@ -635,7 +635,7 @@ export function PricingFaq() {
         </h2>
       </div>
       <div className="mt-10 overflow-hidden rounded-xl border border-white/10">
-        {FAQS.map(([q, a]) => (
+        {PRICING_FAQS.map(([q, a]) => (
           <details key={q} className="group border-b border-white/10 last:border-0 [&_summary::-webkit-details-marker]:hidden">
             <summary className="flex cursor-pointer items-center justify-between gap-4 bg-[#0B1120] px-5 py-4 text-[0.95rem] font-medium text-white transition hover:bg-[#0E1424] sm:px-7">
               {q}

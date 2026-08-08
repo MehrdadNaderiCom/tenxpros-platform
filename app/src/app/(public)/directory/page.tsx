@@ -1,9 +1,12 @@
-import type { Metadata } from "next";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Directory",
-};
+  description:
+    "The TenXPros Directory is reserved for certified participants who complete the 100-day journey, earn the credential, and explicitly opt into a public profile.",
+  path: "/directory",
+});
 
 export default function DirectoryPage() {
   return (

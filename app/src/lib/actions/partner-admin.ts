@@ -2,7 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
-import type { PartnerFunction, Prisma } from "@prisma/client";
+import { Prisma, type PartnerFunction } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { isSuperAdmin, requireAdminUser, requireSuperAdmin } from "@/lib/authz";
 import { absoluteUrl } from "@/lib/utils";
@@ -50,7 +50,6 @@ import {
   normalizeEntityName,
   originationOpener,
   originationOverrideBp,
-  proportionalReversalCents,
   type NewnessState,
 } from "@/lib/partner/commission";
 import {
@@ -67,6 +66,12 @@ import { countNewCompanyDomainsRolling } from "@/lib/partner/growth";
 import { formatMoney, normalizeCurrencyCode, toMinorUnits } from "@/lib/partner/currency";
 import { recordAudit } from "@/lib/partner/audit";
 import { safeRevalidatePath } from "@/lib/partner/revalidate";
+import {
+  applyRefundAtomically,
+  lockClosedDealForFinancialWrite,
+  REFUND_EVENT_TYPES,
+} from "@/lib/partner/refunds";
+import { recordClosedDealMilestonesAtomically } from "@/lib/partner/deal-lifecycle";
 
 type Admin = Awaited<ReturnType<typeof requireAdminUser>>;
 
@@ -679,6 +684,9 @@ export async function updateProgramConfig(formData: FormData) {
   const data: Record<string, unknown> = {};
   for (const field of CONFIG_FIELD_META) {
     const value = parseConfigField(field.unit, formData.get(field.key as string) as string | null);
+    if (field.key === "clawbackDays" && typeof value === "number" && value < 0) {
+      throw new Error("Clawback window cannot be negative.");
+    }
     if (value !== null) data[field.key as string] = value;
   }
   data.updatedBy = admin.email ?? admin.id;
@@ -699,7 +707,11 @@ export async function upsertPartnerConfigOverride(formData: FormData) {
   const data: Record<string, unknown> = {};
   for (const field of CONFIG_FIELD_META) {
     // null → explicit clear of the override.
-    data[field.key as string] = parseConfigField(field.unit, formData.get(field.key as string) as string | null);
+    const value = parseConfigField(field.unit, formData.get(field.key as string) as string | null);
+    if (field.key === "clawbackDays" && typeof value === "number" && value < 0) {
+      throw new Error("Clawback window cannot be negative.");
+    }
+    data[field.key as string] = value;
   }
   await prisma.partnerConfig.upsert({
     where: { partnerId },
@@ -744,6 +756,17 @@ export async function recordClosedDeal(formData: FormData) {
     domain = normalizeDomain(acct?.domain ?? null);
   }
   const signedAt = formData.get("signedAt") ? new Date(String(formData.get("signedAt"))) : new Date();
+  const underlyingRefundWindowEndsAt = formData.get("underlyingRefundWindowEndsAt")
+    ? new Date(String(formData.get("underlyingRefundWindowEndsAt")))
+    : null;
+  if (underlyingRefundWindowEndsAt && Number.isNaN(underlyingRefundWindowEndsAt.getTime())) {
+    throw new Error("Enter a valid underlying refund-window end date.");
+  }
+  const configuredClawbackEnd = clawbackWindowEnd(signedAt, cfg);
+  const effectiveClawbackEnd =
+    underlyingRefundWindowEndsAt && underlyingRefundWindowEndsAt > configuredClawbackEnd
+      ? underlyingRefundWindowEndsAt
+      : configuredClawbackEnd;
   const deliveredAt = formData.get("deliveredAt") ? new Date(String(formData.get("deliveredAt"))) : null;
   const paymentClearedAt = formData.get("paymentClearedAt") ? new Date(String(formData.get("paymentClearedAt"))) : null;
   const isMajorNewEngagement = formData.get("isMajorNewEngagement") === "on";
@@ -784,26 +807,44 @@ export async function recordClosedDeal(formData: FormData) {
     }
   }
 
-  const deal = await prisma.closedDeal.create({
-    data: {
-      partnerId,
-      registeredAccountId,
-      domain,
-      dealType,
-      productLine,
-      netReceiptsCents,
-      currency: dealCurrency,
-      conversionRate,
-      conversionDate: paymentClearedAt,
-      signedAt,
-      deliveredAt,
-      paymentClearedAt,
-      originationWindowStart,
-      originationRateBpAtOpen,
-      trailPeriodEnd: trailPeriodEnd(signedAt, cfg),
-      isMajorNewEngagement,
-      industryOrRegion,
-    },
+  const deal = await prisma.$transaction(async (tx) => {
+    const created = await tx.closedDeal.create({
+      data: {
+        partnerId,
+        registeredAccountId,
+        domain,
+        dealType,
+        productLine,
+        netReceiptsCents,
+        currency: dealCurrency,
+        conversionRate,
+        conversionDate: paymentClearedAt,
+        signedAt,
+        clawbackDaysAtClose: cfg.clawbackDays,
+        clawbackWindowEndsAt: effectiveClawbackEnd,
+        underlyingRefundWindowEndsAt,
+        deliveredAt,
+        paymentClearedAt,
+        originationWindowStart,
+        originationRateBpAtOpen,
+        trailPeriodEnd: trailPeriodEnd(signedAt, cfg),
+        isMajorNewEngagement,
+        industryOrRegion,
+      },
+    });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "CLOSED_DEAL_RECORDED",
+        entity: "ClosedDeal",
+        entityId: created.id,
+        changes: {
+          after: { partnerId, dealType, netReceiptsCents, currency: dealCurrency, conversionRate, payoutCurrency },
+        },
+      },
+    });
+    return created;
   });
   // Keep both sides informed: the partner sees the close, the owner gets the signal.
   const dealPartner = await prisma.partner.findUnique({ where: { id: partnerId }, select: { displayName: true, contactEmail: true } });
@@ -820,15 +861,32 @@ export async function recordClosedDeal(formData: FormData) {
     body: `A closed ${dealType} deal was recorded for ${dealEntity} (partner ${dealPartner?.displayName ?? partnerId}).`,
     href: `/admin/partners/${partnerId}`,
   });
-  await recordAudit({
-    actorId: admin.id,
-    actorRole: admin.role,
-    action: "CLOSED_DEAL_RECORDED",
-    entity: "ClosedDeal",
-    entityId: deal.id,
-    after: { partnerId, dealType, netReceiptsCents, currency: dealCurrency, conversionRate, payoutCurrency },
-  });
   safeRevalidatePath(`/admin/partners/${partnerId}`);
+  safeRevalidatePath("/admin/partners/commissions");
+}
+
+function optionalLifecycleDate(formData: FormData, field: "deliveredAt" | "paymentClearedAt"): Date | undefined {
+  const raw = String(formData.get(field) ?? "").trim();
+  if (!raw) return undefined;
+  // A date-only HTML input is an objective calendar date. Pin it to UTC rather
+  // than allowing the server timezone to change the recorded instant.
+  const parsed = new Date(/^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00.000Z` : raw);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`Enter a valid ${field === "deliveredAt" ? "delivery" : "payment-clearance"} date.`);
+  }
+  return parsed;
+}
+
+/** Record post-close delivery/payment facts without reopening the deal itself. */
+export async function recordClosedDealMilestones(formData: FormData) {
+  const admin = await requireAdminUser();
+  const result = await recordClosedDealMilestonesAtomically(prisma, {
+    closedDealId: String(formData.get("closedDealId") ?? ""),
+    deliveredAt: optionalLifecycleDate(formData, "deliveredAt"),
+    paymentClearedAt: optionalLifecycleDate(formData, "paymentClearedAt"),
+    actor: { id: admin.id, role: admin.role },
+  });
+  safeRevalidatePath(`/admin/partners/${result.partnerId}`);
   safeRevalidatePath("/admin/partners/commissions");
 }
 
@@ -837,11 +895,29 @@ export async function recordSeats(formData: FormData) {
   const closedDealId = String(formData.get("closedDealId") ?? "");
   const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
   const count = Math.round(safeNonNegative(formData.get("count"), "seat count", 100000));
+  if (count <= 0) throw new Error("Seat count must be greater than zero.");
   const status = String(formData.get("status") ?? "PAID_COLLECTED") as "PENDING" | "PAID_COLLECTED" | "REFUNDED" | "CANCELLED";
   const industryOrRegion = String(formData.get("industryOrRegion") ?? "").trim() || deal.industryOrRegion || null;
   const sourcedByPartner = formData.get("sourcedByPartner") !== "false";
-  const seat = await prisma.seatRecord.create({ data: { closedDealId, count, status, industryOrRegion, sourcedByPartner } });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "SEATS_RECORDED", entity: "SeatRecord", entityId: seat.id, after: { closedDealId, count, status } });
+  await prisma.$transaction(async (tx) => {
+    await lockClosedDealForFinancialWrite(tx, closedDealId);
+    const refundCount = await tx.refundEvent.count({ where: { closedDealId } });
+    if (refundCount > 0) throw new Error("Seat records are locked after a refund event has been recorded.");
+    const created = await tx.seatRecord.create({
+      data: { closedDealId, count, status, industryOrRegion, sourcedByPartner },
+    });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "SEATS_RECORDED",
+        entity: "SeatRecord",
+        entityId: created.id,
+        changes: { after: { closedDealId, count, status } },
+      },
+    });
+    return created;
+  });
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
 }
 
@@ -849,8 +925,24 @@ export async function updateSeatStatus(formData: FormData) {
   const admin = await requireAdminUser();
   const id = String(formData.get("seatId") ?? "");
   const status = String(formData.get("status") ?? "") as "PENDING" | "PAID_COLLECTED" | "REFUNDED" | "CANCELLED";
-  const seat = await prisma.seatRecord.update({ where: { id }, data: { status }, include: { closedDeal: true } });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "SEAT_STATUS_UPDATE", entity: "SeatRecord", entityId: id, after: { status } });
+  const existing = await prisma.seatRecord.findUniqueOrThrow({ where: { id }, select: { closedDealId: true } });
+  const seat = await prisma.$transaction(async (tx) => {
+    await lockClosedDealForFinancialWrite(tx, existing.closedDealId);
+    const refundCount = await tx.refundEvent.count({ where: { closedDealId: existing.closedDealId } });
+    if (refundCount > 0) throw new Error("Seat records are locked after a refund event has been recorded.");
+    const updated = await tx.seatRecord.update({ where: { id }, data: { status }, include: { closedDeal: true } });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "SEAT_STATUS_UPDATE",
+        entity: "SeatRecord",
+        entityId: id,
+        changes: { after: { status } },
+      },
+    });
+    return updated;
+  });
   safeRevalidatePath(`/admin/partners/${seat.closedDeal.partnerId}`);
 }
 
@@ -1148,31 +1240,53 @@ export async function addCommissionLine(formData: FormData) {
     amountCents = Math.round((amountCents * weightBp) / 10000);
   }
 
-  const entry = await prisma.commissionEntry.create({
-    data: {
-      partnerId: linePartnerId,
-      closedDealId: deal.id,
-      function: recordedFn,
-      rateBp,
-      baseAmountCents: deal.netReceiptsCents,
-      amountCents,
-      isFlat,
-      weightBp,
-      evidenceNote,
-      // Stored only for Basic Introduction (the precheck guarantees it is attested).
-      warmRelationshipAttested: recordedFn === "BASIC_INTRO",
-      // Display only (null for non-origination lines); never read by any pay logic.
-      paidStrongRate,
-      currency: deal.currency,
-    },
-  });
-  await recordAudit({
-    actorId: admin.id,
-    actorRole: admin.role,
-    action: "COMMISSION_LINE_ADDED",
-    entity: "CommissionEntry",
-    entityId: entry.id,
-    after: { submittedFunction: fn, function: recordedFn, partnerId: linePartnerId, rateBp, amountCents, isFlat, weightBp, evidenceNote, ...auditExtra },
+  await prisma.$transaction(async (tx) => {
+    await lockClosedDealForFinancialWrite(tx, deal.id);
+    const refundCount = await tx.refundEvent.count({ where: { closedDealId: deal.id } });
+    if (refundCount > 0) {
+      throw new Error("Commission lines are locked after a refund event has been recorded.");
+    }
+    const created = await tx.commissionEntry.create({
+      data: {
+        partnerId: linePartnerId,
+        closedDealId: deal.id,
+        function: recordedFn,
+        rateBp,
+        baseAmountCents: deal.netReceiptsCents,
+        amountCents,
+        isFlat,
+        weightBp,
+        evidenceNote,
+        // Stored only for Basic Introduction (the precheck guarantees it is attested).
+        warmRelationshipAttested: recordedFn === "BASIC_INTRO",
+        // Display only (null for non-origination lines); never read by any pay logic.
+        paidStrongRate,
+        currency: deal.currency,
+      },
+    });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "COMMISSION_LINE_ADDED",
+        entity: "CommissionEntry",
+        entityId: created.id,
+        changes: {
+          after: {
+            submittedFunction: fn,
+            function: recordedFn,
+            partnerId: linePartnerId,
+            rateBp,
+            amountCents,
+            isFlat,
+            weightBp,
+            evidenceNote,
+            ...auditExtra,
+          },
+        },
+      },
+    });
+    return created;
   });
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
   return { ok: true };
@@ -1187,115 +1301,139 @@ export async function addCommissionLine(formData: FormData) {
 export async function recomputeDealCommissions(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
-  const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
-  const cfg = await resolvePartnerConfig(deal.partnerId);
+  const initial = await prisma.closedDeal.findUniqueOrThrow({
+    where: { id: closedDealId },
+    select: { partnerId: true },
+  });
+  const cfg = await resolvePartnerConfig(initial.partnerId);
 
-  const refundCount = await prisma.refundEvent.count({ where: { closedDealId } });
-  if (refundCount > 0) {
-    safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
-    return;
-  }
+  await prisma.$transaction(async (tx) => {
+    await lockClosedDealForFinancialWrite(tx, closedDealId);
+    const refundCount = await tx.refundEvent.count({ where: { closedDealId } });
+    if (refundCount > 0) return;
 
-  // The Tier-3 focus ceiling (tier3FocusHardCeilingBp) applies ONLY to a deal in
-  // the partner's active focus industry/region, never to ordinary deals (which
-  // keep the configured capB2cBp / capB2bBp cap).
-  const grant = deal.industryOrRegion
-    ? await prisma.focusGrant.findFirst({
-        where: { partnerId: deal.partnerId, status: "ACTIVE", industryOrRegion: { equals: deal.industryOrRegion, mode: "insensitive" } },
-        orderBy: { grantedAt: "desc" },
-      })
-    : null;
-  const focusActive = Boolean(grant);
+    const deal = await tx.closedDeal.findUniqueOrThrow({ where: { id: closedDealId } });
+    // The Tier-3 focus ceiling applies only to a deal in the partner's active
+    // focus. Every read and write below shares the same deal lock as refunds.
+    const grant = deal.industryOrRegion
+      ? await tx.focusGrant.findFirst({
+          where: {
+            partnerId: deal.partnerId,
+            status: "ACTIVE",
+            industryOrRegion: { equals: deal.industryOrRegion, mode: "insensitive" },
+          },
+          orderBy: { grantedAt: "desc" },
+        })
+      : null;
+    const focusActive = Boolean(grant);
 
-  // Auto-apply the focus bonus at the grant's continuously-held tenure rate.
-  if (grant) {
-    const atDate = deal.paymentClearedAt ?? deal.signedAt ?? new Date();
-    const bonusBp = focusBonusBp(focusTenureYear(grant.continuouslyHeldSince, atDate), cfg);
-    // Match ANY non-reversed FOCUS_BONUS (including a PAID one) so a second line is
-    // never minted once one exists, and a settled PAID line is never re-scaled.
-    const existing = await prisma.commissionEntry.findFirst({
-      where: { closedDealId, function: "FOCUS_BONUS", status: { notIn: ["REVERSED"] } },
-    });
-    const action = focusBonusRecomputeAction(bonusBp, existing?.status ?? null);
-    if (action !== "skip") {
-      const amount = Math.round((deal.netReceiptsCents * bonusBp) / 10000);
-      if (action === "update" && existing) {
-        await prisma.commissionEntry.update({ where: { id: existing.id }, data: { rateBp: bonusBp, amountCents: amount } });
-      } else if (action === "create") {
-        await prisma.commissionEntry.create({
-          data: { partnerId: deal.partnerId, closedDealId, function: "FOCUS_BONUS", rateBp: bonusBp, baseAmountCents: deal.netReceiptsCents, amountCents: amount, currency: deal.currency },
-        });
+    if (grant) {
+      const atDate = deal.paymentClearedAt ?? deal.signedAt ?? new Date();
+      const bonusBp = focusBonusBp(focusTenureYear(grant.continuouslyHeldSince, atDate), cfg);
+      const existing = await tx.commissionEntry.findFirst({
+        where: { closedDealId, function: "FOCUS_BONUS", status: { notIn: ["REVERSED"] } },
+      });
+      const action = focusBonusRecomputeAction(bonusBp, existing?.status ?? null);
+      if (action !== "skip") {
+        const amount = Math.round((deal.netReceiptsCents * bonusBp) / 10000);
+        if (action === "update" && existing) {
+          await tx.commissionEntry.update({
+            where: { id: existing.id },
+            data: { rateBp: bonusBp, amountCents: amount },
+          });
+        } else if (action === "create") {
+          await tx.commissionEntry.create({
+            data: {
+              partnerId: deal.partnerId,
+              closedDealId,
+              function: "FOCUS_BONUS",
+              rateBp: bonusBp,
+              baseAmountCents: deal.netReceiptsCents,
+              amountCents: amount,
+              currency: deal.currency,
+            },
+          });
+        }
       }
     }
-  }
 
-  const entries = await prisma.commissionEntry.findMany({
-    where: { closedDealId, status: { in: ["ACCRUED", "PAYABLE"] } },
-    orderBy: { createdAt: "asc" },
-  });
-  if (entries.length === 0) {
-    safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
-    return;
-  }
+    const entries = await tx.commissionEntry.findMany({
+      where: { closedDealId, status: { in: ["ACCRUED", "PAYABLE"] } },
+      orderBy: { createdAt: "asc" },
+    });
+    if (entries.length === 0) return;
 
-  // Commission already locked in PAID lines is deliberately excluded from the
-  // recompute set (paid money is never re-scaled), but it still consumes the
-  // per-deal cap. Feed its net amount (after any reversal) to the engine so the
-  // recomputed lines can only fill the remaining headroom and paid + recomputed
-  // can never breach the absolute cap.
-  const paidEntries = await prisma.commissionEntry.findMany({
-    where: { closedDealId, status: "PAID" },
-    select: { amountCents: true, reversedCents: true, function: true, weightBp: true },
-  });
-  const committedExternalCents = paidEntries.reduce(
-    (sum, e) => sum + Math.max(0, e.amountCents - e.reversedCents),
-    0,
-  );
-  // For a weighted split whose siblings settle at different times, the amount of each
-  // function already settled (PAID) so the surviving siblings in this recompute are
-  // clamped to the remaining budget and the group can never overpay one unshared line.
-  const settledByFunction = new Map<PartnerFunction, number>();
-  for (const e of paidEntries) {
-    if (e.weightBp != null) {
-      settledByFunction.set(e.function, (settledByFunction.get(e.function) ?? 0) + Math.max(0, e.amountCents - e.reversedCents));
+    const paidEntries = await tx.commissionEntry.findMany({
+      where: { closedDealId, status: "PAID" },
+      select: { amountCents: true, reversedCents: true, function: true, weightBp: true },
+    });
+    const committedExternalCents = paidEntries.reduce(
+      (sum, entry) => sum + Math.max(0, entry.amountCents - entry.reversedCents),
+      0,
+    );
+    const settledByFunction = new Map<PartnerFunction, number>();
+    for (const entry of paidEntries) {
+      if (entry.weightBp != null) {
+        settledByFunction.set(
+          entry.function,
+          (settledByFunction.get(entry.function) ?? 0) + Math.max(0, entry.amountCents - entry.reversedCents),
+        );
+      }
     }
-  }
-  const groupSettled = (e: (typeof entries)[number]) => (e.weightBp != null ? settledByFunction.get(e.function) ?? 0 : undefined);
+    const groupSettled = (entry: (typeof entries)[number]) =>
+      entry.weightBp != null ? settledByFunction.get(entry.function) ?? 0 : undefined;
+    const result = computeDealCommission({
+      netReceiptsCents: deal.netReceiptsCents,
+      dealKind: deal.dealType as "B2C" | "B2B",
+      focusActive,
+      config: cfg,
+      functions: entries.map((entry) =>
+        entry.isFlat
+          ? {
+              function: entry.function,
+              flatCents: entry.amountCents,
+              partnerId: entry.partnerId,
+              weightBp: entry.weightBp ?? undefined,
+              groupSettledCents: groupSettled(entry),
+            }
+          : {
+              function: entry.function,
+              rateBp: entry.rateBp,
+              partnerId: entry.partnerId,
+              weightBp: entry.weightBp ?? undefined,
+              groupSettledCents: groupSettled(entry),
+            },
+      ),
+      committedExternalCents,
+    });
+    const payableOn = commissionPayableOn(deal.deliveredAt, deal.paymentClearedAt, cfg);
 
-  const result = computeDealCommission({
-    netReceiptsCents: deal.netReceiptsCents,
-    dealKind: deal.dealType as "B2C" | "B2B",
-    focusActive,
-    config: cfg,
-    // Preserve each line's partner attribution and weight through the recompute so a
-    // cross-partner override or a weighted split is never silently reassigned to the
-    // deal owner. The engine groups weighted lines and splits them under the cap; the
-    // row's partnerId/weightBp are untouched (only amountCents/payableOn are updated).
-    // groupSettledCents lets a partially-settled weighted group clamp the survivors to
-    // the remaining budget, so no settlement order or partner count can ever overpay.
-    functions: entries.map((e) =>
-      e.isFlat
-        ? { function: e.function, flatCents: e.amountCents, partnerId: e.partnerId, weightBp: e.weightBp ?? undefined, groupSettledCents: groupSettled(e) }
-        : { function: e.function, rateBp: e.rateBp, partnerId: e.partnerId, weightBp: e.weightBp ?? undefined, groupSettledCents: groupSettled(e) },
-    ),
-    committedExternalCents,
+    for (const [index, entry] of entries.entries()) {
+      await tx.commissionEntry.update({
+        where: { id: entry.id },
+        data: { amountCents: result.entries[index].amountCents, payableOn },
+      });
+    }
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "COMMISSIONS_RECOMPUTED",
+        entity: "ClosedDeal",
+        entityId: closedDealId,
+        changes: {
+          after: {
+            totalCents: result.totalCents,
+            capped: result.capped,
+            overCap: result.overCap,
+            focusActive,
+            payableOn: payableOn?.toISOString() ?? null,
+          },
+        },
+      },
+    });
   });
-  const payableOn = commissionPayableOn(deal.deliveredAt, deal.paymentClearedAt, cfg);
-
-  await prisma.$transaction(
-    entries.map((e, i) =>
-      prisma.commissionEntry.update({ where: { id: e.id }, data: { amountCents: result.entries[i].amountCents, payableOn } }),
-    ),
-  );
-  await recordAudit({
-    actorId: admin.id,
-    actorRole: admin.role,
-    action: "COMMISSIONS_RECOMPUTED",
-    entity: "ClosedDeal",
-    entityId: closedDealId,
-    after: { totalCents: result.totalCents, capped: result.capped, overCap: result.overCap, focusActive, payableOn: payableOn?.toISOString() ?? null },
-  });
-  safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
+  safeRevalidatePath(`/admin/partners/${initial.partnerId}`);
   safeRevalidatePath("/admin/partners/commissions");
 }
 
@@ -1304,14 +1442,41 @@ export async function setCommissionStatus(formData: FormData) {
   const id = String(formData.get("commissionEntryId") ?? "");
   const status = String(formData.get("status") ?? "") as "ACCRUED" | "PAYABLE" | "PAID" | "REVERSED";
   if (!["ACCRUED", "PAYABLE", "PAID", "REVERSED"].includes(status)) throw new Error("Invalid status.");
-  const entry = await prisma.commissionEntry.findUniqueOrThrow({ where: { id } });
-  await prisma.commissionEntry.update({
+  const initial = await prisma.commissionEntry.findUniqueOrThrow({
     where: { id },
-    data: { status, paidOn: status === "PAID" ? new Date() : entry.paidOn },
+    select: { closedDealId: true },
   });
-  await recordAudit({ actorId: admin.id, actorRole: admin.role, action: "COMMISSION_STATUS_CHANGE", entity: "CommissionEntry", entityId: id, before: { status: entry.status }, after: { status } });
+  const result = await prisma.$transaction(async (tx) => {
+    await lockClosedDealForFinancialWrite(tx, initial.closedDealId);
+    const entry = await tx.commissionEntry.findUniqueOrThrow({ where: { id } });
+    if (entry.status === status) return { entry, changed: false } as const;
+
+    const allowed =
+      (entry.status === "ACCRUED" && status === "PAYABLE") ||
+      (entry.status === "PAYABLE" && status === "PAID");
+    if (!allowed) {
+      throw new Error(`Invalid commission transition: ${entry.status} to ${status}.`);
+    }
+
+    const updated = await tx.commissionEntry.update({
+      where: { id },
+      data: { status, paidOn: status === "PAID" ? new Date() : null },
+    });
+    await tx.auditLog.create({
+      data: {
+        actorId: admin.id,
+        actorRole: admin.role,
+        action: "COMMISSION_STATUS_CHANGE",
+        entity: "CommissionEntry",
+        entityId: id,
+        changes: { before: { status: entry.status }, after: { status } },
+      },
+    });
+    return { entry: updated, changed: true } as const;
+  });
+  const entry = result.entry;
   // A payment is never silent: tell the partner what was paid and for what.
-  if (status === "PAID" && entry.status !== "PAID") {
+  if (status === "PAID" && result.changed) {
     const paidPartner = await prisma.partner.findUnique({
       where: { id: entry.partnerId },
       select: { displayName: true, contactEmail: true },
@@ -1350,66 +1515,33 @@ export async function setCommissionStatus(formData: FormData) {
 export async function applyRefund(formData: FormData) {
   const admin = await requireAdminUser();
   const closedDealId = String(formData.get("closedDealId") ?? "");
-  const type = String(formData.get("type") ?? "REFUND") as "REFUND" | "CHARGEBACK" | "CANCELLATION" | "CREDIT" | "REVERSAL";
-  const deal = await prisma.closedDeal.findUniqueOrThrow({ where: { id: closedDealId }, include: { commissions: true } });
-  const cfg = await resolvePartnerConfig(deal.partnerId);
+  const type = String(formData.get("type") ?? "REFUND") as (typeof REFUND_EVENT_TYPES)[number];
+  if (!REFUND_EVENT_TYPES.includes(type)) throw new Error("Invalid refund event type.");
+  const sourceReference = String(formData.get("sourceReference") ?? "").trim();
+  const occurredAtRaw = String(formData.get("occurredAt") ?? "").trim();
+  // datetime-local has no offset. This admin field is explicitly UTC so parsing
+  // is independent of the browser, Node host, or a future server timezone change.
+  const occurredAtUtc = occurredAtRaw
+    ? `${occurredAtRaw}${/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(occurredAtRaw) ? ":00" : ""}Z`
+    : null;
+  const occurredAt = occurredAtUtc ? new Date(occurredAtUtc) : new Date();
+  if (Number.isNaN(occurredAt.getTime())) throw new Error("Enter a valid refund event date.");
+  const deal = await prisma.closedDeal.findUniqueOrThrow({
+    where: { id: closedDealId },
+    select: { partnerId: true, currency: true },
+  });
   const refundCents = toMinorUnits(safeNonNegative(formData.get("amount"), "refund amount", 1e10), deal.currency);
   const seatsRefunded = Math.round(safeNonNegative(formData.get("seatsRefunded"), "refunded seat count", 100000));
 
-  const priorAgg = await prisma.refundEvent.aggregate({ where: { closedDealId }, _sum: { amountCents: true } });
-  const priorRefunded = priorAgg._sum.amountCents ?? 0;
-  const cumulativeRefunded = Math.min(priorRefunded + refundCents, deal.netReceiptsCents);
-  const fullRefund = cumulativeRefunded >= deal.netReceiptsCents && deal.netReceiptsCents > 0;
-  const now = new Date();
-  const withinWindow = now.getTime() <= clawbackWindowEnd(deal.signedAt ?? deal.createdAt, cfg).getTime();
-
-  let incrementalReversed = 0;
-
-  await prisma.$transaction(async (tx) => {
-    for (const c of deal.commissions) {
-      const target = proportionalReversalCents(c.amountCents, cumulativeRefunded, deal.netReceiptsCents);
-      if (target === c.reversedCents) continue;
-      incrementalReversed += target - c.reversedCents;
-      await tx.commissionEntry.update({
-        where: { id: c.id },
-        data: {
-          reversedCents: target,
-          status: target >= c.amountCents ? "REVERSED" : c.status === "REVERSED" ? "ACCRUED" : c.status,
-          note: `Reversed ${target}/${c.amountCents} (${type})`,
-        },
-      });
-    }
-
-    // A refunded/cancelled seat does not count toward any target, tier or bonus.
-    if (fullRefund) {
-      await tx.seatRecord.updateMany({ where: { closedDealId, status: "PAID_COLLECTED" }, data: { status: "REFUNDED" } });
-    } else if (seatsRefunded > 0) {
-      let remaining = seatsRefunded;
-      const paidSeats = await tx.seatRecord.findMany({ where: { closedDealId, status: "PAID_COLLECTED" }, orderBy: { createdAt: "asc" } });
-      for (const s of paidSeats) {
-        if (remaining <= 0) break;
-        if (remaining >= s.count) {
-          await tx.seatRecord.update({ where: { id: s.id }, data: { status: "REFUNDED" } });
-          remaining -= s.count;
-        } else {
-          await tx.seatRecord.update({ where: { id: s.id }, data: { count: s.count - remaining } });
-          await tx.seatRecord.create({ data: { closedDealId, count: remaining, status: "REFUNDED", industryOrRegion: s.industryOrRegion, sourcedByPartner: s.sourcedByPartner } });
-          remaining = 0;
-        }
-      }
-    }
-
-    await tx.refundEvent.create({ data: { closedDealId, type, amountCents: refundCents, reversedCommissionCents: incrementalReversed, withinWindow } });
-    await tx.auditLog.create({
-      data: {
-        actorId: admin.id,
-        actorRole: admin.role,
-        action: "REFUND_APPLIED",
-        entity: "ClosedDeal",
-        entityId: closedDealId,
-        changes: { after: { type, refundCents, cumulativeRefunded, incrementalReversed, withinWindow, fullRefund, seatsRefunded } },
-      },
-    });
+  await applyRefundAtomically(prisma, {
+    closedDealId,
+    type,
+    amountCents: refundCents,
+    seatsRefunded,
+    sourceReference,
+    actor: { id: admin.id, role: admin.role },
+    occurredAt,
+    note: String(formData.get("note") ?? "").trim() || null,
   });
 
   safeRevalidatePath(`/admin/partners/${deal.partnerId}`);
@@ -1573,16 +1705,17 @@ export async function updatePartnerProfileAdmin(formData: FormData) {
 export async function deletePartner(formData: FormData) {
   const admin = await requireSuperAdmin();
   const partnerId = String(formData.get("partnerId") ?? "");
-  const partner = await prisma.partner.findUniqueOrThrow({
-    where: { id: partnerId },
-    include: { _count: { select: { closedDeals: true, commissions: true } } },
-  });
-  if (partner._count.closedDeals > 0 || partner._count.commissions > 0) {
-    throw new Error(
-      "This partner has recorded financial history (closed deals or commissions) and cannot be deleted. Deactivate or terminate instead.",
-    );
-  }
   await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw(Prisma.sql`SELECT "id" FROM "Partner" WHERE "id" = ${partnerId} FOR UPDATE`);
+    const partner = await tx.partner.findUniqueOrThrow({
+      where: { id: partnerId },
+      include: { _count: { select: { closedDeals: true, commissions: true } } },
+    });
+    if (partner._count.closedDeals > 0 || partner._count.commissions > 0) {
+      throw new Error(
+        "This partner has recorded financial history (closed deals or commissions) and cannot be deleted. Deactivate or terminate instead.",
+      );
+    }
     if (partner.userId) {
       const user = await tx.user.findUnique({ where: { id: partner.userId }, select: { role: true } });
       if (user?.role === "PARTNER") {
@@ -1606,32 +1739,29 @@ export async function deletePartner(formData: FormData) {
 }
 
 /**
- * FORCE delete a partner INCLUDING its financial history (closed deals,
- * commissions, seats, refunds). This destroys the audit trail and is
- * irreversible; the UI requires a checkbox acknowledgement plus two confirmation
- * dialogs, and the server re-checks the acknowledgement. Super-admin only.
+ * FORCE delete a partner's non-financial records. Once a closed deal or
+ * commission exists the ledger is immutable and even this path is blocked.
  */
 export async function forceDeletePartner(formData: FormData) {
   const admin = await requireSuperAdmin();
   const partnerId = String(formData.get("partnerId") ?? "");
   if (String(formData.get("acknowledge") ?? "") !== "on") {
-    throw new Error("You must acknowledge that this also permanently deletes all financial history.");
+    throw new Error("You must acknowledge that this permanently deletes the partner's non-financial records.");
   }
-  const partner = await prisma.partner.findUniqueOrThrow({ where: { id: partnerId } });
   await prisma.$transaction(async (tx) => {
-    // Clear every RESTRICT-protected record before the deals and the partner.
-    // CommissionEntry has a RESTRICT link to Partner; TenXOpsEngagement and
-    // QualityFlag each have a RESTRICT link to ClosedDeal, so they must be removed
-    // before the deals or the deal delete throws a foreign-key error. We key each
-    // delete on both the partner AND the partner's deal ids, so a record attached
-    // via the deal (not the partner) is still cleared. Deleting the deals then
-    // cascades their seats and refunds; deleting the partner cascades the rest
-    // (registrations, accounts, config, academy progress, notifications, and more).
-    const dealIds = (await tx.closedDeal.findMany({ where: { partnerId }, select: { id: true } })).map((d) => d.id);
-    await tx.commissionEntry.deleteMany({ where: { OR: [{ partnerId }, { closedDealId: { in: dealIds } }] } });
-    await tx.tenXOpsEngagement.deleteMany({ where: { OR: [{ partnerId }, { closedDealId: { in: dealIds } }] } });
-    await tx.qualityFlag.deleteMany({ where: { OR: [{ partnerId }, { closedDealId: { in: dealIds } }] } });
-    await tx.closedDeal.deleteMany({ where: { partnerId } });
+    // Lock the parent before the in-transaction count. A concurrent deal/line
+    // insert needs a foreign-key key-share lock and therefore cannot slip between
+    // this check and deletion. Financial rows are never explicitly deleted here.
+    await tx.$queryRaw(Prisma.sql`SELECT "id" FROM "Partner" WHERE "id" = ${partnerId} FOR UPDATE`);
+    const partner = await tx.partner.findUniqueOrThrow({
+      where: { id: partnerId },
+      include: { _count: { select: { closedDeals: true, commissions: true } } },
+    });
+    if (partner._count.closedDeals > 0 || partner._count.commissions > 0) {
+      throw new Error(
+        "This partner has immutable financial history and cannot be force-deleted. Terminate the partner instead.",
+      );
+    }
     if (partner.userId) {
       const user = await tx.user.findUnique({ where: { id: partner.userId }, select: { role: true } });
       if (user?.role === "PARTNER") {
@@ -1648,7 +1778,7 @@ export async function forceDeletePartner(formData: FormData) {
         entityId: partnerId,
         changes: {
           before: { displayName: partner.displayName, contactEmail: partner.contactEmail, status: partner.status },
-          after: { forcedDeletionWithFinancialHistory: true },
+          after: { forcedDeletionWithFinancialHistory: false },
         },
       },
     });

@@ -26,16 +26,19 @@ export const PARTNER_VIEW_COOKIE = "tenx_view_partner";
 export async function getSessionPartner(): Promise<{ user: SessionUser; partner: Partner } | null> {
   const session = await auth();
   if (!session?.user?.id) return null;
-  const partner = await prisma.partner.findUnique({ where: { userId: session.user.id } });
-  if (!partner) return null;
+  const account = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { id: true, email: true, name: true, role: true, isActive: true, partner: true },
+  });
+  if (!account?.isActive || account.role !== "PARTNER" || !account.partner) return null;
   return {
     user: {
-      id: session.user.id,
-      email: session.user.email ?? null,
-      name: session.user.name ?? null,
-      role: session.user.role,
+      id: account.id,
+      email: account.email,
+      name: account.name,
+      role: account.role,
     },
-    partner,
+    partner: account.partner,
   };
 }
 
@@ -49,7 +52,7 @@ export async function getCurrentPartner(): Promise<
 > {
   const session = await auth();
   if (!session?.user?.id) return null;
-  if (isSuperAdmin(session.user.email)) {
+  if (session.user.role === "ADMIN" && isSuperAdmin(session.user.email)) {
     const viewId = (await cookies()).get(PARTNER_VIEW_COOKIE)?.value;
     if (viewId) {
       const partner = await prisma.partner.findUnique({ where: { id: viewId } });

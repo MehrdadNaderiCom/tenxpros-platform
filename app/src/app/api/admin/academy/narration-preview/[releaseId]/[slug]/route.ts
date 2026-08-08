@@ -1,5 +1,4 @@
-import { auth } from "@/lib/auth";
-import { isSuperAdmin } from "@/lib/authz";
+import { requireSuperAdmin } from "@/lib/authz";
 import { parseRange } from "@/lib/academy/lesson-audio";
 import {
   resolveVersionedNarrationAsset,
@@ -24,13 +23,9 @@ export async function GET(
     };
   },
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return new Response("Unauthorized", {
-      status: 401,
-    });
-  }
-  if (!isSuperAdmin(session.user.email)) {
+  try {
+    await requireSuperAdmin();
+  } catch {
     return new Response("Forbidden", {
       status: 403,
     });

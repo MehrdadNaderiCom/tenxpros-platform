@@ -32,6 +32,7 @@ export default async function AcademyHome() {
   const resume = overview.resumeSlug ? overview.modules.find((v) => v.slug === overview.resumeSlug) ?? null : null;
   const resumeOnCooldown = Boolean(resume?.lockedUntil && resume.lockedUntil.getTime() > now);
   const finalOnCooldown = Boolean(overview.finalExam.lockedUntil && overview.finalExam.lockedUntil.getTime() > now);
+  const continueSlug = overview.lastResumeSlug ?? overview.resumeSlug;
   const nextAction = resume
     ? !resume.lessonRead
       ? { label: `Read the Module ${resume.order} lesson`, href: `/partner/academy/${resume.slug}` }
@@ -98,8 +99,10 @@ export default async function AcademyHome() {
               {overview.passedCount} of {overview.totalCount} modules passed
             </p>
           </div>
-          {overview.resumeSlug ? (
-            <ButtonLink href={`/partner/academy/${overview.resumeSlug}`}>Resume</ButtonLink>
+          {continueSlug ? (
+            <ButtonLink href={`/partner/academy/${continueSlug}`}>
+              {overview.lastResumeSlug ? "Continue where you left off" : "Resume"}
+            </ButtonLink>
           ) : null}
         </div>
         <ProgressBar value={pct} barClassName="bg-emerald-500" />

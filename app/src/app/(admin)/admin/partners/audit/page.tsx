@@ -32,7 +32,9 @@ export default async function PartnerAuditPage() {
           {entries.map((e) => (
             <TR key={e.id}>
               <Td className="whitespace-nowrap text-slate-600">{e.createdAt.toLocaleString()}</Td>
-              <Td className="text-slate-700">{e.actor?.email ?? e.actor?.name ?? (e.actorRole ?? "system")}</Td>
+              <Td className="text-slate-700">
+                {e.actor?.email ?? e.actorEmailSnapshot ?? e.actor?.name ?? e.actorNameSnapshot ?? (e.actorRole ?? "system")}
+              </Td>
               <Td>
                 {e.action.startsWith("PANEL_") ? (
                   <Badge status="APPROVED">{e.action}</Badge>

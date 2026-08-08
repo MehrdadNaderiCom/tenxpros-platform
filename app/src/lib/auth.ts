@@ -4,6 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { compare } from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { authorizeSessionToken } from "@/lib/auth/session-state";
 
 const credentialsSchema = z.object({
   email: z.string().email(),
@@ -13,7 +14,12 @@ const credentialsSchema = z.object({
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET ?? process.env.SESSION_SECRET,
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    // Database freshness below provides immediate revocation; the finite JWT
+    // lifetime additionally limits exposure if a cookie is copied and unused.
+    maxAge: 7 * 24 * 60 * 60,
+  },
   pages: {
     signIn: "/login",
   },
@@ -32,7 +38,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email: parsed.data.email.toLowerCase() },
         });
 
-        if (!user?.passwordHash) return null;
+        if (!user?.passwordHash || !user.isActive) return null;
 
         const validPassword = await compare(parsed.data.password, user.passwordHash);
         if (!validPassword) return null;
@@ -43,16 +49,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           image: user.image,
           role: user.role,
+          authVersion: user.authVersion,
+          isActive: user.isActive,
         };
       },
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
         token.name = user.name;
+        token.authVersion = user.authVersion;
+        return token;
       }
+
+      if (!token.sub) return null;
+
+      const current = await prisma.user.findUnique({
+        where: { id: token.sub },
+        select: { role: true, authVersion: true, isActive: true, name: true, email: true },
+      });
+      const decision = authorizeSessionToken(token, current);
+      if (!decision.valid) {
+        // Auth.js treats the session as invalid. Some server-only auth() calls do
+        // not forward cookie-cleanup headers, so monotonic authVersion changes are
+        // what guarantee this old cookie can never revive after reactivation.
+        return null;
+      }
+
+      token.role = decision.role;
+      token.authVersion = decision.authVersion;
+      token.name = current?.name ?? null;
+      token.email = current?.email ?? null;
       return token;
     },
     session({ session, token }) {

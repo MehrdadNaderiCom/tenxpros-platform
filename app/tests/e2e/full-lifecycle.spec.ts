@@ -125,7 +125,7 @@ async function submitPublicApplication(page: Page, fullName: string, email: stri
   await page.goto("/apply?utm_source=e2e-full&utm_medium=playwright&utm_campaign=full-lifecycle");
   await page.locator('input[name="fullName"]').fill(fullName);
   await page.locator('input[name="email"]').fill(email);
-  await page.locator('input[name="country"]').fill("United States");
+  await page.locator('select[name="country"]').selectOption("United States");
   await page.locator('input[name="phone"]').fill("+1 415 555 0100");
   await page.locator('input[name="professionalRole"]').fill("Operations Director");
   await page.locator('input[name="domain"]').fill("Professional services operations");
@@ -139,7 +139,6 @@ async function submitPublicApplication(page: Page, fullName: string, email: stri
   await page.locator('textarea[name="realProblemBrief"]').fill(
     "Our intake workflow creates duplicate review, inconsistent triage, and unclear escalation. I need a responsible AI-supported design with human oversight.",
   );
-  await page.locator('input[name="preferredLanguage"]').fill("English");
   await page.locator('input[name="consentConfidentiality"]').check();
   await page.locator('input[name="consentTerms"]').check();
 
@@ -443,7 +442,7 @@ async function verifyPublicBadge(browser: Browser, applicantName: string, verifi
   try {
     await verifyPage.goto(`/verify/${verificationCode}`);
     await expect(verifyPage.getByRole("heading", { name: /certified tenxpro capstone seal/i })).toBeVisible();
-    await expect(verifyPage.getByText(applicantName)).toBeVisible();
+    await expect(verifyPage.getByText(applicantName).first()).toBeVisible();
     await expect(verifyPage.getByText(verificationCode)).toBeVisible();
     await screenshot(verifyPage, "11-public-badge-verification-page.png", summary);
   } finally {

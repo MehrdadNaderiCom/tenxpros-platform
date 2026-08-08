@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -9,8 +9,11 @@ const KIND_MAP: Record<string, "RESUME" | "COVER_LETTER"> = {
 };
 
 export async function GET(_req: Request, { params }: { params: { id: string; kind: string } }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return new Response("Unauthorized", { status: 401 });
+  try {
+    await requireAdminUser();
+  } catch {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   const kind = KIND_MAP[params.kind];
   if (!kind) return new Response("Not found", { status: 404 });

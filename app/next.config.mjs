@@ -14,6 +14,32 @@ const nextConfig = {
     // it external (required at runtime from node_modules) rather than bundled.
     serverComponentsExternalPackages: ["mjml"],
   },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
+          },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-XSS-Protection", value: "0" },
+          {
+            key: "Permissions-Policy",
+            value:
+              'accelerometer=(), autoplay=(self), camera=(), clipboard-read=(), clipboard-write=(self), display-capture=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(self), publickey-credentials-get=(self), usb=(), fullscreen=(self "https://www.youtube-nocookie.com" "https://player.vimeo.com" "https://www.loom.com" "https://docs.google.com" "https://drive.google.com"), picture-in-picture=(self "https://www.youtube-nocookie.com" "https://player.vimeo.com" "https://www.loom.com")',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

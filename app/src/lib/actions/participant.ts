@@ -6,6 +6,11 @@ import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { assertParticipantCanEditDossierSection } from "@/lib/dossier";
 import { prisma } from "@/lib/prisma";
+import { resolveCredentialValidity } from "@/lib/credentials/status";
+import {
+  PARTICIPANT_STARTABLE_MODULE_STATUSES,
+  PARTICIPANT_SUBMITTABLE_MODULE_STATUSES,
+} from "@/lib/participant/module-transitions";
 import {
   diagnosticSchema,
   dossierSectionSchema,
@@ -18,11 +23,16 @@ import {
 async function requireParticipant() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+  if (!(["PARTICIPANT", "COACH"] as const).includes(session.user.role as "PARTICIPANT" | "COACH")) {
+    throw new Error("Participant access required.");
+  }
   const profile = await prisma.participantProfile.findUnique({
     where: { userId: session.user.id },
     include: { user: true },
   });
-  if (!profile) throw new Error("Participant profile not found.");
+  if (!profile || !profile.user.isActive || !["PARTICIPANT", "COACH"].includes(profile.user.role)) {
+    throw new Error("Participant access required.");
+  }
   return profile;
 }
 
@@ -71,18 +81,27 @@ export async function submitDiagnostic(formData: FormData) {
 export async function startModule(formData: FormData) {
   const profile = await requireParticipant();
   const participantModuleId = String(formData.get("participantModuleId") ?? "");
-  await prisma.participantModule.update({
-    where: { id: participantModuleId, participantId: profile.id },
+  const updated = await prisma.participantModule.updateMany({
+    where: {
+      id: participantModuleId,
+      participantId: profile.id,
+      status: { in: [...PARTICIPANT_STARTABLE_MODULE_STATUSES] },
+    },
     data: { status: "IN_PROGRESS", startedAt: new Date() },
   });
+  if (updated.count !== 1) throw new Error("This module cannot be started from its current state.");
   safeRevalidatePath("/portal/modules");
 }
 
 export async function submitModuleArtifact(formData: FormData) {
   const profile = await requireParticipant();
   const parsed = moduleArtifactSchema.parse(Object.fromEntries(formData));
-  await prisma.participantModule.update({
-    where: { id: parsed.participantModuleId, participantId: profile.id },
+  const updated = await prisma.participantModule.updateMany({
+    where: {
+      id: parsed.participantModuleId,
+      participantId: profile.id,
+      status: { in: [...PARTICIPANT_SUBMITTABLE_MODULE_STATUSES] },
+    },
     data: {
       artifactContent: parsed.artifactContent,
       artifactUrl: parsed.artifactUrl || null,
@@ -90,6 +109,9 @@ export async function submitModuleArtifact(formData: FormData) {
       submittedAt: new Date(),
     },
   });
+  if (updated.count !== 1) {
+    throw new Error("This module is not open for participant submission.");
+  }
   safeRevalidatePath("/portal/modules");
   safeRevalidatePath(`/portal/modules/${parsed.participantModuleId}`);
 }
@@ -223,30 +245,82 @@ export async function updateDirectoryProfile(formData: FormData) {
   if (!parsed.success) throw new Error(parsed.error.issues[0]?.message ?? "Please check the profile fields.");
   const { displayName, title, domain, location, bio, linkedinUrl, websiteUrl } = parsed.data;
   const slug = displayName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-  await prisma.directoryProfile.upsert({
-    where: { userId: profile.userId },
-    update: {
-      displayName,
-      title,
-      domain,
-      bio,
-      location,
-      linkedinUrl: linkedinUrl || null,
-      websiteUrl: websiteUrl || null,
-      isPublic: formData.get("isPublic") === "on",
-    },
-    create: {
-      userId: profile.userId,
-      slug: `${slug}-${profile.id.slice(0, 6)}`,
-      displayName,
-      title,
-      domain,
-      bio,
-      location,
-      linkedinUrl: linkedinUrl || null,
-      websiteUrl: websiteUrl || null,
-      isPublic: formData.get("isPublic") === "on",
-    },
+  const wantsPublic = formData.get("isPublic") === "on";
+  await prisma.$transaction(async (tx) => {
+    if (wantsPublic) {
+      // Serialize with decideCertification(), whose review upsert takes the
+      // same row lock before it revokes the badge and hides the directory.
+      // This prevents a participant publish racing a certification downgrade.
+      await tx.$queryRaw`SELECT "id" FROM "CertificationReview" WHERE "participantId" = ${profile.id} FOR UPDATE`;
+      const certification = await tx.certificationReview.findUnique({
+        where: { participantId: profile.id },
+        select: { id: true, outcome: true },
+      });
+      const capstone = await tx.participantBadge.findFirst({
+        where: {
+          userId: profile.userId,
+          badge: { slug: "capstone-certified-tenxpro-seal" },
+        },
+        include: { badge: true },
+      });
+      const validity =
+        capstone && certification
+          ? resolveCredentialValidity({
+              storedStatus: capstone.status,
+              expiresAt: capstone.expiresAt,
+              badgeIsActive: capstone.badge.isActive,
+              badgeCategory: capstone.badge.category,
+              contextRef: capstone.contextRef,
+              certification,
+            })
+          : "REVOKED";
+      if (validity !== "ACTIVE") {
+        throw new Error("Only participants with an active certification can publish a directory profile.");
+      }
+    }
+
+    const before = await tx.directoryProfile.findUnique({
+      where: { userId: profile.userId },
+      select: { isPublic: true },
+    });
+    const directory = await tx.directoryProfile.upsert({
+      where: { userId: profile.userId },
+      update: {
+        displayName,
+        title,
+        domain,
+        bio,
+        location,
+        linkedinUrl: linkedinUrl || null,
+        websiteUrl: websiteUrl || null,
+        isPublic: wantsPublic,
+      },
+      create: {
+        userId: profile.userId,
+        slug: `${slug}-${profile.id.slice(0, 6)}`,
+        displayName,
+        title,
+        domain,
+        bio,
+        location,
+        linkedinUrl: linkedinUrl || null,
+        websiteUrl: websiteUrl || null,
+        isPublic: wantsPublic,
+      },
+    });
+    await tx.auditLog.create({
+      data: {
+        actorId: profile.userId,
+        actorRole: profile.user.role,
+        action: "DIRECTORY_PROFILE_UPDATED",
+        entity: "DirectoryProfile",
+        entityId: directory.id,
+        changes: {
+          before: { isPublic: before?.isPublic ?? false },
+          after: { isPublic: wantsPublic },
+        },
+      },
+    });
   });
   safeRevalidatePath("/portal/profile");
 }

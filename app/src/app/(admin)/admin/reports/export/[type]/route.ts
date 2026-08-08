@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +16,11 @@ function toCsv(headers: string[], rows: Array<Array<unknown>>): string {
 }
 
 export async function GET(_req: Request, { params }: { params: { type: string } }) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") return new Response("Unauthorized", { status: 401 });
+  try {
+    await requireAdminUser();
+  } catch {
+    return new Response("Unauthorized", { status: 401 });
+  }
 
   const type = params.type;
   if (!(ALLOWED as readonly string[]).includes(type)) return new Response("Not found", { status: 404 });

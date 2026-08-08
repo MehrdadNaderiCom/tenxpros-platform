@@ -30,6 +30,7 @@ export function PortalNav({ name }: { name?: string | null }) {
             <Link
               key={href}
               href={href}
+              prefetch={false}
               className="rounded-md px-3 py-2 text-slate-700 hover:bg-navy-50 hover:text-navy-900"
             >
               {label}

@@ -175,8 +175,9 @@ const groups = [
       {
         key: "ADMIN_EMAIL",
         visibility: "secret-operational",
-        required: ["production"],
-        description: "Admin email for controlled bootstrap only.",
+        required: [],
+        description:
+          "Optional admin identity for an explicitly invoked bootstrap; it is not a runtime dependency.",
         validate(value, mode) {
           if (!value.includes("@")) return fail("must be an email address");
           if (mode === "production" && /test|example/i.test(value)) return fail("must use a real production admin email");
@@ -186,8 +187,9 @@ const groups = [
       {
         key: "ADMIN_PASSWORD",
         visibility: "secret",
-        required: ["production"],
-        description: "Strong temporary admin bootstrap password. Rotate after use.",
+        required: [],
+        description:
+          "Optional input for an explicitly invoked bootstrap; do not keep it in the runtime environment.",
         validate(value) {
           if (looksPlaceholder(value)) return fail("looks like a placeholder");
           return value.length >= 16 ? ok() : fail("must be at least 16 characters");

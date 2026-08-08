@@ -149,7 +149,8 @@ describe("marketing security gating (source regression)", () => {
   });
 
   it("the marketing layout 404s for non-super admins", () => {
-    expect(layout).toContain("isSuperAdmin");
+    expect(layout).toContain("requireSuperAdmin");
+    expect(layout).toContain("await requireSuperAdmin()");
     expect(layout).toContain("notFound()");
   });
 

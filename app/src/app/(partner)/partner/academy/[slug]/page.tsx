@@ -4,6 +4,8 @@ import { getModuleForLesson } from "@/lib/academy/queries";
 import { markLessonRead } from "@/lib/actions/academy";
 import { EXERCISE_MAX_ATTEMPTS } from "@/lib/academy/engine";
 import { AudioReader } from "@/components/academy/audio-reader";
+import { AcademyFollowAlongProvider } from "@/components/academy/follow-along-context";
+import { AcademyChapterNavigator } from "@/components/academy/chapter-navigator";
 import { LessonReader } from "@/components/academy/lesson-reader";
 import { TelemetryBeacon } from "@/components/academy/telemetry-beacon";
 import { sanitizeLessonHtml } from "@/lib/academy/lesson-html";
@@ -13,6 +15,17 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { formatUtcDateTime } from "@/lib/utils";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/shared/page-shell";
+import {
+  academyAudioResumeShadowScope,
+  academyReadingContentKey,
+  getAcademyLessonResumeSnapshot,
+  type AcademyLessonResumeSnapshot,
+} from "@/lib/academy/resume-server";
+import {
+  academyChapterExerciseGroups,
+  compatibleAcademyChapterPlan,
+} from "@/lib/academy/chapter-plans";
+import { visibleLessonContentHash } from "@/lib/academy/narration-release";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +66,53 @@ export default async function LessonPage({ params }: { params: { slug: string } 
   const lesson = m.lessons[0];
   const lessonHtml = lesson?.bodyHtml ? sanitizeLessonHtml(lesson.bodyHtml) : null;
   const paragraphs = lesson ? lesson.body.split("\n\n") : [];
+  const contentCompatibleChapterPlan = lesson?.bodyHtml
+    ? compatibleAcademyChapterPlan({
+        moduleSlug: m.slug,
+        moduleOrder: m.order,
+        contentHash: visibleLessonContentHash(
+          lesson.bodyHtml,
+        ),
+      })
+    : null;
+  const compatibleChapterExerciseGroups = contentCompatibleChapterPlan
+    ? academyChapterExerciseGroups(
+        contentCompatibleChapterPlan,
+        m.questions,
+      )
+    : null;
+  const chapterPlan = compatibleChapterExerciseGroups
+    ? contentCompatibleChapterPlan
+    : null;
+  const chapterExerciseGroups = chapterPlan
+    ? compatibleChapterExerciseGroups
+    : null;
+  const resumeEndpoint = `/api/partner/academy/resume/${encodeURIComponent(m.slug)}`;
+  const lessonResume: AcademyLessonResumeSnapshot | null = lesson
+    ? preview
+      ? {
+          reading: {
+            contentKey: academyReadingContentKey(lesson),
+            blockKey: null,
+            blockIndex: null,
+            offsetRatio: null,
+            progressPct: null,
+            revision: 0,
+          },
+          audio: {
+            resumeKey: null,
+            positionSeconds: null,
+            durationSeconds: null,
+            updatedAt: null,
+            revision: 0,
+          },
+        }
+      : await getAcademyLessonResumeSnapshot({
+          userId: current.user.id,
+          partnerId: current.partner.id,
+          lesson,
+        })
+    : null;
 
   // Exercise completion from recorded attempts.
   const byQuestion = new Map<string, { count: number; anyCorrect: boolean }>();
@@ -79,7 +139,13 @@ export default async function LessonPage({ params }: { params: { slug: string } 
   const steps: Array<{ label: string; done: boolean; active: boolean }> = m.isInformational
     ? []
     : [
-        { label: "Read the lesson", done: lessonRead, active: !lessonRead },
+        {
+          label: chapterPlan
+            ? `Read all ${chapterPlan.chapters.length} parts`
+            : "Read the lesson",
+          done: lessonRead,
+          active: !lessonRead,
+        },
         { label: `Work the ${m.questions.length} exercises`, done: exercisesDone, active: lessonRead && !exercisesDone },
         {
           label: `Pass the exam (${neededCorrect} of ${m.examSize} correct)`,
@@ -92,10 +158,12 @@ export default async function LessonPage({ params }: { params: { slug: string } 
     <div className="space-y-8">
       <TelemetryBeacon slug={m.slug} disabled={preview} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <PageHeader
-          title={m.title}
-          description={`${m.isInformational ? "Reference" : `Module ${m.order}`} ${String.fromCharCode(183)} ${m.summary}`}
-        />
+        <div data-academy-narration-title>
+          <PageHeader
+            title={m.title}
+            description={`${m.isInformational ? "Reference" : `Module ${m.order}`} ${String.fromCharCode(183)} ${m.summary}`}
+          />
+        </div>
         <ButtonLink href="/partner/academy" variant="secondary" size="sm">All modules</ButtonLink>
       </div>
 
@@ -144,22 +212,60 @@ export default async function LessonPage({ params }: { params: { slug: string } 
         </Card>
       ) : null}
 
-      <AudioReader slug={m.slug} text={lesson?.audioText ?? ""} title={m.title} />
-
-      <Card>
-        <LessonReader paragraphs={paragraphs} html={lessonHtml} />
-        {!preview && !lessonRead ? (
-          <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
-            <input type="hidden" name="slug" value={m.slug} />
-            <p className="mb-3 text-sm text-slate-600">When you have read the full lesson, mark it complete to open the exercises and the module exam.</p>
-            <Button type="submit">I have read this lesson</Button>
-          </form>
-        ) : lessonRead ? (
-          <p className="mt-6 border-t border-neutral-200 pt-5 text-sm font-medium text-emerald-700">
-            Lesson read.{!m.isInformational && !examPassed ? " Next: work the exercises below, then pass the module exam." : ""}
-          </p>
+      <AcademyFollowAlongProvider>
+        {chapterPlan ? (
+          <AcademyChapterNavigator plan={chapterPlan} />
         ) : null}
-      </Card>
+
+        {lessonResume ? (
+          <AudioReader
+            key={`audio-${lesson?.id ?? m.id}`}
+            slug={m.slug}
+            title={m.title}
+            resume={lessonResume.audio}
+            resumeEndpoint={resumeEndpoint}
+            resumeShadowScope={
+              lesson
+                ? academyAudioResumeShadowScope({
+                    userId: current.user.id,
+                    partnerId: current.partner.id,
+                    lessonId: lesson.id,
+                  })
+                : null
+            }
+            resumeEnabled={!preview}
+          />
+        ) : null}
+
+        <Card>
+          {lessonResume ? (
+            <LessonReader
+              key={`reading-${lesson?.id ?? m.id}`}
+              paragraphs={paragraphs}
+              html={lessonHtml}
+              resume={lessonResume.reading}
+              resumeEndpoint={resumeEndpoint}
+              resumeEnabled={!preview}
+              chapterPlan={chapterPlan}
+            />
+          ) : null}
+          {!preview && !lessonRead ? (
+            <form action={markLessonRead} className="mt-6 border-t border-neutral-200 pt-5">
+              <input type="hidden" name="slug" value={m.slug} />
+              <p className="mb-3 text-sm text-slate-600">
+                {chapterPlan
+                  ? `When you have read all ${chapterPlan.chapters.length} parts, mark the lesson complete. The part reviews below prepare you for the module exam.`
+                  : "When you have read the full lesson, mark it complete to open the exercises and the module exam."}
+              </p>
+              <Button type="submit">I have read this lesson</Button>
+            </form>
+          ) : lessonRead ? (
+            <p className="mt-6 border-t border-neutral-200 pt-5 text-sm font-medium text-emerald-700">
+              Lesson read.{!m.isInformational && !examPassed ? " Next: work the exercises below, then pass the module exam." : ""}
+            </p>
+          ) : null}
+        </Card>
+      </AcademyFollowAlongProvider>
 
       {m.isInformational ? (
         <Card>
@@ -170,9 +276,13 @@ export default async function LessonPage({ params }: { params: { slug: string } 
       ) : (
         <>
           <section className="space-y-4">
-            <h2 className="text-xl font-semibold text-navy-900">Exercises</h2>
+            <h2 className="text-xl font-semibold text-navy-900">
+              {chapterExerciseGroups ? "Part reviews" : "Exercises"}
+            </h2>
             <p className="text-sm text-slate-600">
-              Each exercise gives {EXERCISE_MAX_ATTEMPTS} attempts. They teach, they never block: after the final attempt the answer and explanation are shown so you can move on.
+              {chapterExerciseGroups
+                ? `Each part has a short, focused review. Every question gives ${EXERCISE_MAX_ATTEMPTS} attempts; after the final attempt, the answer and explanation are shown so you can keep moving.`
+                : `Each exercise gives ${EXERCISE_MAX_ATTEMPTS} attempts. They teach, they never block: after the final attempt the answer and explanation are shown so you can move on.`}
             </p>
             {preview ? (
               <Card><p className="text-sm text-slate-500">Exercises are interactive for partners. They are not available in admin preview.</p></Card>
@@ -184,6 +294,7 @@ export default async function LessonPage({ params }: { params: { slug: string } 
                 examCooldownUntilLabel={examCooldownUntilLabel}
                 questions={m.questions.map((q) => ({ id: q.id, stem: q.stem, options: q.options as string[] }))}
                 initialCompletedIds={m.questions.filter((q) => isCompleted(q.id)).map((q) => q.id)}
+                groups={chapterExerciseGroups}
               />
             )}
           </section>

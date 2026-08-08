@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { PartnerNav } from "@/components/shared/partner-nav";
 import { AdminPreviewBanner } from "@/components/shared/admin-preview-banner";
 import { StartHereBanner } from "@/components/partner/start-here";
+import { FreshAuthorizationBoundary } from "@/components/auth/fresh-authorization-boundary";
 
 export const dynamic = "force-dynamic";
 
@@ -26,18 +27,20 @@ export default async function PartnerLayout({ children }: { children: React.Reac
   });
 
   return (
-    <div className="min-h-screen bg-neutral-50 md:flex">
-      <PartnerNav name={current.partner.displayName} status={current.partner.status} unread={unread} />
-      <main className="w-full px-6 py-8 md:px-8">
-        {current.preview ? <AdminPreviewBanner name={current.partner.displayName} /> : null}
-        {!readiness.ready ? (
-          <StartHereBanner
-            academyComplete={readiness.academyComplete}
-            onboardingComplete={readiness.onboardingComplete}
-          />
-        ) : null}
-        {children}
-      </main>
-    </div>
+    <FreshAuthorizationBoundary surface="partner">
+      <div className="min-h-screen bg-neutral-50 md:flex">
+        <PartnerNav name={current.partner.displayName} status={current.partner.status} unread={unread} />
+        <main className="w-full px-6 py-8 md:px-8">
+          {current.preview ? <AdminPreviewBanner name={current.partner.displayName} /> : null}
+          {!readiness.ready ? (
+            <StartHereBanner
+              academyComplete={readiness.academyComplete}
+              onboardingComplete={readiness.onboardingComplete}
+            />
+          ) : null}
+          {children}
+        </main>
+      </div>
+    </FreshAuthorizationBoundary>
   );
 }

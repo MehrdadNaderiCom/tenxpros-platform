@@ -1,10 +1,13 @@
-import type { Metadata } from "next";
 import { PageHeader } from "@/components/shared/page-shell";
 import { Card } from "@/components/ui/card";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Refund Policy",
-};
+  description:
+    "How refund requests are reviewed for accepted applicants who pay to enroll in the selective TenXPros 100-day program.",
+  path: "/refund",
+});
 
 const sections = [
   ["Apply first, pay only after acceptance", "Applying does not create enrollment or a payment obligation. TenXPros reviews each application before sending any payment instructions."],

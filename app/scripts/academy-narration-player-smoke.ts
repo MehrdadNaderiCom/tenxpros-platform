@@ -155,13 +155,11 @@ async function main() {
         waitUntil: "networkidle",
       },
     );
-    await page
-      .getByText(expectedVoiceLabel, {
-        exact: true,
-      })
-      .waitFor();
+    await page.locator("audio").waitFor({
+      state: "attached",
+    });
     const migrated =
-      await page.evaluate(() => ({
+      await page.evaluate((voiceLabel) => ({
         voice:
           window.localStorage.getItem(
             "txp-narration-voice",
@@ -191,7 +189,11 @@ async function main() {
         audioPresent:
           document.querySelector("audio") !==
           null,
-      }));
+        productionVoiceTextPresent:
+          document.body.innerText.includes(
+            voiceLabel,
+          ),
+      }), expectedVoiceLabel);
     const speed = page.getByLabel("Speed");
     await speed.selectOption("1.5");
     await page.reload({
@@ -234,6 +236,7 @@ async function main() {
       Boolean(migrated.marker) &&
       migrated.voiceSelectCount === 0 &&
       migrated.audioPresent &&
+      !migrated.productionVoiceTextPresent &&
       afterDeliberateChoice.voice ===
         expectedVoiceId &&
       afterDeliberateChoice.rate ===

@@ -122,8 +122,7 @@ describe("versioned Academy narration release", () => {
     expect(statusRoute).toContain('releaseMode: "legacy"');
     expect(bytesRoute).toContain('source: "legacy"');
     expect(bytesRoute).toContain('source: "versioned"');
-    expect(previewRoute).toContain("isSuperAdmin");
-    expect(previewRoute).toContain("status: 401");
+    expect(previewRoute).toContain("requireSuperAdmin");
     expect(previewRoute).toContain("status: 403");
     expect(previewRoute).toContain("status: 206");
     expect(previewRoute).toContain("status: 416");

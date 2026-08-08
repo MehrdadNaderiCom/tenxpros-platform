@@ -60,7 +60,7 @@ function SectionShell({ children, className }: { children: React.ReactNode; clas
 
 /* ------------------------------------------------------------------ 1. Hero */
 
-const HERO_TRUST = ["12 guided weeks", "4 phases", "1 reviewed dossier"];
+const HERO_TRUST = ["100-day journey", "12 guided learning weeks", "1 reviewed dossier"];
 
 export function ProgramHero() {
   return (
@@ -76,9 +76,9 @@ export function ProgramHero() {
             Frame. Design. Prove. Foresee.
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-300 sm:mt-6 sm:text-lg">
-            A 12-week applied path for experienced professionals. Build practical AI judgment: find
-            where AI belongs in your field, design responsibly, prove the value, and assemble a
-            reviewed Living AI Solution Dossier.
+            A 100-day applied journey for experienced professionals, built around a 12-week guided
+            learning path. Build practical AI judgment: find where AI belongs in your field, design
+            responsibly, prove the value, and assemble a reviewed Living AI Solution Dossier.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <ButtonLink href="/apply" size="lg" className={PRIMARY_CTA}>
@@ -115,7 +115,7 @@ export function ProgramHero() {
           <div className="w-full rounded-2xl border border-white/10 bg-[#0B1120] p-6 shadow-2xl shadow-black/40 sm:p-7">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <MonoLabel className="text-slate-300">The TenX Method</MonoLabel>
-              <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">12 weeks</span>
+              <span className="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-slate-500">100 days</span>
             </div>
             <ul className="pt-2">
               {PHASES.map((p, index) => (
@@ -200,8 +200,8 @@ export function ProgramPhases() {
 /* --------------------------------------------------- 3b. Format & commitment */
 
 const FORMAT: Array<[string, string]> = [
-  ["Duration", "12 guided weeks"],
-  ["Structure", "11 core modules + final dossier & capstone review"],
+  ["Duration", "100-day journey"],
+  ["Structure", "12 guided learning weeks · 11 core modules + final dossier & capstone review"],
   ["Built for", "Working professionals"],
   ["Weekly commitment", "Approximately 3-5 hours per week"],
   ["Format", "Async-first"],
@@ -245,10 +245,10 @@ export function ProgramModules() {
           The guided path.
         </h2>
         <p className="mt-5 text-lg leading-relaxed text-slate-300">
-          12 guided weeks across 4 phases: 11 core modules plus a final dossier and capstone review.
-          The early weeks build AI orientation and problem discovery; later weeks move into
-          responsible design, proof, and foresight. Each module carries a guiding question and a
-          milestone badge, and moves the dossier forward.
+          The 100-day journey is anchored by 12 guided learning weeks across 4 phases: 11 core
+          modules plus a final dossier and capstone review. The early weeks build AI orientation and
+          problem discovery; later weeks move into responsible design, proof, and foresight. Each
+          module carries a guiding question and a milestone badge, and moves the dossier forward.
         </p>
       </div>
 
@@ -326,7 +326,7 @@ const ASSETS: Array<[string, string]> = [
   ["AI Evaluation Rubric & Test Set", "How you measure whether it actually works."],
   ["Custom Assistants & AI Workflows", "The working system, not a demo."],
   ["AI Value & Economics Case", "The evidence that it is worth doing."],
-  ["Final Portfolio & 90-Day Roadmap", "What you ship next, and how you lead it."],
+  ["Final Portfolio & 100-Day Roadmap", "What you ship next, and how you lead it."],
 ];
 
 export function ProgramAssets() {

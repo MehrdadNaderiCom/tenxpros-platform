@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
-import { isSuperAdmin } from "@/lib/authz";
+import { requireSuperAdmin } from "@/lib/authz";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -96,8 +95,11 @@ export default async function PlaybookPage({
 }) {
   // The layout also gates this, but the page does seed writes, never run them
   // for a non-super admin.
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN" || !isSuperAdmin(session.user.email)) notFound();
+  try {
+    await requireSuperAdmin();
+  } catch {
+    notFound();
+  }
 
   await ensureSeeded();
   const [categories, templates, activeCampaign] = await Promise.all([

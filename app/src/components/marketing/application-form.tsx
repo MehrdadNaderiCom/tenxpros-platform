@@ -215,7 +215,7 @@ export function ApplicationForm() {
             <Field
               label="Weekly availability"
               error={errors.timeAvailability?.message}
-              hint="Hours per week you can commit to the 12-week program, including sessions and your own work."
+              hint="Hours per week you can commit to the 12-week guided core of the 100-day journey, including sessions and your own work."
             >
               <Select {...register("timeAvailability")} defaultValue="">
                 <option value="" disabled>
@@ -232,7 +232,7 @@ export function ApplicationForm() {
         </section>
 
         <Field
-          label="What would make these 12 weeks professionally valuable for you?"
+          label="What would make this 100-day journey professionally valuable for you?"
           error={errors.whyTenXPros?.message}
           description="A rough direction is enough, a few sentences. You do not need a finished AI idea or solution."
         >

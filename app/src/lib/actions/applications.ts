@@ -1,5 +1,6 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { hash } from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -31,6 +32,22 @@ import {
   type ResolvedPaymentTerms,
 } from "@/lib/payment-terms";
 import { dossierSections, pricingTiers } from "@/lib/program-data";
+
+const EXISTING_APPLICATION_MESSAGE =
+  "An active application already exists for this email. Please log in or wait for review.";
+
+function existingApplicationResult() {
+  return { ok: false, message: EXISTING_APPLICATION_MESSAGE } as const;
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  );
+}
 
 export async function submitApplication(formData: FormData) {
   const text = (name: string) => {
@@ -89,83 +106,139 @@ export async function submitApplication(formData: FormData) {
       return { ok: false, message: "Resume must be a valid PDF file." };
     }
   }
-  const existing = await prisma.application.findFirst({
-    where: {
-      email: data.email,
-      status: { notIn: ["REVISE_AND_REAPPLY", "NOT_ACCEPTED"] },
-    },
-    select: { id: true, status: true },
-  });
+  const submission = await prisma
+    .$transaction(async (tx) => {
+      const recordBlockedAttempt = () =>
+        tx.siteEvent.create({
+          data: {
+            userId: null,
+            eventType: "APPLICATION_SUBMISSION_BLOCKED",
+            eventData: {
+              reason: "EXISTING_IDENTITY_OR_APPLICATION",
+              emailHash: createHash("sha256").update(data.email.trim().toLowerCase()).digest("hex"),
+            },
+            url: data.landingPage,
+            referrer: data.referrerUrl,
+          },
+        });
+      // Preserve the historical email-level guard, including legacy records whose
+      // Application email may no longer match the linked User email.
+      const activeApplication = await tx.application.findFirst({
+        where: {
+          email: data.email,
+          status: { notIn: ["REVISE_AND_REAPPLY", "NOT_ACCEPTED"] },
+        },
+        select: { id: true },
+      });
+      if (activeApplication) {
+        await recordBlockedAttempt();
+        return { kind: "blocked" } as const;
+      }
 
-  if (existing) {
-    return {
-      ok: false,
-      message: "An active application already exists for this email. Please log in or wait for review.",
-    };
-  }
+      // A public form cannot prove ownership of an existing email address. Reject
+      // every existing identity, including a bare APPLICANT, and require that
+      // person to sign in or contact support. This prevents both role mutation and
+      // attaching attacker-controlled application data to somebody else's account.
+      // Every role receives the same response, so the form does not enumerate it.
+      const existingUser = await tx.user.findUnique({
+        where: { email: data.email },
+        select: { id: true },
+      });
+      if (existingUser) {
+        await recordBlockedAttempt();
+        return { kind: "blocked" } as const;
+      }
 
-  const activeTier = await prisma.pricingTier.findFirst({ where: { isActive: true } });
+      const user = await tx.user.create({
+        data: { email: data.email, name: data.fullName, role: "APPLICANT" },
+        select: { id: true, role: true },
+      });
+      const activeTier = await tx.pricingTier.findFirst({ where: { isActive: true } });
 
-  const application = await prisma.$transaction(async (tx) => {
-    const user = await tx.user.upsert({
-      where: { email: data.email },
-      update: { name: data.fullName, role: "APPLICANT" },
-      create: { email: data.email, name: data.fullName, role: "APPLICANT" },
-    });
-
-    const created = await tx.application.create({
-      data: {
-        userId: user.id,
-        fullName: data.fullName,
-        email: data.email,
-        country: data.country,
-        professionalRole: data.professionalRole,
-        domain: data.domain,
-        phone: data.phone,
-        linkedinUrl: data.linkedinUrl || undefined,
-        aiExperience: data.aiExperience,
-        whyTenXPros: data.whyTenXPros,
-        realProblemBrief: data.realProblemBrief,
-        dataSensitivity: data.dataSensitivity,
-        timeAvailability: data.timeAvailability,
-        preferredLanguage: data.preferredLanguage,
-        consentConfidentiality: data.consentConfidentiality,
-        consentTerms: data.consentTerms,
-        pricingTierAtApply: activeTier?.tier ?? pricingTiers.find((tier) => tier.isActive)?.tier,
-        utmSource: data.utmSource,
-        utmMedium: data.utmMedium,
-        utmCampaign: data.utmCampaign,
-        utmTerm: data.utmTerm,
-        utmContent: data.utmContent,
-        referrerUrl: data.referrerUrl,
-        landingPage: data.landingPage,
-      },
-    });
-
-    if (resumeBuffer && resumeFile) {
-      await tx.applicationResume.create({
+      const created = await tx.application.create({
         data: {
-          applicationId: created.id,
-          filename: resumeFile.name || "resume.pdf",
-          mimeType: "application/pdf",
-          size: resumeBuffer.length,
-          data: resumeBuffer,
+          userId: user.id,
+          fullName: data.fullName,
+          email: data.email,
+          country: data.country,
+          professionalRole: data.professionalRole,
+          domain: data.domain,
+          phone: data.phone,
+          linkedinUrl: data.linkedinUrl || undefined,
+          aiExperience: data.aiExperience,
+          whyTenXPros: data.whyTenXPros,
+          realProblemBrief: data.realProblemBrief,
+          dataSensitivity: data.dataSensitivity,
+          timeAvailability: data.timeAvailability,
+          preferredLanguage: data.preferredLanguage,
+          consentConfidentiality: data.consentConfidentiality,
+          consentTerms: data.consentTerms,
+          pricingTierAtApply: activeTier?.tier ?? pricingTiers.find((tier) => tier.isActive)?.tier,
+          utmSource: data.utmSource,
+          utmMedium: data.utmMedium,
+          utmCampaign: data.utmCampaign,
+          utmTerm: data.utmTerm,
+          utmContent: data.utmContent,
+          referrerUrl: data.referrerUrl,
+          landingPage: data.landingPage,
         },
       });
-    }
 
-    await tx.siteEvent.create({
-      data: {
-        userId: user.id,
-        eventType: "APPLICATION_SUBMITTED",
-        eventData: { applicationId: created.id, tier: created.pricingTierAtApply },
-        url: data.landingPage,
-        referrer: data.referrerUrl,
-      },
+      if (resumeBuffer && resumeFile) {
+        await tx.applicationResume.create({
+          data: {
+            applicationId: created.id,
+            filename: resumeFile.name || "resume.pdf",
+            mimeType: "application/pdf",
+            size: resumeBuffer.length,
+            data: resumeBuffer,
+          },
+        });
+      }
+
+      await tx.siteEvent.create({
+        data: {
+          userId: user.id,
+          eventType: "APPLICATION_SUBMITTED",
+          eventData: { applicationId: created.id, tier: created.pricingTierAtApply },
+          url: data.landingPage,
+          referrer: data.referrerUrl,
+        },
+      });
+
+      return { kind: "created", application: created } as const;
+    })
+    .catch((error: unknown) => {
+      // Two simultaneous submissions can both observe an unused email/account. The
+      // database uniqueness constraints remain the source of truth; turn the losing
+      // request into the same non-enumerating response rather than a public 500.
+      if (isUniqueConstraintError(error)) return { kind: "blocked-concurrent" } as const;
+      throw error;
     });
 
-    return created;
-  });
+  if (submission.kind === "blocked-concurrent") {
+    // The losing transaction was rolled back, including any event it may have
+    // attempted to append. Record the collision separately without linking the
+    // submitted address to the protected identity. Audit failure must not turn a
+    // safely rejected public request into an account-enumerating server error.
+    await prisma.siteEvent
+      .create({
+        data: {
+          userId: null,
+          eventType: "APPLICATION_SUBMISSION_BLOCKED",
+          eventData: {
+            reason: "CONCURRENT_IDENTITY_OR_APPLICATION_COLLISION",
+            emailHash: createHash("sha256").update(data.email.trim().toLowerCase()).digest("hex"),
+          },
+          url: data.landingPage,
+          referrer: data.referrerUrl,
+        },
+      })
+      .catch(() => undefined);
+    return existingApplicationResult();
+  }
+  if (submission.kind === "blocked") return existingApplicationResult();
+  const { application } = submission;
 
   const receivedEmail = applicationReceivedEmail({
     fullName: application.fullName,

@@ -1,9 +1,12 @@
-import type { Metadata } from "next";
 import { EmptyState, PageHeader } from "@/components/shared/page-shell";
+import { buildPublicMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata = buildPublicMetadata({
   title: "Radar",
-};
+  description:
+    "TenXPro Radar is the post-program signal layer planned for certified alumni of the TenXPros 100-day journey.",
+  path: "/radar",
+});
 
 export default function RadarPage() {
   return (

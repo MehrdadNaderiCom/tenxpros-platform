@@ -104,25 +104,18 @@ describe("telemetry wiring (source inspection)", () => {
     expect(modulePage).toContain("<TelemetryBeacon slug={m.slug} disabled={preview} />");
   });
 
-  it("the audio reader announces played seconds for the beacon (server player AND fallback)", () => {
+  it("the approved audio reader announces played seconds for the beacon", () => {
     // The reader dispatches the beacon's own exported constant, so the event
     // name can never drift between the two files.
     expect(audio).toContain('import { AUDIO_SECOND_EVENT } from "@/components/academy/telemetry-beacon"');
-    expect((audio.match(/new CustomEvent\(AUDIO_SECOND_EVENT\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+    expect((audio.match(/new CustomEvent\(AUDIO_SECOND_EVENT\)/g) ?? []).length).toBeGreaterThanOrEqual(1);
   });
 
-  it("the FALLBACK speech path stays engine-safe (used only until the studio narration is ready)", () => {
-    // Android engines can report the SAME voiceURI for different voices, so the
-    // selection must key on name + lang, never on voiceURI.
-    expect(audio).toContain("function voiceKey");
-    expect(audio).toContain("${v.name}__${v.lang}");
-    expect(audio).not.toContain("vv.voiceURI === voiceURI");
-    // Some engines ignore `voice` unless the utterance lang matches it.
-    expect(audio).toContain("u.lang = v.lang");
-    // A settings change restarts from the current chunk while playing.
-    expect(audio).toContain("if (playing) startFrom(currentChunkRef.current, opts)");
-    // Stale onend events from a cancelled queue cannot corrupt state.
-    expect(audio).toContain("generationRef.current !== gen");
+  it("never substitutes a second device voice for studio narration", () => {
+    expect(audio).not.toContain("speechSynthesis");
+    expect(audio).not.toContain("SpeechSynthesisUtterance");
+    expect(audio).toContain("Retry studio audio");
+    expect(audio).toContain("MAX_MEDIA_RETRY_ATTEMPTS");
   });
 
   it("the superadmin panel shows reading time, exam durations, and the behavior timeline", () => {

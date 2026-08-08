@@ -1,26 +1,16 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { resolveCredentialValidity } from "@/lib/credentials/status";
 import { PrintButton } from "@/components/shared/print-button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  const review = await prisma.certificationReview.findUnique({
-    where: { id: params.id },
-    include: { participant: { include: { user: true } } },
-  });
-  return {
-    title: review?.outcome === "CERTIFIED" ? "Certified TenXPro Certificate" : "Certificate",
-    description: review?.participant.user.name
-      ? `TenXPros certificate for ${review.participant.user.name}.`
-      : "TenXPros certificate.",
-  };
-}
+export const dynamic = "force-dynamic";
 
-export default async function CertificatePage({ params }: { params: { id: string } }) {
+async function getPublicCertificate(id: string) {
   const review = await prisma.certificationReview.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       participant: {
         include: {
@@ -29,13 +19,43 @@ export default async function CertificatePage({ params }: { params: { id: string
       },
     },
   });
-
-  if (!review || review.outcome !== "CERTIFIED") notFound();
-
+  if (!review || review.outcome !== "CERTIFIED") return null;
   const capstoneBadge = review.participant.user.earnedBadges.find(
     (item) => item.badge.slug === "capstone-certified-tenxpro-seal",
   );
-  const participantName = review.participant.user.name ?? review.participant.user.email;
+  if (
+    !capstoneBadge ||
+    !capstoneBadge.isPublic ||
+    resolveCredentialValidity({
+      storedStatus: capstoneBadge.status,
+      expiresAt: capstoneBadge.expiresAt,
+      badgeIsActive: capstoneBadge.badge.isActive,
+      badgeCategory: capstoneBadge.badge.category,
+      contextRef: capstoneBadge.contextRef,
+      certification: { id: review.id, outcome: review.outcome },
+    }) !== "ACTIVE"
+  ) {
+    return null;
+  }
+  return { review, capstoneBadge };
+}
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const certificate = await getPublicCertificate(params.id);
+  if (!certificate) notFound();
+  return {
+    title: "Certified TenXPro Certificate",
+    description: certificate.review.participant.user.name
+      ? `TenXPros certificate for ${certificate.review.participant.user.name}.`
+      : "TenXPros certificate.",
+  };
+}
+
+export default async function CertificatePage({ params }: { params: { id: string } }) {
+  const certificate = await getPublicCertificate(params.id);
+  if (!certificate) notFound();
+  const { review, capstoneBadge } = certificate;
+  const participantName = review.participant.user.name ?? "TenXPro";
 
   return (
     <main className="mx-auto max-w-4xl px-6 py-12 print:max-w-none print:px-0">
@@ -87,7 +107,7 @@ export default async function CertificatePage({ params }: { params: { id: string
           <div className="rounded-md border border-neutral-200 p-4">
             <p className="text-xs uppercase tracking-wide text-slate-500">Verification</p>
             <p className="mt-2 break-all font-medium text-navy-900">
-              {capstoneBadge ? `/verify/${capstoneBadge.verificationCode}` : "Pending badge reference"}
+              {`/verify/${capstoneBadge.verificationCode}`}
             </p>
           </div>
         </div>

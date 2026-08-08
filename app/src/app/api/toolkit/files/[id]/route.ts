@@ -1,5 +1,7 @@
 import { auth } from "@/lib/auth";
+import { requireAdminUser } from "@/lib/authz";
 import { prisma } from "@/lib/prisma";
+import { getSessionPartner } from "@/lib/partner/auth";
 import { isActivePartnerStatus } from "@/lib/partner/status";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +16,19 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   const session = await auth();
   if (!session?.user?.id) return new Response("Unauthorized", { status: 401 });
 
-  const isAdmin = session.user.role === "ADMIN";
-  if (!isAdmin) {
-    const partner = await prisma.partner.findUnique({ where: { userId: session.user.id }, select: { status: true } });
-    if (!partner || !isActivePartnerStatus(partner.status)) return new Response("Forbidden", { status: 403 });
+  let isAdmin = false;
+  if (session.user.role === "ADMIN") {
+    try {
+      await requireAdminUser();
+      isAdmin = true;
+    } catch {
+      return new Response("Forbidden", { status: 403 });
+    }
+  } else {
+    const current = await getSessionPartner();
+    if (!current || !isActivePartnerStatus(current.partner.status)) {
+      return new Response("Forbidden", { status: 403 });
+    }
   }
 
   const file = await prisma.toolkitFile.findUnique({

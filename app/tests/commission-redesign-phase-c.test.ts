@@ -304,14 +304,15 @@ describe("server action wiring (source inspection)", () => {
   });
 
   it("recompute preserves partnerId and weightBp and never writes them back on update", () => {
-    expect(admin).toContain("partnerId: e.partnerId, weightBp: e.weightBp ?? undefined");
+    expect(admin).toContain("partnerId: entry.partnerId");
+    expect(admin).toContain("weightBp: entry.weightBp ?? undefined");
     // The per-entry update sets ONLY amountCents and payableOn (partnerId is not reassigned).
-    expect(admin).toContain("data: { amountCents: result.entries[i].amountCents, payableOn }");
+    expect(admin).toContain("data: { amountCents: result.entries[index].amountCents, payableOn }");
   });
 
   it("recompute feeds per-function settled totals so a partially-settled split cannot overpay", () => {
     expect(admin).toContain("settledByFunction");
-    expect(admin).toContain("groupSettledCents: groupSettled(e)");
+    expect(admin).toContain("groupSettledCents: groupSettled(entry)");
   });
 
   it("Growth Bonus counts distinct new-company domains, collected in window, deduped, no-domain excluded", () => {

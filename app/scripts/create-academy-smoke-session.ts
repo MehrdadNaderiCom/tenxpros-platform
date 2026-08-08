@@ -104,6 +104,8 @@ async function main() {
         email: true,
         name: true,
         role: true,
+        authVersion: true,
+        isActive: true,
       },
     }),
     prisma.partner.findFirst({
@@ -118,7 +120,7 @@ async function main() {
       },
     }),
   ]);
-  if (!admin?.email || !partner) {
+  if (!admin?.email || !admin.isActive || !partner) {
     throw new Error(
       "A superadmin and preview partner are required",
     );
@@ -133,6 +135,7 @@ async function main() {
       email: admin.email,
       name: admin.name,
       role: admin.role,
+      authVersion: admin.authVersion,
     },
   });
   const cookieFile = resolve(

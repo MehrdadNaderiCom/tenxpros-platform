@@ -39,6 +39,116 @@ a {
   color: #1a202c;
 }
 
+/*
+ * Visual chapter boundaries for long Academy lessons. These markers are
+ * attached at runtime to existing lesson nodes; they never alter the stored
+ * HTML or the nth-of-type paths used by narration and reading bookmarks.
+ */
+.academy-chapter-start {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 3.5rem !important;
+  padding-top: 1.75rem;
+  scroll-margin-block-start: 7rem;
+}
+
+.academy-chapter-start[data-academy-chapter-index="0"] {
+  border-top: 0;
+  margin-top: 0 !important;
+  padding-top: 0;
+}
+
+.academy-chapter-start::before {
+  content: attr(data-academy-chapter-heading);
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-bottom: 0.75rem;
+  border-radius: 9999px;
+  background: #fbf7ea;
+  color: #7c6230;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25rem;
+  padding: 0.25rem 0.75rem;
+}
+
+.academy-chapter-start:focus-visible {
+  outline: 2px solid #2e75b6;
+  outline-offset: 0.5rem;
+}
+
+/*
+ * Read-along passage marker. The logical start rail is a second, non-color
+ * signal; the warm wash never reduces the original text contrast.
+ */
+.academy-audio-section {
+  border-radius: 0.5rem;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgb(183 139 46 / 0.16);
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.academy-audio-section:not(.academy-narration-active):hover {
+  background-color: rgb(248 239 211 / 0.34);
+  box-shadow: 0 0 0 4px rgb(183 139 46 / 0.07);
+}
+
+.academy-audio-section:not(.academy-narration-active):active {
+  background-color: rgb(248 239 211 / 0.52);
+}
+
+.academy-narration-active,
+.academy-lesson .academy-narration-active {
+  position: relative;
+  border-inline-start: 4px solid #b78b2e;
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(248 239 211 / 0.92),
+      rgb(255 251 235 / 0.62)
+    );
+  box-shadow:
+    0 0 0 1px rgb(183 139 46 / 0.16),
+    0 8px 24px rgb(27 43 68 / 0.06);
+  margin-inline: -0.75rem;
+  padding-inline: calc(0.75rem - 4px) 0.75rem;
+  scroll-margin-block: 24vh;
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.academy-narration-active[data-narration-state="paused"],
+.academy-lesson
+  .academy-narration-active[data-narration-state="paused"] {
+  border-inline-start-style: dashed;
+  background:
+    linear-gradient(
+      90deg,
+      rgb(248 239 211 / 0.62),
+      rgb(255 251 235 / 0.36)
+    );
+  box-shadow: 0 0 0 1px rgb(183 139 46 / 0.12);
+}
+
+tr.academy-narration-active {
+  outline: 2px solid rgb(183 139 46 / 0.7);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .academy-audio-section,
+  .academy-narration-active {
+    transition: none;
+  }
+}
+
 @media print {
   body {
     background: #fff;

@@ -6,6 +6,8 @@ import { Check } from "lucide-react";
 import { ExercisePlayer } from "@/components/academy/exercise-player";
 import type { ExerciseAttemptResult } from "@/lib/actions/academy";
 import { ButtonLink } from "@/components/ui/button";
+import type { AcademyChapterExerciseGroup } from "@/lib/academy/chapter-plans";
+import { cn } from "@/lib/utils";
 
 /**
  * The module's exercise list plus a live "go to the exam" call to action. The
@@ -22,6 +24,7 @@ export function ExerciseSection({
   examCooldownUntilLabel,
   questions,
   initialCompletedIds,
+  groups = null,
 }: {
   slug: string;
   lessonRead: boolean;
@@ -30,10 +33,33 @@ export function ExerciseSection({
   examCooldownUntilLabel: string | null;
   questions: { id: string; stem: string; options: string[] }[];
   initialCompletedIds: string[];
+  groups?: readonly AcademyChapterExerciseGroup[] | null;
 }) {
   const router = useRouter();
   const [completedIds, setCompletedIds] = useState<ReadonlySet<string>>(new Set(initialCompletedIds));
   const allDone = questions.length > 0 && questions.every((q) => completedIds.has(q.id));
+
+  const questionById = new Map(
+    questions.map((question) => [question.id, question]),
+  );
+  const groupedQuestions = groups?.map((group) => ({
+    ...group,
+    questions: group.questionIds.flatMap((id) => {
+      const question = questionById.get(id);
+      return question ? [question] : [];
+    }),
+  }));
+  const groupedIds = groupedQuestions?.flatMap((group) =>
+    group.questions.map((question) => question.id),
+  );
+  const hasCompleteGrouping = Boolean(
+    groupedQuestions &&
+      groupedQuestions.length > 0 &&
+      groupedQuestions.every((group) => group.questions.length > 0) &&
+      groupedIds &&
+      groupedIds.length === questions.length &&
+      new Set(groupedIds).size === questions.length,
+  );
 
   const handleCompleted = (questionId: string, result: ExerciseAttemptResult) => {
     setCompletedIds((prev) => {
@@ -46,17 +72,117 @@ export function ExerciseSection({
     if (result.moduleExercisesDone) router.refresh();
   };
 
+  const reviewChapter = (anchorId: string) => {
+    const target = document.getElementById(anchorId);
+    if (!target) return;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({
+      block: "start",
+      inline: "nearest",
+      behavior: window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches
+        ? "auto"
+        : "smooth",
+    });
+  };
+
+  let displayIndex = 0;
+
   return (
     <div className="space-y-4">
-      {questions.map((q, i) => (
-        <ExercisePlayer
-          key={q.id}
-          index={i + 1}
-          question={q}
-          initialCompleted={completedIds.has(q.id)}
-          onCompleted={(result) => handleCompleted(q.id, result)}
-        />
-      ))}
+      {hasCompleteGrouping && groupedQuestions ? (
+        <div className="space-y-8">
+          {groupedQuestions.map((group) => {
+            const completedCount = group.questions.filter(
+              (question) => completedIds.has(question.id),
+            ).length;
+            const groupDone =
+              completedCount === group.questions.length;
+            return (
+              <section
+                key={group.id}
+                className="space-y-3"
+                aria-labelledby={`academy-review-${group.id}`}
+              >
+                <div
+                  className={cn(
+                    "rounded-lg border p-4",
+                    groupDone
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-neutral-200 bg-neutral-50",
+                  )}
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-navy-700">
+                        Part {group.number} review
+                      </p>
+                      <h3
+                        id={`academy-review-${group.id}`}
+                        className="mt-1 text-base font-semibold text-navy-900"
+                      >
+                        {group.title}
+                      </h3>
+                      <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-600">
+                        {group.summary}
+                      </p>
+                    </div>
+                    <span
+                      className={cn(
+                        "inline-flex rounded-full px-2.5 py-1 text-xs font-medium",
+                        groupDone
+                          ? "bg-white text-emerald-700"
+                          : "bg-white text-slate-600",
+                      )}
+                      role="status"
+                    >
+                      {groupDone
+                        ? "Review complete"
+                        : `${completedCount} of ${group.questions.length} complete`}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      reviewChapter(group.chapterAnchorId)
+                    }
+                    className="mt-3 text-xs font-semibold text-navy-700 underline decoration-navy-100 underline-offset-4 hover:text-navy-900 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2"
+                  >
+                    Review this part in the lesson
+                  </button>
+                </div>
+                {group.questions.map((question) => {
+                  displayIndex += 1;
+                  return (
+                    <ExercisePlayer
+                      key={question.id}
+                      index={displayIndex}
+                      question={question}
+                      initialCompleted={completedIds.has(
+                        question.id,
+                      )}
+                      onCompleted={(result) =>
+                        handleCompleted(question.id, result)
+                      }
+                    />
+                  );
+                })}
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        questions.map((q, i) => (
+          <ExercisePlayer
+            key={q.id}
+            index={i + 1}
+            question={q}
+            initialCompleted={completedIds.has(q.id)}
+            onCompleted={(result) => handleCompleted(q.id, result)}
+          />
+        ))
+      )}
 
       {allDone && !examPassed ? (
         <div

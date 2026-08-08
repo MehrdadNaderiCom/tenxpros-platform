@@ -152,7 +152,7 @@ const SIGNALS = [
   "The workflow is usable",
   "Value is shown with evidence",
   "Governance and confidentiality are respected",
-  "A realistic 90-day roadmap exists",
+  "A realistic 100-day roadmap exists",
 ];
 
 export function CertSignals() {
@@ -667,7 +667,7 @@ export function CertPath() {
 
 /* ------------------------------------------------------------------- 9. FAQ */
 
-const FAQS: Array<[string, string]> = [
+export const CERTIFICATION_FAQS: ReadonlyArray<readonly [string, string]> = [
   ["What makes the credential credible?", "Transparent work: a reviewed artifact, published criteria, clear outcomes, and a verifiable badge. Anyone can see the standard before and after."],
   ["What does the reviewer check?", "Your dossier is assessed against the eight public criteria: problem clarity, risk and boundaries, prioritization, evaluation, usability, value evidence, governance, and roadmap realism."],
   ["What if my dossier is not certified on the first review?", "You receive specific revisions (a “Strong Draft” outcome) and can revise toward the standard. Review is part of the program, not a one-shot exam."],
@@ -690,7 +690,7 @@ export function CertFaq() {
         </h2>
       </div>
       <div className="mt-10 overflow-hidden rounded-xl border border-white/10">
-        {FAQS.map(([q, a]) => (
+        {CERTIFICATION_FAQS.map(([q, a]) => (
           <details key={q} className="group border-b border-white/10 last:border-0 [&_summary::-webkit-details-marker]:hidden">
             <summary className="flex cursor-pointer items-center justify-between gap-4 bg-[#0B1120] px-5 py-4 text-[0.95rem] font-medium text-white transition hover:bg-[#0E1424] sm:px-7">
               {q}
